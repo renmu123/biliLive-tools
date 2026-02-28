@@ -117,3 +117,39 @@ export function replaceExtName(filePath: string, newExtName: string) {
     window.path.basename(filePath, window.path.extname(filePath)) + newExtName,
   );
 }
+
+/**
+ * 生成有辨识度的颜色
+ * 使用 HSL 色彩空间,固定饱和度和亮度,通过黄金角度分割色相环
+ */
+export const generateDistinctColor = (index: number, active = true): string => {
+  const goldenRatio = 0.618033988749895;
+  const hue = (index * goldenRatio * 360) % 360;
+  let saturation = 65; // 饱和度 65%
+  let lightness = 60; // 亮度 60%
+  let alpha = 0.5; // 透明度
+  if (!active) {
+    saturation = 30;
+    lightness = 50;
+    alpha = 0.35;
+  }
+  return `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
+};
+
+/**
+ * 根据平台和房间ID构建房间链接
+ * @param platform
+ * @param roomId
+ * @returns
+ */
+export function buildRoomLink(platform: string, roomId: string): string | null {
+  const platformLower = platform.toLowerCase();
+  const platformRoomLinkMap: Record<string, (roomId: string) => string> = {
+    bilibili: (id: string) => `https://live.bilibili.com/${id}`,
+    huya: (id: string) => `https://www.huya.com/${id}`,
+    douyu: (id: string) => `https://www.douyu.com/${id}`,
+    douyin: (id: string) => `https://live.douyin.com/${id}`,
+  };
+  const link = platformRoomLinkMap[platformLower]?.(roomId);
+  return link ?? null;
+}

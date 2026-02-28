@@ -2,10 +2,10 @@ import path from "node:path";
 import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
+import { DEFAULT_USER_AGENT } from "./index.js";
 import { StreamManager, getMesioPath } from "../index.js";
 import { IDownloader, MesioRecorderOptions, Segment } from "./IDownloader.js";
 
-// Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {
   private _input: string = "";
   private _output: string = "";
@@ -62,6 +62,7 @@ class MesioCommand extends EventEmitter {
 
     this.process = spawn(mesioExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
     });
 
     if (this.process.stdout) {
@@ -93,9 +94,10 @@ class MesioCommand extends EventEmitter {
     });
   }
 
-  kill(signal: NodeJS.Signals = "SIGTERM"): void {
+  kill(): void {
     if (this.process) {
-      this.process.kill(signal);
+      this.process.stdin?.write("q");
+      this.process.stdin?.end();
     }
   }
 }
@@ -113,6 +115,7 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
   readonly segment: Segment;
   readonly inputOptions: string[] = [];
+  readonly disableDanma: boolean = false;
   readonly url: string;
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
   readonly headers:
@@ -130,6 +133,7 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
     // 存在自动分段，永远为true
     const hasSegment = true;
     this.hasSegment = hasSegment;
+    this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
 
     let videoFormat: "flv" | "ts" | "m4s" = "flv";
@@ -144,14 +148,24 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
       videoFormat = "flv";
     }
 
-    this.streamManager = new StreamManager(opts.getSavePath, hasSegment, "mesio", videoFormat, {
-      onUpdateLiveInfo: this.onUpdateLiveInfo,
-    });
+    this.streamManager = new StreamManager(
+      opts.getSavePath,
+      hasSegment,
+      this.disableDanma,
+      "mesio",
+      videoFormat,
+      {
+        onUpdateLiveInfo: this.onUpdateLiveInfo,
+      },
+    );
     this.getSavePath = opts.getSavePath;
     this.inputOptions = [];
     this.url = opts.url;
     this.segment = opts.segment;
-    this.headers = opts.headers;
+    this.headers = {
+      "User-Agent": DEFAULT_USER_AGENT,
+      ...(opts.headers || {}),
+    };
 
     this.command = this.createCommand();
 
@@ -167,13 +181,7 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
   }
 
   createCommand() {
-    const inputOptions = [
-      ...this.inputOptions,
-      "--fix",
-      "-H",
-      "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
-      "--no-proxy",
-    ];
+    const inputOptions = [...this.inputOptions, "--fix", "--no-proxy"];
     if (this.debugLevel === "verbose") {
       inputOptions.push("-v");
     }
@@ -216,9 +224,8 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
 
   public async stop() {
     try {
-      // 直接发送SIGINT信号，会导致数据丢失
-      this.command.kill("SIGINT");
-
+      this.command.kill();
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       await this.streamManager.handleVideoCompleted();
     } catch (err) {
       this.emit("DebugLog", { type: "error", text: String(err) });
@@ -231,5 +238,9 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
 
   public get videoFilePath() {
     return this.streamManager.videoFilePath;
+  }
+
+  public cut(): void {
+    throw new Error("Mesio downloader does not support cut operation.");
   }
 }

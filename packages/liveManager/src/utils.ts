@@ -148,9 +148,10 @@ export function formatDate(date: Date, format: string): string {
     HH: date.getHours().toString().padStart(2, "0"),
     mm: date.getMinutes().toString().padStart(2, "0"),
     ss: date.getSeconds().toString().padStart(2, "0"),
+    SSS: date.getMilliseconds().toString().padStart(3, "0"),
   };
 
-  return format.replace(/yyyy|MM|dd|HH|mm|ss/g, (matched) => map[matched]);
+  return format.replace(/yyyy|MM|dd|HH|mm|ss|SSS/g, (matched) => map[matched]);
 }
 
 export function removeSystemReservedChars(str: string) {
@@ -219,7 +220,7 @@ export const formatTemplate = function template(string: string, ...args: any[]) 
  * "receive invalid aac stream": ADTS无法被解析的flv流
  * "invalid stream": 一段时间内帧数不变
  */
-export function createInvalidStreamChecker(
+export function createFFmpegInvalidStreamChecker(
   count: number = 15,
 ): (ffmpegLogLine: string) => [boolean, string] {
   let prevFrame = 0;
@@ -439,9 +440,39 @@ export function shouldUseStrictQuality(
 
 /**
  * 检查标题是否包含黑名单关键词
+ * @param title 直播间标题
+ * @param titleKeywords 关键词配置，支持两种格式：
+ *   1. 逗号分隔的关键词：'关键词1,关键词2,关键词3'
+ *   2. 正则表达式：'/pattern/flags'（如：'/回放|录播/i'）
+ * @returns 如果标题包含关键词返回 true，否则返回 false
  */
 function hasBlockedTitleKeywords(title: string, titleKeywords: string | undefined): boolean {
-  const keywords = (titleKeywords ?? "")
+  if (!titleKeywords || !titleKeywords.trim()) {
+    return false;
+  }
+
+  const trimmedKeywords = titleKeywords.trim();
+
+  // 检测是否为正则表达式格式 /pattern/flags
+  const regexMatch = trimmedKeywords.match(/^\/(.+?)\/([gimsuvy]*)$/);
+
+  if (regexMatch) {
+    try {
+      const [, pattern, flags] = regexMatch;
+      const regex = new RegExp(pattern, flags);
+      return regex.test(title);
+    } catch (error) {
+      // 正则表达式无效，降级到普通匹配，并记录日志
+      console.warn(
+        `Invalid regex pattern: ${trimmedKeywords}, falling back to normal matching`,
+        error,
+      );
+      // 继续使用普通匹配逻辑
+    }
+  }
+
+  // 普通关键词匹配（逗号分隔）
+  const keywords = trimmedKeywords
     .split(",")
     .map((k) => k.trim())
     .filter((k) => k);
@@ -595,7 +626,7 @@ export default {
   assertObjectType,
   asyncThrottle,
   isFfmpegStartSegment,
-  createInvalidStreamChecker,
+  createFFmpegInvalidStreamChecker,
   createTimeoutChecker,
   downloadImage,
   md5,

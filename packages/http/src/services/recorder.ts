@@ -1,7 +1,7 @@
 import axios from "axios";
 import { v4 as uuid } from "uuid";
 import { container } from "../index.js";
-import { omit, pick, isEmpty } from "lodash-es";
+import { omit, pick, isEmpty, cloneDeep } from "lodash-es";
 import recordHistory from "@biliLive-tools/shared/recorder/recordHistory.js";
 import logger from "@biliLive-tools/shared/utils/log.js";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
@@ -62,6 +62,11 @@ async function getRecorders(
       } else {
         comparison = aIsManual ? 1 : -1;
       }
+    } else if (params.sortField === "recordTime") {
+      // 按最后录制时间排序
+      const aTime = a.extra?.lastRecordTime ?? 0;
+      const bTime = b.extra?.lastRecordTime ?? 0;
+      comparison = aTime === bTime ? 0 : aTime > bTime ? 1 : -1;
     }
 
     return sortDirection === "asc" ? -comparison : comparison;
@@ -104,6 +109,21 @@ async function getRecorders(
       pageSize,
     },
   };
+}
+
+/**
+ * 正在录制中直播间数量
+ * @param recording 是否只计算正在录制的直播间，默认为true
+ * @returns
+ */
+function getRecorderNum(recording): number {
+  const recorderManager = container.resolve("recorderManager");
+  const recorders = recorderManager.manager.recorders;
+  if (recording) {
+    return recorders.filter((recorder) => recorder.recordHandle != null).length;
+  } else {
+    return recorders.length;
+  }
 }
 
 function getRecorder(
@@ -281,7 +301,7 @@ export async function resolve(url: string) {
   }
 
   // 根据平台初始化配置
-  const config = defaultRecordConfig;
+  const config = cloneDeep(defaultRecordConfig);
   config.channelId = channelInfo.channelId;
   config.providerId = channelInfo.providerId as any;
   config.remarks = channelInfo.owner;
@@ -374,6 +394,7 @@ export async function getLiveInfo(ids: string[]) {
 
 export default {
   getRecorders,
+  getRecorderNum,
   getRecorder,
   addRecorder,
   updateRecorder,

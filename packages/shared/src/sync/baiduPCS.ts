@@ -101,7 +101,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
    */
   public isLoggedIn(): boolean {
     try {
-      const output = execSync(`${this.binary} who`, { encoding: "utf8" });
+      const output = execSync(`${this.binary} who`, { encoding: "utf8", windowsHide: true });
       return !output.includes("uid: 0");
     } catch (error) {
       return false;
@@ -115,7 +115,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
    */
   private async executeCommand(args: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
-      this.cmd = spawn(this.binary, args);
+      this.cmd = spawn(this.binary, args, { windowsHide: true });
       let stdout = "";
       let stderr = "";
 
@@ -169,7 +169,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
    */
   private async executeUploadCommand(args: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
-      this.uploadCmd = spawn(this.binary, args);
+      this.uploadCmd = spawn(this.binary, args, { windowsHide: true });
       let stdout = "";
       let stderr = "";
 

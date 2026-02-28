@@ -237,24 +237,24 @@ export const biliStreamFormatOptions = [
     value: "flv",
   },
   {
-    label: "优先hls(ts)",
-    value: "hls",
-  },
-  {
     label: "优先hls(fmp4)",
     value: "fmp4",
+  },
+  {
+    label: "优先hls(ts)",
+    value: "hls",
   },
   {
     label: "强制flv",
     value: "flv_only",
   },
   {
-    label: "强制hls(ts)",
-    value: "hls_only",
-  },
-  {
     label: "强制hls(fmp4)",
     value: "fmp4_only",
+  },
+  {
+    label: "强制hls(ts)",
+    value: "hls_only",
   },
 ];
 
@@ -371,6 +371,13 @@ export const douyinApiTypeOptions = [
   { label: "测试：负载均衡", value: "balance" },
 ];
 
+export const huyaApiTypeOptions = [
+  { label: "自动", value: "auto" },
+  { label: "web", value: "web" },
+  { label: "mp", value: "mp" },
+  { label: "wup", value: "wup" },
+];
+
 const qualityRetry = {
   text: "流匹配重试次数",
   tip: "根据次数强制查询匹配画质及其他强制参数，在未选择原画的情况下，可能会导致开头漏录。匹配次数结束后如果无法匹配对应画质时会自动选择其他画质，-1为强制匹配",
@@ -390,6 +397,11 @@ export const textInfo = {
       text: "录制器",
       tip: "影响最底层的录制，自动选择默认使用ffmpeg。\n如果使用ffmpeg经常出现问题，如时间戳跳变，卡顿，音画不同步等，可以尝试切换mesio或录播姬引擎，录播姬引擎不支持只录制音频<b>目前仅推荐小规模测试使用</b>",
     },
+    titleKeywords: {
+      text: "禁止标题关键词",
+      tip: "如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，或者使用正则表达式（如：/回放|录播/i），录制中的直播隔约每五分钟会查询接口检查，手动录制的不会被影响",
+      placeholder: "例如：回放,录播,重播 或 /回放|录播/i",
+    },
   },
   bili: {
     uid: {
@@ -400,11 +412,15 @@ export const textInfo = {
       text: "避免hls自动分段",
       tip: "由于B站hls流存在过期时间，ffmpeg命令行无法处理导致会被一小时强制分段，通过本地代理可以避免分段，但是会增加网络请求以及可能的不稳定性",
     },
+    customHost: {
+      text: "自定义Host",
+      tip: "用于替换直播流链接中的host，用于使用自定义CDN或代理服务器，留空则使用B站原始host，此参数不存在校验，请自行注意可用性，可参考 https://rec.danmuji.org/dev/cdn-info/ 文档",
+    },
     quality: quality,
     qualityRetry: qualityRetry,
     formatName: {
       text: "流格式",
-      tip: "默认优先flv模式，其次ts，最后为fmp4，fmp4模式挺容易碎成一堆，我也不知道为什么",
+      tip: "默认优先flv模式，其fmp4，最后为ts",
     },
     codecName: {
       text: "流编码",
@@ -418,6 +434,10 @@ export const textInfo = {
   huya: {
     qualityRetry: qualityRetry,
     quality: quality,
+    api: {
+      text: "请求接口",
+      tip: `为了星秀区而增加的参数，具体自己看文档吧~`,
+    },
   },
   douyin: {
     qualityRetry: qualityRetry,

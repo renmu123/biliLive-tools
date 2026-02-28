@@ -141,7 +141,7 @@ const hanleChannelURL = (platform: string, roomId: string) => {
 }
 
 // 添加暗黑模式支持
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] & {
   .card {
     background-color: #1e1e1e;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);

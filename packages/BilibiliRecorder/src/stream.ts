@@ -146,13 +146,13 @@ async function getLiveInfo(
     },
     {
       protocol_name: "http_hls",
-      format_name: "ts",
+      format_name: "fmp4",
       codec_name: "avc",
       sort: 8,
     },
     {
       protocol_name: "http_hls",
-      format_name: "fmp4",
+      format_name: "ts",
       codec_name: "avc",
       sort: 7,
     },
@@ -164,13 +164,13 @@ async function getLiveInfo(
     },
     {
       protocol_name: "http_hls",
-      format_name: "ts",
+      format_name: "fmp4",
       codec_name: "hevc",
       sort: 5,
     },
     {
       protocol_name: "http_hls",
-      format_name: "fmp4",
+      format_name: "ts",
       codec_name: "hevc",
       sort: 4,
     },
@@ -224,6 +224,7 @@ async function getLiveInfo(
     codec_name: string;
     qn: number;
   };
+  // console.log("conditons", JSON.stringify(res.playurl_info.playurl.stream, null, 2));
   for (const condition of conditons) {
     const streamList = res.playurl_info.playurl.stream
       .find(({ protocol_name }) => protocol_name === condition.protocol_name)
@@ -231,7 +232,7 @@ async function getLiveInfo(
       ?.codec.filter(({ codec_name }) => codec_name === condition.codec_name);
 
     if (streamList && streamList.length > 1) {
-      // 由于录播姬直推hevc时，指定qn，服务端仍会返回其他画质的流，这里需要指定找一下流
+      // 由于直播姬直推hevc时，指定qn，服务端仍会返回其他画质的流，这里需要指定找一下流
       streamInfo = streamList.find((item) => item.current_qn === opts.qn);
     }
 
@@ -286,6 +287,7 @@ export async function getStream(
     formatName: RecorderCreateOpts["formatName"];
     codecName: RecorderCreateOpts["codecName"];
     onlyAudio?: boolean;
+    customHost?: string;
   },
 ) {
   const roomId = Number(opts.channelId);
@@ -325,12 +327,15 @@ export async function getStream(
     throw new Error("Can not get expect source");
   }
 
+  const host = opts.customHost ? `https://${opts.customHost}` : expectSource.host;
+  const url = host + liveInfo.base_url + expectSource.extra;
+
   return {
     ...liveInfo,
     currentStream: {
       name: liveInfo.name,
       source: expectSource.name,
-      url: expectSource.host + liveInfo.base_url + expectSource.extra,
+      url: url,
     },
   };
 }

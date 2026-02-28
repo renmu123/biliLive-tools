@@ -1,11 +1,10 @@
 import Router from "@koa/router";
-import { v4 as uuid } from "uuid";
 import { omit } from "lodash-es";
 
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { TvQrcodeLogin } from "@renmu/bili-api";
-
-import type { BiliupConfig } from "@biliLive-tools/types";
+import { formatTitle, formatPartTitle, uuid } from "@biliLive-tools/shared/utils/index.js";
+import type { BiliupConfig, PartTitleFormatOptions } from "@biliLive-tools/types";
 
 const router = new Router({
   prefix: "/bili",
@@ -226,6 +225,38 @@ router.get("/login/poll", async (ctx) => {
   }
 
   ctx.body = omit(loginInfo, ["client"]);
+});
+
+router.post("/formatTitle", async (ctx) => {
+  const data = ctx.request.body as {
+    template: string;
+    options?: any;
+  };
+  const template = (data.template || "") as string;
+
+  const title = formatTitle(data.options, template);
+  ctx.body = title;
+});
+
+router.post("/formatPartTitle", async (ctx) => {
+  const data = ctx.request.body as {
+    template: string;
+    options?: PartTitleFormatOptions;
+  };
+  const template = (data.template || "") as string;
+
+  const title = formatPartTitle(
+    data.options ?? {
+      title: "标题",
+      username: "主播名",
+      time: new Date().toISOString(),
+      roomId: 123456,
+      filename: "文件名",
+      index: 1,
+    },
+    template,
+  );
+  ctx.body = title;
 });
 
 export default router;

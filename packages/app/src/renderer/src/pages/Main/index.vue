@@ -356,7 +356,7 @@ const menuOptions = computed<MenuOption[]>(() => {
               name: "Home",
             },
           },
-          { default: () => "主页" },
+          { default: () => "压制" },
         ),
       key: "Home",
       icon: renderIcon(HomeIcon),
@@ -515,9 +515,6 @@ initChanglog();
 .footer-menu {
   position: relative;
   z-index: 10;
-  background: white;
-  @media screen and (prefers-color-scheme: dark) {
-    background: #18181c;
-  }
+  background: var(--bg-primary);
 }
 </style>

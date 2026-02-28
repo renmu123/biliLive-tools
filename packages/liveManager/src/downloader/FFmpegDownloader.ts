@@ -1,10 +1,10 @@
 import EventEmitter from "node:events";
 
 import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
-import { createInvalidStreamChecker, assert } from "../utils.js";
+import { createFFmpegInvalidStreamChecker, assert } from "../utils.js";
 import { IDownloader, FFMPEGRecorderOptions, Segment } from "./IDownloader.js";
 
-import { FormatName } from "./index.js";
+import { FormatName, DEFAULT_USER_AGENT } from "./index.js";
 import type { VideoFormat } from "../index.js";
 
 export class FFmpegDownloader extends EventEmitter implements IDownloader {
@@ -18,6 +18,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
   ffmpegOutputOptions: string[] = [];
   readonly inputOptions: string[] = [];
   readonly isHls: boolean;
+  readonly disableDanma: boolean = false;
   readonly url: string;
   formatName: FormatName;
   videoFormat: VideoFormat;
@@ -62,9 +63,11 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
     }
     this.videoFormat = videoFormat;
 
+    this.disableDanma = opts.disableDanma ?? false;
     this.streamManager = new StreamManager(
       opts.getSavePath,
       this.hasSegment,
+      this.disableDanma,
       "ffmpeg",
       this.videoFormat,
       {
@@ -98,11 +101,11 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
   createCommand() {
     this.timeoutChecker?.start();
     const invalidCount = this.isHls ? 35 : 18;
-    const isInvalidStream = createInvalidStreamChecker(invalidCount);
+    const isInvalidStream = createFFmpegInvalidStreamChecker(invalidCount);
     const inputOptions = [
       ...this.inputOptions,
       "-user_agent",
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
+      this.headers?.["User-Agent"] ?? DEFAULT_USER_AGENT,
     ];
     if (this.isHls) {
       inputOptions.push(
@@ -115,7 +118,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
     if (this.headers) {
       const headers: string[] = [];
       Object.entries(this.headers).forEach(([key, value]) => {
-        if (!value) return;
+        if (!value || key === "User-Agent") return; // User-Agent单独处理
         headers.push(`${key}:${value}`);
       });
       if (headers.length) {
@@ -228,5 +231,9 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
 
   public get videoFilePath() {
     return this.streamManager.videoFilePath;
+  }
+
+  public cut() {
+    throw new Error("FFmpeg downloader does not support cut operation.");
   }
 }

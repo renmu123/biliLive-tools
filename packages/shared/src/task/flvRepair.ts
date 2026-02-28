@@ -15,6 +15,10 @@ export async function flvRepair(
     savePath?: string;
   },
 ) {
+  // 如果不是flv，直接报错
+  if (path.extname(input).toLowerCase() !== ".flv") {
+    throw new Error("Only FLV files are supported for repair.");
+  }
   const options = Object.assign(
     {
       type: "bililive",
@@ -110,6 +114,7 @@ export class MesioCommand extends EventEmitter {
 
     this.process = spawn(mesioExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
     });
 
     if (this.process.stdout) {
@@ -205,6 +210,7 @@ export class BililiveRecorderCommand extends EventEmitter {
 
     this.process = spawn(bililiveExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
     });
 
     if (this.process.stdout) {

@@ -14,29 +14,38 @@
           <div class="recording"></div>
           <span class="source">{{ item.usedSource }}</span>
           <span class="line">{{ item.usedStream }}</span>
-          <span>{{ formatTime(item?.recordHandle?.progress?.time) }}</span>
+          <span>{{ formatProgress(item?.recordHandle?.progress?.time) }}</span>
         </div>
+        <template v-else>
+          <div
+            v-if="item?.extra?.lastRecordTime && isColumnVisible('lastRecordTime')"
+            class="recording-container"
+          >
+            <span>最近录制时间：{{ formatTime(item.extra.lastRecordTime) }}</span>
+          </div>
+        </template>
       </div>
       <div class="content">
         <img class="avatar" :src="item.avatar" referrerpolicy="no-referrer" />
         <div style="display: flex; flex-direction: column; justify-content: space-between">
           <div style="display: flex; gap: 5px; align-items: center">
             <div class="owner" :title="item.remarks">{{ item.owner || item.remarks }}</div>
-            <n-icon v-if="item.living" size="20" title="直播中">
-              <Live24Regular style="color: gray" />
+            <n-icon v-if="item.living" size="20" title="直播中" class="icon-muted">
+              <Live24Regular />
             </n-icon>
-            <n-icon v-if="!item.disableAutoCheck" size="20" title="自动录制">
-              <AccessTime24Regular style="color: gray" />
+            <n-icon v-if="!item.disableAutoCheck" size="20" title="自动录制" class="icon-muted">
+              <AccessTime24Regular />
             </n-icon>
-            <n-icon v-if="item.onlyAudio" size="20" title="仅录制音频">
-              <AudiotrackRound style="color: gray" />
+            <n-icon v-if="item.onlyAudio" size="20" title="仅录制音频" class="icon-muted">
+              <AudiotrackRound />
             </n-icon>
             <n-icon
               v-if="item.tempStopIntervalCheck && !item.disableAutoCheck"
               size="20"
               title="跳过本场直播"
+              class="icon-muted"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="color: gray">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <g fill="none">
                   <!-- 保持原有外圈 -->
                   <path
@@ -53,7 +62,7 @@
           </div>
           <div class="tags">
             <a class="link tag channel" target="_blank" :href="item.channelURL" title="点击可访问">
-              {{ item.providerId }}: {{ item.channelId }}</a
+              {{ item.providerId }}</a
             >
             <span
               class="tag state"
@@ -82,21 +91,32 @@
 </template>
 
 <script setup lang="ts">
+import { formatTime } from "@renderer/utils";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 import { Live24Regular, AccessTime24Regular } from "@vicons/fluent";
 import { AudiotrackRound } from "@vicons/material";
 
 interface Props {
   list: any[];
+  visibleColumns?: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
   list: () => [],
+  visibleColumns: () => [],
 });
+
+// 检查列是否可见
+const isColumnVisible = (columnKey: string) => {
+  if (!props.visibleColumns || props.visibleColumns.length === 0) {
+    return true; // 如果没有配置，则显示所有列
+  }
+  return props.visibleColumns.includes(columnKey);
+};
 
 const list = computed(() => props.list);
 
-function formatTime(time?: string) {
+function formatProgress(time?: string) {
   if (!time) return "";
   return time.split(".")[0];
 }
@@ -161,7 +181,7 @@ const stateMap = {
       align-items: center;
       box-sizing: border-box;
       color: white;
-      background-color: rgba(0, 0, 0, 0.7);
+      background-color: rgba(0, 0, 0, 0.6);
       padding: 4px 8px;
       position: absolute;
       width: 100%;
@@ -208,13 +228,14 @@ const stateMap = {
     position: absolute;
     bottom: 5px;
     right: 10px;
-    color: rgb(51, 54, 57);
-
-    @media screen and (prefers-color-scheme: dark) {
-      color: white;
-    }
+    color: var(--text-secondary);
   }
 }
+
+.icon-muted {
+  color: var(--text-muted);
+}
+
 .link {
   text-decoration: none;
   color: inherit;
@@ -246,7 +267,7 @@ const stateMap = {
       }
     }
 
-    @media screen and (prefers-color-scheme: dark) {
+    [data-theme="dark"] & {
       &.channel {
         background-color: #111d2c;
         color: #59adf1;

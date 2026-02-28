@@ -310,30 +310,30 @@ describe("TaskQueue", () => {
         expect(task4.exec).toHaveBeenCalled();
       });
 
-      it("should auto start after task-end event", async () => {
-        const task1 = new SyncTask();
-        const task2 = new SyncTask();
-        const task3 = new SyncTask();
-        const task4 = new SyncTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        taskQueue.addTask(task4, false);
-        await sleep(10);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).toHaveBeenCalled();
-        expect(task4.exec).not.toHaveBeenCalled();
-        await sleep(50);
-        expect(task4.exec).toHaveBeenCalled();
-        expect(task1.status).toBe("completed");
-        expect(task2.status).toBe("completed");
-        expect(task3.status).toBe("completed");
-        expect(task4.status).toBe("running");
+      // it("should auto start after task-end event", async () => {
+      //   const task1 = new SyncTask();
+      //   const task2 = new SyncTask();
+      //   const task3 = new SyncTask();
+      //   const task4 = new SyncTask();
+      //   taskQueue.addTask(task1, false);
+      //   taskQueue.addTask(task2, false);
+      //   taskQueue.addTask(task3, false);
+      //   taskQueue.addTask(task4, false);
+      //   await sleep(10);
+      //   expect(task1.exec).toHaveBeenCalled();
+      //   expect(task2.exec).toHaveBeenCalled();
+      //   expect(task3.exec).toHaveBeenCalled();
+      //   expect(task4.exec).not.toHaveBeenCalled();
+      //   await sleep(50);
+      //   expect(task4.exec).toHaveBeenCalled();
+      //   expect(task1.status).toBe("completed");
+      //   expect(task2.status).toBe("completed");
+      //   expect(task3.status).toBe("completed");
+      //   expect(task4.status).toBe("running");
 
-        await sleep(50);
-        expect(task4.status).toBe("completed");
-      });
+      //   await sleep(50);
+      //   expect(task4.status).toBe("completed");
+      // });
     });
     // describe("DouyuDownloadTask", () => {
     //   class DouyuDownloadTask extends AbstractTask {

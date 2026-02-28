@@ -135,7 +135,7 @@ export async function analyzeResolutionChanges(filePath: string): Promise<Resolu
     filePath,
   ];
 
-  const ffprobe = spawn(command, args);
+  const ffprobe = spawn(command, args, { windowsHide: true });
 
   const resolutions: Resolution[] = [];
 
@@ -467,6 +467,23 @@ export const matchUser = (str: string): string | null => {
 };
 
 /**
+ * 元数据平台匹配
+ * @param {string} str 需要匹配的字符串
+ */
+export const matchPlatform = (str: string): string | null => {
+  // 录播姬参数
+  if (str.includes("mikufans录播姬")) {
+    return "bilibili";
+  }
+  // biliLive-tools
+  const match = str.match(/<platform>(.+?)<\/platform>/);
+  if (match) {
+    return (match[1] || "").toLowerCase();
+  }
+  return "unknown";
+};
+
+/**
  * 使用正则匹配时间戳
  * param {string} str 需要匹配的字符串
  * param {RegExp} regex 匹配的正则，捕获组为时间
@@ -532,6 +549,7 @@ export async function parseMeta(files: { videoFilePath?: string; danmaFilePath?:
     title: string | null;
     username: string | null;
     duration: number;
+    platform?: string | null;
   } = {
     startTimestamp: null,
     roomId: null,
@@ -562,6 +580,7 @@ export async function parseMeta(files: { videoFilePath?: string; danmaFilePath?:
   data.roomId = matchRoomId(content);
   data.title = matchTitle(content);
   data.username = matchUser(content);
+  data.platform = matchPlatform(content);
 
   return data;
 }
@@ -1194,7 +1213,6 @@ export const burn = async (
         saveRadio: 2,
         savePath: getTempPath(),
         removeOrigin: removeOrigin,
-        copyInput: true,
       },
     );
     log.debug("convertXml2Ass task start", task.taskId);
@@ -1252,9 +1270,9 @@ export const burn = async (
 };
 
 /**
- * 提取视频到aac
+ * 提取视频
  */
-export const extractAudio = async (
+export const addExtractAudioTask = async (
   videoFilePath: string,
   outputFilePath: string,
   options: {
@@ -1266,6 +1284,15 @@ export const extractAudio = async (
     limitTime?: [string, string];
     autoRun?: boolean;
     addQueue?: boolean;
+    // 单位：秒
+    startTime?: number;
+    // 单位：秒
+    endTime?: number;
+    format?: "pcm_s16le" | "libmp3lame";
+    audioBitrate?: number | string;
+    sampleRate?: number;
+    /** 音频滤镜 */
+    audioFilter?: string;
   },
 ) => {
   const opts = Object.assign(
@@ -1274,6 +1301,7 @@ export const extractAudio = async (
       removeOrigin: false,
       saveType: 1,
       savePath: "",
+      format: "pcm_s16le",
     },
     options,
   );
@@ -1281,10 +1309,25 @@ export const extractAudio = async (
   const output = path.join(savePath, outputFilePath);
   const command = ffmpeg(videoFilePath)
     .outputOptions("-vn")
-    .outputOptions("-acodec pcm_s16le")
+    .outputOptions(`-acodec ${opts.format}`)
     .outputOptions("-ac 1")
-    // .outputOptions("-ar 44100")
     .output(output);
+  if (opts.audioBitrate) {
+    command.outputOptions(`-ab ${opts.audioBitrate}`);
+  }
+  if (opts.sampleRate) {
+    command.outputOptions(`-ar ${opts.sampleRate}`);
+  }
+  if (opts.startTime) {
+    command.inputOptions(`-ss ${opts.startTime}`);
+  }
+  if (opts.endTime) {
+    command.inputOptions(`-to ${opts.endTime}`);
+  }
+  if (opts.audioFilter) {
+    command.audioFilters(opts.audioFilter);
+  }
+
   const task = new FFmpegTask(
     command,
     {

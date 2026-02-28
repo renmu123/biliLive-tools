@@ -1,6 +1,6 @@
 {
   "name": "@biliLive-tools/root",
-  "version": "3.3.2",
+  "version": "3.8.1",
   "description": "B站直播录制处理工具",
   "author": "renmu123",
   "license": "GPL-3.0-only",
@@ -12,7 +12,7 @@
     "build:app": "pnpm run build:base && pnpm run --filter biliLive-tools build:app",
     "build:webui": "pnpm run build:base && pnpm run --filter biliLive-tools build:webui",
     "build:app:no-ffmpeg": "pnpm run build:base && pnpm run --filter biliLive-tools build:app:no-ffmpeg",
-    "build:cli": "pnpm run build:base && pnpm run --filter bililive-cli build:cli",
+    "build:cli": "pnpm run build:base && pnpm run --filter bililive-cli build",
     "build:base": "pnpm run --filter @biliLive-tools/types --filter douyin-danma-listener --filter @biliLive-tools/shared build && pnpm --filter @biliLive-tools/http --filter @bililive-tools/* --parallel run build",
     "preinstall": "npx only-allow pnpm",
     "install:bin": "node ./scripts/install-bin.js",

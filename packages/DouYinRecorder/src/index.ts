@@ -54,7 +54,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     async getLiveInfo() {
       const channelId = this.channelId;
       const info = await getInfo(channelId, {
-        cookie: this.auth,
+        auth: this.auth,
         uid: this.uid,
       });
       return {
@@ -103,7 +103,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       isManualStart,
       (channelId) =>
         getInfo(channelId, {
-          cookie: this.auth,
+          auth: this.auth,
           api: this.api as APIType,
           uid: this.uid,
         }),
@@ -119,7 +119,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // 获取直播间信息
   try {
     const liveInfo = await getInfo(this.channelId, {
-      cookie: this.auth,
+      auth: this.auth,
       api: this.api as APIType,
       uid: this.uid,
     });
@@ -157,7 +157,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
       strictQuality: strictQuality,
-      cookie: this.auth,
+      auth: this.auth,
       formatPriorities: this.formatPriorities,
       doubleScreen: this.doubleScreen,
       api: this.api as APIType,
@@ -187,12 +187,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedSource = stream.source;
 
   let isEnded = false;
-  let isCutting = false;
   const onEnd = (...args: unknown[]) => {
-    if (isCutting) {
-      isCutting = false;
-      return;
-    }
     if (isEnded) return;
     isEnded = true;
     this.emit("DebugLog", {
@@ -218,6 +213,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           liveStartTime: liveStartTime,
           recordStartTime,
         }),
+      disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
       onlyAudio: stream.onlyAudio,
@@ -227,7 +223,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     },
     onEnd,
     async () => {
-      const info = await getInfo(this.channelId);
+      const info = await getInfo(this.channelId, {
+        auth: this.auth,
+      });
       return info;
     },
   );
@@ -315,6 +313,39 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("Message", comment);
     extraDataController.addMessage(comment);
   });
+  client.on("privilegeScreenChat", (msg) => {
+    const extraDataController = downloader.getExtraDataController();
+    if (!extraDataController) return;
+    const comment: Comment = {
+      type: "comment",
+      // 抖音飘屏没有时间戳数据，默认使用当前时间
+      timestamp: Date.now(),
+      text: msg.content,
+      color: "#e0c39c",
+      sender: {
+        uid: msg.user.id,
+        name: msg.user.nickName,
+      },
+    };
+    this.emit("Message", comment);
+    extraDataController.addMessage(comment);
+  });
+  client.on("screenChat", (msg) => {
+    const extraDataController = downloader.getExtraDataController();
+    if (!extraDataController) return;
+    const comment: Comment = {
+      type: "comment",
+      timestamp: this.useServerTimestamp ? Number(msg.eventTime) / 1000000 : Date.now(),
+      text: msg.content,
+      color: "#d7f6fc",
+      sender: {
+        uid: msg.user.id,
+        name: msg.user.nickName,
+      },
+    };
+    this.emit("Message", comment);
+    extraDataController.addMessage(comment);
+  });
   client.on("gift", (msg) => {
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
@@ -334,7 +365,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       color: "#ffffff",
       sender: {
         uid: msg.user.id,
-        name: msg.user.nickName,
+        name: msg?.user?.nickName ?? "unknown",
         // avatar: msg.ic,
         // extra: {
         //   level: msg.level,
@@ -416,13 +447,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const downloaderArgs = downloader.getArguments();
   downloader.run();
 
-  const cut = singleton<RecordHandle["cut"]>(async () => {
+  const cut = utils.singleton<RecordHandle["cut"]>(async () => {
     if (!this.recordHandle) return;
-    if (isCutting) return;
-    isCutting = true;
-    await downloader.stop();
-    downloader.createCommand();
-    downloader.run();
+    downloader.cut();
   });
 
   const stop = singleton<RecordHandle["stop"]>(async (reason?: string) => {

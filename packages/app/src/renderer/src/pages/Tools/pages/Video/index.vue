@@ -2,7 +2,7 @@
   <div class="container">
     <n-spin :show="loading">
       <h2>
-        支持B站视频、B站剪辑回放、斗鱼录播、虎牙录播、快手录播下载；斗鱼、虎牙录播订阅
+        支持B站视频、B站剪辑回放、斗鱼录播、虎牙录播、抖音录播、快手录播下载；斗鱼、虎牙录播订阅
         <n-icon
           :size="24"
           style="vertical-align: middle; cursor: pointer"
@@ -89,6 +89,10 @@
                   <td>快手录播</td>
                   <td>https://live.kuaishou.com/playback/3xfhg6rsxsbrddq</td>
                 </tr>
+                <tr>
+                  <td>抖音录播</td>
+                  <td>https://www.douyin.com/vsdetail/7553114817708594226</td>
+                </tr>
               </tbody>
             </n-table>
 
@@ -137,6 +141,7 @@ const url = ref("");
 const downloadOptions = ref({
   hasDanmuOptions: false,
   hasAudioOnlyOptions: false,
+  hasDanmuOnlyOptions: false,
 });
 
 const selectCids = ref<(number | string)[]>([]);
@@ -162,21 +167,25 @@ const parse = async () => {
     downloadOptions.value = {
       hasDanmuOptions: true,
       hasAudioOnlyOptions: true,
+      hasDanmuOnlyOptions: false,
     };
   } else if (videoInfo.platform === "douyu") {
     downloadOptions.value = {
       hasDanmuOptions: true,
       hasAudioOnlyOptions: false,
+      hasDanmuOnlyOptions: true,
     };
   } else if (videoInfo.platform === "huya") {
     downloadOptions.value = {
       hasDanmuOptions: false,
       hasAudioOnlyOptions: false,
+      hasDanmuOnlyOptions: false,
     };
   } else {
     downloadOptions.value = {
       hasDanmuOptions: false,
       hasAudioOnlyOptions: false,
+      hasDanmuOnlyOptions: false,
     };
   }
 };
@@ -230,6 +239,7 @@ const confirm = async (options: {
   resoltion: string | "highest";
   override: boolean;
   onlyAudio: boolean;
+  onlyDanmu: boolean;
 }) => {
   const parts = data.value.parts.filter((item) => options.ids.includes(item.partId));
   const names = parts.map((item) => item.name);
@@ -243,12 +253,26 @@ const confirm = async (options: {
   if (new Set(names).size !== names.length) {
     notice.error({
       title: "文件名不能重复",
-      duration: 1000,
+      duration: 3000,
     });
     return;
   }
 
+  if (options.onlyDanmu && downloadOptions.value.hasDanmuOnlyOptions) {
+    notice.info({
+      title: `即将开始下载弹幕，请不要关闭此页面`,
+      duration: 5000,
+    });
+  }
+
   for (const part of parts) {
+    if (options.onlyDanmu && downloadOptions.value.hasDanmuOnlyOptions) {
+      notice.info({
+        title: `已开始下载弹幕：${part.name}`,
+        duration: 5000,
+      });
+    }
+
     await taskApi.downloadVideo({
       id: part.partId,
       platform: data.value.platform,
@@ -259,12 +283,23 @@ const confirm = async (options: {
       danmu: options.danmu,
       override: options.override,
       onlyAudio: options.onlyAudio,
+      onlyDanmu: options.onlyDanmu,
+    });
+
+    if (options.onlyDanmu && downloadOptions.value.hasDanmuOnlyOptions) {
+      notice.info({
+        title: `已结束下载弹幕：${part.name}`,
+        duration: 5000,
+      });
+    }
+  }
+  if (!options.onlyDanmu && downloadOptions.value.hasDanmuOnlyOptions) {
+    notice.success({
+      title: "已加入队列",
+      duration: 2000,
     });
   }
-  notice.success({
-    title: "已加入队列",
-    duration: 1000,
-  });
+
   visible.value = false;
 };
 

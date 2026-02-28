@@ -276,6 +276,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         douyuResolution: "highest",
         override: false,
         onlyAudio: false,
+        onlyDanmu: false,
       },
       translate: {
         presetId: undefined,
@@ -292,6 +293,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         title: "{{filename}}-{{label}}-{{num}}",
         danmuPresetId: "default",
         ignoreDanmu: false,
+        exportSubtitle: true,
       },
     },
   });
@@ -360,15 +362,18 @@ function useHistoryStore<T>({ limit }: { limit: number }) {
 
 export default useHistoryStore;
 
-interface Segment {
+export interface Segment {
   id: string;
   start: number;
-  end: number;
+  end?: number;
   name: string;
   checked: boolean;
   tags?: any;
+  index: number;
+  loading?: boolean;
+  lyrics?: string;
 }
-
+type SegmentWithRequiredEnd = Required<Pick<Segment, "end">> & Omit<Segment, "end">;
 type SegmentEventType = "add" | "remove" | "update" | "clear";
 type SegmentEventCallback = (data: {
   type: SegmentEventType;
@@ -378,9 +383,22 @@ type SegmentEventCallback = (data: {
 
 export const useSegmentStore = defineStore("segment", () => {
   const duration = ref(0);
+  const selectCutId = ref<string | null>(null);
 
   const rawCuts = ref<Segment[]>([]);
+  const cuts = readonly(
+    computed<SegmentWithRequiredEnd[]>(() => {
+      return rawCuts.value.map((item: Segment) => {
+        return {
+          ...item,
+          end: item.end || duration.value,
+        };
+      });
+    }),
+  );
   const historyStore = useHistoryStore<Segment[]>({ limit: 30 });
+
+  const index = ref(0);
 
   // 事件监听器
   const eventListeners: SegmentEventCallback[] = [];
@@ -392,9 +410,9 @@ export const useSegmentStore = defineStore("segment", () => {
 
   // 移除事件监听器
   const off = (callback: SegmentEventCallback) => {
-    const index = eventListeners.indexOf(callback);
-    if (index > -1) {
-      eventListeners.splice(index, 1);
+    const idx = eventListeners.indexOf(callback);
+    if (idx > -1) {
+      eventListeners.splice(idx, 1);
     }
   };
 
@@ -414,44 +432,99 @@ export const useSegmentStore = defineStore("segment", () => {
   const undo = () => {
     historyStore.undo();
     rawCuts.value = historyStore.state.value || [];
+    // 触发 clear 事件清空现有 regions,然后重新添加所有片段
+    emit("clear");
+    rawCuts.value.forEach((segment) => {
+      emit("add", { segment });
+    });
   };
   const redo = () => {
     historyStore.redo();
     rawCuts.value = historyStore.state.value || [];
+    // 触发 clear 事件清空现有 regions,然后重新添加所有片段
+    emit("clear");
+    rawCuts.value.forEach((segment) => {
+      emit("add", { segment });
+    });
   };
 
   const selectedCuts = computed(() => {
-    return rawCuts.value.filter((item) => item.checked);
+    return cuts.value.filter((item) => item.checked);
   });
 
-  const init = (segments: Omit<Segment, "id">[]) => {
+  const selectedCut = computed(() => {
+    return cuts.value.find((item) => item.id === selectCutId.value);
+  });
+
+  const selectCut = (id: string | null) => {
+    selectCutId.value = id;
+  };
+
+  const init = (segments: Omit<Segment, "id" | "index" | "loading">[]) => {
     rawCuts.value = [];
+    index.value = 0; // 初始化 index
     segments.forEach((segment) => {
+      if (!segment.start) segment.start = 0;
       addSegment(segment);
     });
   };
-  const addSegment = (cut: Omit<Segment, "id">) => {
+  const addSegment = (cut: Omit<Segment, "id" | "index" | "loading">) => {
     const data = {
       id: uuid(),
       ...cut,
+      index: index.value, // 新增 index 字段
+      loading: false,
     };
     rawCuts.value.push(data);
+    index.value++;
+    selectCutId.value = data.id; // 自动选中新添加的片段
     recordHistory();
     emit("add", { segment: data });
   };
+  const insertSegmentAfter = (afterId: string, cut: Omit<Segment, "id" | "index" | "loading">) => {
+    const targetIndex = rawCuts.value.findIndex((item) => item.id === afterId);
+    if (targetIndex === -1) return null;
+
+    const data = {
+      id: uuid(),
+      ...cut,
+      index: index.value,
+      loading: false,
+    };
+    rawCuts.value.splice(targetIndex + 1, 0, data);
+    index.value++;
+    selectCutId.value = data.id;
+    recordHistory();
+    emit("add", { segment: data });
+    return data;
+  };
   const removeSegment = (id: string) => {
-    const index = rawCuts.value.findIndex((item) => item.id === id);
-    if (index !== -1) {
-      rawCuts.value.splice(index, 1);
+    const idx = rawCuts.value.findIndex((item) => item.id === id);
+    if (idx !== -1) {
+      rawCuts.value.splice(idx, 1);
+      // 如果删除的是当前选中的片段，更新选中状态
+      if (selectCutId.value === id) {
+        if (rawCuts.value.length > 0) {
+          selectCutId.value = rawCuts.value[rawCuts.value.length - 1].id;
+        } else {
+          selectCutId.value = null;
+        }
+      }
       recordHistory();
       emit("remove", { id });
     }
   };
-  const updateSegment = (id: string, options: Partial<Omit<Segment, "id">>) => {
+  const updateSegment = (
+    id: string,
+    options: Partial<Omit<Segment, "id">>,
+    ignoreHistory = false,
+  ) => {
     const cut = rawCuts.value.find((item) => item.id === id);
     if (cut) {
       Object.assign(cut, options);
-      recordHistory();
+      if (!ignoreHistory) {
+        recordHistory();
+      }
       emit("update", { segment: cut });
     }
   };
@@ -459,24 +532,93 @@ export const useSegmentStore = defineStore("segment", () => {
     const cut = rawCuts.value.find((item) => item.id === id);
     if (cut) {
       cut.checked = !cut.checked;
+      emit("update", { segment: cut });
       recordHistory();
     }
   };
+  const mergeForward = (id: string) => {
+    const currentIndex = rawCuts.value.findIndex((item) => item.id === id);
+    if (currentIndex <= 0) return false; // 第一个片段不能向前合并
+
+    const currentSegment = rawCuts.value[currentIndex];
+    const previousSegment = rawCuts.value[currentIndex - 1];
+
+    // 更新当前片段的开始时间为前一个片段的开始时间
+    currentSegment.start = previousSegment.start;
+    // 如果名称为空，使用前一个片段的名称
+    if (!currentSegment.name && previousSegment.name) {
+      currentSegment.name = previousSegment.name;
+    }
+    // 将前一个片段的歌词合并到当前片段
+    if (previousSegment.lyrics) {
+      currentSegment.lyrics = (previousSegment.lyrics || "") + "\n" + (currentSegment.lyrics || "");
+    }
+
+    // 删除前一个片段
+    rawCuts.value.splice(currentIndex - 1, 1);
+
+    recordHistory();
+    emit("update", { segment: currentSegment });
+    emit("remove", { id: previousSegment.id });
+    return true;
+  };
+  const mergeBackward = (id: string) => {
+    const currentIndex = rawCuts.value.findIndex((item) => item.id === id);
+    if (currentIndex === -1 || currentIndex >= rawCuts.value.length - 1) return false; // 最后一个片段不能向后合并
+
+    const currentSegment = rawCuts.value[currentIndex];
+    const nextSegment = rawCuts.value[currentIndex + 1];
+
+    // 更新当前片段的结束时间为后一个片段的结束时间
+    currentSegment.end = nextSegment.end;
+    // 如果名称为空，使用后一个片段的名称
+    if (!currentSegment.name && nextSegment.name) {
+      currentSegment.name = nextSegment.name;
+    }
+    // 将后一个片段的歌词合并到当前片段
+    if (nextSegment.lyrics) {
+      currentSegment.lyrics = (currentSegment.lyrics || "") + "\n" + (nextSegment.lyrics || "");
+    }
+
+    // 删除后一个片段
+    rawCuts.value.splice(currentIndex + 1, 1);
+
+    recordHistory();
+    emit("update", { segment: currentSegment });
+    emit("remove", { id: nextSegment.id });
+    return true;
+  };
   const clear = () => {
     rawCuts.value = [];
+    index.value = 0; // 清空时初始化 index
+    selectCutId.value = null; // 重置选中状态
     recordHistory();
     emit("clear");
   };
 
+  // 获取所有片段的歌词合并文本
+  const getCombinedLyrics = () => {
+    return cuts.value
+      .filter((segment) => segment.lyrics)
+      .map((segment) => segment.lyrics)
+      .join("\n");
+  };
+
   return {
-    cuts: rawCuts,
+    cuts,
     selectedCuts,
+    selectedCut,
+    selectCutId,
+    selectCut,
     duration,
     rawCuts,
     addSegment,
+    insertSegmentAfter,
     removeSegment,
     updateSegment,
     toggleSegment,
+    mergeForward,
+    mergeBackward,
     clearHistory,
     undo,
     redo,
@@ -484,5 +626,7 @@ export const useSegmentStore = defineStore("segment", () => {
     clear,
     on,
     off,
+    index,
+    getCombinedLyrics,
   };
 });

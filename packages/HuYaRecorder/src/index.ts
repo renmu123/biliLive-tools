@@ -131,14 +131,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   );
 
   let res: Awaited<ReturnType<typeof getStream>>;
-  // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
+
   try {
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
-      api: this.api as "auto" | "web" | "mp",
+      api: this.api as "auto" | "web" | "mp" | "wup", //"wup"
       strictQuality,
       formatPriorities: this.formatPriorities,
     });
@@ -157,12 +157,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedSource = stream.source;
 
   let isEnded = false;
-  let isCutting = false;
   const onEnd = (...args: unknown[]) => {
-    if (isCutting) {
-      isCutting = false;
-      return;
-    }
     if (isEnded) return;
     isEnded = true;
     this.emit("DebugLog", {
@@ -172,6 +167,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
   };
+  // let ua =
+  //   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36";
+  // if (res.api === "wup") {
+  //   ua = "HYSDK(Windows,30000002)_APP(pc_exe&7030003&official)_SDK(trans&2.29.0.5493)";
+  // }
 
   const downloader = createDownloader(
     this.recorderType,
@@ -188,8 +188,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           liveStartTime,
           recordStartTime,
         }),
+      disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
+      headers: {
+        "User-Agent": stream.ua,
+      },
     },
     onEnd,
     async () => {
@@ -248,7 +252,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let client: HuYaDanMu | null = null;
   if (!this.disableProvideCommentsWhenRecording) {
-    client = new HuYaDanMu(this.channelId);
+    client = new HuYaDanMu({
+      roomid: this.channelId,
+      uid: res.currentStream.uid,
+      subChannelId: res.currentStream.subChannelId,
+      channelId: res.currentStream.channelId,
+    });
     client.on("message", (msg: HuYaMessage) => {
       const extraDataController = downloader.getExtraDataController();
       if (!extraDataController) return;
@@ -308,11 +317,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const cut = utils.singleton<RecordHandle["cut"]>(async () => {
     if (!this.recordHandle) return;
-    if (isCutting) return;
-    isCutting = true;
-    await downloader.stop();
-    downloader.createCommand();
-    downloader.run();
+    downloader.cut();
   });
 
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {

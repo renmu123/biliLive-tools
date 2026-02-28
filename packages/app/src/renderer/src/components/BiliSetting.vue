@@ -37,6 +37,34 @@
           >
         </template>
       </n-form-item>
+      <n-form-item label="分P标题" style="margin-top: 34px">
+        <template #label>
+          <Tip :tip="partTitleTip" text="分P标题"></Tip>
+        </template>
+        <n-input
+          ref="partTitleInput"
+          v-model:value="options.config.partTitleTemplate"
+          placeholder="留空则使用当前分P标题"
+          clearable
+          style="margin-right: 10px"
+          spellcheck="false"
+        />
+        <n-button
+          style="margin-right: 10px"
+          @click="previewPartTitle(options.config.partTitleTemplate || '')"
+          >预览</n-button
+        >
+        <template #feedback>
+          <span
+            v-for="item in partTitleList"
+            :key="item.value"
+            :title="item.label"
+            class="title-var"
+            @click="setPartTitleVar(item.value)"
+            >{{ item.value }}</span
+          >
+        </template>
+      </n-form-item>
       <n-form-item label="稿件类型">
         <n-radio-group v-model:value="options.config.copyright" name="radiogroup">
           <n-space>
@@ -45,7 +73,13 @@
           </n-space>
         </n-radio-group>
       </n-form-item>
-      <n-form-item v-if="options.config.copyright === 2" label="转载来源">
+      <n-form-item v-if="options.config.copyright === 2">
+        <template #label>
+          <Tip
+            tip="如果为空，在webhook使用时，会尝试会替换为直播间链接，如果无法匹配到，会被替换为直播间号"
+            text="转载来源"
+          ></Tip>
+        </template>
         <n-input
           v-model:value="options.config.source"
           placeholder="注明视频来源网址"
@@ -162,6 +196,15 @@
             minRows: 2,
           }"
         />
+      </n-form-item>
+      <n-form-item v-if="options.config.copyright === 1" label="添加水印">
+        <n-checkbox
+          v-model:checked="options.config.watermark"
+          :checked-value="1"
+          :unchecked-value="0"
+          title="开启"
+          >开启</n-checkbox
+        >
       </n-form-item>
 
       <n-form-item label="自制声明">
@@ -352,7 +395,6 @@
 
 <script setup lang="ts">
 import { biliApi, videoPresetApi } from "@renderer/apis";
-import { previewWebhookTitle } from "@renderer/apis/common";
 import { useConfirm } from "@renderer/hooks";
 import { deepRaw, uuid } from "@renderer/utils";
 
@@ -727,7 +769,7 @@ const handleTopicChange = (topicName: string) => {
 const titleList = ref(uploadTitleTemplate);
 const titleTip = computed(() => {
   const base = `上限80字，多余的会被截断。<br/>
-  占位符用于支持webhook中的相关功能，如果你是手动上传，和你基本上没关系，如【{{user}}】{{title}}-{{now}}<br/>
+  占位符用于支持webhook中的相关功能，如【{{user}}】{{title}}-{{now}}<br/>
   不要在直播开始后修改字段，本场直播不会生效，更多模板引擎等高级用法见文档<br/>`;
   return titleList.value
     .map((item) => {
@@ -736,8 +778,101 @@ const titleTip = computed(() => {
     .reduce((prev, cur) => prev + cur, base);
 });
 
+const partTitleList = ref([
+  {
+    label: "标题",
+    value: "{{title}}",
+  },
+  {
+    value: "{{user}}",
+    label: "主播名",
+  },
+  {
+    value: "{{roomId}}",
+    label: "房间号",
+  },
+  {
+    label: "文件名",
+    value: "{{filename}}",
+  },
+  {
+    label: "序号",
+    value: "{{index}}",
+  },
+  {
+    label: "弹幕版or纯享版",
+    value: "{{hasDanmaStr}}",
+  },
+  {
+    value: "{{yyyy}}",
+    label: "年",
+  },
+  {
+    value: "{{MM}}",
+    label: "月（补零）",
+  },
+  {
+    value: "{{dd}}",
+    label: "日（补零）",
+  },
+  {
+    value: "{{HH}}",
+    label: "时（补零）",
+  },
+  {
+    value: "{{mm}}",
+    label: "分（补零）",
+  },
+  {
+    value: "{{ss}}",
+    label: "秒（补零）",
+  },
+]);
+const partTitleTip = computed(() => {
+  const base = `留空则使用当前分P标题。<br/>更多模板引擎等高级用法见文档<br/>`;
+  return partTitleList.value
+    .map((item) => {
+      return `${item.label}：${item.value}<br/>`;
+    })
+    .reduce((prev, cur) => prev + cur, base);
+});
+
+const partTitleInput = templateRef("partTitleInput");
+const setPartTitleVar = async (value: string) => {
+  if (!options.value.config.partTitleTemplate) {
+    options.value.config.partTitleTemplate = "";
+  }
+  const input = partTitleInput.value?.inputElRef;
+  if (input) {
+    const currentValue = options.value.config.partTitleTemplate || "";
+    const start = input.selectionStart ?? currentValue.length;
+    const end = input.selectionEnd ?? currentValue.length;
+    options.value.config.partTitleTemplate =
+      currentValue.slice(0, start) + value + currentValue.slice(end);
+    input.focus();
+    await nextTick();
+    input.setSelectionRange(start + value.length, start + value.length);
+  } else {
+    options.value.config.partTitleTemplate = (options.value.config.partTitleTemplate || "") + value;
+  }
+};
+const previewPartTitle = async (template: string) => {
+  if (!template) {
+    notice.warning({
+      title: "请输入分P标题模板",
+      duration: 2000,
+    });
+    return;
+  }
+  const data = await biliApi.formatWebhookPartTitle(template);
+  notice.info({
+    title: data,
+    duration: 3000,
+  });
+};
+
 const previewTitle = async (template: string) => {
-  const data = await previewWebhookTitle(template);
+  const data = await biliApi.formatWebhookTitle(template);
   notice.warning({
     title: data,
     duration: 3000,

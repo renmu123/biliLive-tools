@@ -125,4 +125,24 @@ const parseVideo = async (url: string) => {
   return videoList;
 };
 
-export default { download, parseVideo, getAvailableStreams };
+const downloadDanmu = async (
+  vid: string,
+  output: string,
+  override: boolean,
+  meta?: {
+    user_name?: string;
+    room_id?: string;
+    room_title?: string;
+    live_start_time?: string;
+    video_start_time?: string;
+    platform?: "douyu";
+  },
+) => {
+  if ((await fs.pathExists(output)) && !override) throw new Error(`${output}已存在`);
+  const danmu = await video.getVideoDanmu(vid);
+  const xml = convert2Xml(danmu, meta || {});
+  await fs.writeFile(output, xml);
+  return output;
+};
+
+export default { download, parseVideo, getAvailableStreams, downloadDanmu };

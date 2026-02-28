@@ -48,10 +48,12 @@
           { label: '直播状态', key: 'living' },
           { label: '录制状态', key: 'state' },
           { label: '监听状态', key: 'monitorStatus' },
+          { label: '录制时间', key: 'recordTime' },
         ]"
         @update:field="handleSortFieldChange"
         @update:direction="handleSortDirectionChange"
       />
+      <ColumnSelector v-model="visibleColumns" :columns="columnConfig" />
       <n-button type="warning" @click="getLiveInfo(true)">刷新</n-button>
       <ButtonGroup :options="actionBtns" @click="handleActionClick">添加</ButtonGroup>
     </div>
@@ -62,13 +64,20 @@
         :list="list"
         :sort-field="sortField"
         :sort-directions="sortDirections"
+        :visible-columns="visibleColumns"
         @sort="handleSort"
       >
         <template #action="{ item }">
           <div style="margin-top: 10px" class="section-container">
             <div class="section" @click="startRecord(item.id)">开始录制</div>
             <div class="section" @click="stopRecord(item.id)">停止录制</div>
-            <div class="section" @click="cut(item.id)" style="display: none">切割</div>
+            <div
+              class="section"
+              @click="cut(item.id)"
+              v-if="item?.recordHandle?.recorderType === 'bililive'"
+            >
+              切割
+            </div>
             <div class="section" @click="edit(item.id)">直播间设置</div>
             <div class="section" @click="refresh(item.id)">刷新直播间信息</div>
             <div
@@ -88,7 +97,7 @@
 
             <div class="section" @click="toWebhook(item.channelId)">Webhook配置</div>
             <div class="section" @click="viewHistory(item)">录制历史</div>
-            <div class="section" style="color: #e88080" @click="remove(item.id)">删除房间</div>
+            <div class="section section-danger" @click="remove(item.id)">删除房间</div>
           </div>
         </template>
       </component>
@@ -127,6 +136,7 @@
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
+import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
 import addModal from "./components/addModal.vue";
 import batchAddModal from "./components/batchAddModal.vue";
 import batchResultModal from "./components/batchResultModal.vue";
@@ -135,6 +145,7 @@ import cardView from "./components/cardView.vue";
 import listView from "./components/listView.vue";
 import { useRouter } from "vue-router";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
+import ColumnSelector from "@renderer/components/ColumnSelector.vue";
 
 import { useEventListener, useStorage } from "@vueuse/core";
 import eventBus from "@renderer/utils/eventBus";
@@ -147,6 +158,26 @@ defineOptions({
 });
 
 type SortField = "living" | "state" | "monitorStatus";
+
+// 列配置
+const columnConfig = [
+  { value: "channelId", label: "房间号" },
+  { value: "owner", label: "主播名" },
+  { value: "remark", label: "备注" },
+  { value: "roomTitle", label: "标题" },
+  { value: "living", label: "直播状态" },
+  { value: "state", label: "录制状态" },
+  { value: "recordParams", label: "录制参数" },
+  { value: "lastRecordTime", label: "最近录制时间" },
+  { value: "monitorStatus", label: "监听状态" },
+  { value: "actions", label: "操作" },
+];
+
+// 使用可见列 hook
+const { visibleColumns } = useVisibleColumns({
+  columns: columnConfig,
+  storageKey: "recorder-list-visible-columns",
+});
 
 const notice = useNotice();
 const router = useRouter();
@@ -357,7 +388,6 @@ const stopRecord = async (id: string) => {
 
 const cut = async (id: string) => {
   await recoderApi.cut(id);
-  getList();
 };
 
 const editId = ref("");
@@ -591,10 +621,11 @@ const handleActionClick = (key?: string | number) => {
     cursor: pointer;
     display: inline-block;
     &:hover {
-      background-color: #eee;
-      @media screen and (prefers-color-scheme: dark) {
-        background-color: rgba(255, 255, 255, 0.09);
-      }
+      background-color: var(--bg-hover);
+    }
+
+    &.section-danger {
+      color: var(--color-danger-text);
     }
   }
 }

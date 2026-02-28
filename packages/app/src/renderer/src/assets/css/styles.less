@@ -1,3 +1,203 @@
+:root,
+:root[data-theme="light"] {
+  // 基础颜色
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f8f9fa;
+  --bg-hover: #eeeeee;
+  --bg-card: #ffffff;
+  --bg-modal: rgba(0, 0, 0, 0.5);
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  // 文本颜色
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --text-tertiary: #555555;
+  --text-muted: #666666;
+  --text-light: #999999;
+  --text-disabled: rgba(0, 0, 0, 0.4);
+  --text-inverse: #ffffff;
+
+  // 边框颜色
+  --border-primary: #eeeeee;
+  --border-secondary: #e0e0e6;
+  --border-hover: #36ad6a;
+
+  // 品牌色
+  --color-primary: #18a058;
+  --color-primary-hover: #36ad6a;
+  --color-primary-active: #358457;
+
+  // 状态颜色
+  --color-success: #7cbd7d;
+  --color-warning: #d48806;
+  --color-warning-bg: #fff1b8;
+  --color-error: #ff4d4f;
+  --color-error-bg: #fff1f0;
+  --color-info: #1890ff;
+  --color-info-bg: #e6f7ff;
+  --color-danger-text: #e88080;
+
+  // 滚动条颜色
+  --scrollbar-thumb: #e1e1e9;
+  --scrollbar-thumb-hover: #6b6969;
+
+  // 其他
+  --link-color: skyblue;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+// 手动设置暗黑模式时，无论系统主题如何都生效
+:root[data-theme="dark"] {
+  // 基础颜色
+  --bg-primary: #18181c;
+  --bg-secondary: #1e1e1e;
+  --bg-tertiary: #1e1e1e;
+  --bg-hover: rgba(255, 255, 255, 0.09);
+  --bg-card: #2a2a2a;
+  --bg-modal: rgba(0, 0, 0, 0.7);
+  --bg-overlay: rgba(0, 0, 0, 0.85);
+
+  // 文本颜色
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-tertiary: #cccccc;
+  --text-muted: #999999;
+  --text-light: #999999;
+  --text-disabled: rgba(255, 255, 255, 0.4);
+  --text-inverse: #000000;
+
+  // 边框颜色
+  --border-primary: transparent;
+  --border-secondary: #333333;
+  --border-hover: #36ad6a;
+
+  // 品牌色
+  --color-primary: #63e2b7;
+  --color-primary-hover: #7fe7c4;
+  --color-primary-active: #358457;
+
+  // 状态颜色
+  --color-success: #7cbd7d;
+  --color-warning: #d9ca40;
+  --color-warning-bg: #4a3a27;
+  --color-error: #ff7875;
+  --color-error-bg: #512c2c;
+  --color-info: #59adf1;
+  --color-info-bg: #111d2c;
+  --color-danger-text: #e88080;
+
+  // 滚动条颜色
+  --scrollbar-thumb: #555555;
+  --scrollbar-thumb-hover: #383838;
+
+  // 其他
+  --link-color: skyblue;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+// 暗黑模式（支持系统自动切换和手动设置）
+@media (prefers-color-scheme: light) {
+  :root {
+    // 基础颜色
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-tertiary: #f8f9fa;
+    --bg-hover: #eeeeee;
+    --bg-card: #ffffff;
+    --bg-modal: rgba(0, 0, 0, 0.5);
+    --bg-overlay: rgba(0, 0, 0, 0.7);
+
+    // 文本颜色
+    --text-primary: #000000;
+    --text-secondary: #333333;
+    --text-tertiary: #555555;
+    --text-muted: #666666;
+    --text-light: #999999;
+    --text-disabled: rgba(0, 0, 0, 0.4);
+    --text-inverse: #ffffff;
+
+    // 边框颜色
+    --border-primary: #eeeeee;
+    --border-secondary: #e0e0e6;
+    --border-hover: #36ad6a;
+
+    // 品牌色
+    --color-primary: #18a058;
+    --color-primary-hover: #36ad6a;
+    --color-primary-active: #358457;
+
+    // 状态颜色
+    --color-success: #7cbd7d;
+    --color-warning: #d48806;
+    --color-warning-bg: #fff1b8;
+    --color-error: #ff4d4f;
+    --color-error-bg: #fff1f0;
+    --color-info: #1890ff;
+    --color-info-bg: #e6f7ff;
+    --color-danger-text: #e88080;
+
+    // 滚动条颜色
+    --scrollbar-thumb: #e1e1e9;
+    --scrollbar-thumb-hover: #6b6969;
+
+    // 其他
+    --link-color: skyblue;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+// 暗黑模式（支持系统自动切换和手动设置）
+@media (prefers-color-scheme: dark) {
+  :root {
+    // 基础颜色
+    --bg-primary: #18181c;
+    --bg-secondary: #1e1e1e;
+    --bg-tertiary: #1e1e1e;
+    --bg-hover: rgba(255, 255, 255, 0.09);
+    --bg-card: #2a2a2a;
+    --bg-modal: rgba(0, 0, 0, 0.7);
+    --bg-overlay: rgba(0, 0, 0, 0.85);
+
+    // 文本颜色
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --text-tertiary: #cccccc;
+    --text-muted: #999999;
+    --text-light: #999999;
+    --text-disabled: rgba(255, 255, 255, 0.4);
+    --text-inverse: #000000;
+
+    // 边框颜色
+    --border-primary: transparent;
+    --border-secondary: #333333;
+    --border-hover: #36ad6a;
+
+    // 品牌色
+    --color-primary: #63e2b7;
+    --color-primary-hover: #7fe7c4;
+    --color-primary-active: #358457;
+
+    // 状态颜色
+    --color-success: #7cbd7d;
+    --color-warning: #d9ca40;
+    --color-warning-bg: #4a3a27;
+    --color-error: #ff7875;
+    --color-error-bg: #512c2c;
+    --color-info: #59adf1;
+    --color-info-bg: #111d2c;
+    --color-danger-text: #e88080;
+
+    // 滚动条颜色
+    --scrollbar-thumb: #555555;
+    --scrollbar-thumb-hover: #383838;
+
+    // 其他
+    --link-color: skyblue;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+  }
+}
+
 .center {
   text-align: center;
 }
@@ -31,29 +231,16 @@
   border-radius: 8px;
 }
 ::-webkit-scrollbar-track {
-  background-color: none; /* 滚动条轨道背景颜色 */
+  background-color: transparent; /* 滚动条轨道背景颜色 */
 }
 
-@media screen and (prefers-color-scheme: light) {
-  ::-webkit-scrollbar-thumb {
-    background-color: #e1e1e9; /* 滚动条滑块颜色 */
-    border-radius: 8px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: #6b6969; /* 鼠标悬停时滚动条滑块颜色 */
-  }
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 8px;
 }
 
-@media screen and (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-thumb {
-    background-color: #555; /* 滚动条滑块颜色 */
-    border-radius: 8px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: #383838; /* 鼠标悬停时滚动条滑块颜色 */
-  }
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .n-modal-body-wrapper {
@@ -71,7 +258,7 @@
 }
 
 a[href^="http"] {
-  color: skyblue;
+  color: var(--link-color);
 }
 
 .driver-popover-close-btn {

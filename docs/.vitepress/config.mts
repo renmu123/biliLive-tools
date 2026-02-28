@@ -46,7 +46,17 @@ export default defineConfig({
         {
           text: "功能",
           items: [
-            { text: "直播录制", link: "/features/live-record" },
+            {
+              text: "直播录制",
+              link: "/features/live-record",
+
+              items: [
+                { text: "B站", link: "/features/recorder/bilibili" },
+                { text: "斗鱼", link: "/features/recorder/douyu" },
+                { text: "虎牙", link: "/features/recorder/huya" },
+                { text: "抖音", link: "/features/recorder/douyin" },
+              ],
+            },
             { text: "Webhook", link: "/features/webhook" },
             { text: "FFmpeg配置", link: "/features/ffmpeg" },
             { text: "B站上传", link: "/features/bilibili-upload" },
@@ -55,6 +65,8 @@ export default defineConfig({
             { text: "文件同步", link: "/features/file-sync" },
             { text: "虚拟录制", link: "/features/virtual-record" },
             { text: "通知", link: "/features/notification" },
+            { text: "下载订阅", link: "/features/download" },
+            { text: "AI功能", link: "/features/ai" },
           ],
         },
         {

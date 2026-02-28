@@ -24,7 +24,7 @@
       <n-icon size="24" class="pointer icon cut-add-segment" title="添加片段" @click="addCut">
         <PlusOutlined></PlusOutlined>
       </n-icon>
-      <n-icon size="24" class="pointer icon" title="删除片段(del)" @click="deleteCut">
+      <n-icon size="24" class="pointer icon" title="删除片段(del)" @click="deleteCut()">
         <MinusOutlined></MinusOutlined>
       </n-icon>
       <n-icon
@@ -53,9 +53,11 @@
         <ul>
           <li>I 在当前时间开始当前片段</li>
           <li>O 在当前时间结束当前片段</li>
+          <li>F2 重命名</li>
           <li>up 上一个片段</li>
           <li>down 下一个片段</li>
           <li>del 删除片段</li>
+          <li>ctrl+n 新建片段</li>
           <li>space 播放/暂停</li>
           <li>ctrl+left 后退1秒</li>
           <li>ctrl+right 前进1秒</li>
@@ -79,8 +81,12 @@
           checked: cut.checked,
           selected: selectCutId === cut.id,
         }"
-        @click="selectCut(cut.id)"
+        :style="{
+          '--active-border-color': generateDistinctColor(cut.index, true),
+        }"
+        @click="handleSelectCut(cut.id)"
         @dblclick="navVideo(cut.start)"
+        @contextmenu.prevent="showContextMenu($event, cut)"
       >
         <div class="time">
           {{ secondsToTimemark(cut.start) }}-<span>{{ secondsToTimemark(cut.end) }}</span>
@@ -102,6 +108,7 @@
             <Pencil></Pencil>
           </n-icon>
         </div>
+        <n-spin :size="18" class="loading" style="--n-size: 18px" v-if="cut.loading" />
       </div>
     </div>
   </div>
@@ -148,6 +155,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeStore } from "@renderer/stores/theme";
 import SearchPopover from "./SearchPopover.vue";
 import { secondsToTimemark } from "@renderer/utils";
 import { useSegmentStore } from "@renderer/stores";
@@ -156,13 +164,27 @@ import {
   CheckmarkCircleOutline,
   Pencil,
   Search as SearchIcon,
+  PlayCircleOutline,
 } from "@vicons/ionicons5";
-import { MinusOutlined, PlusOutlined } from "@vicons/material";
+import { MinusOutlined, PlusOutlined, SubtitlesOutlined } from "@vicons/material";
+import {
+  Delete24Regular,
+  MusicNote220Regular,
+  Cut20Regular,
+  ToggleLeft24Regular,
+} from "@vicons/fluent";
+import { generateDistinctColor } from "@renderer/utils";
+import { aiApi } from "@renderer/apis";
+import { useConfirm } from "@renderer/hooks";
+
 import hotkeys from "hotkeys-js";
 import { useDraggable, useEventListener, useWindowSize } from "@vueuse/core";
+import ContextMenu from "@imengyu/vue3-context-menu";
+import { NIcon } from "naive-ui";
 
-import type ArtplayerType from "artplayer";
+import type VideoPlayer from "./components/VideoPlayer.vue";
 import type { DanmuItem } from "@biliLive-tools/types";
+import type { Segment } from "@renderer/stores";
 
 onActivated(() => {
   // 重命名
@@ -195,6 +217,11 @@ onActivated(() => {
   hotkeys("ctrl+k", function () {
     searchDanmu();
   });
+  // 新建片段
+  hotkeys("ctrl+n", function (event) {
+    event.preventDefault();
+    addCut();
+  });
   // 切换到当前开始片段
   // hotkeys("enter", function () {});
 });
@@ -216,6 +243,7 @@ const el = ref<HTMLElement | null>(null);
 
 const { width, height } = useWindowSize();
 const notice = useNotification();
+const confirm = useConfirm();
 const { x, y, style } = useDraggable(el, {
   initialValue: { x: width.value - 100, y: height.value - 40 },
 });
@@ -225,10 +253,20 @@ useEventListener(window, "resize", () => {
   y.value = height.value - 40;
 });
 
-const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
+const videoInstance = inject("videoInstance") as Ref<InstanceType<typeof VideoPlayer>>;
 
-const { cuts } = storeToRefs(useSegmentStore());
-const { addSegment, removeSegment, updateSegment, toggleSegment } = useSegmentStore();
+const { cuts, selectCutId } = storeToRefs(useSegmentStore());
+const {
+  addSegment,
+  removeSegment,
+  updateSegment,
+  toggleSegment,
+  selectCut,
+  insertSegmentAfter,
+  mergeForward,
+  mergeBackward,
+  getCombinedLyrics,
+} = useSegmentStore();
 
 const toggleChecked = (id: string) => {
   toggleSegment(id);
@@ -236,7 +274,6 @@ const toggleChecked = (id: string) => {
 // 编辑片段名称
 const cutEditVisible = ref(false);
 const tempCutName = ref("");
-const selectCutId = ref<string | null>(null);
 
 /**
  * 编辑片段名称
@@ -280,8 +317,8 @@ const navVideo = (start: number) => {
  * 选择片段
  * @param id 片段ID
  */
-const selectCut = (id: string) => {
-  selectCutId.value = id;
+const handleSelectCut = (id: string) => {
+  selectCut(id);
 };
 
 /**
@@ -310,24 +347,18 @@ const addCut = (iOptions: { start?: number; end?: number; name?: string; id?: st
   }
   addSegment(options as any);
   console.log("cuts", cuts.value);
-  if (cuts.value.length > 0) {
-    selectCutId.value = cuts.value[cuts.value.length - 1].id;
-  }
 };
 
 /**
  * 删除片段
  */
-const deleteCut = () => {
-  if (!selectCutId.value) {
+const deleteCut = (id?: string) => {
+  const segmentId = id || selectCutId.value;
+  if (!segmentId) {
     return;
   }
-  removeSegment(selectCutId.value);
-  if (cuts.value.length > 0) {
-    selectCutId.value = cuts.value[cuts.value.length - 1].id;
-  } else {
-    selectCutId.value = null;
-  }
+  removeSegment(segmentId);
+  resetSubtitle();
 };
 
 /**
@@ -400,6 +431,339 @@ const searchDanmuVisible = ref(false);
 const searchDanmu = () => {
   searchDanmuVisible.value = !searchDanmuVisible.value;
 };
+
+/**
+ * 向前合并
+ * @param segment 要合并的片段
+ */
+const handleMergeForward = (segment: Segment) => {
+  if (segment.loading) {
+    notice.warning({
+      title: "片段正在处理，无法合并",
+      duration: 2000,
+    });
+    return;
+  }
+
+  const currentIndex = cuts.value.findIndex((s) => s.id === segment.id);
+  if (currentIndex <= 0) {
+    notice.warning({
+      title: "第一个片段无法向前合并",
+      duration: 2000,
+    });
+    return;
+  }
+
+  const success = mergeForward(segment.id);
+  resetSubtitle();
+  if (success) {
+    notice.success({
+      title: "合并成功",
+      duration: 1500,
+    });
+  }
+};
+
+/**
+ * 向后合并
+ * @param segment 要合并的片段
+ */
+const handleMergeBackward = (segment: Segment) => {
+  if (segment.loading) {
+    notice.warning({
+      title: "片段正在处理，无法合并",
+      duration: 2000,
+    });
+    return;
+  }
+
+  const currentIndex = cuts.value.findIndex((s) => s.id === segment.id);
+  if (currentIndex === -1 || currentIndex >= cuts.value.length - 1) {
+    notice.warning({
+      title: "最后一个片段无法向后合并",
+      duration: 2000,
+    });
+    return;
+  }
+
+  const success = mergeBackward(segment.id);
+  resetSubtitle();
+  if (success) {
+    notice.success({
+      title: "合并成功",
+      duration: 1500,
+    });
+  }
+};
+
+/**
+ * 切割片段
+ * @param segment 要切割的片段
+ */
+const splitSegment = (segment: Segment) => {
+  if (!videoInstance.value) return;
+  if (segment.loading) {
+    notice.warning({
+      title: "片段正在处理，无法切割",
+      duration: 2000,
+    });
+    return;
+  }
+
+  const currentTime = videoInstance.value.currentTime;
+
+  // 判断当前时间点是否在segment中
+  if (currentTime <= segment.start || currentTime >= segment.end!) {
+    notice.warning({
+      title: "当前时间点不在该片段范围内",
+      duration: 2000,
+    });
+    return;
+  }
+
+  // 设置当前segment的结束时间为当前时间
+  updateSegment(segment.id, { end: currentTime });
+
+  // 在当前segment后面插入新的segment
+  insertSegmentAfter(segment.id, {
+    start: currentTime,
+    end: segment.end,
+    name: segment.name ? `${segment.name}-2` : "",
+    checked: segment.checked,
+  });
+};
+
+function renderIcon(icon: Component) {
+  // 高度和宽度22px
+  return () =>
+    h(NIcon, { style: { fontSize: "17px", "font-size": "17px" } }, { default: () => h(icon) });
+}
+
+const resetSubtitle = () => {
+  const combinedLyrics = getCombinedLyrics();
+  videoInstance.value.artplayerPluginSubtitle.setContent(combinedLyrics, "srt");
+};
+
+const songRecognize = async (segment: Segment) => {
+  if (!props.files.originVideoPath) {
+    notice.error({
+      title: "请先加载视频文件",
+      duration: 1000,
+    });
+    return;
+  }
+  if (segment.end && segment.end - segment.start > 6 * 60) {
+    const [status] = await confirm.warning({
+      content: `这么长的片段真的是歌曲吗、是否继续？`,
+    });
+    if (!status) return;
+  }
+
+  // TODO:
+  // 波形图配置颜色
+  const [status] = await confirm.warning({
+    content: `此功能使用AI用于针对片段进行歌曲识别，使用前请先去配置阿里云相关key。\n
+    1. 利用asr识别出字幕\n
+    2. 利用llm根据字幕内容推断歌曲名称和歌词\n
+    3. 利用asr中的时间轴以及歌词生成校对后的字幕（设置可关闭）\n`,
+    showCheckbox: true,
+    showAgainKey: "videoSongRecognizeWarning",
+  });
+  if (!status) return;
+
+  try {
+    updateSegment(segment.id, { loading: true }, true);
+
+    const data = await aiApi.songRecognize(
+      props.files.originVideoPath!,
+      segment.start,
+      segment.end!,
+    );
+    updateSegment(segment.id, { name: data.name, lyrics: data.lyrics || "" });
+
+    resetSubtitle();
+    if (data.name) {
+      notice.success({
+        title: `歌曲识别成功：${data.name}`,
+        duration: 3000,
+      });
+    } else {
+      notice.warning({
+        title: `未能识别出歌曲`,
+        duration: 3000,
+      });
+    }
+  } finally {
+    updateSegment(segment.id, { loading: false }, true);
+  }
+};
+
+/**
+ * 字幕识别
+ * @param segment 要识别的片段
+ */
+const subtitleRecognizeHandler = async (segment: Segment) => {
+  if (!props.files.originVideoPath) {
+    notice.error({
+      title: "请先加载视频文件",
+      duration: 1000,
+    });
+    return;
+  }
+
+  // 获取配置（尝试获取，如果失败则使用默认值）
+  let modelId: string | undefined = undefined;
+
+  try {
+    const config = await window.api.config.getAll();
+    const models = config?.ai?.models || [];
+    if (models.length === 0) {
+      notice.error({
+        title: "请先在设置中配置AI模型",
+        duration: 3000,
+      });
+      return;
+    }
+    modelId = config?.ai?.subtitleRecognize?.modelId;
+    if (!modelId) {
+      notice.error({
+        title: "请先在设置中配置字幕识别模型",
+        duration: 3000,
+      });
+      return;
+    }
+  } catch (error) {
+    notice.error({
+      title: "获取配置失败，请先配置AI模型",
+      duration: 3000,
+    });
+    return;
+  }
+
+  const [status] = await confirm.warning({
+    content: `此功能使用AI对片段进行字幕识别，将生成SRT格式字幕。\n\n识别范围：${segment.start.toFixed(2)}s - ${segment.end?.toFixed(2)}s`,
+    showCheckbox: true,
+    showAgainKey: "videoSubtitleRecognizeWarning",
+  });
+  if (!status) return;
+
+  try {
+    updateSegment(segment.id, { loading: true }, true);
+
+    // 调用字幕识别 API
+    const data = await aiApi.subtitleRecognize(
+      props.files.originVideoPath!,
+      segment.start,
+      segment.end!,
+      modelId,
+      {
+        offset: segment.start,
+      },
+    );
+
+    // 更新片段的字幕数据
+    updateSegment(segment.id, { lyrics: data.srt || "" });
+
+    resetSubtitle();
+
+    if (data.srt) {
+      notice.success({
+        title: "字幕识别成功",
+        duration: 3000,
+      });
+    } else {
+      notice.warning({
+        title: "未能识别出字幕",
+        duration: 3000,
+      });
+    }
+  } catch (error: any) {
+    notice.error({
+      title: "字幕识别失败",
+      content: error.message || "未知错误",
+      duration: 5000,
+    });
+  } finally {
+    updateSegment(segment.id, { loading: false }, true);
+  }
+};
+
+const themeStore = useThemeStore();
+const showContextMenu = (e: MouseEvent, segment: Segment) => {
+  //这个函数与 this.$contextmenu 一致
+  const osTheme = themeStore.theme === "dark" ? "default dark" : "default";
+  ContextMenu.showContextMenu({
+    theme: osTheme,
+    x: e.x,
+    y: e.y,
+    items: [
+      {
+        label: "播放",
+        onClick: () => {
+          if (videoInstance.value) {
+            videoInstance.value!.seek = segment.start;
+            videoInstance.value.play();
+          }
+        },
+        icon: renderIcon(PlayCircleOutline),
+      },
+      {
+        label: "编辑",
+        onClick: () => {
+          editCut(segment.id);
+        },
+        icon: renderIcon(Pencil),
+      },
+      {
+        label: "删除",
+        onClick: () => {
+          deleteCut(segment.id);
+        },
+        icon: renderIcon(Delete24Regular),
+      },
+      {
+        label: "切换状态",
+        icon: renderIcon(ToggleLeft24Regular),
+        onClick: () => {
+          toggleChecked(segment.id);
+        },
+      },
+      {
+        label: "切割",
+        icon: renderIcon(Cut20Regular),
+        onClick: () => {
+          splitSegment(segment);
+        },
+      },
+      {
+        label: "向前合并",
+        onClick: () => {
+          handleMergeForward(segment);
+        },
+      },
+      {
+        label: "向后合并",
+        onClick: () => {
+          handleMergeBackward(segment);
+        },
+      },
+      {
+        label: "歌曲识别",
+        icon: renderIcon(MusicNote220Regular),
+        onClick: async () => {
+          songRecognize(segment);
+        },
+      },
+      {
+        label: "字幕识别",
+        icon: renderIcon(SubtitlesOutlined),
+        onClick: async () => {
+          subtitleRecognizeHandler(segment);
+        },
+      },
+    ],
+  });
+};
 </script>
 
 <style scoped lang="less">
@@ -442,7 +806,7 @@ const searchDanmu = () => {
       opacity: 1;
     }
     &.selected {
-      border-color: skyblue;
+      border-color: var(--active-border-color);
       border-width: 2px;
     }
     &:hover {
@@ -472,6 +836,11 @@ const searchDanmu = () => {
       position: absolute;
       right: 24px;
       bottom: 0px;
+    }
+    .loading {
+      position: absolute;
+      top: 4px;
+      right: 4px;
     }
   }
 }

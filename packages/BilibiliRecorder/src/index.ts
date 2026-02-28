@@ -10,7 +10,7 @@ import {
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
-import { ensureFolderExist, hasKeyword } from "./utils.js";
+import { ensureFolderExist } from "./utils.js";
 import DanmaClient from "./danma.js";
 
 import type {
@@ -36,6 +36,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     state: "idle",
     qualityRetry: opts.qualityRetry ?? 0,
     useM3U8Proxy: opts.useM3U8Proxy ?? false,
+    customHost: opts.customHost,
     useServerTimestamp: opts.useServerTimestamp ?? true,
     m3u8ProxyUrl: opts.m3u8ProxyUrl,
     formatName: opts.formatName ?? "auto",
@@ -130,18 +131,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!this.liveInfo.living) return null;
 
   // 检查标题是否包含关键词，如果包含则不自动录制
-  // 手动开始录制时不检查标题关键词
-  if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
-    const hasTitleKeyword = hasKeyword(this.liveInfo.title, this.titleKeywords);
-    if (hasTitleKeyword) {
-      this.state = "title-blocked";
-      this.emit("DebugLog", {
-        type: "common",
-        text: `跳过录制：直播间标题 "${this.liveInfo.title}" 包含关键词 "${this.titleKeywords}"`,
-      });
-      return null;
-    }
-  }
+  if (utils.checkTitleKeywordsBeforeRecord(this.liveInfo.title, this, isManualStart)) return null;
 
   const liveInfo = await getInfo(this.channelId);
   const { owner, title, roomId, liveStartTime, recordStartTime } = liveInfo;
@@ -164,6 +154,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       formatName: this.formatName,
       codecName: this.codecName,
       onlyAudio: this.onlyAudio,
+      customHost: this.customHost,
     });
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
@@ -183,9 +174,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedStream = stream.name;
   this.usedSource = stream.source;
   let url = stream.url;
-
   let intervalId: NodeJS.Timeout | null = null;
-  if (this.useM3U8Proxy && streamOptions.protocol_name === "http_hls") {
+  if (this.useM3U8Proxy && streamOptions.format_name === "ts") {
     url = `${this.m3u8ProxyUrl}?id=${this.id}&format=hls`;
     this.emit("DebugLog", {
       type: "common",
@@ -212,13 +202,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     );
   }
 
-  let isCutting = false;
   let isEnded = false;
   const onEnd = (...args: unknown[]) => {
-    if (isCutting) {
-      isCutting = false;
-      return;
-    }
     if (isEnded) return;
     isEnded = true;
     this.emit("DebugLog", {
@@ -245,6 +230,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           recordStartTime,
         }),
       formatName: streamOptions.format_name as "flv" | "ts" | "fmp4",
+      disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat,
       debugLevel: this.debugLevel ?? "none",
       headers: {
@@ -326,7 +312,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     danmaClient.on("onRoomInfoChange", (msg) => {
       if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
         const title = msg?.body?.title ?? "";
-        const hasTitleKeyword = hasKeyword(title, this.titleKeywords);
+        const hasTitleKeyword = utils.hasBlockedTitleKeywords(title, this.titleKeywords);
 
         if (hasTitleKeyword) {
           this.state = "title-blocked";
@@ -348,11 +334,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const cut = utils.singleton<RecordHandle["cut"]>(async () => {
     if (!this.recordHandle) return;
-    if (isCutting) return;
-    isCutting = true;
-    await downloader.stop();
-    downloader.createCommand();
-    downloader.run();
+    downloader.cut();
   });
 
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {

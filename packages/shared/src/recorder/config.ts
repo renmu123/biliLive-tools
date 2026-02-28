@@ -20,7 +20,6 @@ export default class RecorderConfig {
     | (Recorder & {
         auth?: string;
         formatPriorities?: Array<"hls" | "flv">;
-        api?: "web" | "webHTML";
       })
     | null {
     const getValue = (key: any): any => {
@@ -84,8 +83,16 @@ export default class RecorderConfig {
         } else if (key === "api") {
           if (setting.providerId === "DouYin") {
             return get(globalConfig, "douyin.api");
+          } else if (setting.providerId === "HuYa") {
+            return get(globalConfig, "huya.api");
           } else {
             return "auto";
+          }
+        } else if (key === "customHost") {
+          if (setting.providerId === "Bilibili") {
+            return get(globalConfig, "bilibili.customHost");
+          } else {
+            return undefined;
           }
         } else {
           return get(globalConfig, key);
@@ -148,9 +155,6 @@ export default class RecorderConfig {
       }
     }
     let api = getValue("api") ?? "auto";
-    if (setting.providerId !== "DouYin") {
-      api = "auto";
-    }
 
     return {
       ...setting,
@@ -168,6 +172,7 @@ export default class RecorderConfig {
       recorderType: getValue("recorderType") ?? "ffmpeg",
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
+      customHost: getValue("customHost"),
       useServerTimestamp: getValue("useServerTimestamp") ?? true,
       formatName: formatName,
       codecName: getValue("codecName") ?? "auto",

@@ -16,6 +16,7 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   dynamic: "",
   cover: "",
   noReprint: 0,
+  watermark: 0,
   openElec: 0,
   closeDanmu: 0,
   closeReply: 0,

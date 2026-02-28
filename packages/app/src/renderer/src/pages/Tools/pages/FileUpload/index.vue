@@ -40,10 +40,10 @@ import BiliSetting from "@renderer/components/BiliSetting.vue";
 import AppendVideoDialog from "@renderer/components/AppendVideoDialog.vue";
 import { useBili } from "@renderer/hooks";
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
-import { biliApi } from "@renderer/apis";
+import { biliApi, commonApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 
-import { deepRaw } from "@renderer/utils";
+import { deepRaw, replaceExtName, buildRoomLink } from "@renderer/utils";
 
 defineOptions({
   name: "Upload",
@@ -86,6 +86,50 @@ onUnmounted(() => {
   hotkeys.unbind();
 });
 
+const formatPartTitleTemplate = async (
+  partTitleTemplate: string | undefined,
+  videos: (typeof fileList)["value"],
+) => {
+  const hasPartTitleTemplate = partTitleTemplate && !!partTitleTemplate.trim();
+  if (hasPartTitleTemplate) {
+    await Promise.all(
+      videos.map(async (video, index) => {
+        try {
+          const parseResult = await commonApi.parseMeta({
+            videoFilePath: video.path,
+            danmaFilePath: replaceExtName(video.path, ".xml"),
+          });
+          if (
+            parseResult.title &&
+            parseResult.username &&
+            parseResult.roomId &&
+            parseResult.startTimestamp
+          ) {
+            const previewTitle = await biliApi.formatWebhookPartTitle(partTitleTemplate, {
+              title: parseResult.title,
+              username: parseResult.username,
+              time: new Date((parseResult.startTimestamp ?? 0) * 1000).toISOString(),
+              roomId: parseResult.roomId,
+              filename: window.path.basename(video.path),
+              index: index + 1, // 索引从 1 开始
+            });
+            video.title = previewTitle;
+            notice.success({
+              title: `已解析并替换标题为：${previewTitle}`,
+              duration: 6000,
+            });
+          }
+        } catch (e) {
+          notice.warning({
+            title: `尝试解析视频文件 ${video.title} 信息失败，继续上传`,
+            duration: 2000,
+          });
+        }
+      }),
+    );
+  }
+};
+
 const upload = async () => {
   const hasLogin = !!userInfo.value.uid;
   if (!hasLogin) {
@@ -103,15 +147,71 @@ const upload = async () => {
     });
     return;
   }
-  await biliApi.validUploadParams(deepRaw(presetOptions.value.config));
-  notice.info({
-    title: `开始上传`,
-    duration: 1000,
-  });
+  const uploadConfig = deepRaw(presetOptions.value.config) as typeof presetOptions.value.config;
+  await biliApi.validUploadParams(uploadConfig);
+
+  // 如果上传标题中存在占位符，或者稿件类型为转载，则转载来源为空时，获取第一个文件的调用解析接口获取数据进行填充
+  if (uploadConfig.title.includes("{{")) {
+    try {
+      const parseResult = await commonApi.parseMeta({
+        videoFilePath: fileList.value[0].path,
+        danmaFilePath: replaceExtName(fileList.value[0].path, ".xml"),
+      });
+      if (
+        parseResult.title &&
+        parseResult.username &&
+        parseResult.roomId &&
+        parseResult.startTimestamp
+      ) {
+        if (uploadConfig.title.includes("{{")) {
+          const previewTitle = await biliApi.formatWebhookTitle(uploadConfig.title, {
+            title: parseResult.title,
+            username: parseResult.username,
+            time: new Date((parseResult.startTimestamp ?? 0) * 1000).toISOString(),
+            roomId: parseResult.roomId,
+            filename: window.path.basename(fileList.value[0].path),
+          });
+          uploadConfig.title = previewTitle;
+          notice.success({
+            title: `已解析并替换标题为：${previewTitle}`,
+            duration: 6000,
+          });
+        }
+      }
+    } catch (e) {
+      notice.warning({
+        title: `尝试解析视频文件信息失败，继续上传`,
+        duration: 2000,
+      });
+    }
+  }
+
+  if (uploadConfig.copyright === 2 && !uploadConfig.source) {
+    const parseResult = await commonApi.parseMeta({
+      videoFilePath: fileList.value[0].path,
+      danmaFilePath: replaceExtName(fileList.value[0].path, ".xml"),
+    });
+    if (parseResult.platform) {
+      uploadConfig.source = buildRoomLink(parseResult.platform, parseResult.roomId ?? "") ?? "";
+    }
+
+    if (!uploadConfig.source) {
+      notice.error({
+        title: `稿件类型为转载时转载来源不能为空`,
+        duration: 1000,
+      });
+      return;
+    }
+  }
+
+  const videos = deepRaw(fileList.value);
+
+  await formatPartTitleTemplate(uploadConfig.partTitleTemplate, videos);
+
   await biliApi.upload({
     uid: userInfo.value.uid!,
-    videos: deepRaw(fileList.value),
-    config: deepRaw(presetOptions.value.config),
+    videos,
+    config: uploadConfig,
     options: {
       removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
     },
@@ -147,12 +247,18 @@ const appendVideo = async () => {
     title: `开始上传`,
     duration: 1000,
   });
+
+  const uploadConfig = deepRaw(presetOptions.value.config);
+  const videos = deepRaw(fileList.value);
+
+  await formatPartTitleTemplate(uploadConfig.partTitleTemplate, videos);
+
   await biliApi.upload({
     uid: userInfo.value.uid!,
     vid: Number(aid.value),
-    videos: deepRaw(fileList.value),
+    videos,
     config: {
-      ...deepRaw(presetOptions.value.config),
+      ...uploadConfig,
     },
     options: {
       removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,

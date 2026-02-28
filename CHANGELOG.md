@@ -1,5 +1,208 @@
 # Next
 
+## 功能
+
+- 数据看板UI优化、增加更多数据展示
+- 上传分P标题支持自动格式化 [#338](https://github.com/renmu123/biliLive-tools/pull/350)
+- 切片：支持字幕识别
+- AI：支持基于ffmpeg的whisper调用，具体参考[文档](https://docs.irenmu.com/features/ai.html#%E5%AD%97%E5%B9%95%E8%AF%86%E5%88%AB)
+
+## 优化
+
+- B站上传：水印参数默认值修改为关闭
+- 录制：“使用服务端时间戳”参数默认关闭
+
+## Bug修复
+
+- Webhook: 修复开启 “审核通过后删除”和上传非弹幕版 后，非弹幕版视频不会被删除的bug[#352](https://github.com/renmu123/biliLive-tools/issues/352)
+- Webhook: 修复某些情况下文件不会被删除的bug [#355](https://github.com/renmu123/biliLive-tools/issues/355)
+- B站上传：修复续传时水印参数不会被继承的bug
+- 修复 CLI 包的编译问题
+
+# 3.8.1
+
+## 优化
+
+- 切片：录制音乐歌词排版
+
+## Bug修复
+
+- 修复未开启压制时的错误删除状态 [#350](https://github.com/renmu123/biliLive-tools/pull/350)
+
+# 3.8.0
+
+## 重大变更
+
+- webhook: 重构webhook删除文件的代码
+- webhook: 上传非弹幕版的文件可以正常被删除了
+
+## 功能
+
+- 录制：B站支持和自定义host
+- 录制：虎牙重新支持wup接口，感谢来自biliup的实现
+- 弹幕：`自定义过滤函数`修改为 `自定义函数`，支持通过函数来自定义参数 [#316](https://github.com/renmu123/biliLive-tools/issues/316)
+- B站上传：支持水印选项 [#320](https://github.com/renmu123/biliLive-tools/pull/320)
+- Webhook：`删除不符合最小处理大小的文件` 将会对封面以及弹幕文件生效 [#317](https://github.com/renmu123/biliLive-tools/issues/317)
+- Webhook：`分p标题`支持`{{hasDanmaStr}}`占位符区分文件是否属于弹幕版
+- 录制：录制名占位符增加`ms`参数 [#324](https://github.com/renmu123/biliLive-tools/issues/324)
+- 音乐切片性能优化 [#330](https://github.com/renmu123/biliLive-tools/pull/330)
+
+## Bug修复
+
+- 修复礼物价格渲染错误的bug
+- 录制：为录播姬引擎增加一些外部的超时判断，避免流一直不会被中断
+- 录制：修复添加录制时如果设置了监听时间，仍然自动开始的bug
+- 弹幕：修复Linux下黑名单过滤无法使用的bug
+- 切片：修复歌曲识别无法在docker使用的bug
+
+## 其他
+
+录播姬引擎升级至[3.3.2](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.3.2)
+DanmakuFactory升级至[2.1.0](https://github.com/renmu123/DanmakuFactory/releases/tag/v2.1.0)
+
+# 3.7.1
+
+- 修复 docker 打包错误
+
+# 3.7.0(2026.1.23)
+
+## 大更改
+
+- 录制引擎默认修改为“录播姬引擎”
+- 重构 webhook 匹配逻辑 [#277](https://github.com/renmu123/biliLive-tools/pull/227)
+
+## 功能
+
+- 弹幕：增加window下宽字符的支持 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
+- 弹幕：添加上下间距参数支持 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
+- 弹幕：支持强制覆盖输出文件参数 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
+- 录制：弹幕可视化优化，抄得录播姬（ [#302](https://github.com/renmu123/biliLive-tools/issues/302)
+- 抖音录播下载支持 [#305](https://github.com/renmu123/biliLive-tools/pull/305)
+- 录制：禁止标题关键词支持正则 [#307](https://github.com/renmu123/biliLive-tools/pull/307)
+- Webhook: 支持移除不符合条件的小文件选项
+- Webhook:上传配置中设置为转载类型时转载来源支持为空，webhook中会尝试使用直播间链接（应该
+- Webhook: 视频手动上传且存在占位符时，对相关的视频文件和弹幕进行解析，从而实现对占位符的填充（应该
+- 切片：支持快速切歌、歌名获取、歌词优化
+- 切片：支持拆分、合并
+
+## 优化
+
+- B站上传：增加 `cs-akbd`、`cs-estx` 以及自定义线路 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
+- B站上传：`投稿最短间隔`及`缓存投稿失败视频`选项现在针对账户生效 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
+- B站上传：规避上传的406风控 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
+- 弹幕：“自定义过滤函数”支持`logger`进行调试
+- 录制：B站录制 `fmp4`流优先于`ts`流
+- 录制：B站录制 `避免hls自动分段` 选项不再对`fmp4`流生效
+
+## bug修复
+
+- 弹幕：修复用户名称解析逻辑 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
+
+## 其他
+
+`DanmakuFactory` 采用 https://github.com/renmu123/DanmakuFactory 此处分发的版本
+
+# 3.6.0(2026.1.8)
+
+沉迷异星工厂，无心更新（
+
+## 功能
+
+- 合并页面支持文件名排序 [#293](https://github.com/renmu123/biliLive-tools/pull/293)
+- 录制：抖音支持更多弹幕类型 [#289](https://github.com/renmu123/biliLive-tools/pull/289)
+- 支持最近录制时间显示以及筛选 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
+- 录制页面支持“显示字段”配置 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
+- 列表模式支持显示备注 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
+- Web支持UI主题选择 [#301](https://github.com/renmu123/biliLive-tools/pull/301)
+- 录制：虎牙 wup 接口出问题了，先切回mp吧
+
+## bug修复
+
+录制：抖音弹幕某些情况下礼物弹幕用户名为空时设置为"unknown"
+
+# 3.5.2(2025.12.24)
+
+## bug修复
+
+- 录制：修复某些情况下xml文件命名错误的情况
+- 录制：修复斗鱼某些直播间解析错误
+- 录制：虎牙英雄联盟区默认使用 `wup` 接口
+- 为执行二进制命令增加 `windowsHide=true` 参数 [#284](https://github.com/renmu123/biliLive-tools/pull/284)
+
+# 3.5.1(2025.12.15)
+
+## 优化
+
+- 录制：优化抖音弹幕重连逻辑 [#279](https://github.com/renmu123/biliLive-tools/pull/279)
+- 同步：alist增加重试支持 [#272](https://github.com/renmu123/biliLive-tools/pull/272)
+- B站上传；增加一个新的审核中状态 [#272](https://github.com/renmu123/biliLive-tools/pull/272)
+
+## bug修复
+
+- 录制：修复虎牙默认接口录播姬引擎无法录制的bug，上游修复 [v3.3.1](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.3.1)
+- 录制：修复抖音某些情况下cookie不生效的bug [#279](https://github.com/renmu123/biliLive-tools/pull/279)
+- B站上传：修复重试策略失效的bug
+
+## 其他
+
+- 录播姬引擎升级至 [v3.3.1](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.3.1)
+
+# 3.5.0(2025.12.14)
+
+## 功能
+
+- 切片：片段支持右键菜单
+- 切片：项目支持自动保存，默认开启 [#264](https://github.com/renmu123/biliLive-tools/pull/264)
+- B站上传：内存优化，从默认约90m节约至2m
+- 录制：录播姬引擎支持主动分段 [#258](https://github.com/renmu123/biliLive-tools/pull/258)
+- 录制：虎牙支持接口参数，默认行为从星秀区使用`mp`接口修改为使用`wup`接口 [#265](https://github.com/renmu123/biliLive-tools/pull/265)
+- 录制：支持录制结束通知
+
+## 优化
+
+- 录制：录播姬引擎不再默认显示日志
+- 录制：历史记录视频预览支持弹幕
+- 录制：虎牙弹幕链接初始化优化
+- 录制：mesio 引擎支持智能停止，由上游支持 [#253](https://github.com/renmu123/biliLive-tools/pull/253)
+- 切片：视频时间栏不会再被隐藏
+- 切片：优化波形图片段颜色生成算法，未激活时使用不同颜色；激活切片栏边框色与波形图一致
+- 切片：支持`ctrl+n`新建片段
+- 切片：支持控制波形图数据是否进行缓存，默认缓存
+- B站上传：上传速度显示支持
+- B站上传：审核中状态再添加一个值
+- UI：文件选择组件支持二次拖拽
+- 弹幕：优化某些情况大文件下弹幕解析速度
+- 同步：alist创建文件夹时进行额外的检查
+
+## Bug 修复
+
+- flv修复：修复页面中缺失选择文件夹图标的bug
+- flv修复：修复使用错误UI选择框的bug
+- 斗鱼下载：修复弹幕元数据错误
+- 切片：修复开启显示时间戳，但默认没有显示的bug
+- 切片：修复添加视频后，关闭项目时部分状态未清理的bug
+- 切片：修复添加xml弹幕出现弹框取消后，部分状态错误的bug
+- 切片：修复某些情况下导入llc时间戳错误的bug [#264](https://github.com/renmu123/biliLive-tools/pull/264)
+- 切片：修复操作历史记录不会反映到波形图的bug [#264](https://github.com/renmu123/biliLive-tools/pull/264)
+- B站上传：修复上传多个分p时，存在上传完成分p，取消其他分p后，任务不会结束的bug
+- webhook: 修复oneliverec可能无法读取到元数据的bug
+
+## 其他
+
+- 录播姬依赖升级至 3.3.0
+- mesio 依赖升级至 0.3.6 [#253](https://github.com/renmu123/biliLive-tools/pull/253)
+
+# 3.4.1(2025.11.28)
+
+## Bug修复
+
+- 录制：修复未开启弹幕仍会添加空弹幕文件的bug
+- 录制：修复批量添加的bug
+- web：修复 web 文件选择器的bug [#259](https://github.com/renmu123/biliLive-tools/issues/259)
+- 切片：修复 web 项目功能
+
+# 3.4.0(2025.11.27)
+
 ## 切片
 
 切片功能大幅优化，支持显示显现实时间，以及支持了波形图显示，为波形图添加了大量交互，超大文件的优化花了我一整天时间，js性能是真弱。
@@ -15,6 +218,8 @@
 - 切片：web版本支持项目功能 [#248](https://github.com/renmu123/biliLive-tools/pull/248)
 - 切片：波形图支持 [#252](https://github.com/renmu123/biliLive-tools/pull/252)
 - UI：客户端支持隐藏菜单栏
+- 同步：alist支持过滤四字节字符串 (#239)
+- 视频下载：斗鱼支持只下载弹幕
 
 ## 优化
 

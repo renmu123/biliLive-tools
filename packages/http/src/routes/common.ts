@@ -3,19 +3,16 @@ import path from "node:path";
 import os from "node:os";
 import fs from "fs-extra";
 import multer from "../middleware/multer.js";
+import { default as checkDiskSpace } from "check-disk-space";
 
 import Router from "@koa/router";
 import semver from "semver";
-import {
-  formatTitle,
-  uuid,
-  formatPartTitle,
-  getTempPath,
-} from "@biliLive-tools/shared/utils/index.js";
+import { uuid, getTempPath } from "@biliLive-tools/shared/utils/index.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
-import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
+import { statisticsService, recordHistoryService } from "@biliLive-tools/shared/db/index.js";
+import recorderService from "../services/recorder.js";
 
 import { config, handler, appConfig, fileCache } from "../index.js";
 import { container } from "../index.js";
@@ -25,52 +22,13 @@ const router = new Router({
 });
 const upload = multer({ dest: os.tmpdir() });
 
-router.post("/formatTitle", async (ctx) => {
-  const data = ctx.request.body as {
-    template: string;
-  };
-  const template = (data.template || "") as string;
-
-  const title = formatTitle(
-    {
-      title: "标题",
-      username: "主播名",
-      time: new Date().toISOString(),
-      roomId: 123456,
-      filename: "文件名",
-    },
-    template,
-  );
-  ctx.body = title;
-});
-
-router.post("/formatPartTitle", async (ctx) => {
-  const data = ctx.request.body as {
-    template: string;
-  };
-  const template = (data.template || "") as string;
-
-  const title = formatPartTitle(
-    {
-      title: "标题",
-      username: "主播名",
-      time: new Date().toISOString(),
-      roomId: 123456,
-      filename: "文件名",
-      index: 1,
-    },
-    template,
-  );
-  ctx.body = title;
-});
-
 router.get("/version", (ctx) => {
   ctx.body = config.version;
 });
 
 function getDriveLetters(): Promise<string[]> {
   return new Promise((resolve, reject) => {
-    exec("wmic logicaldisk get name", (error, stdout, stderr) => {
+    exec("wmic logicaldisk get name", { windowsHide: true }, (error, stdout, stderr) => {
       if (error) {
         reject(`Error: ${stderr}`);
         return;
@@ -217,8 +175,21 @@ router.post("/cover/upload", upload.single("file"), async (ctx) => {
 });
 
 router.get("/appStartTime", async (ctx) => {
-  const data = StatisticsService.query("start_time");
+  const data = statisticsService.query("start_time");
   ctx.body = data?.value;
+});
+
+router.get("/statistics", async (ctx) => {
+  const startTime = statisticsService.query("start_time");
+  const videoTotalDuaration = recordHistoryService.getTotalDuration();
+  const recordingNum = recorderService.getRecorderNum(true);
+  const recorderNum = recorderService.getRecorderNum(false);
+  ctx.body = {
+    startTime: startTime?.value || null,
+    videoTotalDuaration,
+    recordingNum,
+    recorderNum,
+  };
 });
 
 router.get("/exportLogs", async (ctx) => {
@@ -232,15 +203,17 @@ router.get("/getLogContent", async (ctx) => {
   ctx.body = content;
 });
 
-router.post("/readAss", async (ctx) => {
+router.post("/readDanma", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;
   };
-  if (!filepath.endsWith(".ass")) {
+  // 只允许读取ass或xml文件
+  if (!filepath.endsWith(".ass") && !filepath.endsWith(".xml")) {
     ctx.status = 400;
-    ctx.body = "文件不是ass格式";
+    ctx.body = "文件不是ass或xml格式";
     return;
   }
+
   if (!(await fs.pathExists(filepath))) {
     ctx.status = 400;
     ctx.body = "文件不存在";
@@ -279,6 +252,14 @@ router.post("/writeLLC", async (ctx) => {
   }
   await fs.writeFile(filepath, content, "utf-8");
   ctx.body = "success";
+});
+
+router.post("/fileExists", async (ctx) => {
+  const { filepath } = ctx.request.body as {
+    filepath: string;
+  };
+  const exists = await fs.pathExists(filepath);
+  ctx.body = exists;
 });
 
 router.post("/genTimeData", async (ctx) => {
@@ -484,6 +465,11 @@ router.post("/handleWebhook", async (ctx) => {
   ctx.body = "success";
 });
 
+router.post("/webhook", async (ctx) => {
+  const liveList = handler.liveData;
+  ctx.body = liveList;
+});
+
 /**
  * 检测为何无法上传
  * 检查是否为内部录制，如果是，检查是否开启webhook，接下来走下面的流程
@@ -526,7 +512,7 @@ router.get("/whyUploadFailed", async (ctx) => {
     }
 
     // 检查单独webhook配置
-    const webhookConfig = handler.getConfig(roomId);
+    const webhookConfig = handler.configManager.getConfig(roomId);
 
     if (!webhookConfig.open) {
       errorInfoList.push("处于黑名单或单独关闭开关");
@@ -706,6 +692,51 @@ router.get("/tempPath", async (ctx) => {
     console.error("获取缓存路径失败:", error);
     ctx.status = 500;
     ctx.body = "获取缓存路径失败";
+  }
+});
+
+/**
+ * @api {get} /common/diskSpace 获取磁盘空间信息
+ * @apiDescription 获取录播姬文件夹所在磁盘的空间信息
+ * @apiSuccess {number} total 总空间（GB）
+ * @apiSuccess {number} free 可用空间（GB）
+ * @apiSuccess {number} used 已用空间（GB）
+ * @apiSuccess {number} usedPercentage 使用百分比
+ */
+router.get("/diskSpace", async (ctx) => {
+  try {
+    const config = appConfig.getAll();
+    const recoderFolder = config?.recorder?.savePath;
+
+    if (!recoderFolder) {
+      ctx.status = 400;
+      ctx.body = "未配置文件夹路径";
+      return;
+    }
+
+    if (!(await fs.pathExists(recoderFolder))) {
+      ctx.status = 404;
+      ctx.body = "文件夹不存在";
+      return;
+    }
+
+    // @ts-ignore
+    const diskInfo = await checkDiskSpace(recoderFolder);
+    const totalGB = diskInfo.size / (1024 * 1024 * 1024);
+    const freeGB = diskInfo.free / (1024 * 1024 * 1024);
+    const usedGB = totalGB - freeGB;
+    const usedPercentage = (usedGB / totalGB) * 100;
+
+    ctx.body = {
+      total: Number(totalGB.toFixed(2)),
+      free: Number(freeGB.toFixed(2)),
+      used: Number(usedGB.toFixed(2)),
+      usedPercentage: Number(usedPercentage.toFixed(2)),
+    };
+  } catch (error) {
+    console.error("获取磁盘空间失败:", error);
+    ctx.status = 500;
+    ctx.body = "获取磁盘空间失败";
   }
 });
 

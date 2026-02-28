@@ -8,6 +8,7 @@ export function useDanmu(
   videoInstance: Ref<Artplayer | null>,
   videoRef: Ref<any>,
   videoDuration: Ref<number>,
+  showVideoTime: Ref<boolean>,
 ) {
   const danmaList = ref<DanmuItem[]>([]);
   const xmlConvertVisible = ref(false);
@@ -20,8 +21,9 @@ export function useDanmu(
    */
   const loadDanmuFile = async (path: string) => {
     if (path.endsWith(".ass")) {
-      const content = await commonApi.readAss(path);
+      const content = await commonApi.readDanma(path);
       videoRef.value?.switchAss(content);
+      await generateDanmakuData(path);
       return path;
     } else {
       // 如果是xml文件则弹框提示，要求转换为ass文件
@@ -29,7 +31,6 @@ export function useDanmu(
       tempXmlFile.value = path;
       convertDanmuLoading.value = true;
     }
-    await generateDanmakuData(path);
     return path;
   };
 
@@ -46,16 +47,15 @@ export function useDanmu(
     }
     try {
       const { output } = await taskApi.convertXml2Ass(tempXmlFile.value, "随便填", config, {
-        copyInput: true,
         removeOrigin: false,
         saveRadio: 2,
         temp: true,
         savePath: "",
         sync: true,
       });
-      const content = await commonApi.readAss(output);
+      const content = await commonApi.readDanma(output);
       videoRef.value?.switchAss(content);
-      return output;
+      return [output, tempXmlFile.value];
     } finally {
       convertDanmuLoading.value = false;
     }
@@ -67,6 +67,8 @@ export function useDanmu(
   const generateDanmakuData = async (file: string) => {
     if (file.endsWith(".ass")) {
       danmaList.value = [];
+      // @ts-ignore
+      videoInstance.value?.artplayerTimestamp?.setTimestamp(0);
     } else if (file.endsWith(".xml")) {
       const data = await commonApi.parseDanmu(file);
       danmaList.value = sortBy([...data.sc, ...data.danmu], "ts");
@@ -75,6 +77,13 @@ export function useDanmu(
         videoInstance.value?.artplayerTimestamp?.setTimestamp(
           data.metadata.video_start_time * 1000,
         );
+        if (showVideoTime.value === false) {
+          // @ts-ignore
+          videoInstance.value?.artplayerTimestamp?.hide();
+        } else {
+          // @ts-ignore
+          videoInstance.value?.artplayerTimestamp?.show();
+        }
       }
     } else {
       throw new Error("不支持的文件类型");
@@ -92,8 +101,16 @@ export function useDanmu(
    */
   const reloadDanmu = async (danmuPath: string | null) => {
     if (!danmuPath) return;
-    const content = await commonApi.readAss(danmuPath);
+    const content = await commonApi.readDanma(danmuPath);
     videoRef.value?.switchAss(content);
+  };
+
+  /**
+   * 关闭弹幕转换弹窗
+   */
+  const closeConvertDialog = () => {
+    xmlConvertVisible.value = false;
+    convertDanmuLoading.value = false;
   };
 
   return {
@@ -104,5 +121,6 @@ export function useDanmu(
     confirmAndConvertDanmu,
     generateDanmakuData,
     reloadDanmu,
+    closeConvertDialog,
   };
 }

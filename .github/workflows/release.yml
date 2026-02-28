@@ -63,14 +63,6 @@ jobs:
       - name: build
         run: pnpm run build:app
 
-      # - name: Build Cli
-      #   if: startsWith(matrix.os, 'windows')
-      #   run: pnpm run --filter bililive-cli build:cli && pnpm run --filter bililive-cli zip:win
-
-      # - name: Build Cli
-      #   if: startsWith(matrix.os, 'ubuntu')
-      #   run: pnpm run --filter bililive-cli build:cli && pnpm run --filter bililive-cli zip:linux
-
       - name: release
         if: env.is_tag == 'true'
         uses: ncipollo/release-action@v1

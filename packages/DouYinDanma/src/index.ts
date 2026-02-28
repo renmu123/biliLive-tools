@@ -16,6 +16,8 @@ import type {
   RoomStatsMessage,
   RoomRankMessage,
   Message,
+  PrivilegeScreenChatMessage,
+  ScreenChatMessage,
 } from "../types/types.js";
 
 function buildRequestUrl(url: string): string {
@@ -50,6 +52,8 @@ interface Events {
   roomUserSeq: (message: RoomUserSeqMessage) => void;
   roomStats: (message: RoomStatsMessage) => void;
   roomRank: (message: RoomRankMessage) => void;
+  privilegeScreenChat: (message: PrivilegeScreenChatMessage) => void;
+  screenChat: (message: ScreenChatMessage) => void;
   message: (message: Message) => void;
 }
 
@@ -62,11 +66,13 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   private autoStart: boolean;
   private autoReconnect: number;
   private reconnectAttempts: number;
+  private reconnectInterval: number;
   private cookie?: string;
   private timeoutInterval: number;
   private lastMessageTime: number;
   private timeoutTimer!: NodeJS.Timeout;
   private isTimeoutCheckRunning: boolean = false;
+  private isReconnecting: boolean = false;
 
   constructor(
     roomId: string,
@@ -74,6 +80,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       autoStart?: boolean;
       autoReconnect?: number;
       heartbeatInterval?: number;
+      reconnectInterval?: number;
       cookie?: string;
       timeoutInterval?: number;
     } = {},
@@ -84,6 +91,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.autoStart = options.autoStart ?? false;
     this.autoReconnect = options.autoReconnect ?? 10;
     this.reconnectAttempts = 0;
+    this.reconnectInterval = options.reconnectInterval ?? 10000;
     this.cookie = options.cookie;
     this.timeoutInterval = options.timeoutInterval ?? 100000; // 默认100秒
     this.lastMessageTime = Date.now();
@@ -108,6 +116,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     });
 
     this.ws.on("open", () => {
+      this.reconnectAttempts = 0;
       this.emit("open");
       this.startHeartbeat();
       this.startTimeoutCheck();
@@ -203,12 +212,21 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   private reconnect() {
+    if (this.isReconnecting) {
+      return;
+    }
+
     this.stopHeartbeat();
     this.stopTimeoutCheck();
+
     if (this.reconnectAttempts < this.autoReconnect) {
+      this.isReconnecting = true;
       this.reconnectAttempts++;
-      this.connect();
-      this.emit("reconnect", this.reconnectAttempts);
+      setTimeout(() => {
+        this.connect();
+        this.isReconnecting = false;
+        this.emit("reconnect", this.reconnectAttempts);
+      }, this.reconnectInterval);
     }
   }
 
@@ -278,6 +296,16 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.emit("message", message);
   }
 
+  async handlePrivilegeScreenChatMessage(message: PrivilegeScreenChatMessage) {
+    this.emit("privilegeScreenChat", message);
+    this.emit("message", message);
+  }
+
+  async handleScreenChatMessage(message: ScreenChatMessage) {
+    this.emit("screenChat", message);
+    this.emit("message", message);
+  }
+
   /**
    * 处理其他消息
    */
@@ -306,6 +334,10 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     const RoomStatsMessage = protobuf.douyin.RoomStatsMessage;
     // @ts-ignore
     const RoomRankMessage = protobuf.douyin.RoomRankMessage;
+    // @ts-ignore
+    const PrivilegeScreenChatMessage = protobuf.douyin.PrivilegeScreenChatMessage;
+    // @ts-ignore
+    const ScreenChatMessage = protobuf.douyin.ScreenChatMessage;
     const wssPackage = PushFrame.decode(data);
 
     // @ts-ignore
@@ -367,6 +399,12 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
         } else if (msg.method === "WebcastRoomRankMessage") {
           const message = RoomRankMessage.decode(msg.payload);
           this.handleRoomRankMessage(message.toJSON() as RoomRankMessage);
+        } else if (msg.method === "WebcastPrivilegeScreenChatMessage") {
+          const message = PrivilegeScreenChatMessage.decode(msg.payload);
+          this.handlePrivilegeScreenChatMessage(message.toJSON() as PrivilegeScreenChatMessage);
+        } else if (msg.method === "WebcastScreenChatMessage") {
+          const message = ScreenChatMessage.decode(msg.payload);
+          this.handleScreenChatMessage(message.toJSON() as ScreenChatMessage);
         } else {
           // WebcastRanklistHourEntranceMessage,WebcastInRoomBannerMessage,WebcastRoomStreamAdaptationMessage
         }

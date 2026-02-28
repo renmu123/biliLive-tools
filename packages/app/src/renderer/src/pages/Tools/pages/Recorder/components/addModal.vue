@@ -220,16 +220,33 @@
                 >全局</n-checkbox
               >
             </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip
+                  :tip="textInfo.bili.customHost.tip"
+                  :text="textInfo.bili.customHost.text"
+                ></Tip>
+              </template>
+              <n-input
+                v-model:value="config.customHost"
+                placeholder="例如：cn-jsyz-ct-03-32.bilivideo.com"
+                clearable
+                :disabled="globalFieldsObj.customHost"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.customHost" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
             <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
               <template #label>
                 <Tip
-                  text="禁止标题关键词"
-                  tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，手动录制的不会被影响"
+                  :text="textInfo.common.titleKeywords.text"
+                  :tip="textInfo.common.titleKeywords.tip"
                 ></Tip>
               </template>
               <n-input
                 v-model:value="config.titleKeywords"
-                placeholder="例如：回放,录播,重播"
+                :placeholder="textInfo.common.titleKeywords.placeholder"
                 clearable
               />
             </n-form-item>
@@ -264,13 +281,13 @@
             <n-form-item>
               <template #label>
                 <Tip
-                  text="禁止标题关键词"
-                  tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
+                  :text="textInfo.common.titleKeywords.text"
+                  :tip="textInfo.common.titleKeywords.tip"
                 ></Tip>
               </template>
               <n-input
                 v-model:value="config.titleKeywords"
-                placeholder="例如：回放,录播,重播"
+                :placeholder="textInfo.common.titleKeywords.placeholder"
                 clearable
               />
             </n-form-item>
@@ -320,14 +337,27 @@
             </n-form-item>
             <n-form-item>
               <template #label>
+                <Tip :text="textInfo.huya.api.text" :tip="textInfo.huya.api.tip"></Tip>
+              </template>
+              <n-select
+                v-model:value="config.api"
+                :options="huyaApiTypeOptions"
+                :disabled="globalFieldsObj.api"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.api" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
                 <Tip
-                  text="禁止标题关键词"
-                  tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
+                  :text="textInfo.common.titleKeywords.text"
+                  :tip="textInfo.common.titleKeywords.tip"
                 ></Tip>
               </template>
               <n-input
                 v-model:value="config.titleKeywords"
-                placeholder="例如：回放,录播,重播"
+                :placeholder="textInfo.common.titleKeywords.placeholder"
                 clearable
               />
             </n-form-item>
@@ -403,13 +433,13 @@
             <n-form-item>
               <template #label>
                 <Tip
-                  text="禁止标题关键词"
-                  tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
+                  :text="textInfo.common.titleKeywords.text"
+                  :tip="textInfo.common.titleKeywords.tip"
                 ></Tip>
               </template>
               <n-input
                 v-model:value="config.titleKeywords"
-                placeholder="例如：回放,录播,重播"
+                :placeholder="textInfo.common.titleKeywords.placeholder"
                 clearable
               />
             </n-form-item>
@@ -458,10 +488,19 @@
               <template #label>
                 <Tip
                   text="录制开始通知"
-                  tip="默认使用系统通知，具体前往设置通知中修改，一场直播只会通知一次"
+                  tip="默认使用系统通知，具体前往设置通知中修改，一般一场直播只会通知一次"
                 ></Tip>
               </template>
               <n-switch v-model:value="config.liveStartNotification" />
+            </n-form-item>
+            <n-form-item v-if="!config.disableAutoCheck">
+              <template #label>
+                <Tip
+                  text="录制结束通知"
+                  tip="默认使用系统通知，具体前往设置通知中修改，会在一次录制结束后三分钟检查录制状态，如果为不在录制中状态，则进行通知"
+                ></Tip>
+              </template>
+              <n-switch v-model:value="config.liveEndNotification" />
             </n-form-item>
 
             <n-form-item>
@@ -596,6 +635,7 @@ import {
   recorderTypeOptions,
   recorderDebugLevelOptions,
   douyinApiTypeOptions,
+  huyaApiTypeOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
@@ -628,6 +668,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     qualityRetry: true,
     formatName: true,
     useM3U8Proxy: true,
+    customHost: true,
     codecName: true,
     source: true,
     videoFormat: true,
@@ -724,6 +765,7 @@ const initGlobalFields = () => {
     qualityRetry: !(config.value?.noGlobalFollowFields ?? []).includes("qualityRetry"),
     formatName: !(config.value?.noGlobalFollowFields ?? []).includes("formatName"),
     useM3U8Proxy: !(config.value?.noGlobalFollowFields ?? []).includes("useM3U8Proxy"),
+    customHost: !(config.value?.noGlobalFollowFields ?? []).includes("customHost"),
     codecName: !(config.value?.noGlobalFollowFields ?? []).includes("codecName"),
     source: !(config.value?.noGlobalFollowFields ?? []).includes("source"),
     videoFormat: !(config.value?.noGlobalFollowFields ?? []).includes("videoFormat"),
@@ -840,7 +882,12 @@ watch(
     if (val.api) {
       if (config.value.providerId === "DouYin") {
         config.value.api = appConfig.value.recorder.douyin.api;
+      } else if (config.value.providerId === "HuYa") {
+        config.value.api = appConfig.value.recorder.huya.api;
       }
+    }
+    if (val.customHost) {
+      config.value.customHost = appConfig.value.recorder.bilibili.customHost;
     }
   },
   {

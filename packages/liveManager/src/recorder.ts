@@ -51,13 +51,28 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   useM3U8Proxy?: boolean;
   /**B站m3u8代理url */
   m3u8ProxyUrl?: string;
+  /** B站自定义Host，用于替换直播流链接中的host */
+  customHost?: string;
   /** 流格式 */
   formatName?: FormatName;
   /** 流编码 */
   codecName?: CodecName;
-  /** 选择使用的api，虎牙支持: auto,web,mp，抖音支持：web,webHTML,mobile,userHTML */
-  api?: "auto" | "web" | "mp" | "webHTML" | "mobile" | "userHTML";
-  /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
+  /** 选择使用的api，虎牙支持: auto,web,mp,wup，抖音支持：web,webHTML,mobile,userHTML */
+  api?:
+    | "auto"
+    | "web"
+    | "mp"
+    | "wup"
+    | "webHTML"
+    | "mobile"
+    | "userHTML"
+    | "balance"
+    | "random"
+    | string;
+  /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制，支持两种格式：
+   * 1. 逗号分隔的关键词：'回放,录播,重播'
+   * 2. 正则表达式：'/pattern/flags'（如：'/回放|录播/i'）
+   */
   titleKeywords?: string;
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
   videoFormat?: "auto" | "ts" | "mkv" | "flv";

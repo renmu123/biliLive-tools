@@ -60,12 +60,9 @@ const handleDirectionChange = () => {
   cursor: pointer;
   user-select: none;
   transition: all 0.2s;
-  border: 1px solid rgb(224, 224, 230);
+  border: 1px solid var(--border-secondary);
   line-height: 34px;
-  @media screen and (prefers-color-scheme: dark) {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: #0000;
-  }
+  background-color: var(--bg-primary);
 
   .sort-icon-wrapper {
     display: flex;
@@ -73,7 +70,7 @@ const handleDirectionChange = () => {
     cursor: pointer;
   }
   &:hover {
-    border-color: #36ad6a;
+    border-color: var(--border-hover);
   }
 
   .sort-icon {
@@ -83,7 +80,7 @@ const handleDirectionChange = () => {
       transform: rotate(180deg);
     }
     &:hover {
-      color: #36ad6a;
+      color: var(--border-hover);
     }
   }
 }

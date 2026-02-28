@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "fs-extra";
 import Router from "@koa/router";
+import { parseSync, stringifySync } from "subtitle";
 
 import {
   handleStartTask,
@@ -22,23 +23,20 @@ import {
   readVideoMeta,
   cut,
   checkMergeVideos,
-  extractAudio,
 } from "@biliLive-tools/shared/task/video.js";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
-import {
-  trashItem,
-  calculateFileQuickHash,
-  getTempPath,
-} from "@biliLive-tools/shared/utils/index.js";
+import { trashItem, parseSavePath } from "@biliLive-tools/shared/utils/index.js";
 import {
   testVirtualRecordConfig,
   executeVirtualRecordConfig,
 } from "@biliLive-tools/shared/task/virtualRecord.js";
 import { flvRepair } from "@biliLive-tools/shared/task/flvRepair.js";
-import { generateAudioWaveform } from "@biliLive-tools/shared/task/audiowaveform.js";
-import { fileCache } from "../index.js";
+import { generateWaveformData } from "@biliLive-tools/shared/task/audiowaveform.js";
+import { musicDetect } from "@biliLive-tools/shared/musicDetector/index.js";
+import { fileCache, appConfig } from "../index.js";
 
 import type { DanmuPreset, DanmaOptions } from "@biliLive-tools/types";
+import type { DetectionConfig } from "music-segment-detector";
 
 const router = new Router({
   prefix: "/task",
@@ -171,7 +169,6 @@ router.post("/convertXml2Ass", async (ctx) => {
     preset,
     {
       removeOrigin: false,
-      copyInput: false,
       ...options,
     },
   );
@@ -304,6 +301,54 @@ router.post("/cut", async (ctx) => {
   const { files, output, options, ffmpegOptions } = ctx.request.body as any;
   const task = await cut(files, output, ffmpegOptions, options);
   ctx.body = { taskId: task.taskId };
+});
+
+/**
+ * 字幕分割
+ * 输入：srt字幕内容
+ */
+router.post("/cutSubtitle", async (ctx) => {
+  const data = ctx.request.body as {
+    srtContent: string;
+    segments: { start: number; end: number; name: string }[];
+    saveType: 1 | 2;
+    savePath: string;
+    videoPath: string;
+  };
+  const nodeList = parseSync(data.srtContent);
+  // console.log("解析后的节点数量:", nodeList.length, nodeList);
+
+  let savePath = await parseSavePath(data.videoPath, {
+    saveType: data.saveType,
+    savePath: data.savePath,
+  });
+  for (const segment of data.segments) {
+    const { start, end, name } = segment;
+    const output = path.join(savePath, name) + ".srt";
+    const segmentNodes = nodeList
+      .filter((node) => {
+        if (node.type !== "cue") return false;
+        const cueStart = node.data.start;
+        const cueEnd = node.data.end;
+        return cueStart >= start * 1000 && cueEnd <= end * 1000;
+      })
+      .map((node) => {
+        if (node.type !== "cue") return node;
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            start: node.data.start - start * 1000,
+            end: node.data.end - start * 1000,
+          },
+        };
+      });
+    // console.log(`分割片段: ${name}, 节点数量: ${segmentNodes.length}`);
+    if (segmentNodes.length === 0) continue;
+    const srtContent = stringifySync(segmentNodes, { format: "SRT" });
+    await fs.writeFile(output, srtContent, "utf-8");
+  }
+  ctx.body = "success";
 });
 
 router.post("/addExtraVideoTask", async (ctx) => {
@@ -450,6 +495,9 @@ router.post("/executeVirtualRecord", async (ctx) => {
   }
 });
 
+/**
+ * 生成waveform数据
+ */
 router.post("/extractPeaks", async (ctx) => {
   const { input } = ctx.request.body as {
     input: string;
@@ -460,43 +508,32 @@ router.post("/extractPeaks", async (ctx) => {
     return;
   }
 
-  // 计算文件快速哈希值作为文件名
-  const fileHash = await calculateFileQuickHash(input);
-  const cachePath = getTempPath();
-  const outputVideoName = `cut_${fileHash}.wav`;
-  const outputPeakName = `peaks_${fileHash}.json`;
-  const outputPeakPath = path.join(cachePath, outputPeakName);
+  const outputPeakPath = await generateWaveformData(input);
+  const data = await fs.readJSON(outputPeakPath);
+  const config = appConfig.get("videoCut");
+  if (!config.cacheWaveform) {
+    fs.remove(outputPeakPath);
+  }
+  ctx.body = { output: data };
+});
 
-  if (await fs.pathExists(outputPeakPath)) {
-    const cachedData = await fs.readJSON(outputPeakPath);
-    ctx.body = { output: cachedData };
+/**
+ * 分析波形数据，主要用于检测唱歌边界点
+ */
+router.post("/analyzerWaveform", async (ctx) => {
+  const { input, config } = ctx.request.body as {
+    input: string;
+    config?: Partial<DetectionConfig>;
+  };
+  if (!input) {
+    ctx.status = 400;
+    ctx.body = "input is required";
     return;
   }
 
-  const task = await extractAudio(input, outputVideoName, {
-    saveType: 2,
-    savePath: cachePath,
-    autoRun: true,
-    addQueue: false,
-  });
-  const outputFile: string = await new Promise((resolve, reject) => {
-    task.on("task-end", () => {
-      resolve(task.output as string);
-    });
-    task.on("task-error", (err) => {
-      reject(err);
-    });
-  });
+  const data = await musicDetect(input, config || {});
 
-  try {
-    await generateAudioWaveform(outputFile, outputPeakPath);
-    const data = await fs.readJSON(outputPeakPath);
-    fs.remove(outputFile);
-    ctx.body = { output: data };
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = error instanceof Error ? error.message : "Internal server error";
-  }
+  ctx.body = { output: data };
 });
 
 export default router;

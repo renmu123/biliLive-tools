@@ -6,22 +6,11 @@ import WaveSurfer from "wavesurfer.js";
 import ZoomPlugin from "wavesurfer.js/dist/plugins/zoom.esm.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 import { useSegmentStore } from "@renderer/stores";
+import { generateDistinctColor } from "@renderer/utils";
 
 import type Artplayer from "artplayer";
 import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
-
-/**
- * 生成有辨识度的颜色
- * 使用 HSL 色彩空间,固定饱和度和亮度,通过黄金角度分割色相环
- */
-const generateDistinctColor = (index: number): string => {
-  const goldenRatio = 0.618033988749895;
-  const hue = (index * goldenRatio * 360) % 360;
-  const saturation = 65; // 饱和度 65%
-  const lightness = 60; // 亮度 60%
-  const alpha = 0.5; // 透明度
-  return `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
-};
+import type { Segment } from "@renderer/stores";
 
 export function useWaveform(videoInstance: Ref<Artplayer | null>) {
   const notice = useNotification();
@@ -125,7 +114,6 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
     try {
       const res = await taskApi.extractPeaks(rawVideoFile);
       peaks = res.output.data;
-      console.log("Extracted audio path:", res);
     } catch (error) {
       waveformLoading.value = false;
       console.error("Error extracting audio for waveform:", error);
@@ -136,7 +124,7 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
     ws.value = WaveSurfer.create({
       container: "#waveform",
       waveColor: "#4F4A85",
-      progressColor: "#383351",
+      progressColor: "#978fae",
       height: 64,
       normalize: false,
       dragToSeek: true,
@@ -162,7 +150,6 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
     ws.value.once("decode", () => {
       waveformLoading.value = false;
 
-      let index = 0;
       // 初始化现有的 segments 为 regions
       for (const cut of cuts.value) {
         regions.addRegion({
@@ -172,7 +159,7 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
 
           start: cut.start,
           end: cut.end,
-          color: generateDistinctColor(index++),
+          color: generateDistinctColor(cut.index),
           content: cut.name,
           id: cut.id,
         });
@@ -200,18 +187,18 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
         // region.remove();
         if (videoInstance.value) {
           videoInstance.value.currentTime = region.start;
+          segmentStore.selectCut(region.id);
         }
       });
 
       // 监听 segment store 事件，同步到 regions
-      segmentEventHandler = (data: { type: string; segment?: any; id?: string }) => {
+      segmentEventHandler = (data: { type: string; segment?: Segment; id?: string }) => {
         if (isSyncing || !regionsPlugin) return;
         isSyncing = true;
 
         try {
           if (data.type === "add" && data.segment) {
             // 新增 segment，添加 region
-            const currentIndex = regionsPlugin.getRegions().length;
             regionsPlugin.addRegion({
               drag: false,
               resize: true,
@@ -219,7 +206,7 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
 
               start: data.segment.start,
               end: data.segment.end,
-              color: generateDistinctColor(currentIndex),
+              color: generateDistinctColor(data.segment.index),
               content: data.segment.name,
               id: data.segment.id,
             });
@@ -231,13 +218,20 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
             }
           } else if (data.type === "update" && data.segment) {
             // 更新 segment，更新 region
-            const region = regionsPlugin.getRegions().find((r) => r.id === data.segment.id);
+            const region = regionsPlugin.getRegions().find((r) => r.id === data.segment!.id);
             if (region) {
               if (region.start !== data.segment.start || region.end !== data.segment.end) {
                 region.setOptions({ start: data.segment.start, end: data.segment.end });
               }
               if (region.content?.textContent !== data.segment.name) {
                 region.setOptions({ content: data.segment.name });
+              }
+              if (
+                region.color !== generateDistinctColor(data.segment.index, data.segment.checked)
+              ) {
+                region.setOptions({
+                  color: generateDistinctColor(data.segment.index, data.segment.checked),
+                });
               }
             }
           } else if (data.type === "clear") {

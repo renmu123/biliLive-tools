@@ -1,6 +1,6 @@
 {
   "name": "biliLive-tools",
-  "version": "3.3.2",
+  "version": "3.8.1",
   "description": "B站直播录制处理工具",
   "main": "./out/main/index.js",
   "author": "renmu123",
@@ -23,11 +23,9 @@
     "typecheck": "pnpm run typecheck:node && pnpm run typecheck:web"
   },
   "dependencies": {
-    "@biliLive-tools/http": "workspace:*",
-    "@biliLive-tools/shared": "workspace:*",
-    "@biliLive-tools/types": "workspace:*",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
+    "@imengyu/vue3-context-menu": "^1.5.2",
     "@napi-rs/canvas": "^0.1.60",
     "better-sqlite3": "catalog:",
     "bufferutil": "^4.0.8",
@@ -36,13 +34,18 @@
     "electron-store": "^10.0.0",
     "electron-updater": "^6.3.9",
     "font-ls": "catalog:",
+    "@renmu/node-shazam": "^2.0.3",
     "ntsuspend": "catalog:",
     "semver": "^7.6.3",
     "trash": "^9.0.0",
     "utf-8-validate": "^6.0.5",
-    "wavesurfer.js": "^7.11.1"
+    "wavesurfer.js": "^7.11.1",
+    "music-segment-detector": "^0.3.1"
   },
   "devDependencies": {
+    "@biliLive-tools/http": "workspace:*",
+    "@biliLive-tools/shared": "workspace:*",
+    "@biliLive-tools/types": "workspace:*",
     "@electron-toolkit/eslint-config": "^1.0.2",
     "@electron-toolkit/eslint-config-ts": "^2.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
@@ -66,7 +69,7 @@
     "electron": "39.2.3",
     "electron-builder": "^24.13.3",
     "electron-devtools-installer": "^4.0.0",
-    "electron-vite": "^4.0.1",
+    "electron-vite": "^5.0.0",
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^9.32.0",
     "file-saver": "^2.0.5",

@@ -178,7 +178,7 @@
                 <template #label>
                   <Tip
                     text="mesio路径"
-                    tip="最新测试过的版本为0.3.3，请先去项目查看文档：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md"
+                    tip="最新测试过的版本为0.3.5，请先去项目查看文档：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md"
                   ></Tip>
                 </template>
                 <n-input v-model:value="config.mesioPath" placeholder="请输入mesio可执行文件路径" />
@@ -274,7 +274,7 @@
                 type="primary"
                 @click="openCacheFolder"
               >
-                打开文件夹
+                打开
               </n-button>
             </n-form-item>
             <n-form-item>
@@ -371,12 +371,19 @@
         <n-tab-pane name="virtualRecord" tab="虚拟录制">
           <VirtualRecordSetting v-model:data="config"></VirtualRecordSetting>
         </n-tab-pane>
+        <n-tab-pane name="cut" tab="切片">
+          <CutSetting v-model:data="config"></CutSetting>
+        </n-tab-pane>
+        <n-tab-pane name="ai" tab="AI配置">
+          <AISetting v-model:data="config"></AISetting>
+        </n-tab-pane>
         <n-tab-pane name="task" tab="任务">
           <TaskSetting v-model:data="config"></TaskSetting>
         </n-tab-pane>
-        <n-tab-pane name="translate" tab="订阅">
+        <n-tab-pane name="translate" tab="视频订阅">
           <VideoSetting v-model:data="config"></VideoSetting>
         </n-tab-pane>
+
         <!-- <n-tab-pane name="translate" tab="翻译">
           <TranslateSetting v-model:data="config"></TranslateSetting>
         </n-tab-pane> -->
@@ -427,7 +434,9 @@ import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
 import VideoSetting from "./VideoSetting.vue";
 import SyncSetting from "./SyncSetting.vue";
+import CutSetting from "./CutSetting.vue";
 import OtherSetting from "./OtherSetting.vue";
+import AISetting from "./AISetting.vue";
 import VirtualRecordSetting from "./VirtualRecordSetting.vue";
 import CheckUpdateModal from "@renderer/components/checkUpdateModal.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
@@ -439,6 +448,7 @@ import { FolderOpenOutline, Refresh } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
+import { useThemeStore } from "@renderer/stores/theme";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig } from "@biliLive-tools/types";
 
@@ -471,6 +481,7 @@ const logLevelOptions = ref<{ label: string; value: any }[]>([
 ]);
 
 const confirm = useConfirm();
+const { setTheme } = useThemeStore();
 const saveConfig = async () => {
   if (
     !isWeb.value &&
@@ -497,7 +508,7 @@ const saveConfig = async () => {
   }
 
   await configApi.save(deepRaw(config.value));
-  window?.api?.common?.setTheme(config.value.theme);
+  setTheme(config.value.theme);
   // 设置自动启动
   window?.api?.common?.setOpenAtLogin(config.value.autoLaunch || false);
   close();
@@ -653,6 +664,7 @@ const globalFields = ref([
   "useLiveCover",
   "convert2Mp4",
   "removeSourceAferrConvert2Mp4",
+  "flvRepair",
   "syncId",
   "afterConvertAction",
   "uploadHandleTime",
@@ -720,6 +732,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   hotProgressFillColor: "#333333",
   convert2Mp4: false,
   removeSourceAferrConvert2Mp4: true,
+  flvRepair: false,
   syncId: undefined,
   afterConvertAction: [],
   uploadHandleTime: ["00:00:00", "23:59:59"],

@@ -9,7 +9,7 @@
             placement="bottom"
           ></Tip>
         </template>
-        <n-select v-model:value="config.biliUpload.line" :options="lineOptions" filterable />
+        <n-select v-model:value="config.biliUpload.line" :options="lineOptions" filterable tag />
       </n-form-item>
       <n-form-item>
         <template #label>
@@ -33,7 +33,7 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip text="并发" tip="单个分P上传并发数，并非全局最大上传数"></Tip>
+          <Tip text="并发" tip="单个分P内上传并发数，并非全局最大上传任务限制"></Tip>
         </template>
         <n-input-number v-model:value="config.biliUpload.concurrency" min="1" max="128">
         </n-input-number>
@@ -123,6 +123,8 @@ const lineOptions = [
   { label: "cs-tx", value: "cs-tx" },
   { label: "cs-qn", value: "cs-qn" },
   { label: "cs-cnbldsa", value: "cs-cnbldsa" },
+  { label: "cs-akbd", value: "cs-akbd" },
+  { label: "cs-estx", value: "cs-estx" },
   { label: "cs-cnbd", value: "cs-cnbd" },
   { label: "cs-cntx", value: "cs-cntx" },
   { label: "cs-andsa", value: "cs-andsa" },

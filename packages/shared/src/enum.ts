@@ -10,6 +10,7 @@ export enum TaskType {
   m3u8Download = "m3u8Download",
   huyaDownload = "huyaDownload",
   kuaishouDownload = "kuaishouDownload",
+  douyinLiveDownload = "douyinLiveDownload",
   subtitleTranslate = "subtitleTranslate",
   sync = "sync",
   flvRepair = "flvRepair",
@@ -66,6 +67,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     hotProgressFillColor: "#333333",
     convert2Mp4: false,
     removeSourceAferrConvert2Mp4: true,
+    flvRepair: false,
     syncId: undefined,
     uploadHandleTime: ["00:00:00", "23:59:59"],
     limitUploadTime: false,
@@ -146,6 +148,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       douyuResolution: "highest",
       override: false,
       onlyAudio: false,
+      onlyDanmu: false,
     },
     translate: {
       presetId: undefined,
@@ -158,6 +161,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       title: "{{filename}}-{{label}}-{{num}}",
       danmuPresetId: "default",
       ignoreDanmu: false,
+      exportSubtitle: true,
     },
   },
   task: {
@@ -166,6 +170,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     biliUploadMaxNum: 2,
     biliDownloadMaxNum: 2,
     syncMaxNum: 3,
+  },
+  videoCut: {
+    autoSave: true,
+    cacheWaveform: true,
   },
   notification: {
     task: {
@@ -230,6 +238,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       username: "",
       hashPassword: "",
       limitRate: 0, // KB
+      retry: 0,
     },
     pan123: {
       clientId: "",
@@ -239,6 +248,88 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     syncConfigs: [],
   },
   llmPresets: [],
+  ai: {
+    vendors: [
+      {
+        id: "3d09badd-5402-4b80-9113-48c0739d51b9",
+        name: "阿里云",
+        provider: "aliyun",
+        apiKey: "",
+      },
+    ],
+    models: [
+      {
+        vendorId: "3d09badd-5402-4b80-9113-48c0739d51b9",
+        modelId: "116497be-e650-4b21-8769-536859cb16dc",
+        modelName: "fun-asr",
+        remark: "语音识别",
+        tags: ["asr"],
+        config: {},
+      },
+      {
+        vendorId: "3d09badd-5402-4b80-9113-48c0739d51b9",
+        modelId: "ca277547-fabd-462b-99d2-cf76f56002e6",
+        modelName: "qwen-plus",
+        remark: "通用大模型",
+        tags: ["llm"],
+        config: {},
+      },
+    ],
+    songRecognizeAsr: {
+      modelId: "",
+    },
+    songRecognizeLlm: {
+      modelId: "",
+      prompt: `
+你是一个极度专业的音乐识别专家，擅长从存在误差的 ASR（语音识别）文本中提取核心语义，并精准锁定歌曲信息。
+从搜索结果中精确获取歌名以及需确保返回的【歌词】版本为官方标准发行版，不要遗漏，请提供【歌词】
+# Output Format
+输出JSON，格式如下
+{
+  "lyrics": "[查询到的完整标准歌词]",
+  "name": "[准确的歌曲名称]"
+}`,
+      enableSearch: true,
+      maxInputLength: 300,
+      enableStructuredOutput: true,
+      lyricOptimize: true,
+    },
+    songLyricOptimize: {
+      modelId: "",
+      prompt: `
+# Role
+你是一个极度严谨的音频字幕对齐专家，擅长将破碎的 ASR 识别结果（ASR_Data）完美映射到标准文本（Standard_Lyrics）上。
+
+# Core Algorithm: Anchor-Based Alignment
+1. 语义锚点定位：首先在 Standard_Lyrics 中识别出每一行（Line），如回车。。
+2. 碎片重组（Merging）：
+  扫描 ASR_Data，将物理时间连续且语义指向 Standard_Lyrics 同一行的多个片段进行合并。
+  新 st (begin_time) = 合并序列中第一个片段的 st。
+  新 et (end_time) = 合并序列中最后一个片段的 et。
+3. 文本重写（Rewriting）：
+  严禁使用 ASR 的原始文本作为输出。一旦确定了 ASR 片段对应的标准歌词行，直接将该行的 Standard_Lyrics 赋值给 t 字段。
+  即使 ASR 识别漏字、错字，也要以 Standard_Lyrics 的完整内容填充。
+
+# Constraints
+  换行一致性 (Strict)：原则上 Standard_Lyrics 的每一个换行对应一个 JSON 对象。
+  长句处理 (Long Sentence)：若原歌词单行过长导致 ASR 时间跨度巨大，请观察 ASR 内部的停顿（Gap > 500ms），并在标准文本的自然断句点进行切分，生成两个连续的 JSON 对象。
+  禁止时间戳漂移：所有时间戳必须直接取自原始 ASR_Data 的边缘值，不得进行加减运算或平均化处理。
+  数据完整性：输出必须包含 Standard_Lyrics 中的所有行。如果某行歌词在 ASR 中找不到对应（如长空白），请根据前后时间戳推算一个合理的静默区间或沿用上一个片段的结束时间，但优先确保文本完整。
+
+# Workflow
+  读取 Standard_Lyrics。
+  遍历 Standard_Lyrics 的每一行，在 ASR_Data 中寻找最匹配的起始与结束索引。
+  执行合并并生成 JSON。
+
+## Output Format
+仅输出 JSON 对象，格式如下： {"data": [{"st": 123, "et": 456, "t": "标准歌词内容"}]}
+`,
+      enableStructuredOutput: true,
+    },
+    subtitleRecognize: {
+      modelId: "",
+    },
+  },
   biliUpload: {
     line: "auto",
     concurrency: 3,
@@ -253,7 +344,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   },
   recorder: {
     savePath: "",
-    nameRule: "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}",
+    nameRule: "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec}-{ms} {title}",
     autoRecord: true,
     quality: "highest",
     line: undefined,
@@ -270,8 +361,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     debugLevel: "none",
     qualityRetry: 0,
     videoFormat: "auto",
-    recorderType: "auto",
-    useServerTimestamp: true,
+    recorderType: "bililive",
+    useServerTimestamp: false,
     recordRetryImmediately: true,
     bilibili: {
       uid: undefined,
@@ -280,6 +371,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       useM3U8Proxy: true,
       formatName: "auto",
       codecName: "auto",
+      customHost: undefined,
     },
     douyu: {
       quality: 0,
@@ -289,6 +381,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       quality: 0,
       formatName: "auto",
       source: "auto",
+      api: "auto",
     },
     douyin: {
       quality: "origin",
@@ -743,13 +836,14 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  liveEndNotification: false,
   weight: 10,
   source: "auto",
   videoFormat: "auto",
   recorderType: "ffmpeg",
   cookie: "",
   doubleScreen: true,
-  useServerTimestamp: true,
+  useServerTimestamp: false,
   handleTime: [null, null],
   debugLevel: "none",
   api: "web",

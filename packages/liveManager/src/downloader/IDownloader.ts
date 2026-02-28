@@ -14,6 +14,7 @@ export interface BaseRecorderOptions {
   getSavePath: (data: { startTime: number; title?: string }) => string;
   segment: Segment;
   inputOptions?: string[];
+  disableDanma?: boolean;
   formatName: FormatName;
   debugLevel?: "none" | "basic" | "verbose";
   headers?: {
@@ -31,6 +32,7 @@ export interface IDownloader extends EventEmitter {
   readonly hasSegment: boolean;
   readonly segment: Segment;
   readonly inputOptions: string[];
+  readonly disableDanma: boolean;
   readonly url: string;
   readonly headers: { [key: string]: string | undefined } | undefined;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
@@ -38,6 +40,7 @@ export interface IDownloader extends EventEmitter {
   // 核心方法
   run(): void;
   stop(): Promise<void>;
+  cut(): void;
   getArguments(): string[];
   getExtraDataController(): XmlStreamController | null;
   createCommand(): any;

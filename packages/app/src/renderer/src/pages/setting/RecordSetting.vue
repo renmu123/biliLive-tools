@@ -246,6 +246,16 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip :tip="textInfo.bili.customHost.tip" :text="textInfo.bili.customHost.text"></Tip>
+            </template>
+            <n-input
+              v-model:value="config.recorder.bilibili.customHost"
+              placeholder="例如：cn-jsyz-ct-03-32.bilivideo.com"
+              clearable
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
               <Tip
                 tip="使用批量检查直播状态接口，如果你录制了大量的直播间，可以尝试开启此选项，减少被风控的可能性"
                 text="批量查询接口"
@@ -295,6 +305,12 @@
               <Tip text="线路"></Tip>
             </template>
             <n-select v-model:value="config.recorder.huya.source" :options="huyaSourceOptions" />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.huya.api.text" :tip="textInfo.huya.api.tip"></Tip>
+            </template>
+            <n-select v-model:value="config.recorder.huya.api" :options="huyaApiTypeOptions" />
           </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="douyin" tab="抖音" display-directive="show:lazy">
@@ -365,6 +381,7 @@ import {
   recorderTypeOptions,
   recorderDebugLevelOptions,
   douyinApiTypeOptions,
+  huyaApiTypeOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";
@@ -427,6 +444,10 @@ const titleList = ref([
   {
     value: "{sec}",
     label: "秒",
+  },
+  {
+    value: "{ms}",
+    label: "毫秒",
   },
 ]);
 const titleTip = computed(() => {

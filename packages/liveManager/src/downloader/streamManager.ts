@@ -3,7 +3,6 @@ import EventEmitter from "node:events";
 import fs from "fs/promises";
 import { createRecordExtraDataController } from "../xml_stream_controller.js";
 import {
-  replaceExtName,
   ensureFolderExist,
   isFfmpegStartSegment,
   isMesioStartSegment,
@@ -27,11 +26,13 @@ export class Segment extends EventEmitter {
   rawRecordingVideoPath!: string;
   /** 输出文件名名，不包含拓展名 */
   outputVideoFilePath!: string;
+  disableDanma: boolean;
   videoExt: TrueVideoFormat;
 
-  constructor(getSavePath: GetSavePath, videoExt: TrueVideoFormat) {
+  constructor(getSavePath: GetSavePath, disableDanma: boolean, videoExt: TrueVideoFormat) {
     super();
     this.getSavePath = getSavePath;
+    this.disableDanma = disableDanma;
     this.videoExt = videoExt;
   }
 
@@ -94,7 +95,9 @@ export class Segment extends EventEmitter {
 
     ensureFolderExist(this.outputVideoFilePath);
 
-    this.extraDataController = createRecordExtraDataController(`${this.outputVideoFilePath}.xml`);
+    if (!this.disableDanma) {
+      this.extraDataController = createRecordExtraDataController(`${this.outputVideoFilePath}.xml`);
+    }
 
     // 支持两种格式的正则表达式
     // 1. FFmpeg格式: Opening 'filename' for writing
@@ -143,6 +146,7 @@ export class StreamManager extends EventEmitter {
   constructor(
     getSavePath: GetSavePath,
     hasSegment: boolean,
+    disableDanma: boolean,
     recorderType: RecorderType,
     videoFormat: TrueVideoFormat,
     callBack?: {
@@ -158,7 +162,7 @@ export class StreamManager extends EventEmitter {
     this.callBack = callBack;
 
     if (hasSegment) {
-      this.segment = new Segment(getSavePath, this.videoExt);
+      this.segment = new Segment(getSavePath, disableDanma, this.videoExt);
       this.segment.on("DebugLog", (data) => {
         this.emit("DebugLog", data);
       });
@@ -169,8 +173,11 @@ export class StreamManager extends EventEmitter {
         this.emit("videoFileCompleted", data);
       });
     } else {
-      const extraDataSavePath = replaceExtName(recordSavePath, ".xml");
-      this.extraDataController = createRecordExtraDataController(extraDataSavePath);
+      const extraDataSavePath = `${recordSavePath}.xml`;
+
+      if (!disableDanma) {
+        this.extraDataController = createRecordExtraDataController(extraDataSavePath);
+      }
     }
   }
 

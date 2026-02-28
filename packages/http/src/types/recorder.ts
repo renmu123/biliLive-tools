@@ -45,7 +45,7 @@ export type GetRecordersArgs = {
   autoCheck?: string;
   page?: number;
   pageSize?: number;
-  sortField?: "living" | "state" | "monitorStatus";
+  sortField?: "living" | "state" | "monitorStatus" | "recordTime";
   sortDirection?: "asc" | "desc";
 };
 
@@ -101,9 +101,11 @@ export type UpdateRecorderArgs = Pick<
   | "qualityRetry"
   | "formatName"
   | "useM3U8Proxy"
+  | "customHost"
   | "codecName"
   | "titleKeywords"
   | "liveStartNotification"
+  | "liveEndNotification"
   | "source"
   | "videoFormat"
   | "recorderType"

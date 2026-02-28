@@ -1,7 +1,7 @@
 import { join, parse } from "node:path";
 import fs from "fs-extra";
 import readline from "node:readline";
-import { isNumber } from "lodash-es";
+import { isNumber, cloneDeep } from "lodash-es";
 
 import {
   pathExists,
@@ -22,26 +22,34 @@ import { XMLBuilder } from "fast-xml-parser";
 import type { DanmuConfig, DanmaOptions, HotProgressOptions } from "@biliLive-tools/types";
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
+/**
+ * 生成过滤后的xml文件
+ * @param input
+ * @param output
+ * @param filterFunction
+ * @returns
+ */
 const genFilteredXml = async (input: string, output: string, filterFunction: string) => {
   const filterFunc = new Function(
     "type",
     "danmu",
+    "logger",
     `
     ${filterFunction}
-    return filter(type, danmu);`,
+    return filter(type, danmu, logger);`,
   );
-  const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(input);
+  const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(input, true);
   const filteredDanmuku = danmuku.filter((item) => {
-    return filterFunc("danmu", item);
+    return filterFunc("danmu", item, log);
   });
   const filteredSc = sc.filter((item) => {
-    return filterFunc("sc", item);
+    return filterFunc("sc", item, log);
   });
   const filteredGuard = guard.filter((item) => {
-    return filterFunc("guard", item);
+    return filterFunc("guard", item, log);
   });
   const filteredGift = gift.filter((item) => {
-    return filterFunc("gift", item);
+    return filterFunc("gift", item, log);
   });
   const xmlData = generateMergedXmlContent(
     filteredDanmuku,
@@ -55,58 +63,63 @@ const genFilteredXml = async (input: string, output: string, filterFunction: str
 };
 
 /**
+ * 自定义函数函数
+ */
+const customChangeFunc = (input: string, opts: DanmuConfig) => {
+  const customFunc = new Function(
+    "file",
+    "opts",
+    "logger",
+    `
+    ${opts.filterFunction}
+    return custom(file, opts, logger);`,
+  );
+
+  return customFunc(input, opts, log);
+};
+
+/**
  * 不要直接调用，调用convertXml2Ass
  */
 const addConvertDanmu2AssTask = async (
   originInput: string,
   output: string,
   danmuOptions: DanmuConfig,
-  options: Pick<DanmaOptions, "copyInput" | "removeOrigin"> = {},
+  options: Pick<DanmaOptions, "removeOrigin"> = {},
 ) => {
-  if (await pathExists(output)) {
-    log.info("danmufactory", {
-      status: "success",
-      text: "文件已存在，删除",
-      input: originInput,
-      output: output,
-    });
-    await fs.unlink(output);
-  }
   const { danmuFactoryPath } = getBinPath();
   const danmu = new DanmakuFactory(danmuFactoryPath);
   const tempDir = getTempPath();
 
+  let opts = cloneDeep(danmuOptions);
+  if (opts.filterFunction && (opts.filterFunction ?? "").includes("custom")) {
+    opts = await customChangeFunc(originInput, opts);
+  }
+
   let filteredOutput: string | undefined;
-  if (danmuOptions.filterFunction && (danmuOptions.filterFunction ?? "").includes("filter")) {
+  if (opts.filterFunction && (opts.filterFunction ?? "").includes("filter")) {
     // 如果存在自定义过滤函数，则需要把过滤后的xml保存到临时文件夹中
     filteredOutput = join(tempDir, `${uuid()}.xml`);
-    await genFilteredXml(originInput, filteredOutput, danmuOptions.filterFunction);
+    await genFilteredXml(originInput, filteredOutput, opts.filterFunction);
   }
 
-  let tempInput: string | undefined;
-  if (!filteredOutput && options.copyInput) {
-    // 如果已经存在过滤后的文件，则不需要额外再复制一份了
-    tempInput = join(tempDir, `${uuid()}.xml`);
-    await fs.copyFile(originInput, tempInput);
-  }
-
-  if (danmuOptions.blacklist) {
+  if (opts.blacklist) {
     const fileTxtPath = join(tempDir, `${uuid()}.txt`);
-    const fileTxtContent = danmuOptions.blacklist
+    const fileTxtContent = opts.blacklist
       .split(",")
       .filter((value) => value)
       .join("\n");
     await fs.writeFile(fileTxtPath, fileTxtContent);
-    danmuOptions.blacklist = fileTxtPath;
+    opts.blacklist = fileTxtPath;
   }
 
-  const input = filteredOutput || tempInput || originInput;
+  const input = filteredOutput || originInput;
   const task = new DanmuTask(
     danmu,
     {
       input: input,
       output,
-      options: danmuOptions,
+      options: opts,
       name: `弹幕转换任务: ${parse(originInput).name}`,
     },
     {
@@ -115,15 +128,12 @@ const addConvertDanmu2AssTask = async (
           await trashItem(originInput);
         }
 
-        if (tempInput && (await pathExists(tempInput))) {
-          await fs.unlink(tempInput);
-        }
-        if (danmuOptions.blacklist && (await pathExists(danmuOptions.blacklist))) {
-          await fs.unlink(danmuOptions.blacklist);
+        if (opts.blacklist) {
+          fs.unlink(opts.blacklist);
         }
 
-        if (filteredOutput && (await pathExists(filteredOutput))) {
-          await fs.unlink(filteredOutput);
+        if (filteredOutput) {
+          fs.unlink(filteredOutput);
         }
       },
       onError: async (error) => {
@@ -133,14 +143,11 @@ const addConvertDanmu2AssTask = async (
           input: originInput,
           output: output,
         });
-        if (tempInput && (await pathExists(tempInput))) {
-          await fs.unlink(tempInput);
+        if (opts.blacklist) {
+          fs.unlink(opts.blacklist);
         }
-        if (danmuOptions.blacklist && (await pathExists(danmuOptions.blacklist))) {
-          await fs.unlink(danmuOptions.blacklist);
-        }
-        if (filteredOutput && (await pathExists(filteredOutput))) {
-          await fs.unlink(filteredOutput);
+        if (filteredOutput) {
+          fs.unlink(filteredOutput);
         }
       },
     },
@@ -177,7 +184,7 @@ export const convertXml2Ass = async (
   }
 
   if (!options.override && (await pathExists(output))) {
-    throw new Error(`${output}文件已存在`);
+    throw new Error(`${output} 文件已存在`);
   }
 
   const task = await addConvertDanmu2AssTask(file.input, output, danmuOptions, options);
@@ -387,7 +394,7 @@ export const mergeXml = async (
     const duration = meta.format.duration || 0;
 
     // 解析XML文件
-    const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(file.danmakuPath);
+    const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(file.danmakuPath, true);
 
     videoData.push({
       path: file.danmakuPath,

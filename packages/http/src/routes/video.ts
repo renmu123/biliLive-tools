@@ -4,9 +4,11 @@ import Router from "@koa/router";
 import douyu from "@biliLive-tools/shared/video/douyu.js";
 import huya from "@biliLive-tools/shared/video/huya.js";
 import kuaishou from "@biliLive-tools/shared/video/kuaishou.js";
+import douyin from "@biliLive-tools/shared/video/douyin.js";
 import biliApi from "@biliLive-tools/shared/task/bili.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import videoSub from "@biliLive-tools/shared/video/videoSub.js";
+import { replaceExtName } from "@biliLive-tools/shared/utils/index.js";
 
 import type { VideoAPI } from "../types/video.js";
 
@@ -124,8 +126,8 @@ async function parseVideo({
             user_name: item?.ROOM?.author_name,
             room_id: item?.DATA?.content.room_id,
             room_title: item?.DATA?.content.title,
-            live_start_time: new Date(liveStartTime).toISOString(),
-            video_start_time: new Date(videoStartTime).toISOString(),
+            live_start_time: new Date(liveStartTime * 1000).toISOString(),
+            video_start_time: new Date(videoStartTime * 1000).toISOString(),
           },
         };
       }),
@@ -225,7 +227,6 @@ async function parseVideo({
     }
     const videoId = kuaishouMatch[1];
     const data = await kuaishou.parseVideo(videoId);
-    console.log(data);
     return {
       videoId: videoId,
       platform: "kuaishou",
@@ -242,6 +243,38 @@ async function parseVideo({
         },
       ],
     };
+  } else if (url.includes("www.douyin.com/vsdetail")) {
+    const douyinMatch = url.match(/vsdetail\/([A-Za-z0-9]+)/);
+    if (!douyinMatch) {
+      throw new Error("请输入正确的抖音回放链接");
+    }
+    const videoId = douyinMatch[1];
+    const data = await douyin.parseVideo(videoId);
+    console.log(data);
+    const resolutions = data.resolutions.map((item) => ({
+      value: item.value,
+      label: item.label,
+    }));
+    resolutions.unshift({
+      value: "highest",
+      label: "最高",
+    });
+    return {
+      videoId: videoId,
+      platform: "douyinLive",
+      title: data.title,
+      resolutions: resolutions,
+      parts: [
+        {
+          partId: videoId,
+          name: data.title,
+          isEditing: false,
+          extra: {
+            resolutions: data.resolutions,
+          },
+        },
+      ],
+    };
   } else {
     throw new Error("暂不支持该链接");
   }
@@ -253,6 +286,17 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
   if (options.platform === "douyu") {
     if (!options?.extra?.decodeData) {
       throw new Error("decodeData is required for douyu download");
+    }
+    if (options.onlyDanmu) {
+      const danmuOutput = replaceExtName(filepath, ".xml");
+      await douyu.downloadDanmu(options.id, danmuOutput, options.override, {
+        platform: "douyu",
+        user_name: options?.extra?.user_name,
+        room_id: options?.extra?.room_id,
+        room_title: options?.extra?.room_title,
+        live_start_time: options?.extra?.live_start_time,
+        video_start_time: options?.extra?.video_start_time,
+      });
     }
     await douyu.download(filepath, options?.extra?.decodeData, {
       danmu: options.danmu,
@@ -328,6 +372,20 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
     await kuaishou.download(filepath, options.extra.url, {
       override: options.override,
     });
+  } else if (options.platform === "douyinLive") {
+    console.log(options);
+    if (!options?.extra?.resolutions || options?.extra?.resolutions.length === 0) {
+      throw new Error("resolutions is required for douyinLive download");
+    }
+    let url = options?.extra?.resolutions.find((item) => item.value === options.resolution)?.url;
+    if (!url) {
+      url = options?.extra?.resolutions[0]?.url;
+    }
+    if (url) {
+      await douyin.download(filepath, url, {
+        override: options.override,
+      });
+    }
   } else {
     throw new Error("暂不支持该平台");
   }

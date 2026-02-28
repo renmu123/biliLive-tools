@@ -1,5 +1,6 @@
 import ejs from "ejs";
 import log from "./log.js";
+import type { PartTitleFormatOptions } from "@biliLive-tools/types";
 
 /**
  * 支持{{title}},{{user}},{{now}}等占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
@@ -88,19 +89,11 @@ export function formatTitle(
  * @param {string} options.filename 文件名
  * @param {string} template 格式化模板
  */
-export function formatPartTitle(
-  options: {
-    title: string;
-    username: string;
-    time: string;
-    roomId: string | number;
-    filename: string;
-    index: number;
-  },
-  template: string,
-) {
+export function formatPartTitle(options: PartTitleFormatOptions, template: string) {
   const { year, month, day, hours, minutes, seconds } = formatTime(options.time);
   let renderText = template;
+  const isDanmaFile = options.filename.includes("-弹幕版");
+  const hasDanmaStr = isDanmaFile ? "弹幕版" : "纯享版";
   try {
     const renderOptions = {
       title: options.title,
@@ -108,6 +101,8 @@ export function formatPartTitle(
       time: new Date(options.time),
       roomId: options.roomId,
       filename: options.filename,
+      isDanmaFile,
+      hasDanmaStr,
     };
     renderText = ejs.render(template, renderOptions);
   } catch (error) {
@@ -126,6 +121,7 @@ export function formatPartTitle(
     .replaceAll("{{ss}}", seconds)
     .replaceAll("{{filename}}", options.filename)
     .replaceAll("{{index}}", String(options.index))
+    .replaceAll("{{hasDanmaStr}}", hasDanmaStr)
     .trim()
     .slice(0, 80);
 

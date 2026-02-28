@@ -10,6 +10,7 @@ const BaseUploadPart = z.object({
   cid: z.number(),
   filename: z.string(),
   expire_time: z.number(),
+  uid: z.string(),
 });
 
 const UploadPart = BaseUploadPart.extend({
@@ -20,11 +21,14 @@ const UploadPart = BaseUploadPart.extend({
 export type BaseUploadPart = z.infer<typeof BaseUploadPart>;
 export type UploadPart = z.infer<typeof UploadPart>;
 
-class UploadPartModel extends BaseModel<BaseUploadPart> {
+export default class UploadPartModel extends BaseModel<BaseUploadPart> {
   table = "upload_parts";
 
-  constructor(db: Database) {
+  constructor({ db }: { db: Database }) {
     super(db, "upload_parts");
+    this.createTable();
+    this.migrate();
+    this.createIndexes();
   }
 
   async createTable() {
@@ -36,7 +40,8 @@ class UploadPartModel extends BaseModel<BaseUploadPart> {
         file_size INTEGER NOT NULL,
         cid INTEGER NOT NULL,
         filename TEXT NOT NULL,
-        expire_time INTEGER NOT NULL
+        expire_time INTEGER NOT NULL,
+        uid TEXT
       ) STRICT;
     `;
 
@@ -62,8 +67,8 @@ class UploadPartModel extends BaseModel<BaseUploadPart> {
     try {
       const indexes = [
         {
-          name: "idx_upload_parts_hash_size",
-          sql: `CREATE INDEX IF NOT EXISTS idx_upload_parts_hash_size ON upload_parts(file_hash, file_size)`,
+          name: "idx_upload_parts_hash_size_uid",
+          sql: `CREATE INDEX IF NOT EXISTS idx_upload_parts_hash_size_uid ON upload_parts(file_hash, file_size, uid)`,
         },
         {
           name: "idx_upload_parts_cid",
@@ -81,62 +86,69 @@ class UploadPartModel extends BaseModel<BaseUploadPart> {
       logger.error(`创建 upload_parts 表索引失败:`, error);
     }
   }
-}
 
-export default class UploadPartController {
-  private model!: UploadPartModel;
+  migrate() {
+    try {
+      // 检查表中是否存在uid字段
+      const columns = this.db.prepare(`PRAGMA table_info(${this.tableName})`).all();
+      // @ts-ignore
+      const hasUidColumn = columns.some((col) => col.name === "uid");
 
-  init(db: Database) {
-    this.model = new UploadPartModel(db);
-    this.model.createTable();
-    this.model.createIndexes();
+      if (!hasUidColumn) {
+        // 添加uid列
+        this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN uid TEXT`).run();
+        logger.info(`已为${this.tableName}表添加uid列`);
+      }
+
+      return true;
+    } catch (error) {
+      logger.error(`迁移${this.tableName}表失败:`, error);
+      return false;
+    }
   }
 
   add(options: BaseUploadPart) {
     const data = BaseUploadPart.parse(options);
-    return this.model.insert(data);
+    return this.insert(data);
   }
+
   addOrUpdate(options: Omit<BaseUploadPart, "expire_time">) {
-    const part = this.findValidPartByHash(options.file_hash, options.file_size);
+    const part = this.findValidPartByHash(options.file_hash, options.file_size, options.uid);
     // 过期时间为当前时间加上3天
     const expire_time = Date.now() + 1000 * 60 * 60 * 24 * 3;
     if (part) {
-      return this.model.update({
+      return this.update({
         id: part.id,
         expire_time,
         cid: options.cid,
       });
     } else {
-      return this.model.insert({
+      return this.insert({
         ...options,
         expire_time,
       });
     }
   }
 
-  findByHash(file_hash: string, file_size: number) {
-    return this.model.query({ file_hash, file_size });
-  }
-
-  findValidPartByHash(file_hash: string, file_size: number): UploadPart | null {
+  findValidPartByHash(file_hash: string, file_size: number, uid: string): UploadPart | null {
     const sql = `
-      SELECT * FROM ${this.model.table} 
-      WHERE file_hash = ? AND file_size = ? AND expire_time > ?
+      SELECT * FROM ${this.table} 
+      WHERE file_hash = ? AND file_size = ? AND uid = ? AND expire_time > ?
     `;
-    return this.model.db.prepare(sql).get(file_hash, file_size, Date.now()) as UploadPart | null;
+    return this.db.prepare(sql).get(file_hash, file_size, uid, Date.now()) as UploadPart | null;
   }
 
   removeExpired() {
-    const sql = `DELETE FROM ${this.model.table} WHERE expire_time <= ?`;
-    const stmt = this.model.db.prepare(sql);
+    const sql = `DELETE FROM ${this.table} WHERE expire_time <= ?`;
+    const stmt = this.db.prepare(sql);
     const result = stmt.run(Date.now());
     return result.changes;
   }
+
   removeByCids(cids: number[]) {
-    if (!cids.length) return;
-    // @ts-ignore
-    const sql = `DELETE FROM ${this.model.table} WHERE cid IN (${cids.map((cid) => `?`).join(",")})`;
-    const stmt = this.model.db.prepare(sql);
+    if (!cids.length) return 0;
+    const sql = `DELETE FROM ${this.table} WHERE cid IN (${cids.map(() => `?`).join(",")})`;
+    const stmt = this.db.prepare(sql);
     const result = stmt.run(cids);
     return result.changes;
   }

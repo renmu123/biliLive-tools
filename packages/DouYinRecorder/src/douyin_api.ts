@@ -168,7 +168,7 @@ async function getRoomInfoByUserWeb(
     cookies = `__ac_nonce=${nonce}; __ac_signature=${signed}; __ac_referer=__ac_blank`;
   }
 
-  const res = await axios.get(url, {
+  const res = await requester.get(url, {
     headers: {
       "User-Agent": ua,
       cookie: cookies,
@@ -265,7 +265,7 @@ async function getRoomInfoByHtml(
     cookies = `__ac_nonce=${nonce}; __ac_signature=${signed}; __ac_referer=__ac_blank`;
   }
 
-  const res = await axios.get(url, {
+  const res = await requester.get(url, {
     headers: {
       "User-Agent": ua,
       cookie: cookies,

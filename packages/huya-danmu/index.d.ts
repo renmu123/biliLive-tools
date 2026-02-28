@@ -1,7 +1,16 @@
 import EventEmitter from "node:events";
 
 export default class HuYaDanMuListener extends EventEmitter {
-  constructor(roomId: string);
+  constructor(
+    roomId:
+      | string
+      | {
+          roomid: string;
+          uid?: number;
+          subChannelId?: number;
+          channelId?: number;
+        },
+  );
 
   set_proxy(proxy: unknown): void;
 

@@ -16,13 +16,13 @@ import type {
   RecorderProvider,
   RecordHandle,
 } from "@bililive-tools/manager";
+import { live } from "douyu-api";
 
 import { getInfo, getStream } from "./stream.js";
 import { getRoomInfo } from "./dy_api.js";
 import { ensureFolderExist } from "./utils.js";
 import { createDYClient } from "./dy_client/index.js";
 import { giftMap, colorTab } from "./danma.js";
-import { requester } from "./requester.js";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -154,10 +154,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedSource = stream.source;
 
   const onEnd = (...args: unknown[]) => {
-    if (isCutting) {
-      isCutting = false;
-      return;
-    }
     if (isEnded) return;
     isEnded = true;
 
@@ -169,7 +165,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
   let isEnded = false;
-  let isCutting = false;
 
   const downloader = createDownloader(
     this.recorderType,
@@ -186,6 +181,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           liveStartTime,
           recordStartTime,
         }),
+      disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
       onlyAudio: stream.onlyAudio,
@@ -391,11 +387,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const cut = utils.singleton<RecordHandle["cut"]>(async () => {
     if (!this.recordHandle) return;
-    if (isCutting) return;
-    isCutting = true;
-    await downloader.stop();
-    downloader.createCommand();
-    downloader.run();
+    downloader.cut();
   });
 
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
@@ -448,28 +440,7 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
   async resolveChannelInfoFromURL(channelURL) {
     if (!this.matchURL(channelURL)) return null;
 
-    channelURL = channelURL.trim();
-    const res = await requester.get(channelURL);
-    const html = res.data;
-
-    const matched = html.match(/\$ROOM\.room_id.?=(.*?);/);
-    let roomId: string | undefined = undefined;
-    if (matched) {
-      roomId = matched[1].trim();
-    } else {
-      // 解析出query中的rid参数
-      const rid = new URL(channelURL).searchParams.get("rid");
-      if (rid) {
-        roomId = rid;
-      } else {
-        // 解析<link rel="canonical" href="xxxxxxx"/>中的href
-        const canonicalLink = html.match(/<link rel="canonical" href="(.*?)"/);
-        if (canonicalLink) {
-          const url = canonicalLink[1];
-          roomId = url.split("/").pop();
-        }
-      }
-    }
+    const roomId = await live.parseRoomId(channelURL);
     if (!roomId) return null;
 
     const roomInfo = await getRoomInfo(Number(roomId));

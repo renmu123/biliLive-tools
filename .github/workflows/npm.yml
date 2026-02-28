@@ -31,8 +31,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build package
+      - name: Build base package
         run: pnpm run build:base
+      
+      - name: Build Cli package
+        run: pnpm run --filter bililive-cli build
 
       - name: Publish to npm
         shell: bash

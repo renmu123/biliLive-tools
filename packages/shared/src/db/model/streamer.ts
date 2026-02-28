@@ -17,16 +17,15 @@ const Streamer = BaseStreamer.extend({
 export type BaseStreamer = z.infer<typeof BaseStreamer>;
 export type Streamer = z.infer<typeof Streamer>;
 
-class StreamerModel extends BaseModel<BaseStreamer> {
-  table = "streamer";
-
-  constructor(db: Database) {
+export default class StreamerModel extends BaseModel<BaseStreamer> {
+  constructor({ db }: { db: Database }) {
     super(db, "streamer");
+    this.createTable();
   }
 
   async createTable() {
     const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS ${this.table} (
+      CREATE TABLE IF NOT EXISTS ${this.tableName} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,           -- 自增主键
         name TEXT NOT NULL,                             -- 主播名
         room_id TEXT NOT NULL,                          -- 房间id
@@ -37,33 +36,35 @@ class StreamerModel extends BaseModel<BaseStreamer> {
     `;
     return super.createTable(createTableSQL);
   }
-}
-
-export default class StreamerController {
-  private model!: StreamerModel;
-  init(db: Database) {
-    this.model = new StreamerModel(db);
-    this.model.createTable();
-  }
 
   add(options: BaseStreamer) {
     const data = BaseStreamer.parse(options);
-    return this.model.insert(data);
+    return this.insert(data);
   }
+
   addMany(list: BaseStreamer[]) {
     const filterList = list.map((item) => BaseStreamer.parse(item));
+    return this.insertMany(filterList);
+  }
 
-    return this.model.insertMany(filterList);
-  }
-  list(options: Partial<Streamer>): Streamer[] {
-    const data = Streamer.partial().parse(options);
-    return this.model.list(data);
-  }
-  query(options: Partial<Streamer>) {
-    const data = Streamer.partial().parse(options);
-    return this.model.query(data);
-  }
-  upsert(options: { where: Partial<Streamer & { id: number }>; create: BaseStreamer }) {
-    return this.model.upsert(options);
+  /**
+   * 批量查询多个频道的主播信息
+   * @param channels 频道信息数组
+   * @returns 主播信息数组
+   */
+  batchQueryByChannels(channels: Array<{ room_id: string; platform: string }>): Streamer[] {
+    if (channels.length === 0) {
+      return [];
+    }
+
+    // 构建 WHERE (room_id = ? AND platform = ?) OR (room_id = ? AND platform = ?) ...
+    const conditions = channels.map(() => "(room_id = ? AND platform = ?)").join(" OR ");
+    const params = channels.flatMap(({ room_id, platform }) => [room_id, platform]);
+
+    const sql = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
+    const stmt = this.db.prepare(sql);
+    const results = stmt.all(...params) as Streamer[];
+
+    return results;
   }
 }

@@ -15,7 +15,11 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="convert" title="立即合并(ctrl+enter)"> 立即合并 </n-button>
+
+      <ButtonGroup :options="buttonGroupOptions" @click="handleConfirm" title="立即合并(ctrl+enter)"
+        >立即合并</ButtonGroup
+      >
+
       <n-checkbox v-model:checked="options.mergeXml"> 合并弹幕 </n-checkbox>
 
       <Tip
@@ -50,6 +54,7 @@ import hotkeys from "hotkeys-js";
 
 import FileSelect from "@renderer/pages/Tools/pages/Burn/components/FileSelect.vue";
 import Tip from "@renderer/components/Tip.vue";
+import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import { useAppConfig } from "@renderer/stores";
 import { formatFile, supportedVideoExtensions } from "@renderer/utils";
 import { taskApi, danmaApi } from "@renderer/apis";
@@ -84,6 +89,33 @@ onDeactivated(() => {
 onUnmounted(() => {
   hotkeys.unbind();
 });
+
+const buttonGroupOptions = computed(() => {
+  return [
+    {
+      key: "sortByFileAsc",
+      label: "排序：文件名升序",
+    },
+    {
+      key: "sortByFileDesc",
+      label: "排序：文件名降序",
+    },
+  ];
+});
+
+const handleConfirm = (key?: string | number) => {
+  if (key === "sortByFileAsc") {
+    fileList.value.sort((a, b) => {
+      return a.videoPath.localeCompare(b.videoPath, "zh-Hans-CN", { numeric: true });
+    });
+  } else if (key === "sortByFileDesc") {
+    fileList.value.sort((a, b) => {
+      return b.videoPath.localeCompare(a.videoPath, "zh-Hans-CN", { numeric: true });
+    });
+  } else {
+    convert();
+  }
+};
 
 const convert = async () => {
   if (fileList.value.length < 2) {

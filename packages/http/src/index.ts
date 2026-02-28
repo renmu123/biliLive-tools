@@ -6,6 +6,7 @@ import Koa from "koa";
 import Router from "@koa/router";
 import cors from "@koa/cors";
 import { bodyParser } from "@koa/bodyparser";
+import logger from "@biliLive-tools/shared/utils/log.js";
 
 import errorMiddleware from "./middleware/error.js";
 
@@ -24,7 +25,8 @@ import videoRouter from "./routes/video.js";
 import recordHistoryRouter from "./routes/recordHistory.js";
 import danmaRouter from "./routes/danma.js";
 import syncRouter from "./routes/sync.js";
-import { WebhookHandler } from "./services/webhook.js";
+import aiRouter from "./routes/ai.js";
+import { WebhookHandler } from "./services/webhook/webhook.js";
 import { createFileCache } from "./services/fileCache.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
@@ -117,6 +119,7 @@ export async function serverStart(
   app.use(recordHistoryRouter.routes());
   app.use(danmaRouter.routes());
   app.use(syncRouter.routes());
+  app.use(aiRouter.routes());
 
   app.use(SSERouter.routes());
   app.use(router.allowedMethods());
@@ -137,6 +140,8 @@ export async function serverStart(
 // }
 
 async function createServer(options: { port: number; host: string }) {
+  logger.info(`开始创建服务器: ${options.host}:${options.port}`);
+
   const isHttps = false;
   if (isHttps) {
     // const keys = await createCertificateAsync();
@@ -153,8 +158,11 @@ async function createServer(options: { port: number; host: string }) {
     });
   } else {
     const httpServer = http.createServer(app.callback());
+    httpServer.on("error", (err) => {
+      logger.error("HTTP 服务器错误:", err);
+    });
     httpServer.listen(options.port, options.host, () => {
-      console.log(`Server is running at http://${options.host}:${options.port}`);
+      logger.info(`Server is running at http://${options.host}:${options.port}`);
     });
   }
 }

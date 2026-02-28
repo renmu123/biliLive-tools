@@ -118,14 +118,14 @@ export class DanmakuFactory {
       throw new Error("input not exists");
     }
 
-    const requiredArgs = [`-i "${input}"`, `-o "${output}"`, "--ignore-warnings"];
+    const requiredArgs = [`-i "${input}"`, `-o "${output}"`, "--ignore-warnings", "--force"];
     const args = this.genDanmuArgs(argsObj);
     const command = `"${this.execPath}" ${requiredArgs.join(" ")} ${args.join(" ")}`;
     log.info("danmakufactory command: ", command);
     this.command = command;
 
     return new Promise((resolve, reject) => {
-      const child = exec(command, (error, stdout, stderr) => {
+      const child = exec(command, { windowsHide: true }, (error, stdout, stderr) => {
         if (error || stderr) {
           reject(stderr);
         } else {

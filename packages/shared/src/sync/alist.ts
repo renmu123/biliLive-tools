@@ -9,6 +9,10 @@ import logger from "../utils/log.js";
 import { combineURLs } from "../utils/combineURLs.js";
 import { TypedEmitter } from "tiny-typed-emitter";
 import axios, { AxiosInstance } from "axios";
+import { SpeedCalculator } from "../utils/speedCalculator.js";
+import { replaceFourByteUnicode } from "../utils/index.js";
+
+import type { SyncConfig } from "@biliLive-tools/types";
 
 export interface AlistOptions {
   /**
@@ -44,6 +48,23 @@ export interface AlistOptions {
    * @default 0
    */
   limitRate?: number;
+
+  /**
+   * 字符串过滤选项
+   */
+  stringFilters?: SyncConfig["stringFilters"];
+
+  /**
+   * 上传失败重试次数
+   * @default 3
+   */
+  retry?: number;
+
+  /**
+   * 重试间隔时间(毫秒)
+   * @default 5000
+   */
+  retryDelay?: number;
 }
 
 interface AlistEvents {
@@ -74,8 +95,10 @@ export class Alist extends TypedEmitter<AlistEvents> {
   private client: AxiosInstance;
   private abortController: AbortController | null = null;
   private limitRate: number;
-  private progressHistory: Array<{ loaded: number; timestamp: number }> = [];
-  private readonly speedWindowMs: number = 3000; // 3秒时间窗口
+  private speedCalculator: SpeedCalculator;
+  private stringFilters?: SyncConfig["stringFilters"];
+  private retry: number;
+  private retryDelay: number;
 
   constructor(options?: AlistOptions) {
     super();
@@ -85,10 +108,15 @@ export class Alist extends TypedEmitter<AlistEvents> {
     this.remotePath = options?.remotePath || "/录播";
     this.logger = options?.logger || logger;
     this.limitRate = options?.limitRate || 0;
+    this.speedCalculator = new SpeedCalculator(3000); // 3秒时间窗口
+    this.stringFilters = options?.stringFilters;
+    this.retry = options?.retry ?? 3;
+    this.retryDelay = options?.retryDelay ?? 5000;
 
     // 创建axios实例
     this.client = axios.create({
       baseURL: this.server,
+      proxy: false,
     });
 
     // 添加请求拦截器，自动添加token
@@ -129,7 +157,6 @@ export class Alist extends TypedEmitter<AlistEvents> {
 
       if (response.data.code === 200 && response.data.data.token) {
         this.token = response.data.data.token;
-        this.logger.debug("AList登录成功");
         return true;
       } else {
         this.logger.error(`AList登录失败: ${response.data.message}`);
@@ -161,15 +188,13 @@ export class Alist extends TypedEmitter<AlistEvents> {
         await this.login();
       }
 
-      const fullPath = path.join(this.remotePath, remotePath).replace(/\\/g, "/");
-      this.logger.debug(`创建AList目录: ${fullPath}`);
-
+      this.logger.debug(`创建AList目录: ${remotePath}`);
       const response = await this.client.post("/api/fs/mkdir", {
-        path: fullPath,
+        path: remotePath,
       });
 
       if (response.data.code === 200) {
-        this.logger.debug(`AList目录创建成功: ${fullPath}`);
+        this.logger.debug(`AList目录创建成功: ${remotePath}`);
         return true;
       } else {
         this.logger.error(`AList目录创建失败: ${response.data.message}`);
@@ -183,6 +208,38 @@ export class Alist extends TypedEmitter<AlistEvents> {
       }
       this.logger.error(`创建AList目录出错: ${error}`);
       this.emit("error", error);
+      return false;
+    }
+  }
+
+  /**
+   * 检查路径是否存在
+   * @param remotePath 远程路径
+   * @returns Promise<boolean> 路径是否存在
+   */
+  public async checkPathExists(remotePath: string): Promise<boolean> {
+    try {
+      if (!this.isLoggedIn()) {
+        await this.login();
+      }
+
+      this.logger.debug(`检查路径是否存在: ${remotePath}`);
+      const response = await this.client.post("/api/fs/get", {
+        path: remotePath,
+      });
+
+      if (response.data.code === 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error: any) {
+      if (error?.message.includes("object not found")) {
+        this.logger.debug(`路径不存在: ${remotePath}`);
+        return false;
+      }
+      // 路径不存在时API会返回错误
+      this.logger.debug(`路径不存在或检查出错: ${remotePath}, Error: ${error.message}`);
       return false;
     }
   }
@@ -227,43 +284,103 @@ export class Alist extends TypedEmitter<AlistEvents> {
       this.abortController.abort();
       this.abortController = null;
       // 重置进度追踪
-      this.progressHistory = [];
+      this.speedCalculator.reset();
     }
+  }
+
+  /**
+   * 延迟函数
+   * @param ms 延迟毫秒数
+   */
+  private async delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
    * 上传文件到AList
    * @param localFilePath 本地文件路径
-   * @param remoteDir 远程目录路径（相对于基础远程路径）
-   * @returns Promise<void> 上传成功时resolve，失败时reject
+   * @param remoteDir 远程目录路径(相对于基础远程路径)
+   * @param options 上传选项
+   * @returns Promise<void> 上传成功时resolve,失败时reject
    */
   public async uploadFile(
     localFilePath: string,
     remoteDir: string = "",
-    // @ts-ignore
     options?: {
-      retry?: number;
-      // 覆盖选项: overwrite(覆盖)、skip(跳过)
+      /** 覆盖选项: overwrite(覆盖)、skip(跳过) */
       policy?: "overwrite" | "skip";
     },
   ): Promise<void> {
+    const maxRetries = this.retry;
+    const retryDelay = this.retryDelay;
+
     if (!(await fs.pathExists(localFilePath))) {
       const error = new Error(`文件不存在: ${localFilePath}`);
       this.logger.error(error.message);
       this.emit("error", error);
+      console.log(options);
       throw error;
     }
 
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await this.doUpload(localFilePath, remoteDir);
+        return; // 上传成功，退出
+      } catch (error: any) {
+        // 如果是取消操作，不重试
+        if (error?.name === "AbortError") {
+          this.logger.info("上传已取消");
+          this.emit("canceled", "上传已取消");
+          throw error;
+        }
+
+        // 如果还有重试机会
+        if (attempt < maxRetries) {
+          this.logger.warn(
+            `上传失败 (尝试 ${attempt}/${maxRetries}): ${error?.message || "unknown error"}，${retryDelay / 1000}秒后重试...`,
+          );
+          await this.delay(retryDelay);
+        } else {
+          // 所有重试都失败
+          this.logger.error(
+            `上传失败，已达到最大重试次数 (${maxRetries}次): ${error?.message || "unknown error"}`,
+          );
+          this.emit("error", error);
+          throw error;
+        }
+      }
+    }
+  }
+
+  /**
+   * 执行单次上传操作
+   * @param localFilePath 本地文件路径
+   * @param remoteDir 远程目录路径
+   */
+  private async doUpload(localFilePath: string, remoteDir: string = ""): Promise<void> {
     if (!this.isLoggedIn()) {
       await this.login();
     }
 
     // 确保目标文件夹存在
     const targetDir = path.join(this.remotePath, remoteDir).replace(/\\/g, "/");
-    await this.mkdir(remoteDir);
 
     const fileName = path.basename(localFilePath);
-    const remotePath = path.join(targetDir, fileName).replace(/\\/g, "/");
+
+    let remotePath = path.join(targetDir, fileName).replace(/\\/g, "/");
+    // 应用字符串过滤
+    if (this.stringFilters?.includes("filterFourByteChars")) {
+      // 仅过滤四字节字符
+      remotePath = replaceFourByteUnicode(remotePath, "_");
+    }
+
+    // 先检查目录是否已存在
+    const exists = await this.checkPathExists(targetDir);
+    if (exists) {
+      this.logger.debug(`目录已存在，无需创建: ${targetDir}`);
+    } else {
+      await this.mkdir(targetDir);
+    }
 
     this.logger.debug(`开始上传: ${localFilePath} 到 ${remotePath}`);
 
@@ -283,14 +400,14 @@ export class Alist extends TypedEmitter<AlistEvents> {
     // 进度监听
     let uploaded = 0;
     const uploadStartTime = Date.now();
-    this.progressHistory = [{ loaded: 0, timestamp: uploadStartTime }];
+    this.speedCalculator.init(uploadStartTime);
 
     fileStream.on("data", (chunk) => {
       uploaded += chunk.length;
       const currentTime = Date.now();
 
       // 计算上传速度（使用时间窗口平滑）
-      const speed = this.calculateSpeed(uploaded, currentTime);
+      const speed = this.speedCalculator.calculateSpeed(uploaded, currentTime);
 
       this.emit("progress", {
         uploaded: this.formatSize(uploaded),
@@ -363,19 +480,10 @@ export class Alist extends TypedEmitter<AlistEvents> {
         });
         fileStream.pipe(req);
       });
-    } catch (error: any) {
-      if (error?.name === "AbortError") {
-        this.logger.info("上传已取消");
-        this.emit("canceled", "上传已取消");
-      } else {
-        this.logger.error(`上传文件出错: ${error?.message || "unknown error"}`);
-        this.emit("error", error);
-      }
-      throw error;
     } finally {
       this.abortController = null;
       // 重置进度追踪
-      this.progressHistory = [];
+      this.speedCalculator.reset();
     }
   }
 
@@ -394,49 +502,5 @@ export class Alist extends TypedEmitter<AlistEvents> {
     } else {
       return `${(size / 1024 / 1024 / 1024).toFixed(2)}GB`;
     }
-  }
-
-  /**
-   * 清理超出时间窗口的历史记录
-   * @param currentTime 当前时间戳
-   */
-  private cleanupProgressHistory(currentTime: number): void {
-    const windowStartTime = currentTime - this.speedWindowMs;
-    this.progressHistory = this.progressHistory.filter(
-      (progress) => progress.timestamp >= windowStartTime,
-    );
-  }
-
-  /**
-   * 计算上传速度（使用时间窗口平滑）
-   * @param currentLoaded 当前已上传字节数
-   * @param currentTime 当前时间戳
-   * @returns 格式化的速度字符串（MB/s）
-   */
-  private calculateSpeed(currentLoaded: number, currentTime: number): string {
-    // 添加当前进度到历史记录
-    this.progressHistory.push({ loaded: currentLoaded, timestamp: currentTime });
-
-    // 清理超出时间窗口的旧数据
-    this.cleanupProgressHistory(currentTime);
-
-    // 如果历史记录不足，返回默认值
-    if (this.progressHistory.length < 2) {
-      return "0.00 MB/s";
-    }
-
-    // 使用时间窗口内的第一个和最后一个数据点计算平均速度
-    const oldest = this.progressHistory[0];
-    const newest = this.progressHistory[this.progressHistory.length - 1];
-
-    const timeDiff = (newest.timestamp - oldest.timestamp) / 1000; // 转换为秒
-    const dataDiff = newest.loaded - oldest.loaded; // 字节差
-
-    if (timeDiff <= 0 || dataDiff <= 0) {
-      return "0.00 MB/s";
-    }
-
-    const speedMBps = dataDiff / (1024 * 1024) / timeDiff; // MB/s
-    return `${speedMBps.toFixed(2)} MB/s`;
   }
 }

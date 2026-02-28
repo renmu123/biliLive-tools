@@ -1,3 +1,11 @@
+# 1.12.0
+
+- 禁止标题关键词支持正则 [#307](https://github.com/renmu123/biliLive-tools/pull/307)
+
+# 1.11.0
+
+- 录播姬引擎支持切割
+
 # 1.10.0
 
 - 重构：录制器相关的参数修改为 `Downloader`
