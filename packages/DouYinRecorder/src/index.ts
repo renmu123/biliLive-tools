@@ -220,6 +220,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       headers: {
         Cookie: this.auth,
       },
+      proxy: this.proxy,
     },
     onEnd,
     async () => {

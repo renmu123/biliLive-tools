@@ -118,6 +118,7 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
   readonly disableDanma: boolean = false;
   readonly url: string;
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
+  readonly proxy?: string;
   readonly headers:
     | {
         [key: string]: string | undefined;
@@ -135,6 +136,7 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
     this.hasSegment = hasSegment;
     this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
+    this.proxy = opts.proxy;
 
     let videoFormat: "flv" | "ts" | "m4s" = "flv";
     if (opts.url.includes(".m3u8")) {
@@ -181,7 +183,26 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
   }
 
   createCommand() {
-    const inputOptions = [...this.inputOptions, "--fix", "--no-proxy"];
+    const inputOptions = [...this.inputOptions, "--fix"];
+    if (this.proxy) {
+      try {
+        const { protocol, username, password, origin, search, pathname } = new URL(this.proxy);
+        if (protocol.startsWith("https")) {
+          inputOptions.push("--proxy-type", "https");
+        } else if (protocol.startsWith("socks5")) {
+          inputOptions.push("--proxy-type", "socks5");
+        }
+        if (username && password) {
+          inputOptions.push("--proxy-user", `${username}`);
+          inputOptions.push("--proxy-pass", `${password}`);
+        }
+        inputOptions.push("--proxy", origin + pathname + search);
+      } catch (err) {
+        this.emit("DebugLog", { type: "error", text: `Invalid proxy URL: ${this.proxy}` });
+      }
+    } else {
+      inputOptions.push("--no-proxy");
+    }
     if (this.debugLevel === "verbose") {
       inputOptions.push("-v");
     }
