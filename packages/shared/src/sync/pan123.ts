@@ -27,7 +27,6 @@ async function getCachedOrCreateDir(client: Client, remotePath: string): Promise
   // 1. 检查已完成的缓存
   const cachedId = dirIdCache.get(remotePath);
   if (cachedId !== undefined) {
-    // TODO: 这里缓存的数据可能是有问题的，因为目录可能被用户删除了，所以后续需要增加一个校验机制来验证缓存的有效性
     return cachedId;
   }
 
@@ -220,85 +219,109 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
       throw error;
     }
 
-    try {
-      // 需要获取目标目录的ID（使用缓存避免并发重复请求）
-      let parentFileID = await getCachedOrCreateDir(this.client, this.remotePath);
+    let retryCount = 0;
+    const maxRetries = 1;
 
-      // const fileName = path.basename(localFilePath);
-      this.logger.debug(`123网盘开始上传: ${localFilePath} 到 ${this.remotePath}`);
+    while (retryCount <= maxRetries) {
+      try {
+        // 如果是重试，清除缓存
+        if (retryCount > 0) {
+          this.logger.info(
+            `检测到parentFileID不存在，清除缓存并重试 (${retryCount}/${maxRetries})`,
+          );
+          Pan123.clearDirCache(this.remotePath);
+        }
 
-      const concurrency = options?.concurrency || 3;
-      const limitRate = this.limitRate / concurrency;
-      // 创建上传实例
-      this.currentUploader = new Uploader(localFilePath, this.accessToken!, String(parentFileID), {
-        concurrency: concurrency,
-        retryTimes: options?.retry || 7,
-        retryDelay: 5000,
-        duplicate: options?.policy === "skip" ? 2 : 1, // 1: 覆盖, 2: 跳过
-        limitRate,
-      });
+        // 需要获取目标目录的ID（使用缓存避免并发重复请求）
+        let parentFileID = await getCachedOrCreateDir(this.client, this.remotePath);
 
-      // 初始化上传计时
-      const uploadStartTime = Date.now();
-      this.speedCalculator.init(uploadStartTime);
+        // const fileName = path.basename(localFilePath);
+        this.logger.debug(`123网盘开始上传: ${localFilePath} 到 ${this.remotePath}`);
 
-      // 监听上传进度
-      this.currentUploader.on("progress", (data) => {
-        const percentage = Math.round(data.progress * 10000) / 100;
-        const currentTime = Date.now();
+        const concurrency = options?.concurrency || 3;
+        const limitRate = this.limitRate / concurrency;
+        // 创建上传实例
+        this.currentUploader = new Uploader(
+          localFilePath,
+          this.accessToken!,
+          String(parentFileID),
+          {
+            concurrency: concurrency,
+            retryTimes: options?.retry || 7,
+            retryDelay: 5000,
+            duplicate: options?.policy === "skip" ? 2 : 1, // 1: 覆盖, 2: 跳过
+            limitRate,
+          },
+        );
 
-        // 计算上传速度（MB/s）
-        const speed = this.speedCalculator.calculateSpeed(data.data.loaded, currentTime);
+        // 初始化上传计时
+        const uploadStartTime = Date.now();
+        this.speedCalculator.init(uploadStartTime);
 
-        this.emit("progress", {
-          uploaded: this.formatSize(data.data.loaded),
-          total: this.formatSize(data.data.total),
-          percentage,
-          speed,
+        // 监听上传进度
+        this.currentUploader.on("progress", (data) => {
+          const percentage = Math.round(data.progress * 10000) / 100;
+          const currentTime = Date.now();
+
+          // 计算上传速度（MB/s）
+          const speed = this.speedCalculator.calculateSpeed(data.data.loaded, currentTime);
+
+          this.emit("progress", {
+            uploaded: this.formatSize(data.data.loaded),
+            total: this.formatSize(data.data.total),
+            percentage,
+            speed,
+          });
         });
-      });
 
-      // 监听上传完成
-      this.currentUploader.on("completed", () => {
-        const successMsg = `上传成功: ${localFilePath}`;
-        this.emit("success", successMsg);
-      });
+        // 监听上传完成
+        this.currentUploader.on("completed", () => {
+          const successMsg = `上传成功: ${localFilePath}`;
+          this.emit("success", successMsg);
+        });
 
-      // 监听上传错误
-      this.currentUploader.on("error", (error) => {
-        this.logger.error(`上传文件出错: ${error.message}`);
-        this.emit("error", error);
-      });
+        // 监听上传错误
+        this.currentUploader.on("error", (error) => {
+          this.logger.error(`上传文件出错: ${error.message}`);
+          this.emit("error", error);
+        });
 
-      // 监听上传取消
-      this.currentUploader.on("cancel", () => {
-        this.logger.info("上传已取消");
-        this.emit("canceled", "上传已取消");
-      });
+        // 监听上传取消
+        this.currentUploader.on("cancel", () => {
+          this.logger.info("上传已取消");
+          this.emit("canceled", "上传已取消");
+        });
 
-      // 开始上传
-      const result = await this.currentUploader.upload();
+        // 开始上传
+        const result = await this.currentUploader.upload();
 
-      if (result) {
-        const successMsg = `上传成功: ${localFilePath}`;
-        this.logger.debug(successMsg);
-        this.emit("success", successMsg);
-      } else {
-        throw new Error("上传失败");
+        if (result) {
+          const successMsg = `上传成功: ${localFilePath}`;
+          this.logger.debug(successMsg);
+          this.emit("success", successMsg);
+          return; // 成功后直接返回
+        } else {
+          throw new Error("上传失败");
+        }
+      } catch (error: any) {
+        if (error.message?.includes("cancel")) {
+          this.logger.info("上传已取消");
+          this.emit("canceled", "上传已取消");
+          throw error;
+        } else if (error.message?.includes("parentFileID不存在") && retryCount < maxRetries) {
+          // 如果错误消息包含"parentFileID不存在"且还没达到最大重试次数，则重试
+          retryCount++;
+          continue;
+        } else {
+          this.logger.error(`上传文件出错: ${error.message}`);
+          this.emit("error", error);
+          throw error;
+        }
+      } finally {
+        this.currentUploader = null;
+        // 重置进度追踪
+        this.speedCalculator.reset();
       }
-    } catch (error: any) {
-      if (error.message?.includes("cancel")) {
-        this.logger.info("上传已取消");
-        this.emit("canceled", "上传已取消");
-      } else {
-        this.logger.error(`上传文件出错: ${error.message}`);
-        this.emit("error", error);
-      }
-      throw error;
-    } finally {
-      this.currentUploader = null;
-      // 重置进度追踪
-      this.speedCalculator.reset();
     }
   }
 
