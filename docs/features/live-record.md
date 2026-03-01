@@ -43,8 +43,18 @@ biliLive-tools 提供三种录制器引擎：
 | FLV 修复 | ❌     | ✅           | ✅         |
 
 ::: tip 提示
-当选择到某录制器不支持的直播流时，会自动尝试使用 FFmpeg 进行录制。
+当选择到某录制器不支持的直播流时，会尽量自动尝试使用 FFmpeg 进行录制。
 :::
+
+### Mesio
+
+项目地址：https://github.com/hua0512/rust-srec/tree/main/mesio-cli
+
+### 录播姬引擎
+
+项目地址：https://github.com/renmu123/BililiveRecorder
+
+录播姬引擎是从录播姬项目中提取了FLV录制引擎，一些细节上并不与原项目相同
 
 ### 视频格式
 
@@ -88,6 +98,7 @@ biliLive-tools 提供三种录制器引擎：
 - `{hour}` - 小时
 - `{min}` - 分钟
 - `{sec}` - 秒
+- `{ms}` - 毫秒
 - `{startTime}` - 分段开始时间，Date对象
 - `{recordStartTime}` - 录制开始时间，Date对象
 - `{liveStartTime}` - 直播开始时间，Date对象，抖音同录制开始时间
@@ -187,6 +198,14 @@ biliLive-tools 提供三种录制器引擎：
 ### flv格式下无法播放或只有声音无画面
 
 尝试使用最新版 potplayer 或转换为 MP4 格式
+
+### 录制的视频频繁中断
+
+大概又三种原因，但本软件**均无法控制，不要找我来问**
+
+- 你网络问题
+- 主播网络问题
+- 录制器认为该分段了
 
 ### 录制页面为什么显示“检查错误”
 

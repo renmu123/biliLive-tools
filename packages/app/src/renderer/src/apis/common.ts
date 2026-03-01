@@ -147,6 +147,16 @@ export async function appStartTime(): Promise<number> {
   return res.data;
 }
 
+export async function appStatistics(): Promise<{
+  startTime: number | null;
+  videoTotalDuaration: number | null;
+  recordingNum: number;
+  recorderNum: number;
+}> {
+  const res = await request.get(`/common/statistics`);
+  return res.data;
+}
+
 export async function readDanma(filepath: string): Promise<string> {
   const res = await request.post("/common/readDanma", {
     filepath,
@@ -270,6 +280,19 @@ export const fileExists = async (filepath: string): Promise<boolean> => {
   return res.data;
 };
 
+/**
+ * 获取磁盘空间信息
+ */
+export const getDiskSpace = async (): Promise<{
+  total: number;
+  free: number;
+  used: number;
+  usedPercentage: number;
+}> => {
+  const res = await request.get("/common/diskSpace");
+  return res.data;
+};
+
 const common = {
   getStreamLogs,
   version,
@@ -279,6 +302,7 @@ const common = {
   getFontList,
   uploadCover,
   appStartTime,
+  appStatistics,
   getDanmaStream,
   exportLogs,
   getLogContent,
@@ -298,6 +322,7 @@ const common = {
   readLLCProject,
   writeLLCProject,
   fileExists,
+  getDiskSpace,
 };
 
 export default common;

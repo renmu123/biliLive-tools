@@ -107,6 +107,7 @@ setBililivePath("BililiveRecorder.Cli.exe");
 | {hour}            | 时                                         |
 | {min}             | 分                                         |
 | {sec}             | 秒                                         |
+| {ms}              | 毫秒                                       |
 | {startTime}       | 分段开始时间，Date对象                     |
 | {recordStartTime} | 录制开始时间，Date对象                     |
 | {liveStartTime}   | 直播开始时间，Date对象，抖音同录制开始时间 |

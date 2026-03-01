@@ -131,6 +131,9 @@ importers:
       font-ls:
         specifier: 0.6.2
         version: 0.6.2
+      music-segment-detector:
+        specifier: ^0.3.1
+        version: 0.3.1(rollup@4.52.4)
       ntsuspend:
         specifier: ^1.0.2
         version: 1.0.2
@@ -313,6 +316,9 @@ importers:
       font-ls:
         specifier: 'catalog:'
         version: 0.6.2
+      music-segment-detector:
+        specifier: ^0.3.1
+        version: 0.3.1(rollup@4.52.4)
       ntsuspend:
         specifier: 'catalog:'
         version: 1.0.2
@@ -601,8 +607,8 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       '@renmu/bili-api':
-        specifier: 2.12.1
-        version: 2.12.1
+        specifier: 2.12.2
+        version: 2.12.2
       '@renmu/fluent-ffmpeg':
         specifier: 2.3.3
         version: 2.3.3
@@ -652,8 +658,8 @@ importers:
         specifier: 'catalog:'
         version: 0.6.2
       music-segment-detector:
-        specifier: ^0.1.0
-        version: 0.1.0(rollup@4.52.4)
+        specifier: ^0.3.1
+        version: 0.3.1(rollup@4.52.4)
       node-downloader-helper:
         specifier: ^2.1.10
         version: 2.1.10
@@ -1571,8 +1577,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@2.12.1':
-    resolution: {integrity: sha512-xIcuPXHck/b6L2Sm4ydfdong1O3HfPgvfkSyMfNFqCHyHbIZFsZMtn8+wrVdHJ2LLzzp46cUyvEon4hiMH+rHg==}
+  '@renmu/bili-api@2.12.2':
+    resolution: {integrity: sha512-qhLL3uG8ajyY2k8UvLw47e6oRDMgW6Q6P9S0E6em1vb5iyzTgyInsFS3NTn6tVy5jZO40QCkpfHyITpGbY6G8g==}
     engines: {node: '>=18'}
 
   '@renmu/fluent-ffmpeg@2.3.3':
@@ -4533,8 +4539,8 @@ packages:
   multistream@4.1.0:
     resolution: {integrity: sha512-J1XDiAmmNpRCBfIWJv+n0ymC4ABcf/Pl+5YvC5B/D2f/2+8PtHvCNxMPKiQcZyi922Hq69J2YOpb1pTywfifyw==}
 
-  music-segment-detector@0.1.0:
-    resolution: {integrity: sha512-XKEauPOYM2yJrOESj0pNTCQGy43or84xuZDkpDA90HkQipYybYZQzsl0tIauNqgvqZnE9Rc6N4BcmdBnCO9zuA==}
+  music-segment-detector@0.3.1:
+    resolution: {integrity: sha512-6ybsAMe45WNHmLdo8QeLRQQXSHgCIBGmnxhZbE4O6MviWF3mvx2GMZsGHJVkvxc6GEssDiSfxV2gfUkWW4DL6Q==}
     engines: {node: '>=16.0.0'}
 
   naive-ui@2.40.3:
@@ -5895,9 +5901,6 @@ packages:
     peerDependencies:
       vue: ^3.0.11
 
-  wav-decoder@1.3.0:
-    resolution: {integrity: sha512-4U6O/JNb1dPO90CO2YMTQ5N2plJcntm39vNMvRq9VZ4Vy5FzS7Lnx95N2QcYUyKYcZfCbhI//W3dSHA8YnOQyQ==}
-
   wav@1.0.2:
     resolution: {integrity: sha512-viHtz3cDd/Tcr/HbNqzQCofKdF6kWUymH9LGDdskfWFoIy/HJ+RTihgjEcHfnsy1PO4e9B+y4HwgTwMrByquhg==}
 
@@ -6608,7 +6611,7 @@ snapshots:
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.0
+      '@jridgewell/sourcemap-codec': 1.5.5
       '@jridgewell/trace-mapping': 0.3.31
 
   '@jridgewell/gen-mapping@0.3.5':
@@ -6776,7 +6779,7 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@2.12.1':
+  '@renmu/bili-api@2.12.2':
     dependencies:
       '@bufbuild/protobuf': 2.2.3
       '@renmu/throttle': 1.0.3
@@ -10128,10 +10131,9 @@ snapshots:
       once: 1.4.0
       readable-stream: 3.6.2
 
-  music-segment-detector@0.1.0(rollup@4.52.4):
+  music-segment-detector@0.3.1(rollup@4.52.4):
     dependencies:
       meyda: 5.6.3(rollup@4.52.4)
-      wav-decoder: 1.3.0
     transitivePeerDependencies:
       - rollup
       - supports-color
@@ -11561,8 +11563,6 @@ snapshots:
       vdirs: 0.1.8(vue@3.5.13(typescript@5.9.3))
       vooks: 0.2.12(vue@3.5.13(typescript@5.9.3))
       vue: 3.5.13(typescript@5.9.3)
-
-  wav-decoder@1.3.0: {}
 
   wav@1.0.2:
     dependencies:

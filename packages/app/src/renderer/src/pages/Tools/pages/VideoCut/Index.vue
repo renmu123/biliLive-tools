@@ -60,7 +60,7 @@
   <WaveformAnalyzerDialog
     v-model:visible="waveformAnalyzerDialogVisible"
     v-model="waveformAnalyzerConfig"
-    :file-path="files.videoPath"
+    :file-path="files.originVideoPath"
     @confirm="waveformAnalyzerConfirm"
   />
 </template>

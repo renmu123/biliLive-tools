@@ -82,6 +82,15 @@ export type CommonPreset<T> = {
   config: T;
 };
 
+export interface PartTitleFormatOptions {
+  title: string;
+  username: string;
+  time: string;
+  roomId: string | number;
+  filename: string;
+  index: number;
+}
+
 // ffmpeg预设配置
 export type FfmpegPreset = CommonPreset<FfmpegOptions>;
 
@@ -691,7 +700,7 @@ export interface AppConfig {
     vendors: {
       id: string;
       // 供应商
-      provider: "aliyun";
+      provider: "aliyun" | "openai" | "ffmpeg";
       // 命名，不能重复
       name: string;
       // apiKey
@@ -699,13 +708,23 @@ export interface AppConfig {
       // baseURL
       baseURL?: string;
     }[];
+    // 模型配置
+    models: {
+      modelId: string;
+      vendorId: string;
+      modelName: string;
+      remark?: string;
+      tags: Array<"llm" | "asr">;
+      config: Record<string, any>;
+    }[];
     // 歌曲asr识别配置
-    // songRecognizeAsr: {};
+    songRecognizeAsr: {
+      modelId?: string;
+    };
     // 歌曲llm识别配置
     songRecognizeLlm: {
-      vendorId?: string;
+      modelId?: string;
       prompt: string;
-      model?: string;
       enableSearch: boolean;
       maxInputLength: number;
       enableStructuredOutput?: boolean;
@@ -713,10 +732,13 @@ export interface AppConfig {
     };
     // 歌词优化配置
     songLyricOptimize: {
-      vendorId?: string;
+      modelId?: string;
       prompt: string;
-      model?: string;
       enableStructuredOutput?: boolean;
+    };
+    // 字幕识别
+    subtitleRecognize: {
+      modelId?: string;
     };
   };
   /** 最大任务数 */
@@ -936,6 +958,8 @@ export interface FfmpegOptions {
 export interface BiliupConfig {
   /** 标题,稿件标题限制80字，去除前后空格 */
   title: string;
+  /** 分P标题模板 */
+  partTitleTemplate?: string;
   /** 简介，去除前后空格，最多250 */
   desc?: string;
   dolby: 0 | 1; // 杜比

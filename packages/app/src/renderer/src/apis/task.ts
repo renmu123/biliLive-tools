@@ -1,4 +1,5 @@
 import request from "./request";
+import { configApi } from ".";
 
 import type { Task } from "@renderer/types";
 import type {
@@ -321,19 +322,18 @@ const extractPeaks = async (
 const analyzerWaveform = async (
   input: string,
   config?: Partial<DetectionConfig>,
-): Promise<{
-  output: Array<{
-    startTime: number;
-    endTime: number;
-    // max_amplitude: number;
-    // average_amplitude: number;
-  }>;
-}> => {
-  const res = await request.post(`/task/analyzerWaveform`, {
-    input,
-    config,
-  });
-  return res.data;
+): Promise<EventSource> => {
+  let key = window.localStorage.getItem("key");
+  if (!window.isWeb) {
+    const appConfig = await configApi.get();
+    key = appConfig.passKey;
+  }
+
+  const configStr = config ? encodeURIComponent(JSON.stringify(config)) : "";
+  const url = `${request.defaults.baseURL}/sse/analyzerWaveform?auth=${key}&input=${encodeURIComponent(input)}&config=${configStr}`;
+
+  const eventSource = new EventSource(url);
+  return eventSource;
 };
 
 const cutSubtitle = async (data: {
