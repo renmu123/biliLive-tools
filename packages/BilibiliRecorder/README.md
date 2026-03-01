@@ -43,6 +43,7 @@ interface Options {
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕，包含舰长
   saveSCDanma?: boolean; // 保存SC
+  saveRawDanma?: boolean; // 保存原始弹幕
   useServerTimestamp?: boolean; // 控制弹幕是否使用服务端时间戳，默认为true
   saveCover?: boolean; // 保存封面
   auth?: string; // 登录所需cookie

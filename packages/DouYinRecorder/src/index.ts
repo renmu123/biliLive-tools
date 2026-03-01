@@ -310,6 +310,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         // },
       },
     };
+    if (this.saveRawDanma) {
+      comment.rawData = msg;
+    }
     this.emit("Message", comment);
     extraDataController.addMessage(comment);
   });
@@ -327,6 +330,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         name: msg.user.nickName,
       },
     };
+    if (this.saveRawDanma) {
+      comment.rawData = msg;
+    }
     this.emit("Message", comment);
     extraDataController.addMessage(comment);
   });
@@ -343,6 +349,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         name: msg.user.nickName,
       },
     };
+    if (this.saveRawDanma) {
+      comment.rawData = msg;
+    }
     this.emit("Message", comment);
     extraDataController.addMessage(comment);
   });
@@ -372,6 +381,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         // },
       },
     };
+    if (this.saveRawDanma) {
+      gift.rawData = msg;
+    }
 
     // 单独使用groupId并不可靠
     const groupId = `${msg.groupId}_${msg.user.id}_${msg.giftId}`;

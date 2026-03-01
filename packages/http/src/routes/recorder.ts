@@ -1,7 +1,10 @@
 import Router from "@koa/router";
 
 import { pick } from "lodash-es";
-import recorderService from "../services/recorder.js";
+import recorderService, {
+  COMMON_CONFIG_FIELDS,
+  ADD_RECORDER_FIELDS,
+} from "../services/recorder.js";
 import { appConfig } from "../index.js";
 
 import type { RecorderAPI } from "../types/recorder.js";
@@ -32,42 +35,7 @@ router.get("/list", async (ctx) => {
 router.post("/add", async (ctx) => {
   const args = pick(
     (ctx.request.body ?? {}) as RecorderAPI["addRecorder"]["Args"],
-    "providerId",
-    "channelId",
-    "remarks",
-    "disableAutoCheck",
-    "quality",
-    "streamPriorities",
-    "sourcePriorities",
-    "extra",
-    "noGlobalFollowFields",
-    "line",
-    "disableProvideCommentsWhenRecording",
-    "saveGiftDanma",
-    "saveSCDanma",
-    "segment",
-    "sendToWebhook",
-    "uid",
-    "saveCover",
-    "qualityRetry",
-    "formatName",
-    "useM3U8Proxy",
-    "customHost",
-    "codecName",
-    "titleKeywords",
-    "liveStartNotification",
-    "liveEndNotification",
-    "weight",
-    "source",
-    "videoFormat",
-    "recorderType",
-    "cookie",
-    "doubleScreen",
-    "onlyAudio",
-    "useServerTimestamp",
-    "handleTime",
-    "debugLevel",
-    "api",
+    ...ADD_RECORDER_FIELDS,
   );
 
   const data = await recorderService.addRecorder(args);
@@ -89,39 +57,7 @@ router.put("/:id", (ctx) => {
   const { id } = ctx.params;
   const patch = pick(
     ctx.request.body as Omit<RecorderAPI["updateRecorder"]["Args"], "id">,
-    "remarks",
-    "disableAutoCheck",
-    "quality",
-    "streamPriorities",
-    "sourcePriorities",
-    "noGlobalFollowFields",
-    "line",
-    "disableProvideCommentsWhenRecording",
-    "saveGiftDanma",
-    "saveSCDanma",
-    "saveCover",
-    "segment",
-    "sendToWebhook",
-    "uid",
-    "qualityRetry",
-    "formatName",
-    "useM3U8Proxy",
-    "customHost",
-    "codecName",
-    "titleKeywords",
-    "liveStartNotification",
-    "liveEndNotification",
-    "weight",
-    "source",
-    "videoFormat",
-    "recorderType",
-    "cookie",
-    "doubleScreen",
-    "onlyAudio",
-    "useServerTimestamp",
-    "handleTime",
-    "debugLevel",
-    "api",
+    ...COMMON_CONFIG_FIELDS,
   );
 
   ctx.body = { payload: recorderService.updateRecorder({ id, ...patch }) };

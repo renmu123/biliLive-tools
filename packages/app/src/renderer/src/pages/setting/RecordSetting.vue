@@ -185,6 +185,12 @@
             </template>
             <n-switch v-model:value="config.recorder.saveSCDanma" />
           </n-form-item>
+          <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
+            <template #label>
+              <span class="inline-flex"> 保存原始弹幕 </span>
+            </template>
+            <n-switch v-model:value="config.recorder.saveRawDanma" />
+          </n-form-item>
           <n-form-item>
             <template #label>
               <Tip

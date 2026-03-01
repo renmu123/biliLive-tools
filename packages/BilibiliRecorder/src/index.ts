@@ -296,6 +296,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     auth: this.auth,
     uid: Number(this.uid) as number,
     useServerTimestamp: this.useServerTimestamp,
+    saveRawDanma: this.saveRawDanma,
   });
   if (!this.disableProvideCommentsWhenRecording) {
     danmaClient.on("Message", (msg) => {

@@ -18,6 +18,8 @@ export interface MessageSender<E extends AnyObject = UnknownObject> {
   extra?: E;
 }
 
+type RawData = AnyObject;
+
 export interface Comment<E extends AnyObject = UnknownObject> {
   type: "comment";
   timestamp: number;
@@ -26,6 +28,7 @@ export interface Comment<E extends AnyObject = UnknownObject> {
   color?: string;
   sender?: MessageSender;
   extra?: E;
+  rawData?: RawData;
 }
 
 export interface GiveGift<E extends AnyObject = UnknownObject> {
@@ -39,6 +42,7 @@ export interface GiveGift<E extends AnyObject = UnknownObject> {
   color?: string;
   sender?: MessageSender;
   extra?: E;
+  rawData?: RawData;
 }
 
 export interface Guard<E extends AnyObject = UnknownObject> {
@@ -53,6 +57,7 @@ export interface Guard<E extends AnyObject = UnknownObject> {
   color?: string;
   sender?: MessageSender;
   extra?: E;
+  rawData?: RawData;
 }
 
 export interface SuperChat<E extends AnyObject = UnknownObject> {
@@ -62,6 +67,7 @@ export interface SuperChat<E extends AnyObject = UnknownObject> {
   price: number;
   sender?: MessageSender;
   extra?: E;
+  rawData?: RawData;
 }
 
 export type Message = Comment | GiveGift | SuperChat | Guard;

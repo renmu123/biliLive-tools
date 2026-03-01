@@ -1,3 +1,7 @@
+# Next
+
+- 支持 `saveRawDanma` 保存原始弹幕
+
 # 1.13.0
 
 - 支持 `customHost` 参数来自定义直播流

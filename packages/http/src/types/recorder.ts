@@ -5,6 +5,7 @@ import type {
 } from "@bililive-tools/manager";
 
 import type { Recorder as RecoderConfig } from "@biliLive-tools/types";
+import type { COMMON_CONFIG_FIELDS } from "../services/recorder.js";
 
 export interface PagedArgs {
   page: number;
@@ -81,43 +82,7 @@ export type GetRecorderResp = RecoderConfig;
 export type AddRecorderArgs = Omit<RecoderConfig, "id">;
 export type AddRecorderResp = ClientRecorder;
 
-export type UpdateRecorderArgs = Pick<
-  RecoderConfig,
-  | "id"
-  | "remarks"
-  | "disableAutoCheck"
-  | "quality"
-  | "streamPriorities"
-  | "sourcePriorities"
-  | "noGlobalFollowFields"
-  | "line"
-  | "disableProvideCommentsWhenRecording"
-  | "saveGiftDanma"
-  | "saveSCDanma"
-  | "segment"
-  | "sendToWebhook"
-  | "uid"
-  | "saveCover"
-  | "qualityRetry"
-  | "formatName"
-  | "useM3U8Proxy"
-  | "customHost"
-  | "codecName"
-  | "titleKeywords"
-  | "liveStartNotification"
-  | "liveEndNotification"
-  | "source"
-  | "videoFormat"
-  | "recorderType"
-  | "cookie"
-  | "doubleScreen"
-  | "onlyAudio"
-  | "useServerTimestamp"
-  | "handleTime"
-  | "weight"
-  | "debugLevel"
-  | "api"
->;
+export type UpdateRecorderArgs = Pick<RecoderConfig, "id" | (typeof COMMON_CONFIG_FIELDS)[number]>;
 export type UpdateRecorderResp = ClientRecorder;
 
 export interface RemoveRecorderArgs {
