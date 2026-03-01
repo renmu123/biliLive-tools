@@ -20,6 +20,10 @@
 - B站上传：修复续传时水印参数不会被继承的bug
 - 修复 CLI 包的编译问题
 
+## 其他
+
+- 录播姬引擎升级至[3.3.3](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.3.3)
+
 # 3.8.1
 
 ## 优化
