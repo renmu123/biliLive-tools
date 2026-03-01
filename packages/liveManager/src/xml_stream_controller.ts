@@ -179,7 +179,7 @@ function generateXmlContent(metadata: XmlStreamData["meta"], messages: Message[]
         data["@@uid"],
         data["@@weight"],
       ].join(",");
-      return pick(data, ["@@p", "#text", "@@user", "@@uid", "@@timestamp"]);
+      return pick(data, ["@@p", "#text", "@@user", "@@uid", "@@timestamp", "@@rawData"]);
     });
 
   const gifts = messages
@@ -194,6 +194,7 @@ function generateXmlContent(metadata: XmlStreamData["meta"], messages: Message[]
         "@@user": String(ele.sender?.name),
         "@@uid": String(ele?.sender?.uid),
         "@@timestamp": String(ele.timestamp),
+        "@@rawData": ele.rawData ? JSON.stringify(ele.rawData) : undefined,
       };
     });
 
@@ -208,6 +209,7 @@ function generateXmlContent(metadata: XmlStreamData["meta"], messages: Message[]
         "@@user": String(ele.sender?.name),
         "@@uid": String(ele?.sender?.uid),
         "@@timestamp": String(ele.timestamp),
+        "@@rawData": ele.rawData ? JSON.stringify(ele.rawData) : undefined,
       };
     });
 
@@ -224,6 +226,7 @@ function generateXmlContent(metadata: XmlStreamData["meta"], messages: Message[]
         "@@user": String(ele.sender?.name),
         "@@uid": String(ele?.sender?.uid),
         "@@timestamp": String(ele.timestamp),
+        "@@rawData": ele.rawData ? JSON.stringify(ele.rawData) : undefined,
       };
     });
 
