@@ -21,7 +21,7 @@ import { danmuService } from "../db/index.js";
 // import DanmuService from "../db/service/danmuService.js";
 import { getBinPath, readVideoMeta } from "../task/video.js";
 import logger from "../utils/log.js";
-import { replaceExtName } from "../utils/index.js";
+import { replaceExtName, calculateFileQuickHash } from "../utils/index.js";
 import RecorderConfig from "./config.js";
 import { sendBySystem, send } from "../notify.js";
 import { danmaReport, parseDanmu } from "../danmu/index.js";
@@ -274,6 +274,18 @@ export async function createRecorderManager(appConfig: AppConfig) {
       const xmlFile = replaceExtName(filename, ".xml");
       const videoMeta = await readVideoMeta(filename);
       const duration = videoMeta?.format?.duration ?? 0;
+
+      // 提取文件名（不含后缀）
+      const videoFilename = path.basename(filename, path.extname(filename));
+
+      // 计算文件快速哈希值
+      let quickHash: string | undefined;
+      try {
+        quickHash = await calculateFileQuickHash(filename);
+      } catch (error) {
+        logger.error("计算文件quickHash失败", { filename, error });
+      }
+
       recordHistory.upadteLive(
         {
           video_file: filename,
@@ -281,7 +293,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
         },
         {
           record_end_time: endTime.getTime(),
-          video_duration: isNaN(Number(duration)) ? 0 : duration,
+          video_duration: isNaN(Number(duration)) ? 0 : Math.floor(duration),
+          video_filename: videoFilename,
+          quick_hash: quickHash,
         },
       );
 

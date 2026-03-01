@@ -128,6 +128,24 @@ export function formatPartTitle(options: PartTitleFormatOptions, template: strin
   return title;
 }
 
+/**
+ * 根据平台和房间号构建直播间链接
+ * @param platform 平台名称
+ * @param roomId 房间号
+ * @returns 直播间链接或 null
+ */
+export function buildRoomLink(platform: string, roomId: string): string | null {
+  const platformLower = platform.toLowerCase();
+  const platformRoomLinkMap: Record<string, (roomId: string) => string> = {
+    bilibili: (id: string) => `https://live.bilibili.com/${id}`,
+    huya: (id: string) => `https://www.huya.com/${id}`,
+    douyu: (id: string) => `https://www.douyu.com/${id}`,
+    douyin: (id: string) => `https://live.douyin.com/${id}`,
+  };
+  const link = platformRoomLinkMap[platformLower]?.(roomId);
+  return link ?? null;
+}
+
 export function formatTime(time: string) {
   // 创建一个Date对象
   const timestamp = new Date(time);

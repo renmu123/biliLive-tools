@@ -51,8 +51,10 @@ export function upadteLive(
   params: {
     record_end_time?: number;
     video_duration?: number;
+    video_filename?: string;
     danma_num?: number;
     interact_num?: number;
+    quick_hash?: string;
   },
 ) {
   const live = recordHistoryService.query({ video_file: query.video_file, live_id: query.live_id });
