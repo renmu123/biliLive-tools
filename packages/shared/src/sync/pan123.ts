@@ -5,6 +5,59 @@ import { Uploader, getAccessToken, Client } from "pan123-uploader";
 import { statisticsService } from "../db/index.js";
 import { SpeedCalculator } from "../utils/speedCalculator.js";
 
+/**
+ * 目录ID缓存，存储已成功创建的目录路径到fileID的映射
+ * key: remotePath, value: fileID
+ */
+const dirIdCache = new Map<string, number>();
+
+/**
+ * 正在进行中的目录创建请求Promise缓存，防止并发重复请求
+ * key: remotePath, value: Promise<fileID>
+ */
+const pendingDirRequests = new Map<string, Promise<number>>();
+
+/**
+ * 获取或创建目录，带Promise去重缓存
+ * @param client 123网盘客户端实例
+ * @param remotePath 远程目录路径
+ * @returns Promise<number> 目录的fileID
+ */
+async function getCachedOrCreateDir(client: Client, remotePath: string): Promise<number> {
+  // 1. 检查已完成的缓存
+  const cachedId = dirIdCache.get(remotePath);
+  if (cachedId !== undefined) {
+    return cachedId;
+  }
+
+  // 2. 检查是否有进行中的请求
+  const pendingRequest = pendingDirRequests.get(remotePath);
+  if (pendingRequest) {
+    return pendingRequest;
+  }
+
+  // 3. 创建新的请求
+  const requestPromise = client
+    .mkdirRecursive(remotePath)
+    .then((fileId) => {
+      // 成功后缓存结果
+      dirIdCache.set(remotePath, fileId);
+      // 从进行中的请求中移除
+      pendingDirRequests.delete(remotePath);
+      return fileId;
+    })
+    .catch((error) => {
+      // 失败时从进行中的请求中移除，不缓存失败结果
+      pendingDirRequests.delete(remotePath);
+      throw error;
+    });
+
+  // 将Promise存入进行中的请求缓存
+  pendingDirRequests.set(remotePath, requestPromise);
+
+  return requestPromise;
+}
+
 export interface Pan123Options {
   /**
    * 访问令牌
@@ -63,6 +116,20 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
     this.logger = options?.logger || logger;
     this.client = new Client(this.accessToken);
     this.speedCalculator = new SpeedCalculator(3000); // 3秒时间窗口
+  }
+
+  /**
+   * 清理目录缓存
+   * @param path 可选，指定要清理的路径。不传则清空所有缓存
+   */
+  public static clearDirCache(path?: string): void {
+    if (path) {
+      dirIdCache.delete(path);
+      pendingDirRequests.delete(path);
+    } else {
+      dirIdCache.clear();
+      pendingDirRequests.clear();
+    }
   }
 
   /**
@@ -152,85 +219,109 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
       throw error;
     }
 
-    try {
-      // 需要获取目标目录的ID
-      let parentFileID = await this.client.mkdirRecursive(this.remotePath);
+    let retryCount = 0;
+    const maxRetries = 1;
 
-      // const fileName = path.basename(localFilePath);
-      this.logger.debug(`123网盘开始上传: ${localFilePath} 到 ${this.remotePath}`);
+    while (retryCount <= maxRetries) {
+      try {
+        // 如果是重试，清除缓存
+        if (retryCount > 0) {
+          this.logger.info(
+            `检测到parentFileID不存在，清除缓存并重试 (${retryCount}/${maxRetries})`,
+          );
+          Pan123.clearDirCache(this.remotePath);
+        }
 
-      const concurrency = options?.concurrency || 3;
-      const limitRate = this.limitRate / concurrency;
-      // 创建上传实例
-      this.currentUploader = new Uploader(localFilePath, this.accessToken!, String(parentFileID), {
-        concurrency: concurrency,
-        retryTimes: options?.retry || 7,
-        retryDelay: 5000,
-        duplicate: options?.policy === "skip" ? 2 : 1, // 1: 覆盖, 2: 跳过
-        limitRate,
-      });
+        // 需要获取目标目录的ID（使用缓存避免并发重复请求）
+        let parentFileID = await getCachedOrCreateDir(this.client, this.remotePath);
 
-      // 初始化上传计时
-      const uploadStartTime = Date.now();
-      this.speedCalculator.init(uploadStartTime);
+        // const fileName = path.basename(localFilePath);
+        this.logger.debug(`123网盘开始上传: ${localFilePath} 到 ${this.remotePath}`);
 
-      // 监听上传进度
-      this.currentUploader.on("progress", (data) => {
-        const percentage = Math.round(data.progress * 10000) / 100;
-        const currentTime = Date.now();
+        const concurrency = options?.concurrency || 3;
+        const limitRate = this.limitRate / concurrency;
+        // 创建上传实例
+        this.currentUploader = new Uploader(
+          localFilePath,
+          this.accessToken!,
+          String(parentFileID),
+          {
+            concurrency: concurrency,
+            retryTimes: options?.retry || 7,
+            retryDelay: 5000,
+            duplicate: options?.policy === "skip" ? 2 : 1, // 1: 覆盖, 2: 跳过
+            limitRate,
+          },
+        );
 
-        // 计算上传速度（MB/s）
-        const speed = this.speedCalculator.calculateSpeed(data.data.loaded, currentTime);
+        // 初始化上传计时
+        const uploadStartTime = Date.now();
+        this.speedCalculator.init(uploadStartTime);
 
-        this.emit("progress", {
-          uploaded: this.formatSize(data.data.loaded),
-          total: this.formatSize(data.data.total),
-          percentage,
-          speed,
+        // 监听上传进度
+        this.currentUploader.on("progress", (data) => {
+          const percentage = Math.round(data.progress * 10000) / 100;
+          const currentTime = Date.now();
+
+          // 计算上传速度（MB/s）
+          const speed = this.speedCalculator.calculateSpeed(data.data.loaded, currentTime);
+
+          this.emit("progress", {
+            uploaded: this.formatSize(data.data.loaded),
+            total: this.formatSize(data.data.total),
+            percentage,
+            speed,
+          });
         });
-      });
 
-      // 监听上传完成
-      this.currentUploader.on("completed", () => {
-        const successMsg = `上传成功: ${localFilePath}`;
-        this.emit("success", successMsg);
-      });
+        // 监听上传完成
+        this.currentUploader.on("completed", () => {
+          const successMsg = `上传成功: ${localFilePath}`;
+          this.emit("success", successMsg);
+        });
 
-      // 监听上传错误
-      this.currentUploader.on("error", (error) => {
-        this.logger.error(`上传文件出错: ${error.message}`);
-        this.emit("error", error);
-      });
+        // 监听上传错误
+        this.currentUploader.on("error", (error) => {
+          this.logger.error(`上传文件出错: ${error.message}`);
+          this.emit("error", error);
+        });
 
-      // 监听上传取消
-      this.currentUploader.on("cancel", () => {
-        this.logger.info("上传已取消");
-        this.emit("canceled", "上传已取消");
-      });
+        // 监听上传取消
+        this.currentUploader.on("cancel", () => {
+          this.logger.info("上传已取消");
+          this.emit("canceled", "上传已取消");
+        });
 
-      // 开始上传
-      const result = await this.currentUploader.upload();
+        // 开始上传
+        const result = await this.currentUploader.upload();
 
-      if (result) {
-        const successMsg = `上传成功: ${localFilePath}`;
-        this.logger.debug(successMsg);
-        this.emit("success", successMsg);
-      } else {
-        throw new Error("上传失败");
+        if (result) {
+          const successMsg = `上传成功: ${localFilePath}`;
+          this.logger.debug(successMsg);
+          this.emit("success", successMsg);
+          return; // 成功后直接返回
+        } else {
+          throw new Error("上传失败");
+        }
+      } catch (error: any) {
+        if (error.message?.includes("cancel")) {
+          this.logger.info("上传已取消");
+          this.emit("canceled", "上传已取消");
+          throw error;
+        } else if (error.message?.includes("parentFileID不存在") && retryCount < maxRetries) {
+          // 如果错误消息包含"parentFileID不存在"且还没达到最大重试次数，则重试
+          retryCount++;
+          continue;
+        } else {
+          this.logger.error(`上传文件出错: ${error.message}`);
+          this.emit("error", error);
+          throw error;
+        }
+      } finally {
+        this.currentUploader = null;
+        // 重置进度追踪
+        this.speedCalculator.reset();
       }
-    } catch (error: any) {
-      if (error.message?.includes("cancel")) {
-        this.logger.info("上传已取消");
-        this.emit("canceled", "上传已取消");
-      } else {
-        this.logger.error(`上传文件出错: ${error.message}`);
-        this.emit("error", error);
-      }
-      throw error;
-    } finally {
-      this.currentUploader = null;
-      // 重置进度追踪
-      this.speedCalculator.reset();
     }
   }
 
