@@ -22,12 +22,7 @@ export interface AliyunASROptions {
    * 模型名称
    * @default 'fun-asr'
    */
-  model?:
-    | "fun-asr"
-    | "fun-asr-2025-11-07"
-    | "fun-asr-2025-08-25"
-    | "fun-asr-mtl"
-    | "fun-asr-mtl-2025-08-25";
+  model?: string;
 
   /**
    * 日志记录器
@@ -287,6 +282,8 @@ export class AliyunASR {
         model: this.model,
         input: {
           file_urls: [params.fileUrl],
+          // qwen3-ASR-Flash-Filetrans 兼容
+          file_url: params.fileUrl,
         },
         parameters: {
           ...(params.vocabularyId && { vocabulary_id: params.vocabularyId }),
@@ -297,10 +294,10 @@ export class AliyunASR {
           }),
           ...(params.speakerCount && { speaker_count: params.speakerCount }),
           ...(params.languageHints && { language_hints: params.languageHints }),
+          // qwen3-ASR-Flash-Filetran 词级时间戳
+          enable_words: true,
         },
       };
-
-      this.logger.info("提交ASR任务", { fileUrl: params.fileUrl });
 
       const response = await this.client.post(
         "/api/v1/services/audio/asr/transcription",
@@ -335,14 +332,18 @@ export class AliyunASR {
           "X-DashScope-Async": "enable",
         },
       });
-
+      let results = response.data.output.results || [];
+      if (!results || results.length === 0) {
+        // qwen3-ASR-Flash-Filetrans 兼容
+        results = [{ ...response.data.output.result, subtask_status: "SUCCEEDED" }];
+      }
       return {
         taskId: response.data.output.task_id,
         taskStatus: response.data.output.task_status,
         submitTime: response.data.output.submit_time,
         scheduledTime: response.data.output.scheduled_time,
         endTime: response.data.output.end_time,
-        results: response.data.output.results,
+        results: results,
       };
     } catch (error) {
       this.logger.error("查询ASR任务失败", error);

@@ -1293,7 +1293,7 @@ describe("WebhookHandler", () => {
             cover: "/path/to/cover.jpg",
           },
           [],
-          "none",
+          "delete",
         );
         expect(live.rawAid).toBe(789);
         expect(live.parts[0].rawUploadStatus).toBe("uploaded");
@@ -1509,7 +1509,7 @@ describe("WebhookHandler", () => {
             },
           ],
           [],
-          "none",
+          "delete",
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
@@ -1586,7 +1586,7 @@ describe("WebhookHandler", () => {
             },
           ],
           [],
-          "none",
+          "delete",
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
@@ -1658,7 +1658,7 @@ describe("WebhookHandler", () => {
             },
           ],
           [],
-          "none",
+          "delete",
         );
       });
       it("应正确格式化分P标题2：index", async () => {
@@ -1744,7 +1744,7 @@ describe("WebhookHandler", () => {
             },
           ],
           [],
-          "none",
+          "delete",
         );
       });
       // it("应仅在上传时间内处理上传操作2", async () => {
@@ -2527,84 +2527,6 @@ describe("WebhookHandler", () => {
       expect(liveData[1].parts[0].recordStatus).toBe("recording");
     });
   });
-
-  describe("handleVideoSync", () => {
-    // @ts-ignore
-    vi.spyOn(fs, "pathExistsSync").mockReturnValue(true);
-    // @ts-ignore
-    vi.spyOn(fs, "pathExists").mockResolvedValue(true);
-
-    it("视频：不同步不上传且删除", async () => {
-      vi.spyOn(webhookHandler, "hasTypeInSync").mockResolvedValue(false);
-      vi.spyOn(webhookHandler, "handleFileSync").mockResolvedValue(undefined);
-
-      const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue(undefined);
-
-      await webhookHandler.handleVideoSync("123", "/path/to/video.mp4", "part1", true);
-      expect(trashSpy).toHaveBeenCalledWith("/path/to/video.mp4");
-    });
-    it("视频：不同步不上传且不删除", async () => {
-      vi.spyOn(webhookHandler, "hasTypeInSync").mockResolvedValue(false);
-      vi.spyOn(webhookHandler, "handleFileSync").mockResolvedValue(undefined);
-
-      const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue(undefined);
-
-      await webhookHandler.handleVideoSync("123", "/path/to/video.mp4", "part1", false);
-      expect(trashSpy).not.toHaveBeenCalled();
-    });
-    it("视频：同步上传且删除", async () => {});
-    it("视频：同步上传且不删除", async () => {
-      const appConfig = {
-        getAll: vi.fn().mockReturnValue({
-          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-        }),
-      };
-      // @ts-ignore
-      const webhookHandler = new WebhookHandler(appConfig);
-      const existingLive = new Live({
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
-        roomId: "123",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        title: "Existing Video",
-        username: "username",
-      });
-      existingLive.addPart({
-        partId: "part1",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        filePath: "/path/to/existing-video.mp4",
-        recordStatus: "recorded",
-        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-        title: "part1",
-      });
-      webhookHandler.liveData.push(existingLive);
-
-      vi.spyOn(webhookHandler, "hasTypeInSync").mockResolvedValue(true);
-      vi.spyOn(webhookHandler.configManager, "getSyncConfig").mockReturnValue({
-        id: "sync1",
-        targetFiles: ["source"],
-        folderStructure: "",
-        syncSource: "alist",
-        name: "sync",
-      });
-      const addSyncTaskSpy = vi.spyOn(syncTask, "addSyncTask").mockResolvedValue({
-        on: vi.fn(),
-        cancel: vi.fn(),
-        start: vi.fn(),
-        pause: vi.fn(),
-        resume: vi.fn(),
-        destroy: vi.fn(),
-      } as any);
-
-      const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue(undefined);
-
-      await webhookHandler.handleVideoSync("123", "/path/to/video.mp4", "part1", true);
-      expect(trashSpy).not.toHaveBeenCalled();
-      expect(addSyncTaskSpy).toBeCalled();
-    });
-    // it("视频：不同步上传且不删除", () => {});
-    // it("视频：不同步不上传且不删除", () => {});
-  });
 });
 
 describe("Live", () => {
@@ -2808,26 +2730,6 @@ describe("Live", () => {
       });
     });
 
-    describe("shouldRemoveFile", () => {
-      it("应在操作成功且配置允许时返回true", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldRemoveFile(true, true, "warning");
-        expect(result).toBe(true);
-      });
-
-      it("应在操作失败时返回false", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldRemoveFile(false, true, "warning");
-        expect(result).toBe(false);
-      });
-
-      it("应在配置不允许删除时返回false", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldRemoveFile(true, false, "warning");
-        expect(result).toBe(false);
-      });
-    });
-
     describe("processMediaFiles", () => {
       beforeEach(() => {
         // @ts-ignore
@@ -2969,7 +2871,7 @@ describe("Live", () => {
         await webhookHandler.handleCloseEvent(options as any);
 
         const part = live.parts[0];
-        expect(part.cover).toBe("/path/to/cover.jpg");
+        expect(part.cover).toBe("");
       });
 
       it("应在useLiveCover为true时处理封面", async () => {

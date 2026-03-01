@@ -4,12 +4,11 @@
       <div>
         <p>
           <b
-            >如果你不知道如何使用本软件，请优先查看<a
-              href="https://www.bilibili.com/video/BV1Hs421M755/"
-              class="external"
-              target="_blank"
-              >帮助教程</a
-            >，你也可以在关于页面找到链接</b
+            >如果你不知道如何使用本软件，请优先查看
+            <a href="https://docs.irenmu.com/" class="external" target="_blank">文档</a> 或
+            <a href="https://www.bilibili.com/video/BV1Hs421M755/" class="external" target="_blank"
+              >视频教程 </a
+            >，绝大多数问题都能找到答案</b
           >
         </p>
         <p>如果你觉得本软件对你有帮助：</p>

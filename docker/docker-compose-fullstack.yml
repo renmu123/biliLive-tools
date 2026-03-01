@@ -1,7 +1,7 @@
 services:
   # 全栈镜像 - 包含前端和后端
   fullstack:
-    image: renmu1234/bililive-tools-fullstack
+    image: renmu1234/bililive-tools
     # 如果需要本地构建，取消下面的注释
     # build:
     #   context: ..

@@ -1,4 +1,45 @@
+# Next
+
+## 功能
+
+- 数据看板UI优化、增加更多数据展示
+- 上传分P标题支持自动格式化 [#338](https://github.com/renmu123/biliLive-tools/pull/350)
+- 切片：支持字幕识别
+- AI：支持基于ffmpeg的whisper调用，具体参考[文档](https://docs.irenmu.com/features/ai.html#%E5%AD%97%E5%B9%95%E8%AF%86%E5%88%AB)
+
+## 优化
+
+- B站上传：水印参数默认值修改为关闭
+- 录制：“使用服务端时间戳”参数默认关闭
+- 同步：优化123网盘的同步竞态问题 [#365](https://github.com/renmu123/biliLive-tools/pull/365)
+
+## Bug修复
+
+- Webhook: 修复开启 “审核通过后删除”和上传非弹幕版 后，非弹幕版视频不会被删除的bug[#352](https://github.com/renmu123/biliLive-tools/issues/352)
+- Webhook: 修复某些情况下文件不会被删除的bug [#355](https://github.com/renmu123/biliLive-tools/issues/355)
+- B站上传：修复续传时水印参数不会被继承的bug
+- 修复 CLI 包的编译问题
+
+## 其他
+
+- 录播姬引擎升级至[3.3.3](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.3.3)
+
+# 3.8.1
+
+## 优化
+
+- 切片：录制音乐歌词排版
+
+## Bug修复
+
+- 修复未开启压制时的错误删除状态 [#350](https://github.com/renmu123/biliLive-tools/pull/350)
+
 # 3.8.0
+
+## 重大变更
+
+- webhook: 重构webhook删除文件的代码
+- webhook: 上传非弹幕版的文件可以正常被删除了
 
 ## 功能
 
@@ -8,15 +49,21 @@
 - B站上传：支持水印选项 [#320](https://github.com/renmu123/biliLive-tools/pull/320)
 - Webhook：`删除不符合最小处理大小的文件` 将会对封面以及弹幕文件生效 [#317](https://github.com/renmu123/biliLive-tools/issues/317)
 - Webhook：`分p标题`支持`{{hasDanmaStr}}`占位符区分文件是否属于弹幕版
+- 录制：录制名占位符增加`ms`参数 [#324](https://github.com/renmu123/biliLive-tools/issues/324)
+- 音乐切片性能优化 [#330](https://github.com/renmu123/biliLive-tools/pull/330)
 
 ## Bug修复
 
 - 修复礼物价格渲染错误的bug
 - 录制：为录播姬引擎增加一些外部的超时判断，避免流一直不会被中断
+- 录制：修复添加录制时如果设置了监听时间，仍然自动开始的bug
+- 弹幕：修复Linux下黑名单过滤无法使用的bug
+- 切片：修复歌曲识别无法在docker使用的bug
 
 ## 其他
 
-录播姬引擎升级至3.3.2
+录播姬引擎升级至[3.3.2](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.3.2)
+DanmakuFactory升级至[2.1.0](https://github.com/renmu123/DanmakuFactory/releases/tag/v2.1.0)
 
 # 3.7.1
 

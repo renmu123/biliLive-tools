@@ -148,9 +148,10 @@ export function formatDate(date: Date, format: string): string {
     HH: date.getHours().toString().padStart(2, "0"),
     mm: date.getMinutes().toString().padStart(2, "0"),
     ss: date.getSeconds().toString().padStart(2, "0"),
+    SSS: date.getMilliseconds().toString().padStart(3, "0"),
   };
 
-  return format.replace(/yyyy|MM|dd|HH|mm|ss/g, (matched) => map[matched]);
+  return format.replace(/yyyy|MM|dd|HH|mm|ss|SSS/g, (matched) => map[matched]);
 }
 
 export function removeSystemReservedChars(str: string) {
