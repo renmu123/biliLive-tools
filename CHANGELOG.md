@@ -1,3 +1,13 @@
+# 3.9.1
+
+## 功能
+
+- MacOS支持 [#254](https://github.com/renmu123/biliLive-tools/pull/254)
+
+## Bug修复
+
+- 修复修复bug导致的bug，修复某些情况下文件不会被删除的bug
+
 # 3.9.0
 
 ## 功能
