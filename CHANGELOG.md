@@ -2,7 +2,7 @@
 
 ## 功能
 
-- MacOS支持 [#254](https://github.com/renmu123/biliLive-tools/pull/254)
+- MacOS支持 [#254](https://github.com/renmu123/biliLive-tools/pull/254)，我也不知道能不能跑~
 
 ## Bug修复
 
