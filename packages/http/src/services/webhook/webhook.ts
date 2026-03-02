@@ -197,7 +197,9 @@ export class WebhookHandler {
       // 处理后的视频文件，可能被上传、非弹幕上传、同步
       if (syncConfig?.targetFiles.includes("danmaku")) {
         const shouldRemove = config.afterConvertRemoveVideoRaw;
-        this.fileRefManager.addRef(filePath, shouldRemove);
+        if (filePath.includes("后处理") || filePath.includes("弹幕版")) {
+          this.fileRefManager.addRef(filePath, shouldRemove);
+        }
       }
       if (config.uid) {
         const shouldRemove =
@@ -244,8 +246,8 @@ export class WebhookHandler {
     // 5. 处理弹幕和视频压制
     const processingResult = await this.processMediaFiles(context, options, config, xmlFilePath);
     log.debug("processingResult", processingResult, options.filePath, context.part.filePath);
+    this.collectTasks(context.part.filePath, "handledVideo", config);
     if (processingResult.conversionSuccessful) {
-      this.collectTasks(context.part.filePath, "handledVideo", config);
       this.fileRefManager.releaseRef(options.filePath);
     }
     if (xmlFilePath && processingResult.danmuConversionSuccessful) {
