@@ -66,6 +66,7 @@ class DanmaClient extends EventEmitter {
   private uid: number | undefined;
   private retryCount: number = 10;
   private useServerTimestamp: boolean;
+  private saveRawDanma: boolean;
 
   constructor(
     roomId: number,
@@ -73,13 +74,20 @@ class DanmaClient extends EventEmitter {
       auth,
       uid,
       useServerTimestamp,
-    }: { auth: string | undefined; uid: number; useServerTimestamp?: boolean },
+      saveRawDanma,
+    }: {
+      auth: string | undefined;
+      uid: number;
+      useServerTimestamp?: boolean;
+      saveRawDanma?: boolean;
+    },
   ) {
     super();
     this.roomId = roomId;
     this.auth = auth;
     this.uid = uid;
     this.useServerTimestamp = useServerTimestamp ?? true;
+    this.saveRawDanma = saveRawDanma ?? false;
   }
 
   async start() {
@@ -107,6 +115,9 @@ class DanmaClient extends EventEmitter {
             // },
           },
         };
+        if (this.saveRawDanma) {
+          comment.rawData = msg;
+        }
         this.emit("Message", comment);
       },
       onIncomeSuperChat: (msg) => {
@@ -126,6 +137,9 @@ class DanmaClient extends EventEmitter {
             // },
           },
         };
+        if (this.saveRawDanma) {
+          comment.rawData = msg;
+        }
         this.emit("Message", comment);
       },
       onGuardBuy: (msg) => {
@@ -146,6 +160,9 @@ class DanmaClient extends EventEmitter {
             // },
           },
         };
+        if (this.saveRawDanma) {
+          gift.rawData = msg;
+        }
         this.emit("Message", gift);
       },
       onGift: (msg) => {
@@ -168,6 +185,9 @@ class DanmaClient extends EventEmitter {
             hits: msg.body.combo?.combo_num,
           },
         };
+        if (this.saveRawDanma) {
+          gift.rawData = msg;
+        }
         this.emit("Message", gift);
       },
       onRoomInfoChange: (msg) => {

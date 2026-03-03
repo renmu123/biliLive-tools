@@ -274,6 +274,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
               name: msg.from.name,
             },
           };
+          if (this.saveRawDanma) {
+            comment.rawData = msg;
+          }
           this.emit("Message", comment);
           extraDataController.addMessage(comment);
           break;
@@ -294,6 +297,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
               name: msg.from.name,
             },
           };
+          if (this.saveRawDanma) {
+            gift.rawData = msg;
+          }
           this.emit("Message", gift);
           extraDataController.addMessage(gift);
           break;

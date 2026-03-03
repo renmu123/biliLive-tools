@@ -265,6 +265,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
             },
           },
         };
+        if (this.saveRawDanma) {
+          comment.rawData = msg;
+        }
         this.emit("Message", comment);
         extraDataController.addMessage(comment);
         break;
@@ -290,6 +293,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
             hits: Number(msg.hits),
           },
         };
+        if (this.saveRawDanma) {
+          gift.rawData = msg;
+        }
         this.emit("Message", gift);
         extraDataController.addMessage(gift);
         break;
@@ -316,6 +322,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           //   hits: Number(msg.hits),
           // },
         };
+        if (this.saveRawDanma) {
+          gift.rawData = msg;
+        }
         this.emit("Message", gift);
         extraDataController.addMessage(gift);
         break;
@@ -342,6 +351,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           //   hits: Number(msg.hits),
           // },
         };
+        if (this.saveRawDanma) {
+          gift.rawData = msg;
+        }
         this.emit("Message", gift);
         extraDataController.addMessage(gift);
         break;
@@ -364,6 +376,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
                 },
               },
             };
+            if (this.saveRawDanma) {
+              comment.rawData = msg;
+            }
             this.emit("Message", comment);
             extraDataController.addMessage(comment);
             break;
@@ -382,8 +397,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const downloaderArgs = downloader.getArguments();
   downloader.run();
-
-  // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
 
   const cut = utils.singleton<RecordHandle["cut"]>(async () => {
     if (!this.recordHandle) return;
