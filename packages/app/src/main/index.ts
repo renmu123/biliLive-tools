@@ -13,6 +13,7 @@ import {
   net,
   nativeTheme,
   crashReporter,
+  nativeImage,
 } from "electron";
 import { createContainer } from "awilix";
 
@@ -306,7 +307,15 @@ function createWindow(): void {
   });
 
   // 新建托盘
-  const tray = new Tray(join(__dirname2, "../../resources/icon.png"));
+  const iconPath = join(__dirname2, "../../resources/icon.png");
+  const trayIcon = nativeImage.createFromPath(iconPath);
+
+  // macOS 需要使用模板图片模式来正确显示托盘图标大小和颜色
+  if (process.platform === "darwin") {
+    trayIcon.setTemplateImage(true);
+  }
+
+  const tray = new Tray(trayIcon);
   // 托盘名称
   tray.setToolTip("biliLive-tools");
   // 托盘菜单

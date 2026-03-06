@@ -114,7 +114,7 @@ export async function parseMeta(files: {
   duration: number;
   platform: string | null;
 }> {
-  const res = await request.post("/common/parseMeta", files);
+  const res = await request.post("/common/parseVideoMetadata", files);
   return res.data;
 }
 
