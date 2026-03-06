@@ -101,8 +101,8 @@ export default class RecordHistoryService {
     startTime?: number;
     endTime?: number;
   }): number {
-    const now = Math.floor(Date.now() / 1000);
-    const oneMonthAgo = now - 30 * 24 * 60 * 60; // 30天前的时间戳
+    const now = Date.now();
+    const oneMonthAgo = now - 30 * 24 * 60 * 60 * 1000; // 30天前的时间戳（毫秒）
 
     const queryOptions = {
       streamerId: options?.streamerId,
