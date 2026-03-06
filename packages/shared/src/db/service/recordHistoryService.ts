@@ -50,7 +50,9 @@ export default class RecordHistoryService {
   query(
     options: Partial<LiveHistory & { include: { streamer: boolean } }>,
   ): (LiveHistory & { streamer?: Streamer | null }) | null {
-    const item = this.recordHistoryModel.query(options);
+    const params = { ...options };
+    delete (params as any).include; // 删除 include 参数，避免传递给模型层
+    const item = this.recordHistoryModel.query(params);
     if (item && options.include?.streamer) {
       (item as LiveHistory & { streamer?: Streamer | null }).streamer =
         this.streamerService.query({ id: item.streamer_id }) || null;
