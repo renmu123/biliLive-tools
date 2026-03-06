@@ -1,5 +1,4 @@
 import fs from "fs-extra";
-// import path from "node:path";
 import readline from "node:readline";
 import { XMLParser } from "fast-xml-parser";
 
@@ -88,32 +87,6 @@ export const parseXmlObj = async (XMLdata: string, parseRaw: boolean = false) =>
 
 export const parseMetadata = async (input: string) => {
   const data = await parseMeta({ danmaFilePath: input });
-  // const root = jObj?.i;
-  // if (!root) return metadata;
-
-  // // 录播姬
-  // if (root?.BililiveRecorderRecordInfo) {
-  //   const info = root?.BililiveRecorderRecordInfo;
-  //   metadata.streamer = info["@_name"];
-  //   metadata.room_id = info["@_roomid"];
-  //   metadata.live_title = info["@_title"];
-  //   // TODO:这里有误，这是录制开始时间，而非直播开始时间
-  //   const liveStartTime: string = info["@_start_time"];
-  //   if (liveStartTime) {
-  //     metadata.live_start_time = Math.floor(new Date(liveStartTime).getTime() / 1000);
-  //   }
-  // }
-  // if (root?.metadata) {
-  //   const info = root?.metadata;
-  //   metadata.streamer = info["user_name"];
-  //   metadata.room_id = info["room_id"];
-  //   metadata.live_title = info["room_title"];
-  //   const liveStartTime: string = info["live_start_time"];
-  //   if (liveStartTime) {
-  //     metadata.live_start_time = Math.floor(new Date(liveStartTime).getTime() / 1000);
-  //   }
-  //   metadata.platform = info["platform"];
-  // }
   const metadata = {
     streamer: data.username,
     room_id: data.roomId,
@@ -129,23 +102,8 @@ export const parseMetadata = async (input: string) => {
  * @param input 弹幕文件路径
  * @param type 弹幕文件录制平台，解析会有所不同，如果不传则自动判断
  */
-export const parseDanmu = async (
-  input: string,
-  // iOptions: {
-  //   type?: "bililiverecorder" | "blrec" | "ddtv";
-  //   roomId?: string;
-  // } = {},
-) => {
-  // const defaultOptins = {};
-  // const options = Object.assign(defaultOptins, iOptions);
+export const parseDanmu = async (input: string) => {
   const { danmuku, sc, gift, guard } = await parseXmlFile(input);
-
-  // 如果是bililiverecorder和blrec录制的，平台为Bilibili
-  // let platform: string;
-  // if (options.type === "bililiverecorder" || options.type === "blrec" || options.type === "ddtv") {
-  //   platform = "Bilibili";
-  // }
-  // const source = path.basename(input);
   const metadata = await parseMetadata(input);
 
   const parsedDanmuku = danmuku.map((item) => {
@@ -158,11 +116,6 @@ export const parseDanmu = async (
       ts: Number(pArray[0]),
       timestamp: item["@_timestamp"] ? Number(item["@_timestamp"]) : Number(pArray[4]),
       p: item["@_p"],
-      // platform: platform ?? metadata.platform ?? "unknown",
-      // source,
-      // room_id: options.roomId ?? metadata.room_id!,
-      // live_start_time: metadata.live_start_time!,
-      // live_title: metadata.live_title!,
     };
     return data;
   });
@@ -174,11 +127,6 @@ export const parseDanmu = async (
       user: item["@_user"],
       ts: Number(item["@_ts"]),
       timestamp: item["@_timestamp"] ? Number(item["@_timestamp"]) : undefined,
-      // platform: platform ?? metadata.platform ?? "unknown",
-      // source,
-      // room_id: options.roomId ?? metadata.room_id!,
-      // live_start_time: metadata.live_start_time!,
-      // live_title: metadata.live_title!,
       gift_count: 1,
       gift_price: item["@_price"],
     };
@@ -192,11 +140,6 @@ export const parseDanmu = async (
       user: item["@_user"],
       ts: Number(item["@_ts"]),
       timestamp: item["@_timestamp"] ? Number(item["@_timestamp"]) : undefined,
-      // platform: platform ?? metadata.platform ?? "unknown",
-      // source,
-      // room_id: options.roomId ?? metadata.room_id!,
-      // live_start_time: metadata.live_start_time!,
-      // live_title: metadata.live_title!,
       gift_name: item["@_giftname"],
       gift_count: item["@_giftcount"],
       gift_price: item["@_price"],
@@ -211,11 +154,6 @@ export const parseDanmu = async (
       user: item["@_user"],
       ts: Number(item["@_ts"]),
       timestamp: item["@_timestamp"] ? Number(item["@_timestamp"]) : undefined,
-      // platform: platform ?? metadata.platform ?? "unknown",
-      // source,
-      // room_id: options.roomId ?? metadata.room_id!,
-      // live_start_time: metadata.live_start_time!,
-      // live_title: metadata.live_title!,
       gift_name: item["@_giftname"],
       gift_count: item["@_giftcount"],
       gift_price: item["@_price"],
