@@ -1,5 +1,9 @@
 # Next
 
+## 功能
+
+- 重构：统一获取元数据 [#357](https://github.com/renmu123/biliLive-tools/pull/357)
+
 ## Bug修复
 
 - MacOS: 修复托盘icon大小不正常的bug（应该
