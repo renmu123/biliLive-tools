@@ -327,6 +327,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     topic_id: options.topic_id,
     mission_id: options.mission_id,
     is_only_self: options.is_only_self || 0,
+    space_hidden: options.space_hidden || 2,
     dtime: options.dtime ? options.dtime : undefined,
     watermark:
       options.copyright === 2 || options.watermark === undefined
