@@ -6,7 +6,7 @@
 
 ## 优化
 
-- 录制：抖音弹幕连接域名更新 #371
+- 录制：抖音弹幕连接域名更新 [#371](https://github.com/renmu123/biliLive-tools/pull/371)
 
 ## Bug修复
 
