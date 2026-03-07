@@ -28,6 +28,7 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   comment: "",
   topic_name: null,
   is_only_self: 0,
+  space_hidden: 2,
 };
 
 export class VideoPreset extends CommonPreset<BiliupConfig> {
