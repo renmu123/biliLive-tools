@@ -36,6 +36,7 @@
   ],
   "dependencies": {
     "@napi-rs/canvas": "^0.1.60",
+    "@resvg/resvg-js": "^2.6.2",
     "font-ls": "0.6.2",
     "ntsuspend": "^1.0.2",
     "better-sqlite3": "12.4.6",
