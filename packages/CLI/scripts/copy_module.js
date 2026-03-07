@@ -34,6 +34,14 @@ function main() {
       recursive: true,
     },
   );
+  // 复制music-segment-detector相关文件，
+  fs.cpSync(
+    path.join(pnpm_node_modules, "music-segment-detector"),
+    path.join(cli_node_modules, "music-segment-detector"),
+    {
+      recursive: true,
+    },
+  );
   fs.cpSync(
     path.join(pnpm_node_modules, "file-uri-to-path"),
     path.join(cli_node_modules, "file-uri-to-path"),
