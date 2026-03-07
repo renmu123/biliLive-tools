@@ -53,6 +53,7 @@
               'User',
               'About',
               'FileSync',
+              'Workflow',
             ]"
           >
             <component :is="Component" />
@@ -275,6 +276,19 @@ const menuOptions = computed<MenuOption[]>(() => {
             },
           },
           { default: () => "文件同步" },
+        ),
+    },
+    {
+      key: "Workflow",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "Workflow",
+            },
+          },
+          { default: () => "工作流" },
         ),
     },
   ];
