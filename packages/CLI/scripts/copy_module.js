@@ -42,6 +42,22 @@ function main() {
       recursive: true,
     },
   );
+  // 复制meyda相关文件，
+  fs.cpSync(
+    path.join(pnpm_node_modules, "meyda"),
+    path.join(cli_node_modules, "meyda"),
+    {
+      recursive: true,
+    },
+  );
+  // 复制shazamio-core相关文件，
+  fs.cpSync(
+    path.join(pnpm_node_modules, "shazamio-core"),
+    path.join(cli_node_modules, "shazamio-core"),
+    {
+      recursive: true,
+    },
+  );
   fs.cpSync(
     path.join(pnpm_node_modules, "file-uri-to-path"),
     path.join(cli_node_modules, "file-uri-to-path"),
