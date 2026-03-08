@@ -273,7 +273,7 @@
             <n-input-number
               v-model:value.number="config.msgboxpos[1]"
               class="input-number"
-              title="Y轴，负值向上"
+              title="Y轴"
               :step="10"
             />
           </n-form-item>
