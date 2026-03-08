@@ -189,4 +189,10 @@ const stateMap = {
     transform: rotate(180deg);
   }
 }
+
+tr:hover {
+  > td {
+    background-color: #f5f5f5;
+  }
+}
 </style>
