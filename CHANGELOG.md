@@ -3,6 +3,7 @@
 ## 功能
 
 - 重构：统一获取元数据 [#357](https://github.com/renmu123/biliLive-tools/pull/357)
+- 投稿：增加“在个人空间-投稿中隐藏”选项 [#372](https://github.com/renmu123/biliLive-tools/pull/372)
 
 ## 优化
 
