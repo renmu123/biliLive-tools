@@ -286,6 +286,14 @@
               </n-space>
             </n-radio-group>
           </div>
+          <div class="inline-item">
+            <n-checkbox
+              v-model:checked="options.config.space_hidden"
+              :checked-value="1"
+              :unchecked-value="2"
+              >在个人空间-投稿中隐藏
+            </n-checkbox>
+          </div>
         </div>
       </n-form-item>
       <n-form-item>

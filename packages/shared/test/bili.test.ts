@@ -81,6 +81,7 @@ describe("formatOptions", () => {
       no_disturbance: 1,
       copyright: 1,
       hires: 0,
+      space_hidden: 2,
     };
 
     const expected = {
@@ -105,6 +106,7 @@ describe("formatOptions", () => {
       no_disturbance: 1,
       copyright: 1,
       watermark: undefined,
+      space_hidden: 2,
     };
 
     const result = formatOptions(options);
@@ -158,6 +160,9 @@ describe("formatOptions", () => {
       mission_id: undefined,
       topic_id: undefined,
       watermark: undefined,
+      space_hidden: 2,
+      dtime: undefined,
+      human_type2: undefined,
     };
 
     const result = formatOptions(options);
@@ -208,6 +213,7 @@ describe("formatOptions", () => {
       mission_id: 123456,
       is_only_self: 0,
       watermark: undefined,
+      space_hidden: 2,
     };
 
     const result = formatOptions(options);
@@ -258,6 +264,7 @@ describe("formatOptions", () => {
       mission_id: 123456,
       is_only_self: 0,
       watermark: undefined,
+      space_hidden: 2,
     };
 
     const result = formatOptions(options);
@@ -309,6 +316,7 @@ describe("formatOptions", () => {
       mission_id: undefined,
       topic_id: undefined,
       watermark: undefined,
+      space_hidden: 2,
     };
 
     const result = formatOptions(options, os.tmpdir());
@@ -368,6 +376,7 @@ describe("formatOptions", () => {
       mission_id: undefined,
       topic_id: undefined,
       watermark: undefined,
+      space_hidden: 2,
     };
 
     const result = formatOptions(options, os.tmpdir());
@@ -397,6 +406,7 @@ describe("formatOptions", () => {
       no_disturbance: 1,
       copyright: 1,
       hires: 0,
+      space_hidden: 2,
     };
 
     const expected = {
@@ -421,6 +431,7 @@ describe("formatOptions", () => {
       mission_id: undefined,
       topic_id: undefined,
       watermark: undefined,
+      space_hidden: 2,
     };
 
     const result = formatOptions(options);
@@ -446,6 +457,7 @@ describe("formatOptions", () => {
       copyright: 1,
       hires: 0,
       watermark: 1,
+      space_hidden: 2,
     };
 
     const expected = {
@@ -470,6 +482,7 @@ describe("formatOptions", () => {
       mission_id: undefined,
       topic_id: undefined,
       watermark: { state: 1 },
+      space_hidden: 2,
     };
 
     const result = formatOptions(options);
@@ -495,6 +508,7 @@ describe("formatOptions", () => {
       copyright: 1,
       hires: 0,
       watermark: 0,
+      space_hidden: 2,
     };
 
     const expected = {
@@ -519,6 +533,7 @@ describe("formatOptions", () => {
       mission_id: undefined,
       topic_id: undefined,
       watermark: { state: 0 },
+      space_hidden: 2,
     };
 
     const result = formatOptions(options);
@@ -544,6 +559,7 @@ describe("formatOptions", () => {
       copyright: 2,
       hires: 0,
       watermark: 1,
+      space_hidden: 2,
     };
 
     const expected = {
@@ -568,6 +584,7 @@ describe("formatOptions", () => {
       mission_id: undefined,
       topic_id: undefined,
       watermark: undefined,
+      space_hidden: 2,
     };
 
     const result = formatOptions(options);
