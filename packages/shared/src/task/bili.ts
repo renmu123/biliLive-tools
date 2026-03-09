@@ -27,7 +27,7 @@ import {
 } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
 import { getBinPath, pasrseMetadata } from "./video.js";
-import { formatTitle, formatPartTitle, buildRoomLink } from "../utils/webhook.js";
+import { formatTitle, formatPartTitle, formatDesc, buildRoomLink } from "../utils/webhook.js";
 
 import type { BiliupConfig, BiliUser, AppConfig as AppConfigType } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
@@ -519,8 +519,9 @@ async function preFormatOptions(
   const needParseForTitle = options.title.includes("{{");
   const needParseForSource = options.copyright === 2 && !options.source;
   const needParseForPartTitle = options.partTitleTemplate && !!options.partTitleTemplate.trim();
+  const needParseForDesc = options.desc && options.desc.includes("{{");
 
-  if (!needParseForTitle && !needParseForSource && !needParseForPartTitle) {
+  if (!needParseForTitle && !needParseForSource && !needParseForPartTitle && !needParseForDesc) {
     // 不需要解析，直接返回
     return {
       options,
@@ -569,6 +570,31 @@ async function preFormatOptions(
         );
       } catch (e) {
         log.error("格式化主标题失败", e);
+      }
+    }
+  }
+
+  // 格式化简介
+  if (needParseForDesc && parseResult) {
+    if (
+      parseResult.title &&
+      parseResult.username &&
+      parseResult.roomId &&
+      parseResult.startTimestamp
+    ) {
+      try {
+        resultOptions.desc = formatDesc(
+          {
+            title: parseResult.title,
+            username: parseResult.username,
+            time: new Date((parseResult.startTimestamp ?? 0) * 1000).toISOString(),
+            roomId: parseResult.roomId,
+            filename: path.basename(firstFilePath),
+          },
+          options.desc!,
+        );
+      } catch (e) {
+        log.error("格式化简介失败", e);
       }
     }
   }
