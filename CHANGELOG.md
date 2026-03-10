@@ -2,14 +2,42 @@
 
 ## 功能
 
+- 重构：统一获取元数据 [#357](https://github.com/renmu123/biliLive-tools/pull/357)
+- 投稿：增加“在个人空间-投稿中隐藏”选项 [#372](https://github.com/renmu123/biliLive-tools/pull/372)
+
+## 优化
+
+- 录制：抖音弹幕连接域名更新 [#371](https://github.com/renmu123/biliLive-tools/pull/371)
+
+## Bug修复
+
+- MacOS: 修复托盘icon大小不正常的bug（应该
+- 看板：修复录制时长计算错误
+
+# 3.9.1
+
+## 功能
+
+- MacOS支持 [#254](https://github.com/renmu123/biliLive-tools/pull/254)，我也不知道能不能跑~
+
+## Bug修复
+
+- 修复修复bug导致的bug，修复某些情况下文件不会被删除的bug
+
+# 3.9.0
+
+## 功能
+
 - 数据看板UI优化、增加更多数据展示
 - 上传分P标题支持自动格式化 [#338](https://github.com/renmu123/biliLive-tools/pull/350)
 - 切片：支持字幕识别
-- AI：支持基于ffmpeg的whisper调用，具体参考文档
+- AI：支持基于ffmpeg的whisper调用，具体参考[文档](https://docs.irenmu.com/features/ai.html#%E5%AD%97%E5%B9%95%E8%AF%86%E5%88%AB)
 
 ## 优化
 
 - B站上传：水印参数默认值修改为关闭
+- 录制：“使用服务端时间戳”参数默认关闭
+- 同步：优化123网盘的同步竞态问题 [#365](https://github.com/renmu123/biliLive-tools/pull/365)
 
 ## Bug修复
 
@@ -17,6 +45,10 @@
 - Webhook: 修复某些情况下文件不会被删除的bug [#355](https://github.com/renmu123/biliLive-tools/issues/355)
 - B站上传：修复续传时水印参数不会被继承的bug
 - 修复 CLI 包的编译问题
+
+## 其他
+
+- 录播姬引擎升级至[3.3.3](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.3.3)
 
 # 3.8.1
 

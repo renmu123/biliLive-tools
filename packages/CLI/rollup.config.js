@@ -12,6 +12,7 @@ export default [
       "better-sqlite3",
       "shazamio-core",
       "music-segment-detector",
+      "fsevents",
     ],
     input: "src/index.ts",
     output: [

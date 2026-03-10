@@ -66,6 +66,8 @@
         :sort-directions="sortDirections"
         :visible-columns="visibleColumns"
         @sort="handleSort"
+        @startRecord="startRecord"
+        @stopRecord="stopRecord"
       >
         <template #action="{ item }">
           <div style="margin-top: 10px" class="section-container">
@@ -377,6 +379,7 @@ const remove = async (id: string) => {
 };
 
 const startRecord = async (id: string) => {
+  console.log("开始录制", id);
   await recoderApi.startRecord(id);
   getList();
 };

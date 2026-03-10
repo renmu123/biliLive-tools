@@ -73,6 +73,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   private timeoutTimer!: NodeJS.Timeout;
   private isTimeoutCheckRunning: boolean = false;
   private isReconnecting: boolean = false;
+  private host: string;
 
   constructor(
     roomId: string,
@@ -83,6 +84,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       reconnectInterval?: number;
       cookie?: string;
       timeoutInterval?: number;
+      host?: string;
     } = {},
   ) {
     super();
@@ -95,6 +97,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.cookie = options.cookie;
     this.timeoutInterval = options.timeoutInterval ?? 100000; // 默认100秒
     this.lastMessageTime = Date.now();
+    this.host = options.host ?? "webcast100-ws-web-hl.douyin.com";
 
     if (this.autoStart) {
       this.connect();
@@ -421,7 +424,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     const userUniqueId = getUserUniqueId();
     // const userUniqueId = "7877922945687137703";
     const versionCode = 180800;
-    const webcastSdkVersion = "1.0.14-beta.0";
+    const webcastSdkVersion = "1.0.15";
 
     const sigParams = {
       live_id: "1",
@@ -459,7 +462,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       signature: signature.toString(),
     };
 
-    const wssUrl = `wss://webcast5-ws-web-lf.douyin.com/webcast/im/push/v2/?${new URLSearchParams(webcast5Params).toString()}`;
+    const wssUrl = `wss://${this.host}/webcast/im/push/v2/?${new URLSearchParams(webcast5Params).toString()}`;
     return buildRequestUrl(wssUrl);
   }
 }

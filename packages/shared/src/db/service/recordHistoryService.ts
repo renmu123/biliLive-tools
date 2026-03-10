@@ -1,11 +1,21 @@
 import type RecordHistoryModel from "../model/recordHistory.js";
 import type { BaseLiveHistory, LiveHistory } from "../model/recordHistory.js";
+import type { Streamer } from "../model/streamer.js";
+import type { StreamerService } from "./index.js";
 
 export default class RecordHistoryService {
   private recordHistoryModel: RecordHistoryModel;
+  private streamerService: StreamerService;
 
-  constructor({ recordHistoryModel }: { recordHistoryModel: RecordHistoryModel }) {
+  constructor({
+    recordHistoryModel,
+    streamerService,
+  }: {
+    recordHistoryModel: RecordHistoryModel;
+    streamerService: StreamerService;
+  }) {
     this.recordHistoryModel = recordHistoryModel;
+    this.streamerService = streamerService;
   }
 
   add(options: BaseLiveHistory) {
@@ -37,8 +47,17 @@ export default class RecordHistoryService {
     return this.recordHistoryModel.paginateWithTimeRange(options);
   }
 
-  query(options: Partial<LiveHistory>) {
-    return this.recordHistoryModel.query(options);
+  query(
+    options: Partial<LiveHistory & { include: { streamer: boolean } }>,
+  ): (LiveHistory & { streamer?: Streamer | null }) | null {
+    const params = { ...options };
+    delete (params as any).include; // 删除 include 参数，避免传递给模型层
+    const item = this.recordHistoryModel.query(params);
+    if (item && options.include?.streamer) {
+      (item as LiveHistory & { streamer?: Streamer | null }).streamer =
+        this.streamerService.query({ id: item.streamer_id }) || null;
+    }
+    return item;
   }
 
   update(options: Partial<LiveHistory & { id: number }>) {
@@ -82,8 +101,8 @@ export default class RecordHistoryService {
     startTime?: number;
     endTime?: number;
   }): number {
-    const now = Math.floor(Date.now() / 1000);
-    const oneMonthAgo = now - 30 * 24 * 60 * 60; // 30天前的时间戳
+    const now = Date.now();
+    const oneMonthAgo = now - 30 * 24 * 60 * 60 * 1000; // 30天前的时间戳（毫秒）
 
     const queryOptions = {
       streamerId: options?.streamerId,

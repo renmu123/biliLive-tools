@@ -211,7 +211,7 @@ export class FFmpegWhisperASR {
    * 识别音频 URL（不支持）
    * 由于 ffmpeg whisper 需要本地文件，URL 需要先下载
    */
-  async recognize(fileUrl: string): Promise<WhisperTranscriptionResult> {
+  async recognize(_fileUrl: string): Promise<WhisperTranscriptionResult> {
     throw new Error("FFmpeg Whisper 不支持直接识别 URL，请先下载音频文件后使用 recognizeLocalFile");
   }
 }

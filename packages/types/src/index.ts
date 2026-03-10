@@ -866,7 +866,11 @@ export type VideoCodec =
   | "libsvtav1"
   | "av1_qsv"
   | "av1_nvenc"
-  | "av1_amf";
+  | "av1_amf"
+  | "h264_videotoolbox"
+  | "hevc_videotoolbox"
+  | "av1_videotoolbox";
+
 export interface FfmpegOptions {
   encoder: VideoCodec;
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
@@ -1002,6 +1006,8 @@ export interface BiliupConfig {
   topic_name?: string | null;
   /** 是否仅自己可见 */
   is_only_self?: 0 | 1;
+  /** 在个人空间-投稿中隐藏：1：隐藏，2：不隐藏 */
+  space_hidden?: 1 | 2;
   /** 新分区 */
   human_type2?: number;
   /** 定时发布：10位秒级时间戳。必须距离提交时间>7200秒 */

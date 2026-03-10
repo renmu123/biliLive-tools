@@ -294,69 +294,74 @@
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="webhook" tab="Webhook">
-          <n-form label-placement="left" :label-width="130">
+          <n-form label-placement="left" :label-width="135">
             <n-form-item>
               <template #label>
                 <Tip
-                  text="webhook"
+                  text="webhook总开关"
                   :tip="`如果本软件的录制想使用该功能，请打开录制配置中的发送到webhook选项<br/>其他软件webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>DDTV：http://127.0.0.1:${config.port}/webhook/ddtv<br/>oneLiveRec：http://127.0.0.1:${config.port}/webhook/oneliverec<br/>自定义（参数见文档）：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
                 ></Tip>
               </template>
               <n-switch v-model:value="config.webhook.open" />
             </n-form-item>
-            <n-form-item>
-              <template #label>
-                <Tip
-                  text="黑名单"
-                  tip="设置后相应直播间的视频不会被处理，用英文逗号分隔，如: 123456,1234567，也可以使用*，代表所有房间号"
-                ></Tip>
-              </template>
-              <n-input
-                v-model:value="config.webhook.blacklist"
-                placeholder="设置需要屏蔽的房间号，用英文逗号分隔"
-              />
-            </n-form-item>
-            <n-form-item label="录播姬工作目录">
-              <template #label>
-                <Tip text="录播姬工作目录" tip="仅当你使用录播姬的webhook时，需要配置此选项"></Tip>
-              </template>
-              <n-input
-                v-model:value="config.webhook.recoderFolder"
-                placeholder="请选择录播姬工作目录"
-              />
-              <n-icon
-                style="margin-left: 10px"
-                size="26"
-                class="pointer"
-                @click="selectFolder('recorder')"
-              >
-                <FolderOpenOutline />
-              </n-icon>
-            </n-form-item>
-            <CommonSetting
-              v-model:data="config.webhook"
-              :biliup-presets-options="presetsOptions"
-              :ffmpeg-options="ffmpegOptions"
-              :global-value="webhookDefaultValue"
-              :global-fields-obj="{}"
-              :syncConfigs="config.sync.syncConfigs"
-              type="global"
-            ></CommonSetting>
+            <template v-if="config.webhook.open">
+              <n-form-item>
+                <template #label>
+                  <Tip
+                    text="黑名单"
+                    tip="设置后相应直播间的视频不会被处理，用英文逗号分隔，如: 123456,1234567，也可以使用*，代表所有房间号"
+                  ></Tip>
+                </template>
+                <n-input
+                  v-model:value="config.webhook.blacklist"
+                  placeholder="设置需要屏蔽的房间号，用英文逗号分隔"
+                />
+              </n-form-item>
+              <n-form-item label="录播姬工作目录">
+                <template #label>
+                  <Tip
+                    text="录播姬工作目录"
+                    tip="仅当你使用录播姬的webhook时，需要配置此选项"
+                  ></Tip>
+                </template>
+                <n-input
+                  v-model:value="config.webhook.recoderFolder"
+                  placeholder="请选择录播姬工作目录"
+                />
+                <n-icon
+                  style="margin-left: 10px"
+                  size="26"
+                  class="pointer"
+                  @click="selectFolder('recorder')"
+                >
+                  <FolderOpenOutline />
+                </n-icon>
+              </n-form-item>
+              <CommonSetting
+                v-model:data="config.webhook"
+                :biliup-presets-options="presetsOptions"
+                :ffmpeg-options="ffmpegOptions"
+                :global-value="webhookDefaultValue"
+                :global-fields-obj="{}"
+                :syncConfigs="config.sync.syncConfigs"
+                type="global"
+              ></CommonSetting>
 
-            <h2 style="display: inline-flex; align-items: center">
-              独立配置<Tip tip="单独设置房间号的上传配置，会覆盖全局配置" :size="22"></Tip>
-            </h2>
-            <!-- <div class="flex" style="align-items: center"> -->
-            <div class="room-list">
-              <span
-                v-for="room in roomList"
-                :key="room.id"
-                class="room"
-                @click="handleRoomDetail(room.id)"
-                >{{ room.id }}<span v-if="room.remark">({{ room.remark }})</span></span
-              >
-              <n-button type="primary" @click="addRoom"> 添加 </n-button>
-            </div>
+              <h2 style="display: inline-flex; align-items: center">
+                独立配置<Tip tip="单独设置房间号的上传配置，会覆盖全局配置" :size="22"></Tip>
+              </h2>
+              <!-- <div class="flex" style="align-items: center"> -->
+              <div class="room-list">
+                <span
+                  v-for="room in roomList"
+                  :key="room.id"
+                  class="room"
+                  @click="handleRoomDetail(room.id)"
+                  >{{ room.id }}<span v-if="room.remark">({{ room.remark }})</span></span
+                >
+                <n-button type="primary" @click="addRoom"> 添加 </n-button>
+              </div>
+            </template>
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="sync" tab="文件同步">

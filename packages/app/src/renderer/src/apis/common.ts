@@ -114,7 +114,7 @@ export async function parseMeta(files: {
   duration: number;
   platform: string | null;
 }> {
-  const res = await request.post("/common/parseMeta", files);
+  const res = await request.post("/common/parseVideoMetadata", files);
   return res.data;
 }
 
@@ -280,6 +280,19 @@ export const fileExists = async (filepath: string): Promise<boolean> => {
   return res.data;
 };
 
+/**
+ * 获取磁盘空间信息
+ */
+export const getDiskSpace = async (): Promise<{
+  total: number;
+  free: number;
+  used: number;
+  usedPercentage: number;
+}> => {
+  const res = await request.get("/common/diskSpace");
+  return res.data;
+};
+
 const common = {
   getStreamLogs,
   version,
@@ -309,6 +322,7 @@ const common = {
   readLLCProject,
   writeLLCProject,
   fileExists,
+  getDiskSpace,
 };
 
 export default common;
