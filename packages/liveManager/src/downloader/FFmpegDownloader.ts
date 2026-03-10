@@ -158,12 +158,6 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
     options.push(
       "-c",
       "copy",
-      "-movflags",
-      "+frag_keyframe+empty_moov+separate_moof",
-      "-fflags",
-      "+genpts+igndts",
-      "-min_frag_duration",
-      "10000000",
     );
     if (this.segment) {
       if (typeof this.segment === "number") {
