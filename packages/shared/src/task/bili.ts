@@ -16,15 +16,7 @@ import {
   BilibiliLiveDownloadVideoTask,
 } from "./task.js";
 import log from "../utils/log.js";
-import {
-  sleep,
-  encrypt,
-  decrypt,
-  getTempPath,
-  trashItem,
-  uuid,
-  replaceExtName,
-} from "../utils/index.js";
+import { sleep, encrypt, decrypt, getTempPath, trashItem, uuid } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
 import { getBinPath, pasrseMetadata } from "./video.js";
 import { formatTitle, formatPartTitle, buildRoomLink } from "../utils/webhook.js";
