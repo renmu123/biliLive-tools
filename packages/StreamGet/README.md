@@ -1,6 +1,6 @@
 # stream-get
 
-直播平台链接解析器 - 支持 Bilibili、DouYin、DouYu、HuYa 等平台的流地址解析。
+直播平台链接解析器 - 支持 Bilibili、DouYin、DouYu、HuYa、XHS 等平台的流地址解析。
 
 ## 特性
 
@@ -13,7 +13,7 @@
 ## 安装
 
 ```bash
-pnpm add stream-get
+pnpm add @bililive-tools/stream-get
 ```
 
 ## 使用方式
@@ -21,7 +21,7 @@ pnpm add stream-get
 ### 1. 通用解析（自动检测平台）
 
 ```typescript
-import { StreamParser } from "stream-get";
+import { StreamParser } from "@bililive-tools/stream-get";
 
 const parser = new StreamParser({
   proxy: "http://127.0.0.1:7890", // 可选：配置代理
@@ -47,7 +47,7 @@ console.log(platforms); // ['bilibili', 'douyin', 'douyu', 'huya']
 ### 2. 平台特定调用
 
 ```typescript
-import { BilibiliParser } from "stream-get";
+import { BilibiliParser } from "@bililive-tools/stream-get";
 
 const biliParser = new BilibiliParser({
   cookie: "your_cookie_here",
@@ -82,7 +82,7 @@ const fullResult = await biliParser.parse("https://live.bilibili.com/123");
 ### 3. 其他平台
 
 ```typescript
-import { DouyinParser, DouyuParser, HuyaParser } from "stream-get";
+import { DouyinParser, DouyuParser, HuyaParser } from "@bililive-tools/stream-get";
 
 // 抖音
 const dyParser = new DouyinParser({ proxy: "http://127.0.0.1:7890" });

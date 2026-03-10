@@ -23,6 +23,28 @@ export class HttpClient {
     }
   }
 
+  async request(url: string, options: RequestOptions = {}) {
+    const mergedOpts = { ...this.defaultOptions, ...options };
+    this.updateAgent(mergedOpts.proxy);
+
+    try {
+      const response = await request(url, {
+        method: mergedOpts.method || "GET",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          ...mergedOpts.headers,
+        },
+        body: mergedOpts.body,
+        dispatcher: this.agent,
+        headersTimeout: mergedOpts.timeout || 10000,
+      });
+      return response;
+    } catch (error) {
+      throw new NetworkError(`请求失败: ${(error as Error).message}`, undefined);
+    }
+  }
+
   async get<T = any>(url: string, opts?: RequestOptions): Promise<T> {
     const mergedOpts = { ...this.defaultOptions, ...opts };
 

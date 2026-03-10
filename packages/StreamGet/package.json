@@ -1,5 +1,5 @@
 {
-  "name": "stream-get",
+  "name": "@bililive-tools/stream-get",
   "version": "0.1.0",
   "description": "parse live stream url",
   "main": "./lib/index.js",
