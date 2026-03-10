@@ -98,9 +98,22 @@
           }}
         </td>
         <td v-if="isColumnVisible('actions')">
+          <span
+            style="cursor: pointer; color: var(--color-error); margin-right: 4px"
+            v-if="item.state === 'recording'"
+            @click="emit('stopRecord', item.id)"
+            >停止</span
+          >
+          <span
+            style="cursor: pointer; color: var(--color-primary); margin-right: 4px"
+            @click="emit('startRecord', item.id)"
+            v-else
+            >开始</span
+          >
+
           <n-popover placement="right-start" trigger="hover">
             <template #trigger>
-              <span style="cursor: pointer; color: skyblue">编辑</span>
+              <span style="cursor: pointer; color: skyblue">操作</span>
             </template>
             <slot name="action" :item="item"></slot>
           </n-popover>
@@ -146,6 +159,8 @@ const isColumnVisible = (columnKey: string) => {
 
 const emit = defineEmits<{
   (e: "sort", field: string): void;
+  (e: "startRecord", channelId: string): void;
+  (e: "stopRecord", channelId: string): void;
 }>();
 
 const handleSort = (field: string) => {
