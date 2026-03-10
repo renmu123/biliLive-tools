@@ -42,6 +42,7 @@ export async function getXhsStreamUrl(http: HttpClient, roomId: string): Promise
           const avatar = streamData.roomData.hostInfo.avatar;
           const title = roomInfo.roomTitle;
           const roomId = roomInfo.roomId;
+          const roomCover = roomInfo.roomCover;
 
           const finalFlvUrl = `http://live-source-play.xhscdn.com/live/${roomId}.flv`;
           const m3u8Url = `http://live-source-play.xhscdn.com/live/${roomId}.m3u8`;
@@ -53,6 +54,7 @@ export async function getXhsStreamUrl(http: HttpClient, roomId: string): Promise
             title,
             flv_url: finalFlvUrl,
             m3u8_url: m3u8Url,
+            cover: roomCover,
           };
         }
       }

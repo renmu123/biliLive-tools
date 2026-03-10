@@ -1,8 +1,6 @@
 import { v4 as uuid } from "uuid";
-import { HuYaQualities, Recorder } from "@bililive-tools/manager";
+import { Recorder } from "@bililive-tools/manager";
 import { XhsParser } from "@bililive-tools/stream-get";
-
-import type { SourceProfile, StreamProfile } from "./types.js";
 
 export async function getInfo(channelId: string): Promise<{
   living: boolean;

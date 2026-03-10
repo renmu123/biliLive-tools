@@ -38,7 +38,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     formatPriorities: opts.formatPriorities ?? ["flv", "hls"],
 
     getChannelURL() {
-      return `https://www.xiaohongshu.com/user/profile/${this.channelId}`;
+      return `https://www.xiaohongshu.com/livestream/${this.channelId}`;
     },
     checkLiveStatusAndRecord: utils.singleton(checkLiveStatusAndRecord),
 
@@ -299,13 +299,14 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     if (!this.matchURL(channelURL)) return null;
     const parser = new XhsParser();
     const roomId = await parser.extractRoomId(channelURL);
+    const uid = await parser.extractUserId(channelURL);
     const info = await parser.getLiveInfo(roomId);
-
     return {
       id: info.roomId.toString(),
       title: info.title,
       owner: info.owner,
       avatar: info.avatar,
+      uid: uid,
     };
   },
 

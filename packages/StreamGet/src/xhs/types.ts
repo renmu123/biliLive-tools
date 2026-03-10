@@ -39,4 +39,5 @@ export interface LiveInfoResponse {
   flv_url?: string;
   m3u8_url?: string;
   avatar?: string;
+  cover?: string;
 }
