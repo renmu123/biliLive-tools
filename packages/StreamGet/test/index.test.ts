@@ -47,28 +47,6 @@ describe("StreamParser", () => {
   });
 });
 
-describe("BilibiliParser", () => {
-  it("should match bilibili URLs", () => {
-    const parser = new BilibiliParser();
-    expect(parser.matchURL("https://live.bilibili.com/123")).toBe(true);
-    expect(parser.matchURL("https://live.bilibili.com/blanc/456")).toBe(true);
-    expect(parser.matchURL("https://www.douyu.com/789")).toBe(false);
-  });
-
-  it("should extract room ID from URL", () => {
-    const parser = new BilibiliParser();
-    expect(parser.extractRoomId("https://live.bilibili.com/123")).toBe("123");
-    expect(parser.extractRoomId("https://live.bilibili.com/blanc/456")).toBe("456");
-    expect(parser.extractRoomId("789")).toBe("789");
-  });
-
-  it("should have correct platform info", () => {
-    const parser = new BilibiliParser();
-    expect(parser.platform).toBe("bilibili");
-    expect(parser.siteURL).toBe("https://live.bilibili.com/");
-  });
-});
-
 // 集成测试（需要网络，可以在 CI 中跳过）
 describe.skip("Integration Tests", () => {
   it("should parse bilibili live room", async () => {

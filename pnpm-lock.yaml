@@ -281,6 +281,24 @@ importers:
         specifier: ^7.21.0
         version: 7.21.0
 
+  packages/XHSRecorder:
+    dependencies:
+      '@bililive-tools/manager':
+        specifier: workspace:^
+        version: link:../liveManager
+      '@bililive-tools/stream-get':
+        specifier: workspace:*
+        version: link:../StreamGet
+      lodash-es:
+        specifier: 'catalog:'
+        version: 4.17.21
+      mitt:
+        specifier: 'catalog:'
+        version: 3.0.1
+      uuid:
+        specifier: ^10.0.0
+        version: 10.0.0
+
   packages/app:
     dependencies:
       '@electron-toolkit/preload':
@@ -606,6 +624,9 @@ importers:
       '@bililive-tools/manager':
         specifier: workspace:*
         version: link:../liveManager
+      '@bililive-tools/xhs-recorder':
+        specifier: workspace:*
+        version: link:../XHSRecorder
       '@napi-rs/canvas':
         specifier: ^0.1.60
         version: 0.1.60

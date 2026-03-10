@@ -316,7 +316,6 @@ export async function resolve(url: string) {
       config.uid = channelInfo.uid;
     }
   }
-
   return config;
 }
 

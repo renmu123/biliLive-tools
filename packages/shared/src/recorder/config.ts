@@ -156,6 +156,14 @@ export default class RecorderConfig {
     }
     let api = getValue("api") ?? "auto";
 
+    // 弹幕处理
+    let disableProvideCommentsWhenRecording =
+      getValue("disableProvideCommentsWhenRecording") ?? true;
+    if (setting.providerId === "XHS") {
+      // 小红书不支持弹幕
+      disableProvideCommentsWhenRecording = false;
+    }
+
     return {
       ...setting,
       quality: getValue("quality") ?? "highest",

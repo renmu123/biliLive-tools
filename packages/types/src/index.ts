@@ -460,7 +460,7 @@ export interface GlobalRecorder {
 }
 
 export interface Recorder {
-  providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin";
+  providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin" | "XHS";
   id: string;
   channelId: string;
   remarks?: string;
