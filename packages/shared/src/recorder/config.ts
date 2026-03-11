@@ -130,6 +130,9 @@ export default class RecorderConfig {
     } else if (setting.providerId === "DouYin") {
       auth = getValue("cookie");
       uid = setting?.uid;
+    } else if (setting.providerId === "XHS") {
+      auth = getValue("cookie");
+      uid = setting?.uid;
     }
 
     // 流格式处理
