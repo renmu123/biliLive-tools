@@ -109,7 +109,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       // 在存在cookie的情况下，可以调用接口进行轮询检查
       const info = await check(redId, this.auth);
       const isLiving = info?.living ?? false;
-      console.log("checkLiveStatusAndRecord", info);
       this.liveInfo = {
         living: isLiving,
         owner: info.owner,
