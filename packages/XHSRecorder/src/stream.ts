@@ -2,6 +2,12 @@ import { v4 as uuid } from "uuid";
 import { Recorder } from "@bililive-tools/manager";
 import { XhsParser } from "@bililive-tools/stream-get";
 
+export async function check() {
+  const parser = new XhsParser();
+  const response = await parser.check();
+  return response;
+}
+
 export async function getInfo(channelId: string): Promise<{
   living: boolean;
   owner: string;

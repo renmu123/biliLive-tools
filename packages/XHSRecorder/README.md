@@ -29,6 +29,8 @@ manager.startCheckLoop();
 
 ## 参数
 
+由于小红书的roomId是每场都会变化的，uid不会变化，因此使用roomId作为uid，uid作为roomId，进行倒置
+
 ```ts
 interface Options {
   channelId: string; // 直播间ID，具体解析见文档，也可自行解析

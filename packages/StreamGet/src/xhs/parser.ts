@@ -2,7 +2,7 @@ import { PlatformParser } from "../types.js";
 import type { RequestOptions, LiveInfo, SourceInfo, StreamInfo } from "../types.js";
 import { ParseError } from "../errors.js";
 import { HttpClient } from "../http.js";
-import { getXhsStreamUrl } from "./api.js";
+import { getXhsStreamUrl, check } from "./api.js";
 
 export default class XhsParser extends PlatformParser<string> {
   readonly platform = "xhs";
@@ -62,6 +62,9 @@ export default class XhsParser extends PlatformParser<string> {
   async extractUserId(url: string): Promise<string | null> {
     const { userId } = await this.extractUrl(url);
     return userId;
+  }
+  async check() {
+    return check(this.httpClient);
   }
 
   async getLiveInfo(

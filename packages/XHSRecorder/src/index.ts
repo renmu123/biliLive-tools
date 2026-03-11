@@ -10,7 +10,7 @@ import {
 } from "@bililive-tools/manager";
 import { XhsParser } from "@bililive-tools/stream-get";
 
-import { getInfo, getStream } from "./stream.js";
+import { getInfo, getStream, check } from "./stream.js";
 import { ensureFolderExist } from "./utils.js";
 
 import type {
@@ -38,7 +38,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     formatPriorities: opts.formatPriorities ?? ["flv", "hls"],
 
     getChannelURL() {
-      return `https://www.xiaohongshu.com/livestream/${this.channelId}`;
+      return `https://www.xiaohongshu.com/user/profile/${this.channelId}`;
     },
     checkLiveStatusAndRecord: utils.singleton(checkLiveStatusAndRecord),
 
@@ -47,7 +47,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     },
 
     async getLiveInfo() {
-      const channelId = this.channelId;
+      const channelId = String(this.uid);
       const info = await getInfo(channelId);
       return {
         channelId,
@@ -56,7 +56,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     },
     async getStream() {
       const res = await getStream({
-        channelId: this.channelId,
+        channelId: String(this.uid),
         quality: this.quality,
         streamPriorities: this.streamPriorities,
         sourcePriorities: this.sourcePriorities,
@@ -101,13 +101,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // 获取直播间信息
   try {
-    const liveInfo = await getInfo(this.channelId);
+    const liveInfo = await getInfo(String(this.uid));
     this.liveInfo = liveInfo;
     this.state = "idle";
   } catch (error) {
     this.state = "check-error";
     throw error;
   }
+
+  const aa = await check();
+  console.log("check response", aa);
   const { living, owner, title, liveStartTime, recordStartTime } = this.liveInfo;
 
   if (this.liveInfo.liveId === banLiveId) {
@@ -132,7 +135,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   try {
     res = await getStream({
-      channelId: this.channelId,
+      channelId: String(this.uid),
       quality: this.quality,
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
@@ -187,7 +190,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     },
     onEnd,
     async () => {
-      const info = await getInfo(this.channelId);
+      const info = await getInfo(String(this.uid));
       return info;
     },
   );
@@ -302,11 +305,11 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     const uid = await parser.extractUserId(channelURL);
     const info = await parser.getLiveInfo(roomId);
     return {
-      id: info.roomId.toString(),
+      id: uid,
       title: info.title,
       owner: info.owner,
       avatar: info.avatar,
-      uid: uid,
+      uid: roomId,
     };
   },
 
