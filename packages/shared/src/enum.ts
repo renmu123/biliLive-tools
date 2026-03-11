@@ -390,6 +390,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       doubleScreen: true,
       api: "web",
     },
+    xhs: {
+      cookie: "",
+    },
     saveDanma2DB: false,
   },
   video: {

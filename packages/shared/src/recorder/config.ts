@@ -59,7 +59,11 @@ export default class RecorderConfig {
         } else if (key === "source") {
           return get(globalConfig, "douyu.source");
         } else if (key === "cookie") {
-          return get(globalConfig, "douyin.cookie");
+          if (setting.providerId === "DouYin") {
+            return get(globalConfig, "douyin.cookie");
+          } else if (setting.providerId === "XHS") {
+            return get(globalConfig, "xhs.cookie");
+          }
         } else if (key === "doubleScreen") {
           if (setting.providerId === "DouYin") {
             return get(globalConfig, "douyin.doubleScreen");

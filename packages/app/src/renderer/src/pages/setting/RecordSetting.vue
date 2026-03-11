@@ -354,6 +354,14 @@
             <n-switch v-model:value="config.recorder.douyin.doubleScreen" />
           </n-form-item>
         </n-tab-pane>
+        <n-tab-pane class="tab-pane" name="xhs" tab="小红书" display-directive="show:lazy">
+          <n-form-item>
+            <template #label>
+              <Tip text="Cookie" tip="cookie"></Tip>
+            </template>
+            <n-input v-model:value="config.recorder.xhs.cookie" type="password" />
+          </n-form-item>
+        </n-tab-pane>
       </n-tabs>
     </n-form>
   </div>

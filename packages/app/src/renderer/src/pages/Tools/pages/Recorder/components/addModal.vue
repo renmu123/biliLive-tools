@@ -362,6 +362,21 @@
               />
             </n-form-item>
           </template>
+          <template v-if="config.providerId === 'XHS'">
+            <n-form-item>
+              <template #label>
+                <Tip text="Cookie" tip="cookie"></Tip>
+              </template>
+              <n-input
+                v-model:value="config.cookie"
+                type="password"
+                :disabled="globalFieldsObj.cookie"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.cookie" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+          </template>
           <template v-if="config.providerId === 'DouYin'">
             <n-form-item>
               <template #label>
@@ -874,6 +889,8 @@ watch(
     if (val.cookie) {
       if (config.value.providerId === "DouYin") {
         config.value.cookie = appConfig.value.recorder.douyin.cookie;
+      } else if (config.value.providerId === "XHS") {
+        config.value.cookie = appConfig.value.recorder.xhs.cookie;
       }
     }
     if (val.doubleScreen) {
