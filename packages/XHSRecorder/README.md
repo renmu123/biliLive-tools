@@ -1,6 +1,6 @@
 # Intro
 
-这是 [biliLive-tools](https://github.com/renmu123/biliLive-tools) 的一个平台插件，为其支持了小红书平台录制，**小红书平台不支持自动监控，每场直播需要修改链接**
+这是 [biliLive-tools](https://github.com/renmu123/biliLive-tools) 的一个平台插件，为其支持了小红书平台录制，**小红书平台只有设置了Cookie才支持自动监听，否则每场直播需要修改链接**
 
 # 安装
 
@@ -33,7 +33,8 @@ manager.startCheckLoop();
 
 ```ts
 interface Options {
-  channelId: string; // 直播间ID，具体解析见文档，也可自行解析
+  channelId: string; // 用户uid，具体解析见文档，也可自行解析
+  uid: string; // 必要！`${roomId}-${redId}`
   quality: 0; // 见画质参数
   qualityRetry?: number; // 画质匹配重试次数, -1为强制匹配画质，0为自动配置，正整数为最大匹配次数
   streamPriorities: []; // 废弃
@@ -58,8 +59,8 @@ interface Options {
 ```ts
 import { provider } from "@bililive-tools/xhs-recorder";
 
+// 手机端分享链接
 const url = "http://xhslink.com/m/5OUfMYyJsA";
-// 或者 https://www.xiaohongshu.com/livestream/dynpath1OXiHRa1/570180068897685033?timestamp=1773127522447&share_source=share_link&share_source_id=&source=share_out_of_app&host_id=6893946800000000280368d1
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
 

@@ -355,11 +355,20 @@
           </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="xhs" tab="小红书" display-directive="show:lazy">
+          <h3 style="margin-bottom: 10px">设置Cookie可自动监听，建议使用小号</h3>
           <n-form-item>
             <template #label>
-              <Tip text="Cookie" tip="cookie"></Tip>
+              <Tip text="Cookie" tip="用于自动监听"></Tip>
             </template>
             <n-input v-model:value="config.recorder.xhs.cookie" type="password" />
+            <n-button
+              v-if="!isWeb"
+              type="primary"
+              style="margin-left: 10px"
+              @click="xhsLogin"
+              title="登录后退出即可获取cookie，小红书一个帐号只能登录一端"
+              >登录</n-button
+            >
           </n-form-item>
         </n-tab-pane>
       </n-tabs>
@@ -399,6 +408,7 @@ const config = defineModel<AppConfig>("data", {
 });
 
 const { userList } = storeToRefs(useUserInfoStore());
+const isWeb = computed(() => window.isWeb);
 
 const selectFolder = async () => {
   let file: string | undefined = await showDirectoryDialog({
@@ -509,6 +519,11 @@ const handleNameRuleBlur = async () => {
     }
     config.value.recorder.nameRule = config.value.recorder.nameRule.replaceAll(":", " ");
   }
+};
+
+const xhsLogin = async () => {
+  const cookie = await window.api.cookie.xhsLogin();
+  config.value.recorder.xhs.cookie = cookie;
 };
 </script>
 

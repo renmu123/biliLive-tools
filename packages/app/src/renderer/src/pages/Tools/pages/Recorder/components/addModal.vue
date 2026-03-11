@@ -15,7 +15,7 @@
           <template #label>
             <Tip
               text="直播间链接"
-              tip="如果链接无法解析，请尝试使用标准直播间链接<br/>斗鱼：https://www.douyu.com/房间号<br/>虎牙：https://www.huya.com/房间号<br/>B站：https://live.bilibili.com/房间号<br/>抖音：https://live.douyin.com/房间号<br/>抖音：https://www.douyin.com/user/xxxxx"
+              tip="如果链接无法解析，请尝试使用标准直播间链接<br/>斗鱼：https://www.douyu.com/房间号<br/>虎牙：https://www.huya.com/房间号<br/>B站：https://live.bilibili.com/房间号<br/>抖音：https://live.douyin.com/房间号<br/>抖音：https://www.douyin.com/user/xxxxx<br/>小红书：http://xhslink.com/m/54KhCYhGUZA（手机端分享链接）"
             ></Tip>
           </template>
           <n-input
@@ -365,7 +365,7 @@
           <template v-if="config.providerId === 'XHS'">
             <n-form-item>
               <template #label>
-                <Tip text="Cookie" tip="cookie"></Tip>
+                <Tip text="Cookie" tip="用于自动监听直播间"></Tip>
               </template>
               <n-input
                 v-model:value="config.cookie"

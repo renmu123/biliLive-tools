@@ -37,7 +37,12 @@
   "author": "renmu123",
   "license": "MIT",
   "dependencies": {
+    "cookie": "^1.1.1",
     "lodash-es": "catalog:",
-    "undici": "^7.21.0"
+    "undici": "^7.21.0",
+    "xhshow-js": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/cookie": "^1.0.0"
   }
 }

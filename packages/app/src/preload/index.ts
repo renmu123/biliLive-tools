@@ -24,6 +24,9 @@ export const api = {
     baiduLogin: () => {
       return ipcRenderer.invoke("cookie:baidu");
     },
+    xhsLogin: () => {
+      return ipcRenderer.invoke("cookie:xhs");
+    },
   },
   common: {
     readFile: (path: string) => {

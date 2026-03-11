@@ -1,11 +1,25 @@
-import { v4 as uuid } from "uuid";
 import { Recorder } from "@bililive-tools/manager";
 import { XhsParser } from "@bililive-tools/stream-get";
 
-export async function check() {
+export async function check(redId: string, cookie: string) {
   const parser = new XhsParser();
-  const response = await parser.check();
-  return response;
+  const response = await parser.check(redId, cookie);
+  if (response?.success !== true) {
+    throw new Error("自动检查失败，可能是cookie无效了");
+  }
+  const user = response?.data?.users?.[0];
+  if (!user) {
+    throw new Error("自动检查失败，未找到用户信息，确认小红书号是否修改");
+  }
+  let data = {
+    living: user?.live_info?.status === 2,
+    roomId: user?.live_info?.room_id,
+    xsecToken: response?.data?.xsec_token,
+    liveStartTime: user?.live_info?.start_time ? new Date(user.live_info.start_time) : undefined,
+    owner: user.name,
+    avatar: user.image,
+  };
+  return data;
 }
 
 export async function getInfo(channelId: string): Promise<{
@@ -30,7 +44,7 @@ export async function getInfo(channelId: string): Promise<{
     cover: info.cover,
     roomId: info.roomId,
     liveStartTime: recordStartTime,
-    liveId: uuid(),
+    liveId: info.roomId,
     recordStartTime: recordStartTime,
   };
 }

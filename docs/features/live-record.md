@@ -238,5 +238,6 @@ biliLive-tools 提供三种录制器引擎：
 - [斗鱼录制](https://www.npmjs.com/package/@bililive-tools/douyu-recorder)
 - [虎牙录制](https://www.npmjs.com/package/@bililive-tools/huya-recorder)
 - [抖音录制](https://www.npmjs.com/package/@bililive-tools/douyin-recorder)
+- [小红书录制](https://www.npmjs.com/package/@bililive-tools/xhs-recorder)
 - [虎牙弹幕监听](https://www.npmjs.com/package/huya-danma-listener)
 - [抖音弹幕监听](https://www.npmjs.com/package/douyin-danma-listener)

@@ -50,7 +50,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       const channelId = String(this.uid);
       const info = await getInfo(channelId);
       return {
-        channelId,
+        channelId: channelId,
         ...info,
       };
     },
@@ -98,27 +98,56 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     // 已经在录制中，直接返回
     return this.recordHandle;
   }
-
+  if (!this.uid) {
+    throw new Error("缺少uid，无法获取直播信息");
+  }
+  let [roomId, redId] = String(this.uid).split("-");
+  let liveStartTimeFromSearch: Date | undefined = undefined;
   // 获取直播间信息
   try {
-    const liveInfo = await getInfo(String(this.uid));
+    if (this.auth) {
+      // 在存在cookie的情况下，可以调用接口进行轮询检查
+      const info = await check(redId, this.auth);
+      const isLiving = info?.living ?? false;
+      console.log("checkLiveStatusAndRecord", info);
+      this.liveInfo = {
+        living: isLiving,
+        owner: info.owner,
+        title: "",
+        avatar: info.avatar,
+        cover: "",
+        liveStartTime: info.liveStartTime,
+        recordStartTime: new Date(),
+        liveId: info.roomId,
+      };
+      if (!isLiving) {
+        return null;
+      }
+      roomId = info.roomId;
+      liveStartTimeFromSearch = info.liveStartTime;
+    }
+    if (!roomId) return null;
+
+    if (this.liveInfo.liveId === banLiveId) {
+      this.tempStopIntervalCheck = true;
+    } else {
+      this.tempStopIntervalCheck = false;
+    }
+    if (this.tempStopIntervalCheck) return null;
+
+    const liveInfo = await getInfo(roomId);
     this.liveInfo = liveInfo;
+    if (liveStartTimeFromSearch) {
+      this.liveInfo.liveStartTime = liveStartTimeFromSearch;
+    }
+
     this.state = "idle";
   } catch (error) {
     this.state = "check-error";
     throw error;
   }
 
-  const aa = await check();
-  console.log("check response", aa);
   const { living, owner, title, liveStartTime, recordStartTime } = this.liveInfo;
-
-  if (this.liveInfo.liveId === banLiveId) {
-    this.tempStopIntervalCheck = true;
-  } else {
-    this.tempStopIntervalCheck = false;
-  }
-  if (this.tempStopIntervalCheck) return null;
   if (!living) return null;
 
   // 检查标题是否包含关键词
@@ -135,7 +164,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   try {
     res = await getStream({
-      channelId: String(this.uid),
+      channelId: roomId,
       quality: this.quality,
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
@@ -190,7 +219,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     },
     onEnd,
     async () => {
-      const info = await getInfo(String(this.uid));
+      const info = await getInfo(roomId);
       return info;
     },
   );
@@ -304,12 +333,17 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     const roomId = await parser.extractRoomId(channelURL);
     const uid = await parser.extractUserId(channelURL);
     const info = await parser.getLiveInfo(roomId);
+
+    // 小红书ID用于基于cookie的自动监听
+    const data = await parser.getUserInfo(uid);
+    const redId = data?.user?.userPageData?.basicInfo?.redId;
+
     return {
       id: uid,
       title: info.title,
       owner: info.owner,
       avatar: info.avatar,
-      uid: roomId,
+      uid: `${roomId}-${redId}`,
     };
   },
 
