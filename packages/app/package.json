@@ -27,6 +27,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@imengyu/vue3-context-menu": "^1.5.2",
     "@napi-rs/canvas": "^0.1.60",
+    "@resvg/resvg-js": "^2.6.2",
     "better-sqlite3": "catalog:",
     "bufferutil": "^4.0.8",
     "electron-context-menu": "4.1.1",

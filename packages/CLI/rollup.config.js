@@ -11,6 +11,7 @@ export default [
       "font-ls",
       "better-sqlite3",
       "shazamio-core",
+      "@resvg/resvg-js",
       "music-segment-detector",
       "fsevents",
     ],
