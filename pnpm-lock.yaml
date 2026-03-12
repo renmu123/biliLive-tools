@@ -10,11 +10,11 @@ catalogs:
       specifier: ^1.7.8
       version: 1.7.8
     better-sqlite3:
-      specifier: 12.4.6
-      version: 12.4.6
+      specifier: 12.6.2
+      version: 12.6.2
     font-ls:
-      specifier: 0.6.2
-      version: 0.6.2
+      specifier: 0.6.4
+      version: 0.6.4
     lodash-es:
       specifier: ^4.17.21
       version: 4.17.21
@@ -123,11 +123,11 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       better-sqlite3:
-        specifier: 12.4.6
-        version: 12.4.6
+        specifier: 12.6.2
+        version: 12.6.2
       font-ls:
-        specifier: 0.6.2
-        version: 0.6.2
+        specifier: 0.6.4
+        version: 0.6.4
       music-segment-detector:
         specifier: ^0.3.1
         version: 0.3.1(rollup@4.52.4)
@@ -276,10 +276,10 @@ importers:
     dependencies:
       '@electron-toolkit/preload':
         specifier: ^3.0.1
-        version: 3.0.1(electron@39.2.3)
+        version: 3.0.1(electron@40.8.0)
       '@electron-toolkit/utils':
         specifier: ^4.0.0
-        version: 4.0.0(electron@39.2.3)
+        version: 4.0.0(electron@40.8.0)
       '@imengyu/vue3-context-menu':
         specifier: ^1.5.2
         version: 1.5.2
@@ -291,7 +291,7 @@ importers:
         version: 2.0.3
       better-sqlite3:
         specifier: 'catalog:'
-        version: 12.4.6
+        version: 12.6.2
       bufferutil:
         specifier: ^4.0.8
         version: 4.0.8
@@ -309,7 +309,7 @@ importers:
         version: 6.3.9
       font-ls:
         specifier: 'catalog:'
-        version: 0.6.2
+        version: 0.6.4
       music-segment-detector:
         specifier: ^0.3.1
         version: 0.3.1(rollup@4.52.4)
@@ -346,7 +346,7 @@ importers:
         version: 2.0.0(eslint@8.57.1)(typescript@5.9.3)
       '@electron-toolkit/tsconfig':
         specifier: ^1.0.1
-        version: 1.0.1(@types/node@24.7.2)
+        version: 1.0.1(@types/node@24.12.0)
       '@electron/rebuild':
         specifier: ^4.0.1
         version: 4.0.1
@@ -367,7 +367,7 @@ importers:
         version: 0.13.0
       '@vitejs/plugin-vue':
         specifier: ^6.0.1
-        version: 6.0.1(vite@7.1.10(@types/node@24.7.2)(less@4.2.1)(tsx@4.19.2))(vue@3.5.13(typescript@5.9.3))
+        version: 6.0.1(vite@7.1.10(@types/node@24.12.0)(less@4.2.1)(tsx@4.19.2))(vue@3.5.13(typescript@5.9.3))
       '@vue/eslint-config-prettier':
         specifier: ^10.1.0
         version: 10.1.0(eslint@8.57.1)(prettier@3.6.2)
@@ -399,8 +399,8 @@ importers:
         specifier: ^1.3.1
         version: 1.3.1
       electron:
-        specifier: 39.2.3
-        version: 39.2.3
+        specifier: 40.8.0
+        version: 40.8.0
       electron-builder:
         specifier: ^24.13.3
         version: 24.13.3(electron-builder-squirrel-windows@24.13.3)
@@ -409,7 +409,7 @@ importers:
         version: 4.0.0
       electron-vite:
         specifier: ^5.0.0
-        version: 5.0.0(vite@7.1.10(@types/node@24.7.2)(less@4.2.1)(tsx@4.19.2))
+        version: 5.0.0(vite@7.1.10(@types/node@24.12.0)(less@4.2.1)(tsx@4.19.2))
       eslint:
         specifier: ^8.57.1
         version: 8.57.1
@@ -447,8 +447,8 @@ importers:
         specifier: ^1.8.0
         version: 1.8.0
       naive-ui:
-        specifier: ^2.40.3
-        version: 2.40.3(vue@3.5.13(typescript@5.9.3))
+        specifier: ^2.44.1
+        version: 2.44.1(vue@3.5.13(typescript@5.9.3))
       path-unified:
         specifier: ^0.2.0
         version: 0.2.0
@@ -466,7 +466,7 @@ importers:
         version: 30.0.0(@babel/parser@7.28.4)(vue@3.5.13(typescript@5.9.3))
       vite:
         specifier: ^7.1.10
-        version: 7.1.10(@types/node@24.7.2)(less@4.2.1)(tsx@4.19.2)
+        version: 7.1.10(@types/node@24.12.0)(less@4.2.1)(tsx@4.19.2)
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@5.9.3)
@@ -626,7 +626,7 @@ importers:
         version: 11.0.4
       better-sqlite3:
         specifier: 'catalog:'
-        version: 12.4.6
+        version: 12.6.2
       check-disk-space:
         specifier: ^3.4.0
         version: 3.4.0
@@ -647,7 +647,7 @@ importers:
         version: 4.5.0
       font-ls:
         specifier: 'catalog:'
-        version: 0.6.2
+        version: 0.6.4
       music-segment-detector:
         specifier: ^0.3.1
         version: 0.3.1(rollup@4.52.4)
@@ -1934,9 +1934,6 @@ packages:
   '@types/http-errors@2.0.4':
     resolution: {integrity: sha512-D0CFMMtydbJAegzOyHjtiKPLlvnm3iTZyZRSZoLq2mRhDdmLfIWOCYPfQJ4cu2erKghU++QvjcUjp/5h7hESpA==}
 
-  '@types/katex@0.16.7':
-    resolution: {integrity: sha512-HMwFiRujE5PjrgwHQ25+bsLJgowjGjm5Z8FVSf0N6PwgJrwxH0QxzHYDcKsTfV3wva0vzrpqMTJS2jXPr5BMEQ==}
-
   '@types/keygrip@1.0.6':
     resolution: {integrity: sha512-lZuNAY9xeJt7Bx4t4dx0rYCDqGPW8RXhQZK1td7d4H6E9zYbLoOtjBvfwdTKpsyxQI/2jv+armjX/RW+ZNpXOQ==}
 
@@ -1958,8 +1955,8 @@ packages:
   '@types/lodash-es@4.17.12':
     resolution: {integrity: sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==}
 
-  '@types/lodash@4.17.13':
-    resolution: {integrity: sha512-lfx+dftrEZcdBPczf9d0Qv0x+j/rfNCMuC6OcfXmO8gkfeNAY88PgKUbvG56whcN23gc27yenwF6oJZXGFpYxg==}
+  '@types/lodash@4.17.24':
+    resolution: {integrity: sha512-gIW7lQLZbue7lRSWEFql49QJJWThrTFFeIMJdp3eH4tKoxm1OvEPg02rm4wCCSHS0cL3/Fizimb35b7k8atwsQ==}
 
   '@types/markdown-it@14.1.2':
     resolution: {integrity: sha512-promo4eFwuiW+TfGxhi+0x3czqTYJkG8qB17ZUJiVF10Xm7NLVRSLUsfRTU/6h1e24VvRnXCx+hG7li58lkzog==}
@@ -1985,8 +1982,8 @@ packages:
   '@types/node@20.17.6':
     resolution: {integrity: sha512-VEI7OdvK2wP7XHnsuXbAJnEpEkF6NjSN45QJlL4VGqZSXsnicpesdTWsg9RISeSdYd3yeRj/y3k5KGjUXYnFwQ==}
 
-  '@types/node@22.9.0':
-    resolution: {integrity: sha512-vuyHg81vvWA1Z1ELfvLko2c8f34gyA0zaic0+Rllc5lbCnbSyuvb2Oxpm6TAUAC/2xZN3QGqxBNggD1nNR2AfQ==}
+  '@types/node@24.12.0':
+    resolution: {integrity: sha512-GYDxsZi3ChgmckRT9HPU0WEhKLP08ev/Yfcq2AstjrDASOYCSXeyjDsHg4v5t4jOj7cyDX3vmprafKlWIG9MXQ==}
 
   '@types/node@24.7.2':
     resolution: {integrity: sha512-/NbVmcGTP+lj5oa4yiYxxeBjRivKQ5Ns1eSZeB99ExsEQ6rX5XYU1Zy/gGxY/ilqtD4Etx9mKyrPxZRetiahhA==}
@@ -2532,8 +2529,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  better-sqlite3@12.4.6:
-    resolution: {integrity: sha512-gaYt9yqTbQ1iOxLpJA8FPR5PiaHP+jlg8I5EX0Rs2KFwNzhBsF40KzMZS5FwelY7RG0wzaucWdqSAJM3uNCPCg==}
+  better-sqlite3@12.6.2:
+    resolution: {integrity: sha512-8VYKM3MjCa9WcaSAI3hzwhmyHVlH8tiGFwf0RlTsZPWJ1I5MkzjiudCo4KC4DxOaL/53A5B1sI/IbldNFDbsKA==}
     engines: {node: 20.x || 22.x || 23.x || 24.x || 25.x}
 
   big.js@3.2.0:
@@ -2892,8 +2889,8 @@ packages:
     peerDependencies:
       date-fns: ^3.0.0 || ^4.0.0
 
-  date-fns@3.6.0:
-    resolution: {integrity: sha512-fRHTG8g/Gif+kSh50gaGEdToemgfj74aRX3swtiouboip5JDLAyDE9F11nHMIcvOaXeOC6D7SpNhi7uFyB7Uww==}
+  date-fns@4.1.0:
+    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
 
   dayjs@1.11.18:
     resolution: {integrity: sha512-zFBQ7WFRvVRhKcWoUh+ZA1g2HVgUbsZm9sbddh8EC5iv93sui8DVVz1Npvz+r6meo9VKfa8NyLWBsQK1VvIKPA==}
@@ -3147,8 +3144,8 @@ packages:
       '@swc/core':
         optional: true
 
-  electron@39.2.3:
-    resolution: {integrity: sha512-j7k7/bj3cNA29ty54FzEMRUoqirE+RBQPhPFP+XDuM93a1l2WcDPiYumxKWz+iKcXxBJLFdMIAlvtLTB/RfCkg==}
+  electron@40.8.0:
+    resolution: {integrity: sha512-WoPq0Nr9Yx3g7T6VnJXdwa/rr2+VRyH3a+K+ezfMKBlf6WjxE/LmhMQabKbb6yjm9RbZhJBRcYyoLph421O2mQ==}
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
@@ -3525,8 +3522,8 @@ packages:
       debug:
         optional: true
 
-  font-ls@0.6.2:
-    resolution: {integrity: sha512-f5TxMy5/61iw6GaDskVxhqFNY5zxRB/LGCm08RiZslU8hX3J4pLDvFG01uuOP9Pc/dl3n0YWyD9eDhBZ0QQh6w==}
+  font-ls@0.6.4:
+    resolution: {integrity: sha512-3ocvnQ3ECQR+csxThHzcVsRnL90AH7Wuw4DG/peItFvtgm4qg/IAPOVIdpL8L1juByw/Hy10YQippnaIOG4gxg==}
 
   foreground-child@3.3.0:
     resolution: {integrity: sha512-Ld2g8rrAyMYFXBhEqMz8ZAHBi4J4uS1i/CxGMDnjyFWddMXLVcDp051DZfu+t7+ab7Wv6SMqpWmyFIj5UbfFvg==}
@@ -4458,8 +4455,9 @@ packages:
     resolution: {integrity: sha512-6ybsAMe45WNHmLdo8QeLRQQXSHgCIBGmnxhZbE4O6MviWF3mvx2GMZsGHJVkvxc6GEssDiSfxV2gfUkWW4DL6Q==}
     engines: {node: '>=16.0.0'}
 
-  naive-ui@2.40.3:
-    resolution: {integrity: sha512-TpgYfOg0SNlG4HHhTdFnFcPc1trZiX3r10Pn6biyEgRoi6ZC5qbsY8xgKsqQuG4nWj2PHLT8pPVEkt2pKOlxag==}
+  naive-ui@2.44.1:
+    resolution: {integrity: sha512-reo8Esw0p58liZwbUutC7meW24Xbn3EwNv91zReWKm2W4JPu+zfgJRn/F7aO0BFmvN+h2brA2M5lRvYqLq4kuA==}
+    engines: {node: '>=20'}
     peerDependencies:
       vue: ^3.0.0
 
@@ -4851,6 +4849,7 @@ packages:
   prebuild-install@7.1.2:
     resolution: {integrity: sha512-UnNke3IQb6sgarcZIDU3gbMeTp/9SSU1DAIkil7PrqG1vZlBtY5msYccSKSHDqa3hNg436IXK+SNImReuA1wEQ==}
     engines: {node: '>=10'}
+    deprecated: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
     hasBin: true
 
   prelude-ls@1.1.2:
@@ -5089,8 +5088,8 @@ packages:
     resolution: {integrity: sha512-e1QtP3YL5tWww8uKaOCQ18UxIT2laNBXHjV/S2WYCiK4udiv8lkG89KRIoCjUagnAmCBurjF4zEVX2ByBbnCjQ==}
     hasBin: true
 
-  seemly@0.3.9:
-    resolution: {integrity: sha512-bMLcaEqhIViiPbaumjLN8t1y+JpD/N8SiyYOyp0i0W6RgdyLWboIsUWAbZojF//JyerxPZR5Tgda+x3Pdne75A==}
+  seemly@0.3.10:
+    resolution: {integrity: sha512-2+SMxtG1PcsL0uyhkumlOU6Qo9TAQ/WyH7tthnPIOQB05/12jz9naq6GZ6iZ6ApVsO3rr2gsnTf3++OV63kE1Q==}
 
   semver-compare@1.0.0:
     resolution: {integrity: sha512-YM3/ITh2MJ5MtzaM429anh+x2jiLVjqILF4m4oyQB18W7Ggea7BfqdH/wGMK7dDiMghv/6WG7znWMwUDzJiXow==}
@@ -5391,12 +5390,12 @@ packages:
   tar@6.2.1:
     resolution: {integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==}
     engines: {node: '>=10'}
-    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   tar@7.4.3:
     resolution: {integrity: sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==}
     engines: {node: '>=18'}
-    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   temp-file@3.4.0:
     resolution: {integrity: sha512-C5tjlC/HCtVUOi3KWVokd4vHVViOmGjtLwIh4MuzPo/nMYTV/p1urt3RnMz2IWXDdKEGJH3k5+KPxtqRsUYGtg==}
@@ -5584,6 +5583,9 @@ packages:
 
   undici-types@7.14.0:
     resolution: {integrity: sha512-QQiYxHuyZ9gQUIrmPo3IA+hUl4KYk8uSA7cHrcKd/l3p1OTpZcM0Tbp9x7FAtXdAYhlasd60ncPpgu6ihG6TOA==}
+
+  undici-types@7.16.0:
+    resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
   unimport@5.5.0:
     resolution: {integrity: sha512-/JpWMG9s1nBSlXJAQ8EREFTFy3oy6USFd8T6AoBaw1q2GGcF4R9yp3ofg32UODZlYEO5VD0EWE1RpI9XDWyPYg==}
@@ -5811,8 +5813,8 @@ packages:
     peerDependencies:
       vue: ^3.0.1
 
-  vueuc@0.4.64:
-    resolution: {integrity: sha512-wlJQj7fIwKK2pOEoOq4Aro8JdPOGpX8aWQhV8YkTW9OgWD2uj2O8ANzvSsIGjx7LTOc7QbS7sXdxHi6XvRnHPA==}
+  vueuc@0.4.65:
+    resolution: {integrity: sha512-lXuMl+8gsBmruudfxnMF9HW4be8rFziylXFu1VHVNbLVhRTXXV4njvpRuJapD/8q+oFEMSfQMH16E/85VoWRyQ==}
     peerDependencies:
       vue: ^3.0.11
 
@@ -6157,17 +6159,17 @@ snapshots:
     dependencies:
       eslint: 8.57.1
 
-  '@electron-toolkit/preload@3.0.1(electron@39.2.3)':
+  '@electron-toolkit/preload@3.0.1(electron@40.8.0)':
     dependencies:
-      electron: 39.2.3
+      electron: 40.8.0
 
-  '@electron-toolkit/tsconfig@1.0.1(@types/node@24.7.2)':
+  '@electron-toolkit/tsconfig@1.0.1(@types/node@24.12.0)':
     dependencies:
-      '@types/node': 24.7.2
+      '@types/node': 24.12.0
 
-  '@electron-toolkit/utils@4.0.0(electron@39.2.3)':
+  '@electron-toolkit/utils@4.0.0(electron@40.8.0)':
     dependencies:
-      electron: 39.2.3
+      electron: 40.8.0
 
   '@electron/asar@3.2.17':
     dependencies:
@@ -7019,8 +7021,6 @@ snapshots:
 
   '@types/http-errors@2.0.4': {}
 
-  '@types/katex@0.16.7': {}
-
   '@types/keygrip@1.0.6': {}
 
   '@types/keyv@3.1.4':
@@ -7050,9 +7050,9 @@ snapshots:
 
   '@types/lodash-es@4.17.12':
     dependencies:
-      '@types/lodash': 4.17.13
+      '@types/lodash': 4.17.24
 
-  '@types/lodash@4.17.13': {}
+  '@types/lodash@4.17.24': {}
 
   '@types/markdown-it@14.1.2':
     dependencies:
@@ -7082,9 +7082,9 @@ snapshots:
     dependencies:
       undici-types: 6.19.8
 
-  '@types/node@22.9.0':
+  '@types/node@24.12.0':
     dependencies:
-      undici-types: 6.19.8
+      undici-types: 7.16.0
 
   '@types/node@24.7.2':
     dependencies:
@@ -7313,10 +7313,10 @@ snapshots:
       '@babel/runtime': 7.26.0
       global: 4.4.0
 
-  '@vitejs/plugin-vue@6.0.1(vite@7.1.10(@types/node@24.7.2)(less@4.2.1)(tsx@4.19.2))(vue@3.5.13(typescript@5.9.3))':
+  '@vitejs/plugin-vue@6.0.1(vite@7.1.10(@types/node@24.12.0)(less@4.2.1)(tsx@4.19.2))(vue@3.5.13(typescript@5.9.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.0-beta.29
-      vite: 7.1.10(@types/node@24.7.2)(less@4.2.1)(tsx@4.19.2)
+      vite: 7.1.10(@types/node@24.12.0)(less@4.2.1)(tsx@4.19.2)
       vue: 3.5.13(typescript@5.9.3)
 
   '@vitest/coverage-istanbul@3.2.4(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.7.2)(less@4.2.1)(tsx@4.19.2))':
@@ -7797,7 +7797,7 @@ snapshots:
       which: 2.0.2
       yargs: 16.2.0
 
-  better-sqlite3@12.4.6:
+  better-sqlite3@12.6.2:
     dependencies:
       bindings: 1.5.0
       prebuild-install: 7.1.2
@@ -8219,11 +8219,11 @@ snapshots:
 
   csstype@3.1.3: {}
 
-  date-fns-tz@3.2.0(date-fns@3.6.0):
+  date-fns-tz@3.2.0(date-fns@4.1.0):
     dependencies:
-      date-fns: 3.6.0
+      date-fns: 4.1.0
 
-  date-fns@3.6.0: {}
+  date-fns@4.1.0: {}
 
   dayjs@1.11.18: {}
 
@@ -8515,7 +8515,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron-vite@5.0.0(vite@7.1.10(@types/node@24.7.2)(less@4.2.1)(tsx@4.19.2)):
+  electron-vite@5.0.0(vite@7.1.10(@types/node@24.12.0)(less@4.2.1)(tsx@4.19.2)):
     dependencies:
       '@babel/core': 7.28.4
       '@babel/plugin-transform-arrow-functions': 7.27.1(@babel/core@7.28.4)
@@ -8523,14 +8523,14 @@ snapshots:
       esbuild: 0.25.11
       magic-string: 0.30.21
       picocolors: 1.1.1
-      vite: 7.1.10(@types/node@24.7.2)(less@4.2.1)(tsx@4.19.2)
+      vite: 7.1.10(@types/node@24.12.0)(less@4.2.1)(tsx@4.19.2)
     transitivePeerDependencies:
       - supports-color
 
-  electron@39.2.3:
+  electron@40.8.0:
     dependencies:
       '@electron/get': 2.0.3
-      '@types/node': 22.9.0
+      '@types/node': 24.12.0
       extract-zip: 2.0.1
     transitivePeerDependencies:
       - supports-color
@@ -8963,7 +8963,7 @@ snapshots:
 
   follow-redirects@1.15.9: {}
 
-  font-ls@0.6.2:
+  font-ls@0.6.4:
     dependencies:
       node-addon-api: 8.5.0
 
@@ -9160,7 +9160,7 @@ snapshots:
   globalthis@1.0.4:
     dependencies:
       define-properties: 1.2.1
-      gopd: 1.0.1
+      gopd: 1.2.0
     optional: true
 
   globby@11.1.0:
@@ -10002,28 +10002,27 @@ snapshots:
       - rollup
       - supports-color
 
-  naive-ui@2.40.3(vue@3.5.13(typescript@5.9.3)):
+  naive-ui@2.44.1(vue@3.5.13(typescript@5.9.3)):
     dependencies:
       '@css-render/plugin-bem': 0.15.14(css-render@0.15.14)
       '@css-render/vue3-ssr': 0.15.14(vue@3.5.13(typescript@5.9.3))
-      '@types/katex': 0.16.7
-      '@types/lodash': 4.17.13
+      '@types/lodash': 4.17.24
       '@types/lodash-es': 4.17.12
       async-validator: 4.2.5
       css-render: 0.15.14
       csstype: 3.1.3
-      date-fns: 3.6.0
-      date-fns-tz: 3.2.0(date-fns@3.6.0)
+      date-fns: 4.1.0
+      date-fns-tz: 3.2.0(date-fns@4.1.0)
       evtd: 0.2.4
       highlight.js: 11.10.0
       lodash: 4.17.21
       lodash-es: 4.17.21
-      seemly: 0.3.9
+      seemly: 0.3.10
       treemate: 0.3.11
       vdirs: 0.1.8(vue@3.5.13(typescript@5.9.3))
       vooks: 0.2.12(vue@3.5.13(typescript@5.9.3))
       vue: 3.5.13(typescript@5.9.3)
-      vueuc: 0.4.64(vue@3.5.13(typescript@5.9.3))
+      vueuc: 0.4.65(vue@3.5.13(typescript@5.9.3))
 
   nanoid@3.3.11: {}
 
@@ -10677,7 +10676,7 @@ snapshots:
     dependencies:
       commander: 2.20.3
 
-  seemly@0.3.9: {}
+  seemly@0.3.10: {}
 
   semver-compare@1.0.0:
     optional: true
@@ -11161,6 +11160,8 @@ snapshots:
 
   undici-types@7.14.0: {}
 
+  undici-types@7.16.0: {}
+
   unimport@5.5.0:
     dependencies:
       acorn: 8.15.0
@@ -11315,6 +11316,20 @@ snapshots:
       - tsx
       - yaml
 
+  vite@7.1.10(@types/node@24.12.0)(less@4.2.1)(tsx@4.19.2):
+    dependencies:
+      esbuild: 0.25.2
+      fdir: 6.5.0(picomatch@4.0.3)
+      picomatch: 4.0.3
+      postcss: 8.5.6
+      rollup: 4.52.4
+      tinyglobby: 0.2.15
+    optionalDependencies:
+      '@types/node': 24.12.0
+      fsevents: 2.3.3
+      less: 4.2.1
+      tsx: 4.19.2
+
   vite@7.1.10(@types/node@24.7.2)(less@4.2.1)(tsx@4.19.2):
     dependencies:
       esbuild: 0.25.2
@@ -11417,13 +11432,13 @@ snapshots:
       sortablejs: 1.14.0
       vue: 3.5.13(typescript@5.9.3)
 
-  vueuc@0.4.64(vue@3.5.13(typescript@5.9.3)):
+  vueuc@0.4.65(vue@3.5.13(typescript@5.9.3)):
     dependencies:
       '@css-render/vue3-ssr': 0.15.14(vue@3.5.13(typescript@5.9.3))
       '@juggle/resize-observer': 3.4.0
       css-render: 0.15.14
       evtd: 0.2.4
-      seemly: 0.3.9
+      seemly: 0.3.10
       vdirs: 0.1.8(vue@3.5.13(typescript@5.9.3))
       vooks: 0.2.12(vue@3.5.13(typescript@5.9.3))
       vue: 3.5.13(typescript@5.9.3)
