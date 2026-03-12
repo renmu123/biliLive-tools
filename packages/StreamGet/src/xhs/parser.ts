@@ -55,11 +55,14 @@ export default class XhsParser extends PlatformParser<string> {
 
     throw new ParseError(`无法从 URL 提取房间 ID: ${url}`, this.platform);
   }
-  async extractRoomId(url: string): Promise<string | null> {
+  async extractRoomId(url: string) {
     const { roomId } = await this.extractUrl(url);
+    if (!roomId) {
+      throw new ParseError(`无法从 URL 提取房间 ID: ${url}`, this.platform);
+    }
     return roomId;
   }
-  async extractUserId(url: string): Promise<string | null> {
+  async extractUserId(url: string) {
     const { userId } = await this.extractUrl(url);
     return userId;
   }

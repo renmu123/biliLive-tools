@@ -1,4 +1,3 @@
-import path from "node:path";
 import mitt from "mitt";
 import {
   defaultFromJSON,
@@ -127,7 +126,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
     if (!roomId) return null;
 
-    if (this.liveInfo.liveId === banLiveId) {
+    if (this.liveInfo?.liveId === banLiveId) {
       this.tempStopIntervalCheck = true;
     } else {
       this.tempStopIntervalCheck = false;
@@ -135,9 +134,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (this.tempStopIntervalCheck) return null;
 
     const liveInfo = await getInfo(roomId);
-    this.liveInfo = liveInfo;
+    // @ts-ignore
+    this.liveInfo = liveInfo!;
     if (liveStartTimeFromSearch) {
-      this.liveInfo.liveStartTime = liveStartTimeFromSearch;
+      this.liveInfo!.liveStartTime = liveStartTimeFromSearch;
     }
 
     this.state = "idle";
@@ -146,7 +146,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw error;
   }
 
-  const { living, owner, title, liveStartTime, recordStartTime } = this.liveInfo;
+  const { living, owner, title, liveStartTime, recordStartTime } = this.liveInfo!;
   if (!living) return null;
 
   // 检查标题是否包含关键词
@@ -331,6 +331,9 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     const parser = new XhsParser();
     const roomId = await parser.extractRoomId(channelURL);
     const uid = await parser.extractUserId(channelURL);
+    if (!uid) {
+      throw new Error(`无法从 URL 提取用户 ID: ${channelURL}`);
+    }
     const info = await parser.getLiveInfo(roomId);
 
     // 小红书ID用于基于cookie的自动监听

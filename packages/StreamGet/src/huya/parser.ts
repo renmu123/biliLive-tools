@@ -20,7 +20,7 @@ export class HuyaParser extends PlatformParser<number> {
     return /huya\.com/.test(url);
   }
 
-  extractRoomId(url: string): string {
+  async extractRoomId(url: string) {
     // 支持：https://www.huya.com/123456
     const match = url.match(/huya\.com\/(\w+)/);
     if (match) return match[1];
@@ -30,7 +30,7 @@ export class HuyaParser extends PlatformParser<number> {
 
   async getLiveInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo> {
     const mergedOpts = this.mergeOptions(opts);
-
+    console.log(`HuYaParser.getLiveInfo: roomId=${roomId}, options=`, mergedOpts);
     // TODO: 实现 HuYa API 调用
     // 支持多 API 模式：auto/web/mp/wup
     // 保留原生 bitRate 值
@@ -39,6 +39,7 @@ export class HuyaParser extends PlatformParser<number> {
 
   async getStreams(roomId: string, opts?: RequestOptions): Promise<SourceInfo<number>[]> {
     const mergedOpts = this.mergeOptions(opts);
+    console.log(`HuYaParser.getStreams: roomId=${roomId}, options=`, mergedOpts);
 
     // TODO: 实现流地址获取
     throw new ParseError("HuYa 平台解析器尚未实现", this.platform);

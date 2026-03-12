@@ -283,6 +283,9 @@ importers:
       undici:
         specifier: ^7.21.0
         version: 7.21.0
+      xhshow-js:
+        specifier: ^1.0.0
+        version: 1.0.0
     devDependencies:
       '@types/cookie':
         specifier: ^1.0.0
@@ -302,9 +305,6 @@ importers:
       mitt:
         specifier: 'catalog:'
         version: 3.0.1
-      uuid:
-        specifier: ^10.0.0
-        version: 10.0.0
 
   packages/app:
     dependencies:
@@ -5887,8 +5887,8 @@ packages:
   webworkify-webpack@2.1.5:
     resolution: {integrity: sha512-2akF8FIyUvbiBBdD+RoHpoTbHMQF2HwjcxfDvgztAX5YwbZNyrtfUMgvfgFVsgDhDPVTlkbb5vyasqDHfIDPQw==}
 
-  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
-    resolution: {commit: 24d1e719b4a6cac37a518b2bb10fe124527ef4ef, repo: git@github.com:xqq/webworkify-webpack.git, type: git}
+  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
+    resolution: {tarball: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef}
     version: 2.1.5
 
   whatwg-fetch@3.6.20:
@@ -5964,6 +5964,10 @@ packages:
   xdg-trashdir@3.1.0:
     resolution: {integrity: sha512-N1XQngeqMBoj9wM4ZFadVV2MymImeiFfYD+fJrNlcVcOHsJFFQe7n3b+aBoTPwARuq2HQxukfzVpQmAk1gN4sQ==}
     engines: {node: '>=10'}
+
+  xhshow-js@1.0.0:
+    resolution: {integrity: sha512-W72XhGiAcpJmxY9JQP/UZ9tCQ55DvOcD/41ECaPPNDWuy1GKNQ8P4fcTNzo0HiSNXwxJTpOnRpdQHOOBkVic2A==}
+    engines: {node: '>=16.0.0'}
 
   xml-name-validator@4.0.0:
     resolution: {integrity: sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw==}
@@ -10022,7 +10026,7 @@ snapshots:
   mpegts.js@1.8.0:
     dependencies:
       es6-promise: 4.2.8
-      webworkify-webpack: git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef
+      webworkify-webpack: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef
 
   ms@2.0.0: {}
 
@@ -11509,7 +11513,7 @@ snapshots:
 
   webworkify-webpack@2.1.5: {}
 
-  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
+  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
 
   whatwg-fetch@3.6.20: {}
 
@@ -11573,6 +11577,10 @@ snapshots:
       mount-point: 3.0.0
       user-home: 2.0.0
       xdg-basedir: 4.0.0
+
+  xhshow-js@1.0.0:
+    dependencies:
+      crypto-js: 4.2.0
 
   xml-name-validator@4.0.0: {}
 

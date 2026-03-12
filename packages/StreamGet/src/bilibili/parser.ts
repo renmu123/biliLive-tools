@@ -21,8 +21,10 @@ export class BilibiliParser extends PlatformParser<number> {
     return /live\.bilibili\.com/.test(url);
   }
 
-  async extractRoomId(url: string): Promise<string | null> {
-    if (!this.matchURL(url)) return null;
+  async extractRoomId(url: string) {
+    if (!this.matchURL(url)) {
+      throw new ParseError(`无法从 URL 提取房间 ID: ${url}`, this.platform);
+    }
     const id = path.basename(new URL(url).pathname);
     const data = await getRoomInit(this.httpClient, id);
 
@@ -31,6 +33,7 @@ export class BilibiliParser extends PlatformParser<number> {
 
   async getLiveInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo> {
     const mergedOpts = this.mergeOptions(opts);
+    console.log(`BilibiliParser.getLiveInfo: roomId=${roomId}, options=`, mergedOpts);
     const roomIdNum = Number(roomId);
 
     try {

@@ -1,5 +1,10 @@
 import { PlatformParser } from "../types.js";
-import type { RequestOptions, LiveInfo, SourceInfo, StreamInfo } from "../types.js";
+import type {
+  RequestOptions,
+  LiveInfo,
+  SourceInfo,
+  // StreamInfo
+} from "../types.js";
 import { ParseError } from "../errors.js";
 import { HttpClient } from "../http.js";
 import { getLiveInfo, getRoomInfo } from "./api.js";
@@ -17,7 +22,7 @@ export class DouyuParser extends PlatformParser<number> {
     return /douyu\.com/.test(url);
   }
 
-  async extractRoomId(url: string): Promise<string | null> {
+  async extractRoomId(url: string) {
     // 支持：https://www.douyu.com/123456
     url = url.trim();
 

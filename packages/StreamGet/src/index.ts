@@ -16,14 +16,14 @@
 // 注册所有平台
 import { registry } from "./registry.js";
 import { BilibiliParser } from "./bilibili/parser.js";
-import { DouyinParser } from "./douyin/parser.js";
+// import { DouyinParser } from "./douyin/parser.js";
 import { DouyuParser } from "./douyu/parser.js";
 import { HuyaParser } from "./huya/parser.js";
 import { XhsParser } from "./xhs/parser.js";
 
 // 自动注册平台解析器
 registry.register("bilibili", (opts) => new BilibiliParser(opts));
-registry.register("douyin", (opts) => new DouyinParser(opts));
+// registry.register("douyin", (opts) => new DouyinParser(opts));
 registry.register("douyu", (opts) => new DouyuParser(opts));
 registry.register("huya", (opts) => new HuyaParser(opts));
 registry.register("xhs", (opts) => new XhsParser(opts));
@@ -41,7 +41,7 @@ export { StreamParser } from "./parser.js";
 
 // 导出平台特定解析器（特定调用）
 export { BilibiliParser } from "./bilibili/parser.js";
-export { DouyinParser } from "./douyin/parser.js";
+// export { DouyinParser } from "./douyin/parser.js";
 export { DouyuParser } from "./douyu/parser.js";
 export { HuyaParser } from "./huya/parser.js";
 export { XhsParser } from "./xhs/parser.js";

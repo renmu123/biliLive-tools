@@ -175,7 +175,7 @@ export default class RecorderConfig {
       ...setting,
       quality: getValue("quality") ?? "highest",
       line: getValue("line"),
-      disableProvideCommentsWhenRecording: getValue("disableProvideCommentsWhenRecording") ?? true,
+      disableProvideCommentsWhenRecording: disableProvideCommentsWhenRecording,
       saveGiftDanma: getValue("saveGiftDanma") ?? false,
       saveSCDanma: getValue("saveSCDanma") ?? true,
       saveCover: getValue("saveCover") ?? false,

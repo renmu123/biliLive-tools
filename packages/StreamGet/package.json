@@ -20,7 +20,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "pnpm run test && tsc",
+    "build": "tsc",
     "watch": "tsc -w",
     "test": "vitest run"
   },

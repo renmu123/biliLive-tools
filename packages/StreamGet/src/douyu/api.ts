@@ -10,8 +10,8 @@ import type {
   GetH5PlaySuccessData,
   RoomInfo,
   LiveInfoResult,
-  SourceProfile,
-  StreamProfile,
+  // SourceProfile,
+  // StreamProfile,
 } from "./types.js";
 
 // 签名函数类型

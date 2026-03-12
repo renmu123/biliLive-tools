@@ -41,7 +41,6 @@
     "@bililive-tools/manager": "workspace:^",
     "@bililive-tools/stream-get": "workspace:*",
     "lodash-es": "catalog:",
-    "mitt": "catalog:",
-    "uuid": "^10.0.0"
+    "mitt": "catalog:"
   }
 }
