@@ -364,6 +364,9 @@
             </template>
           </n-form>
         </n-tab-pane>
+        <n-tab-pane name="workflow" tab="工作流">
+          <WorkflowSetting v-model:data="config"></WorkflowSetting>
+        </n-tab-pane>
         <n-tab-pane name="sync" tab="文件同步">
           <SyncSetting v-model:data="config"></SyncSetting>
         </n-tab-pane>
@@ -439,6 +442,7 @@ import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
 import VideoSetting from "./VideoSetting.vue";
 import SyncSetting from "./SyncSetting.vue";
+import WorkflowSetting from "./WorkflowSetting/index.vue";
 import CutSetting from "./CutSetting.vue";
 import OtherSetting from "./OtherSetting.vue";
 import AISetting from "./AISetting.vue";

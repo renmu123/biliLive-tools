@@ -102,6 +102,16 @@ const router = createRouter({
           component: () => import("../pages/LiveHistory/index.vue"),
           meta: { keepAlive: false },
         },
+        {
+          path: "/workflow",
+          name: "Workflow",
+          component: () => import("../pages/workflow/index.vue"),
+        },
+        {
+          path: "/workflow/editor/:id",
+          name: "WorkflowEditor",
+          component: () => import("../pages/workflow/editor.vue"),
+        },
       ],
     },
   ],
