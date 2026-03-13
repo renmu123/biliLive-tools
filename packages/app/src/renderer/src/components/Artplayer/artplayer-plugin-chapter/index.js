@@ -102,6 +102,8 @@ export default function artplayerPluginChapter(option = {}) {
     art.on("setBar", (type, percentage) => {
       if (!$chapters.length) return;
 
+      let hoverInChapter = false;
+
       for (let i = 0; i < $chapters.length; i++) {
         const { $chapter, $loaded, $played, $hover } = $chapters[i];
 
@@ -132,9 +134,14 @@ export default function artplayerPluginChapter(option = {}) {
           setStyle($target, "width", `${percentage * 100}%`);
 
           if (type === "hover" && width > 0) {
+            hoverInChapter = true;
             showTitle({ $chapter, width });
           }
         }
+      }
+
+      if (type === "hover" && !hoverInChapter) {
+        $title.textContent = "";
       }
     });
 
