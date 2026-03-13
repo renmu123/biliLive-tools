@@ -28,7 +28,7 @@
       display: flex;
       align-items: center;
       height: 100%;
-      position: relative;
+      position: absolute;
 
       .art-chapter-inner {
         display: none;
@@ -78,10 +78,10 @@
       opacity var(--art-transition-duration) ease;
   }
 
-  // &.art-progress-hover {
-  //   .art-chapter-title {
-  //     transform: scale(1);
-  //     opacity: 1;
-  //   }
-  // }
+  &.art-progress-hover {
+    .art-chapter-title {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
 }

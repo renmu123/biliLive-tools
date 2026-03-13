@@ -88,6 +88,7 @@ import { useProjectManager } from "./hooks";
 import { useVideoPlayer } from "./composables/useVideoPlayer";
 import { useDanmu } from "./composables/useDanmu";
 import { useWaveform } from "./composables/useWaveform";
+import { useChapter } from "./composables/useChapter";
 import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
 
 import type { DanmuConfig } from "@biliLive-tools/types";
@@ -214,6 +215,7 @@ const {
 } = useDanmu(videoInstance, videoPlayerRef, videoDuration, showVideoTime);
 const { waveformLoading, waveformVisible, initWaveform, destroyWaveform } =
   useWaveform(videoInstance);
+useChapter(videoInstance);
 
 provide("videoInstance", videoInstance);
 
