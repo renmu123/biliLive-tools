@@ -403,6 +403,10 @@ interface DouyinRecorderConfig {
   api: "web" | "webHTML" | "mobile" | "userHTML" | "balance" | "random";
 }
 
+interface XhsRecorderConfig {
+  cookie: string;
+}
+
 // 录制全局配置
 export interface GlobalRecorder {
   /** 保存根目录 */
@@ -457,10 +461,12 @@ export interface GlobalRecorder {
   huya: HuyaRecorderConfig;
   /** 抖音特有的配置 */
   douyin: DouyinRecorderConfig;
+  /** 小红书特有的配置 */
+  xhs: XhsRecorderConfig;
 }
 
 export interface Recorder {
-  providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin";
+  providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin" | "XHS";
   id: string;
   channelId: string;
   remarks?: string;

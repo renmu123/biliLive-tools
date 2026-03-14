@@ -33,6 +33,7 @@
     "@bililive-tools/douyin-recorder": "workspace:*",
     "@bililive-tools/douyu-recorder": "workspace:*",
     "@bililive-tools/huya-recorder": "workspace:*",
+    "@bililive-tools/xhs-recorder": "workspace:*",
     "@bililive-tools/manager": "workspace:*",
     "@napi-rs/canvas": "^0.1.60",
     "@renmu/bili-api": "2.12.3",

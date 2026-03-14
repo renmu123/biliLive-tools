@@ -12,12 +12,13 @@
 
 ## 支持的平台
 
-| 平台 | 包名                                |
-| ---- | ----------------------------------- |
-| B站  | `@bililive-tools/bilibili-recorder` |
-| 斗鱼 | `@bililive-tools/douyu-recorder`    |
-| 虎牙 | `@bililive-tools/huya-recorder`     |
-| 抖音 | `@bililive-tools/douyin-recorder`   |
+| 平台   | 包名                                |
+| ------ | ----------------------------------- |
+| B站    | `@bililive-tools/bilibili-recorder` |
+| 斗鱼   | `@bililive-tools/douyu-recorder`    |
+| 虎牙   | `@bililive-tools/huya-recorder`     |
+| 抖音   | `@bililive-tools/douyin-recorder`   |
+| 小红书 | `@bililive-tools/xhs-recorder`      |
 
 # 使用
 

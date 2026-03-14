@@ -59,7 +59,11 @@ export default class RecorderConfig {
         } else if (key === "source") {
           return get(globalConfig, "douyu.source");
         } else if (key === "cookie") {
-          return get(globalConfig, "douyin.cookie");
+          if (setting.providerId === "DouYin") {
+            return get(globalConfig, "douyin.cookie");
+          } else if (setting.providerId === "XHS") {
+            return get(globalConfig, "xhs.cookie");
+          }
         } else if (key === "doubleScreen") {
           if (setting.providerId === "DouYin") {
             return get(globalConfig, "douyin.doubleScreen");
@@ -126,6 +130,9 @@ export default class RecorderConfig {
     } else if (setting.providerId === "DouYin") {
       auth = getValue("cookie");
       uid = setting?.uid;
+    } else if (setting.providerId === "XHS") {
+      auth = getValue("cookie");
+      uid = setting?.uid;
     }
 
     // 流格式处理
@@ -156,11 +163,19 @@ export default class RecorderConfig {
     }
     let api = getValue("api") ?? "auto";
 
+    // 弹幕处理
+    let disableProvideCommentsWhenRecording =
+      getValue("disableProvideCommentsWhenRecording") ?? true;
+    if (setting.providerId === "XHS") {
+      // 小红书不支持弹幕
+      disableProvideCommentsWhenRecording = false;
+    }
+
     return {
       ...setting,
       quality: getValue("quality") ?? "highest",
       line: getValue("line"),
-      disableProvideCommentsWhenRecording: getValue("disableProvideCommentsWhenRecording") ?? true,
+      disableProvideCommentsWhenRecording: disableProvideCommentsWhenRecording,
       saveGiftDanma: getValue("saveGiftDanma") ?? false,
       saveSCDanma: getValue("saveSCDanma") ?? true,
       saveCover: getValue("saveCover") ?? false,

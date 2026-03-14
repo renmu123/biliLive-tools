@@ -14,6 +14,7 @@ import {
   trashItem,
   formatTitle,
   formatPartTitle,
+  buildRoomLink,
 } from "@biliLive-tools/shared/utils/index.js";
 
 import { config } from "../../index.js";
@@ -21,7 +22,6 @@ import FileRefManager from "./fileRefManager.js";
 import { ConfigManager } from "./ConfigManager.js";
 import { PathResolver } from "./PathResolver.js";
 import { Live, Part, LiveManager } from "./Live.js";
-import { buildRoomLink } from "./utils.js";
 import { EventBufferManager } from "./EventBufferManager.js";
 import type { MatchedEventPair } from "./EventBufferManager.js";
 

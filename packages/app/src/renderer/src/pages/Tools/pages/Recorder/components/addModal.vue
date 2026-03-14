@@ -9,13 +9,13 @@
       class="card"
     >
       <n-form label-placement="left" :label-width="150">
-        <h4>支持斗鱼、虎牙、B站、抖音，玩具级录播，请做好踩坑的准备</h4>
+        <h4>支持斗鱼、虎牙、B站、抖音、XHS（无法自动监听），请做好踩坑的准备</h4>
 
         <n-form-item v-if="!isEdit">
           <template #label>
             <Tip
               text="直播间链接"
-              tip="如果链接无法解析，请尝试使用标准直播间链接<br/>斗鱼：https://www.douyu.com/房间号<br/>虎牙：https://www.huya.com/房间号<br/>B站：https://live.bilibili.com/房间号<br/>抖音：https://live.douyin.com/房间号<br/>抖音：https://www.douyin.com/user/xxxxx"
+              tip="如果链接无法解析，请尝试使用标准直播间链接<br/>斗鱼：https://www.douyu.com/房间号<br/>虎牙：https://www.huya.com/房间号<br/>B站：https://live.bilibili.com/房间号<br/>抖音：https://live.douyin.com/房间号<br/>抖音：https://www.douyin.com/user/xxxxx<br/>小红书：http://xhslink.com/m/54KhCYhGUZA（手机端分享链接）"
             ></Tip>
           </template>
           <n-input
@@ -362,6 +362,21 @@
               />
             </n-form-item>
           </template>
+          <template v-if="config.providerId === 'XHS'">
+            <n-form-item>
+              <template #label>
+                <Tip text="Cookie" tip="用于自动监听直播间"></Tip>
+              </template>
+              <n-input
+                v-model:value="config.cookie"
+                type="password"
+                :disabled="globalFieldsObj.cookie"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.cookie" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+          </template>
           <template v-if="config.providerId === 'DouYin'">
             <n-form-item>
               <template #label>
@@ -445,7 +460,13 @@
             </n-form-item>
           </template>
 
-          <n-form-item v-if="config.providerId !== 'HuYa' && config.providerId !== 'DouYin'">
+          <n-form-item
+            v-if="
+              config.providerId !== 'HuYa' &&
+              config.providerId !== 'DouYin' &&
+              config.providerId !== 'XHS'
+            "
+          >
             <template #label>
               <Tip text="只录制音频" tip="会选择纯音频流，B站只支持flv流，抖音请在画质中选择"></Tip>
             </template>
@@ -523,7 +544,7 @@
                 >全局</n-checkbox
               >
             </n-form-item>
-            <n-form-item>
+            <n-form-item v-if="config.providerId !== 'XHS'">
               <template #label>
                 <span class="inline-flex"> 保存封面 </span>
               </template>
@@ -534,8 +555,8 @@
             </n-form-item>
           </template>
 
-          <h2>弹幕</h2>
-          <template v-if="true">
+          <template v-if="config.providerId !== 'XHS'">
+            <h2>弹幕</h2>
             <n-form-item>
               <template #label>
                 <span class="inline-flex"> 弹幕录制 </span>
@@ -868,6 +889,8 @@ watch(
     if (val.cookie) {
       if (config.value.providerId === "DouYin") {
         config.value.cookie = appConfig.value.recorder.douyin.cookie;
+      } else if (config.value.providerId === "XHS") {
+        config.value.cookie = appConfig.value.recorder.xhs.cookie;
       }
     }
     if (val.doubleScreen) {
