@@ -13,6 +13,7 @@ import artplayerPluginTimestamp from "./artplayer-timestamp";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 import artplayerPluginSubtitle from "./artplayer-plugin-subtitle";
+import artplayerPluginChapter from "./artplayer-plugin-chapter";
 
 const props = withDefaults(
   defineProps<{
@@ -67,6 +68,7 @@ let instance: Artplayer | null = null;
 onMounted(async () => {
   const plugins: any[] = [];
   if (props.plugins) {
+    plugins.push(artplayerPluginChapter({}));
     if (props.plugins.includes("danmuku")) {
       plugins.push(
         artplayerPluginDanmuku({
@@ -227,6 +229,8 @@ ${tsFile}
   instance.artplayerPluginHeatmap = instance?.plugins?.artplayerPluginHeatmap;
   // @ts-ignore
   instance.artplayerTimestamp = instance?.plugins?.artplayerTimestamp;
+  // @ts-ignore
+  instance.artplayerPluginChapter = instance?.plugins?.artplayerPluginChapter;
 
   // console.log("Artplayer instance created:", instance);
 
