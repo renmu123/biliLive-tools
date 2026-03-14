@@ -168,7 +168,7 @@ export default class RecorderConfig {
       getValue("disableProvideCommentsWhenRecording") ?? true;
     if (setting.providerId === "XHS") {
       // 小红书不支持弹幕
-      disableProvideCommentsWhenRecording = false;
+      disableProvideCommentsWhenRecording = true;
     }
 
     return {
