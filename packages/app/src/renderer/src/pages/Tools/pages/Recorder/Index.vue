@@ -119,7 +119,7 @@
       </div>
     </template>
 
-    <h1 v-else>还木有添加直播捏，添加一个看看吧，支持斗鱼、虎牙、B站、抖音</h1>
+    <h1 v-else>还木有添加直播捏，添加一个看看吧，支持斗鱼、虎牙、B站、抖音、小红书</h1>
 
     <addModal :id="editId" v-model:visible="addModalVisible" @confirm="handleModalClose"></addModal>
     <batchAddModal
@@ -219,6 +219,10 @@ const platformOptions = ref([
   {
     label: "抖音",
     value: "DouYin",
+  },
+  {
+    label: "小红书",
+    value: "XHS",
   },
 ]);
 const statusOptions = ref([

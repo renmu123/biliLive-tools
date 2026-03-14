@@ -1,6 +1,6 @@
 # 直播录制
 
-biliLive-tools 支持 B站、斗鱼、虎牙、抖音四大平台的直播录制，包含弹幕和礼物信息。
+biliLive-tools 支持 B站、斗鱼、虎牙、抖音、小红书多平台的直播录制，包含弹幕和礼物信息。
 
 初始实现由 [LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord) 拓展而来
 
