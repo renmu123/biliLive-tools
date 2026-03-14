@@ -2,8 +2,11 @@
 
 ## 功能
 
-- 重构：统一获取元数据 [#357](https://github.com/renmu123/biliLive-tools/pull/357)
+- 重构：统一获取视频元数据 [#357](https://github.com/renmu123/biliLive-tools/pull/357)
 - 投稿：增加“在个人空间-投稿中隐藏”选项 [#372](https://github.com/renmu123/biliLive-tools/pull/372)
+- 投稿：简介增加占位符支持 [#377](https://github.com/renmu123/biliLive-tools/pull/377)
+- 切片：进度条额外显示切片颜色和标题 [#381](https://github.com/renmu123/biliLive-tools/pull/381)
+- 录制：小红书支持 [#379](https://github.com/renmu123/biliLive-tools/pull/379)
 
 ## 优化
 
@@ -14,6 +17,10 @@
 - MacOS: 修复托盘icon大小不正常的bug（应该
 - 看板：修复录制时长计算错误
 - 录制：修复抖音礼物发送者可能为空的bug
+
+## 其他
+
+- 依赖升级 [#380](https://github.com/renmu123/biliLive-tools/pull/380)
 
 # 3.9.1
 
