@@ -159,6 +159,29 @@ export const formatWebhookPartTitle = async (
   return res.data;
 };
 
+export const formatWebhookDesc = async (
+  template: string,
+  options?: {
+    title: string;
+    username: string;
+    time: string;
+    roomId: string | number;
+    filename: string;
+  },
+): Promise<string> => {
+  const res = await request.post(`/bili/formatDesc`, {
+    template,
+    options: options || {
+      title: "标题",
+      username: "主播名",
+      time: new Date().toISOString(),
+      roomId: 123456,
+      filename: "文件名",
+    },
+  });
+  return res.data;
+};
+
 const bili = {
   validUploadParams,
   getArchives,
@@ -176,6 +199,7 @@ const bili = {
   upload,
   formatWebhookTitle,
   formatWebhookPartTitle,
+  formatWebhookDesc,
 };
 
 export default bili;

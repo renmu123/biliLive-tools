@@ -146,14 +146,12 @@
 
       <n-form-item>
         <template #label>
-          <Tip
-            text="视频简介"
-            tip="可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与uid对应。"
-          ></Tip>
+          <Tip :tip="descTip" text="视频简介"></Tip>
         </template>
         <n-input
+          ref="descInput"
           v-model:value="options.config.desc"
-          placeholder="请输入视频简介"
+          placeholder="请输入视频简介,支持{{title}},{{user}},{{now}}等占位符。可以输入[暮色312]<10995238>来进行艾特用户"
           clearable
           :maxlength="descMaxLength"
           show-count
@@ -162,6 +160,19 @@
             minRows: 4,
           }"
         />
+        <n-button style="margin-right: 10px" @click="previewDesc(options.config.desc || '')"
+          >预览</n-button
+        >
+        <template #feedback>
+          <span
+            v-for="item in titleList"
+            :key="item.value"
+            :title="item.label"
+            class="title-var"
+            @click="setDescVar(item.value)"
+            >{{ item.value }}</span
+          >
+        </template>
       </n-form-item>
 
       <n-form-item path="dtime" :rule="scheduledDatetimeRule">
@@ -904,6 +915,51 @@ const setTitleVar = async (value: string) => {
     options.value.config.title += value;
   }
 };
+
+const descInput = templateRef("descInput");
+const setDescVar = async (value: string) => {
+  if (!options.value.config.desc) {
+    options.value.config.desc = "";
+  }
+  const input = descInput.value?.textareaElRef;
+  if (input) {
+    const currentValue = options.value.config.desc || "";
+    const start = input.selectionStart ?? currentValue.length;
+    const end = input.selectionEnd ?? currentValue.length;
+    options.value.config.desc = currentValue.slice(0, start) + value + currentValue.slice(end);
+    input.focus();
+    await nextTick();
+    input.setSelectionRange(start + value.length, start + value.length);
+  } else {
+    options.value.config.desc = (options.value.config.desc || "") + value;
+  }
+};
+
+const previewDesc = async (template: string) => {
+  if (!template) {
+    notice.warning({
+      title: "请输入简介内容",
+      duration: 2000,
+    });
+    return;
+  }
+  const data = await biliApi.formatWebhookDesc(template);
+  notice.info({
+    title: data,
+    duration: 3000,
+  });
+};
+
+const descTip = computed(() => {
+  const base = `上限2000字，多余的会被截断。<br/>
+  可以输入[暮色312]&lt;10995238&gt;来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与uid对应。<br/>
+  更多模板引擎等高级用法见文档<br/>`;
+  return titleList.value
+    .map((item) => {
+      return `${item.label}：${item.value}<br/>`;
+    })
+    .reduce((prev, cur) => prev + cur, base);
+});
 
 const setTitle = (name: string) => {
   options.value.config.title = name;
