@@ -32,11 +32,11 @@
             <template #suffix> 像素 </template>
           </n-input-number>
         </div>
-        <div class="config-item">
-          <n-color-picker v-model:value="clientOptions.color" style="width: 90px" />
+        <div class="config-item" style="width: 90px">
+          <n-color-picker v-model:value="clientOptions.color" />
         </div>
-        <div class="config-item">
-          <n-color-picker v-model:value="clientOptions.fillColor" style="width: 90px" />
+        <div class="config-item" style="width: 90px">
+          <n-color-picker v-model:value="clientOptions.fillColor" />
         </div>
       </template>
       <n-checkbox v-model:checked="showVideoTime" title="仅供参考，得加载弹幕才成"

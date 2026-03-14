@@ -301,10 +301,9 @@
                 style="width: 120px"
               />
             </n-form-item>
-            <n-form-item label="字体颜色">
+            <n-form-item label="字体颜色" style="width: 120px">
               <n-color-picker
                 v-model:value="ffmpegOptions.config.timestampFontColor"
-                style="width: 120px"
                 title="字体颜色"
               />
             </n-form-item>

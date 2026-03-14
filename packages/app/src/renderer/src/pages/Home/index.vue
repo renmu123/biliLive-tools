@@ -63,19 +63,13 @@
                   <template #suffix> 像素 </template></n-input-number
                 >
               </div>
-              <div>
+              <div style="width: 140px">
                 <div>默认颜色</div>
-                <n-color-picker
-                  v-model:value="clientOptions.hotProgressColor"
-                  style="width: 140px"
-                />
+                <n-color-picker v-model:value="clientOptions.hotProgressColor" />
               </div>
-              <div>
+              <div style="width: 140px">
                 <div>覆盖颜色</div>
-                <n-color-picker
-                  v-model:value="clientOptions.hotProgressFillColor"
-                  style="width: 140px"
-                />
+                <n-color-picker v-model:value="clientOptions.hotProgressFillColor" />
               </div>
             </div>
           </div>

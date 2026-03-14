@@ -155,6 +155,7 @@ onMounted(async () => {
     customType: {
       flv: (video, url, art) => {
         if (mpegts.isSupported()) {
+          // @ts-expect-error
           if (art.flv) art.flv.destroy();
 
           const flv = mpegts.createPlayer({
@@ -173,6 +174,7 @@ onMounted(async () => {
       },
       m3u8: function playM3u8(video, url, art) {
         if (Hls.isSupported()) {
+          // @ts-expect-error
           if (art.hls) art.hls.destroy();
           const hls = new Hls();
           hls.loadSource(url);
@@ -200,6 +202,7 @@ ${tsFile}
         const m3u8URL = URL.createObjectURL(blob);
 
         if (Hls.isSupported()) {
+          // @ts-expect-error
           if (art.hls) art.hls.destroy();
           const hls = new Hls();
           hls.loadSource(m3u8URL);
@@ -260,6 +263,7 @@ const switchUrl = async (url: string, type: "" | "flv" = "") => {
 
 const switchAss = async (subtitle?: string) => {
   if (instance) {
+    // @ts-ignore
     instance.plugins.artplayerPluginAssJS.switch(subtitle || "");
   }
 };
@@ -270,6 +274,7 @@ const switchDanmuku = async (danmuku: any[]) => {
     instance.plugins.artplayerPluginDanmuku.config({
       danmuku: danmuku,
     });
+    // @ts-ignore
     instance.plugins.artplayerPluginDanmuku.load();
   }
 };
@@ -277,18 +282,21 @@ const switchDanmuku = async (danmuku: any[]) => {
 // subtitle
 const switchSubtitle = async (names: string[]) => {
   if (instance && instance.plugins.artplayerPluginSubtitle) {
+    // @ts-ignore
     instance.plugins.artplayerPluginSubtitle.tracks(names);
   }
 };
 
 const resetSubtitle = async () => {
   if (instance && instance.plugins.artplayerPluginSubtitle) {
+    // @ts-ignore
     instance.plugins.artplayerPluginSubtitle.reset();
   }
 };
 
 const setSubtitleContent = async (content: string) => {
   if (instance && instance.plugins.artplayerPluginSubtitle) {
+    // @ts-ignore
     instance.plugins.artplayerPluginSubtitle.setContent(content);
   }
 };

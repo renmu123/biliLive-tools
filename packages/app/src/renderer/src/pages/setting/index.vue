@@ -886,7 +886,7 @@ const checkForUpdates = async () => {
     }
   }
 }
-.setting-modal > :deep(.n-card__content) {
+.setting-modal > :deep(.n-card-content) {
   padding-bottom: 0 !important;
   padding-right: 0px !important;
 }
