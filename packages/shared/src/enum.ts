@@ -112,6 +112,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     fileSync: {
       removeOrigin: false,
       syncType: undefined,
+      aliyunpanDriveType: "backup",
       targetPath: "/",
     },
     danmu: {

@@ -34,6 +34,9 @@
               </template>
               <n-space vertical>
                 <n-text>同步源: {{ getSyncSourceLabel(item.syncSource) }}</n-text>
+                <n-text v-if="item.syncSource === 'aliyunpan'">
+                  上传位置: {{ getAliyunpanDriveTypeLabel(item.aliyunpanDriveType) }}
+                </n-text>
                 <n-text>目录结构: {{ item.folderStructure }}</n-text>
                 <n-text>文件类型: {{ getTargetFilesLabel(item.targetFiles) }}</n-text>
               </n-space>
@@ -328,6 +331,15 @@
               </n-space>
             </n-checkbox-group>
           </n-form-item>
+          <n-form-item v-if="editingConfig.syncSource === 'aliyunpan'" label="上传位置">
+            <n-select
+              v-model:value="editingConfig.aliyunpanDriveType"
+              :options="[
+                { label: '备份盘', value: 'backup' },
+                { label: '资源库', value: 'resource' },
+              ]"
+            />
+          </n-form-item>
           <n-form-item v-if="editingConfig.syncSource === 'alist'">
             <template #label>
               <Tip
@@ -387,7 +399,7 @@ import { uuid, sha256 } from "@renderer/utils";
 import { syncApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
 
-import type { AppConfig, SyncType, SyncConfig } from "@biliLive-tools/types";
+import type { AppConfig, SyncType, SyncConfig, AliyunPanDriveType } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
   default: () => ({
@@ -622,6 +634,7 @@ const editingConfig = ref<SyncConfig>({
   syncSource: "baiduPCS",
   folderStructure: "/录播/{{user}}/{{yyyy}}-{{MM}}",
   targetFiles: [],
+  aliyunpanDriveType: "backup",
   stringFilters: [],
 });
 
@@ -634,6 +647,14 @@ const getSyncSourceLabel = (value: string) => {
     alist: "alist",
   };
   return options[value] || value;
+};
+
+const getAliyunpanDriveTypeLabel = (value?: AliyunPanDriveType) => {
+  const options = {
+    backup: "备份盘",
+    resource: "资源库",
+  };
+  return options[value || "backup"];
 };
 
 const getTargetFilesLabel = (values: string[]) => {
@@ -654,6 +675,7 @@ const addSyncConfig = () => {
     syncSource: "baiduPCS",
     folderStructure: "/录播/{{user}}/{{yyyy}}-{{MM}}",
     targetFiles: [],
+    aliyunpanDriveType: "backup",
     stringFilters: [],
   };
   syncConfigModalVisible.value = true;
@@ -668,6 +690,7 @@ const editSyncConfig = (index: number) => {
     syncSource: originalConfig.syncSource,
     folderStructure: originalConfig.folderStructure,
     targetFiles: [...originalConfig.targetFiles],
+    aliyunpanDriveType: originalConfig.aliyunpanDriveType || "backup",
     stringFilters: [...(originalConfig.stringFilters || [])],
   };
   syncConfigModalVisible.value = true;

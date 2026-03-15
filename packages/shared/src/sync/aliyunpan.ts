@@ -5,6 +5,8 @@ import fs from "fs-extra";
 import logger from "../utils/log.js";
 import { TypedEmitter } from "tiny-typed-emitter";
 
+import type { AliyunPanDriveType } from "@biliLive-tools/types";
+
 export interface AliyunPanOptions {
   /**
    * aliyunpan 可执行文件的路径
@@ -22,6 +24,12 @@ export interface AliyunPanOptions {
    * 日志记录器
    */
   logger?: typeof logger;
+
+  /**
+   * 上传目标位置
+   * @default 'backup'
+   */
+  driveType?: AliyunPanDriveType;
 }
 
 interface AliyunPanEvents {
@@ -45,6 +53,7 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
   private binary: string;
   private remotePath: string;
   private logger: typeof logger | Console;
+  private driveType: AliyunPanDriveType;
   private cmd: ChildProcess | null = null;
   private loginCmd: ChildProcess | null = null; // 专门用于登录的进程
 
@@ -53,6 +62,7 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
     this.binary = options?.binary || "aliyunpan";
     this.remotePath = options?.remotePath || "/录播";
     this.logger = options?.logger || logger;
+    this.driveType = options?.driveType || "backup";
 
     // 检查aliyunpan是否安装
     // this.checkInstallation();
@@ -81,6 +91,79 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
     } catch (error) {
       return false;
     }
+  }
+
+  private async ensureDriveType(): Promise<void> {
+    await this.switchDrive(this.driveType);
+  }
+
+  private async switchDrive(driveType: AliyunPanDriveType): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const driveCmd = spawn(this.binary, ["drive"], {
+        stdio: ["pipe", "pipe", "pipe"],
+        windowsHide: true,
+      });
+      let stdout = "";
+      let stderr = "";
+      let hasSelected = false;
+
+      const timer = setTimeout(() => {
+        driveCmd.kill();
+        reject(new Error("切换阿里云盘上传位置超时"));
+      }, 10000);
+
+      const trySelectDrive = () => {
+        if (hasSelected) return;
+        const selectionIndex = this.parseDriveSelectionIndex(stdout, driveType);
+        if (selectionIndex === null) return;
+        driveCmd.stdin.write(`${selectionIndex}\n`);
+        hasSelected = true;
+      };
+
+      driveCmd.stdout.on("data", (data) => {
+        stdout += data.toString();
+        trySelectDrive();
+      });
+
+      driveCmd.stderr.on("data", (data) => {
+        stderr += data.toString();
+      });
+
+      driveCmd.on("close", (code) => {
+        clearTimeout(timer);
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`切换阿里云盘上传位置失败: ${stderr || stdout}`));
+        }
+      });
+
+      driveCmd.on("error", (error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+    });
+  }
+
+  private parseDriveSelectionIndex(
+    output: string,
+    driveType: AliyunPanDriveType,
+  ): string | null {
+    const driveLabels: Record<AliyunPanDriveType, string[]> = {
+      backup: ["备份盘", "文件网盘"],
+      resource: ["资源库"],
+    };
+
+    const lines = output.split("\n");
+    for (const line of lines) {
+      if (!driveLabels[driveType].some((label) => line.includes(label))) continue;
+      const matchedIndex = line.match(/\d+/);
+      if (matchedIndex) {
+        return matchedIndex[0];
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -206,11 +289,15 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
       throw error;
     }
 
+    await this.ensureDriveType();
+
     // 确保目标文件夹存在
     const targetDir = path.join(this.remotePath, remoteDir).replace(/\\/g, "/");
     await this.executeCommand(["mkdir", targetDir]);
 
     try {
+      await this.ensureDriveType();
+
       // 执行上传
       this.logger.info(`开始上传: ${localFilePath} 到 ${targetDir}`);
       const args = ["upload", localFilePath, targetDir, "--norapid"];
@@ -426,6 +513,7 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
    */
   public async mkdir(remotePath: string): Promise<boolean> {
     try {
+      await this.ensureDriveType();
       const targetPath = path.join(this.remotePath, remotePath).replace(/\\/g, "/");
       await this.executeCommand(["mkdir", targetPath]);
       this.logger.info(`创建目录成功: ${targetPath}`);

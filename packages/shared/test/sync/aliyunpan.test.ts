@@ -2,6 +2,32 @@ import { describe, it, expect, vi } from "vitest";
 import { AliyunPan } from "../../src/sync/aliyunpan";
 
 describe("AliyunPan", () => {
+  describe("parseDriveSelectionIndex", () => {
+    it("应该正确解析资源库的选择序号", () => {
+      const aliyunPan = new AliyunPan();
+      const output = `
+        # 网盘名称
+        1 备份盘
+        2 资源库
+        输入要切换的网盘 # 值 > 
+      `;
+
+      expect(aliyunPan["parseDriveSelectionIndex"](output, "resource")).toBe("2");
+    });
+
+    it("应该兼容文件网盘作为备份盘名称", () => {
+      const aliyunPan = new AliyunPan();
+      const output = `
+        # 网盘名称
+        1 文件网盘
+        2 资源库
+        输入要切换的网盘 # 值 > 
+      `;
+
+      expect(aliyunPan["parseDriveSelectionIndex"](output, "backup")).toBe("1");
+    });
+  });
+
   describe("parseProgress", () => {
     it("应该正确解析MB单位的进度信息", () => {
       const aliyunPan = new AliyunPan();

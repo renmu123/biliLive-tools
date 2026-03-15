@@ -147,12 +147,13 @@ router.get("/aliyunpanLogin", async (ctx) => {
 router.post("/sync", async (ctx) => {
   const params = ctx.request.body;
   // @ts-ignore
-  const { file, type, options, targetPath } = params;
+  const { file, type, options, targetPath, aliyunpanDriveType } = params;
   const task = await addSyncTask({
     input: file,
     type: type as SyncType,
     removeOrigin: options.removeOrigin,
     remotePath: targetPath,
+    aliyunpanDriveType,
   });
   ctx.body = task.taskId;
 });
