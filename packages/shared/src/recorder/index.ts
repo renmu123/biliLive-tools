@@ -457,10 +457,15 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
   const recorderConfig = new RecorderConfig(appConfig);
   for (const recorder of recorderConfig.list()) {
-    manager.addRecorder({
-      ...recorder,
-      m3u8ProxyUrl: `http://127.0.0.1:${config.port}/bili/stream`,
-    });
+    try {
+      manager.addRecorder({
+        ...recorder,
+        m3u8ProxyUrl: `http://127.0.0.1:${config.port}/bili/stream`,
+      });
+    } catch (error) {
+      logger.error("Add recorder error", { recorder, error });
+      continue;
+    }
   }
 
   if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
