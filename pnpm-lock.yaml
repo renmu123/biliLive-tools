@@ -281,8 +281,8 @@ importers:
         specifier: 'catalog:'
         version: 4.17.21
       undici:
-        specifier: ^7.21.0
-        version: 7.21.0
+        specifier: ^7.24.0
+        version: 7.24.3
       xhshow-js:
         specifier: ^1.0.0
         version: 1.0.0
@@ -356,6 +356,9 @@ importers:
       trash:
         specifier: ^9.0.0
         version: 9.0.0(patch_hash=knfqho266jmayp7bpztl4tszxi)
+      undici:
+        specifier: ^7.24.0
+        version: 7.24.3
       utf-8-validate:
         specifier: ^6.0.5
         version: 6.0.5
@@ -5710,11 +5713,12 @@ packages:
   undici-types@7.14.0:
     resolution: {integrity: sha512-QQiYxHuyZ9gQUIrmPo3IA+hUl4KYk8uSA7cHrcKd/l3p1OTpZcM0Tbp9x7FAtXdAYhlasd60ncPpgu6ihG6TOA==}
 
-  undici@7.21.0:
-    resolution: {integrity: sha512-Hn2tCQpoDt1wv23a68Ctc8Cr/BHpUSfaPYrkajTXOS9IKpxVRx/X5m1K2YkbK2ipgZgxXSgsUinl3x+2YdSSfg==}
-    engines: {node: '>=20.18.1'}
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
+
+  undici@7.24.3:
+    resolution: {integrity: sha512-eJdUmK/Wrx2d+mnWWmwwLRyA7OQCkLap60sk3dOK4ViZR7DKwwptwuIvFBg2HaiP9ESaEdhtpSymQPvytpmkCA==}
+    engines: {node: '>=20.18.1'}
 
   unimport@5.5.0:
     resolution: {integrity: sha512-/JpWMG9s1nBSlXJAQ8EREFTFy3oy6USFd8T6AoBaw1q2GGcF4R9yp3ofg32UODZlYEO5VD0EWE1RpI9XDWyPYg==}
@@ -11422,8 +11426,9 @@ snapshots:
 
   undici-types@7.14.0: {}
 
-  undici@7.21.0: {}
   undici-types@7.16.0: {}
+
+  undici@7.24.3: {}
 
   unimport@5.5.0:
     dependencies:
