@@ -335,7 +335,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           software: "biliLive-tools",
         };
 
-        logger.info("Manager videoFileCompleted webhook start", {
+        logger.debug("Manager videoFileCompleted webhook start", {
           recorderId: recorder.id,
           webhookUrl,
           filePath: filename,
@@ -349,7 +349,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
             proxy: false,
             timeout: 10000,
           });
-          logger.info("Manager videoFileCompleted webhook success", {
+          logger.debug("Manager videoFileCompleted webhook success", {
             recorderId: recorder.id,
             webhookUrl,
             filePath: filename,
