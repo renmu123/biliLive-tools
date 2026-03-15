@@ -322,23 +322,59 @@ export async function createRecorderManager(appConfig: AppConfig) {
     } catch (error) {
       logger.error("Update live error", { recorder, filename, error });
     } finally {
-      data?.sendToWebhook &&
-        axios.post(
-          `http://127.0.0.1:${config.port}/webhook/custom`,
-          {
-            event: "FileClosed",
-            filePath: filename,
-            roomId: channelId,
-            time: endTime.toISOString(),
-            title: title,
-            username: username,
-            platform: recorder.providerId.toLowerCase(),
-            software: "biliLive-tools",
-          },
-          {
+      if (data?.sendToWebhook) {
+        const webhookUrl = `http://127.0.0.1:${config.port}/webhook/custom`;
+        const payload = {
+          event: "FileClosed",
+          filePath: filename,
+          roomId: channelId,
+          time: endTime.toISOString(),
+          title: title,
+          username: username,
+          platform: recorder.providerId.toLowerCase(),
+          software: "biliLive-tools",
+        };
+
+        logger.info("Manager videoFileCompleted webhook start", {
+          recorderId: recorder.id,
+          webhookUrl,
+          filePath: filename,
+          roomId: channelId,
+          hasTitle: Boolean(title),
+          hasUsername: Boolean(username),
+        });
+
+        try {
+          await axios.post(webhookUrl, payload, {
             proxy: false,
-          },
-        );
+            timeout: 10000,
+          });
+          logger.info("Manager videoFileCompleted webhook success", {
+            recorderId: recorder.id,
+            webhookUrl,
+            filePath: filename,
+          });
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            logger.error("Manager videoFileCompleted webhook error", {
+              recorderId: recorder.id,
+              webhookUrl,
+              filePath: filename,
+              code: error.code,
+              message: error.message,
+              status: error.response?.status,
+              data: error.response?.data,
+            });
+          } else {
+            logger.error("Manager videoFileCompleted webhook error", {
+              recorderId: recorder.id,
+              webhookUrl,
+              filePath: filename,
+              error,
+            });
+          }
+        }
+      }
     }
 
     const xmlFile = replaceExtName(filename, ".xml");
