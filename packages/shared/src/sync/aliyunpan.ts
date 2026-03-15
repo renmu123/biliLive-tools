@@ -7,6 +7,23 @@ import { TypedEmitter } from "tiny-typed-emitter";
 
 import type { AliyunPanDriveType } from "@biliLive-tools/types";
 
+const createdDirCache = new Set<string>();
+const pendingDirRequests = new Map<string, Promise<void>>();
+
+function normalizeRemotePath(remotePath: string): string {
+  return path.posix.normalize(remotePath.replace(/\\/g, "/"));
+}
+
+function isDirectoryAlreadyExistsError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const errorMessage = error.message.toLowerCase();
+  return (
+    errorMessage.includes("already exists") ||
+    errorMessage.includes("file exists") ||
+    errorMessage.includes("已存在")
+  );
+}
+
 export interface AliyunPanOptions {
   /**
    * aliyunpan 可执行文件的路径
@@ -66,6 +83,11 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
 
     // 检查aliyunpan是否安装
     // this.checkInstallation();
+  }
+
+  public static clearDirCache(): void {
+    createdDirCache.clear();
+    pendingDirRequests.clear();
   }
 
   /**
@@ -164,6 +186,44 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
     }
 
     return null;
+  }
+
+  private getDirCacheKey(remotePath: string): string {
+    return `${this.binary}:${this.driveType}:${remotePath}`;
+  }
+
+  private async ensureRemoteDir(remotePath: string): Promise<void> {
+    const normalizedPath = normalizeRemotePath(remotePath);
+    const cacheKey = this.getDirCacheKey(normalizedPath);
+
+    if (createdDirCache.has(cacheKey)) {
+      return;
+    }
+
+    const pendingRequest = pendingDirRequests.get(cacheKey);
+    if (pendingRequest) {
+      return pendingRequest;
+    }
+
+    const requestPromise = (async () => {
+      await this.ensureDriveType();
+
+      try {
+        await this.executeCommand(["mkdir", normalizedPath]);
+      } catch (error) {
+        if (!isDirectoryAlreadyExistsError(error)) {
+          throw error;
+        }
+        this.logger.warn(`目录已存在，跳过创建: ${normalizedPath}`);
+      }
+
+      createdDirCache.add(cacheKey);
+    })().finally(() => {
+      pendingDirRequests.delete(cacheKey);
+    });
+
+    pendingDirRequests.set(cacheKey, requestPromise);
+    return requestPromise;
   }
 
   /**
@@ -289,11 +349,8 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
       throw error;
     }
 
-    await this.ensureDriveType();
-
-    // 确保目标文件夹存在
-    const targetDir = path.join(this.remotePath, remoteDir).replace(/\\/g, "/");
-    await this.executeCommand(["mkdir", targetDir]);
+    const targetDir = normalizeRemotePath(path.join(this.remotePath, remoteDir));
+    await this.ensureRemoteDir(targetDir);
 
     try {
       await this.ensureDriveType();
@@ -513,9 +570,8 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
    */
   public async mkdir(remotePath: string): Promise<boolean> {
     try {
-      await this.ensureDriveType();
-      const targetPath = path.join(this.remotePath, remotePath).replace(/\\/g, "/");
-      await this.executeCommand(["mkdir", targetPath]);
+      const targetPath = normalizeRemotePath(path.join(this.remotePath, remotePath));
+      await this.ensureRemoteDir(targetPath);
       this.logger.info(`创建目录成功: ${targetPath}`);
       return true;
     } catch (error: any) {
