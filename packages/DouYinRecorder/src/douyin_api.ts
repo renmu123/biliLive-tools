@@ -356,7 +356,22 @@ async function getRoomInfoByWeb(
       },
     },
   );
-
+  if (res.data.status_code === 30003) {
+    // 直播已结束
+    return {
+      living: false,
+      nickname: "",
+      sec_uid: "",
+      avatar: "",
+      api: "web",
+      room: {
+        title: "",
+        cover: "",
+        id_str: "",
+        stream_url: null,
+      },
+    };
+  }
   assert(
     res.data.status_code === 0,
     `Unexpected resp, code ${res.data.status_code}, msg ${JSON.stringify(res.data.data)}, id ${webRoomId}, cookies: ${cookies}`,
