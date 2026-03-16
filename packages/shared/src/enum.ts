@@ -350,7 +350,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     line: undefined,
     checkInterval: 60,
     maxThreadCount: 3,
-    waitTime: 0,
+    waitTime: 500,
     disableProvideCommentsWhenRecording: false,
     segment: "90",
     saveGiftDanma: false,
