@@ -9,6 +9,13 @@ import type { AliyunPanDriveType } from "@biliLive-tools/types";
 
 const createdDirCache = new Set<string>();
 const pendingDirRequests = new Map<string, Promise<void>>();
+const driveIdCache = new Map<string, string>();
+const pendingDriveIdRequests = new Map<string, Promise<string>>();
+
+const driveLabels: Record<AliyunPanDriveType, string[]> = {
+  backup: ["备份盘", "文件网盘"],
+  resource: ["资源库"],
+};
 
 function normalizeRemotePath(remotePath: string): string {
   return path.posix.normalize(remotePath.replace(/\\/g, "/"));
@@ -85,9 +92,11 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
     // this.checkInstallation();
   }
 
-  public static clearDirCache(): void {
+  public static clearCaches(): void {
     createdDirCache.clear();
     pendingDirRequests.clear();
+    driveIdCache.clear();
+    pendingDriveIdRequests.clear();
   }
 
   /**
@@ -115,86 +124,97 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
     }
   }
 
-  private async ensureDriveType(): Promise<void> {
-    await this.switchDrive(this.driveType);
+  private getDriveIdCacheKey(): string {
+    return `${this.binary}:${this.driveType}`;
   }
 
-  private async switchDrive(driveType: AliyunPanDriveType): Promise<void> {
-    return new Promise((resolve, reject) => {
+  private async resolveDriveId(): Promise<string> {
+    const cacheKey = this.getDriveIdCacheKey();
+    const cachedDriveId = driveIdCache.get(cacheKey);
+    if (cachedDriveId) {
+      return cachedDriveId;
+    }
+
+    const pendingRequest = pendingDriveIdRequests.get(cacheKey);
+    if (pendingRequest) {
+      return pendingRequest;
+    }
+
+    const requestPromise = new Promise<string>((resolve, reject) => {
       const driveCmd = spawn(this.binary, ["drive"], {
-        stdio: ["pipe", "pipe", "pipe"],
+        stdio: ["ignore", "pipe", "pipe"],
         windowsHide: true,
       });
       let stdout = "";
       let stderr = "";
-      let hasSelected = false;
+      let isSettled = false;
 
       const timer = setTimeout(() => {
+        isSettled = true;
         driveCmd.kill();
-        reject(new Error("切换阿里云盘上传位置超时"));
+        reject(new Error("解析阿里云盘 driveId 超时"));
       }, 10000);
 
-      const trySelectDrive = () => {
-        if (hasSelected) return;
-        const selectionIndex = this.parseDriveSelectionIndex(stdout, driveType);
-        if (selectionIndex === null) return;
-        driveCmd.stdin.write(`${selectionIndex}\n`);
-        hasSelected = true;
+      const cleanup = () => {
+        clearTimeout(timer);
+        pendingDriveIdRequests.delete(cacheKey);
       };
 
-      driveCmd.stdout.on("data", (data) => {
+      const tryResolveDriveId = (data: Buffer | string) => {
         stdout += data.toString();
-        trySelectDrive();
-      });
+        const driveId = this.parseDriveId(stdout, this.driveType);
+        if (!driveId || isSettled) return;
+
+        isSettled = true;
+        cleanup();
+        driveIdCache.set(cacheKey, driveId);
+        resolve(driveId);
+        driveCmd.kill();
+      };
+
+      driveCmd.stdout.on("data", tryResolveDriveId);
 
       driveCmd.stderr.on("data", (data) => {
         stderr += data.toString();
       });
 
       driveCmd.on("close", (code) => {
-        clearTimeout(timer);
-        if (code === 0) {
-          resolve();
-        } else {
-          reject(new Error(`切换阿里云盘上传位置失败: ${stderr || stdout}`));
-        }
+        cleanup();
+        if (isSettled) return;
+        reject(new Error(`解析阿里云盘 driveId 失败: ${stderr || stdout || code}`));
       });
 
       driveCmd.on("error", (error) => {
-        clearTimeout(timer);
+        cleanup();
+        if (isSettled) return;
         reject(error);
       });
     });
+
+    pendingDriveIdRequests.set(cacheKey, requestPromise);
+    return requestPromise;
   }
 
-  private parseDriveSelectionIndex(
-    output: string,
-    driveType: AliyunPanDriveType,
-  ): string | null {
-    const driveLabels: Record<AliyunPanDriveType, string[]> = {
-      backup: ["备份盘", "文件网盘"],
-      resource: ["资源库"],
-    };
-
+  private parseDriveId(output: string, driveType: AliyunPanDriveType): string | null {
     const lines = output.split("\n");
     for (const line of lines) {
       if (!driveLabels[driveType].some((label) => line.includes(label))) continue;
-      const matchedIndex = line.match(/\d+/);
-      if (matchedIndex) {
-        return matchedIndex[0];
+      const tokens = line.match(/[A-Za-z0-9_-]{6,}/g);
+      if (tokens?.length) {
+        return tokens.at(-1) ?? null;
       }
     }
 
     return null;
   }
 
-  private getDirCacheKey(remotePath: string): string {
-    return `${this.binary}:${this.driveType}:${remotePath}`;
+  private getDirCacheKey(remotePath: string, driveId: string): string {
+    return `${this.binary}:${driveId}:${remotePath}`;
   }
 
-  private async ensureRemoteDir(remotePath: string): Promise<void> {
+  private async ensureRemoteDir(remotePath: string, driveId: string): Promise<void> {
     const normalizedPath = normalizeRemotePath(remotePath);
-    const cacheKey = this.getDirCacheKey(normalizedPath);
+    const cacheKey = this.getDirCacheKey(normalizedPath, driveId);
 
     if (createdDirCache.has(cacheKey)) {
       return;
@@ -206,10 +226,8 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
     }
 
     const requestPromise = (async () => {
-      await this.ensureDriveType();
-
       try {
-        await this.executeCommand(["mkdir", normalizedPath]);
+        await this.executeCommand(["mkdir", normalizedPath, "--driveId", driveId]);
       } catch (error) {
         if (!isDirectoryAlreadyExistsError(error)) {
           throw error;
@@ -349,15 +367,14 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
       throw error;
     }
 
+    const driveId = await this.resolveDriveId();
     const targetDir = normalizeRemotePath(path.join(this.remotePath, remoteDir));
-    await this.ensureRemoteDir(targetDir);
+    await this.ensureRemoteDir(targetDir, driveId);
 
     try {
-      await this.ensureDriveType();
-
       // 执行上传
       this.logger.info(`开始上传: ${localFilePath} 到 ${targetDir}`);
-      const args = ["upload", localFilePath, targetDir, "--norapid"];
+      const args = ["upload", localFilePath, targetDir, "--norapid", "--driveId", driveId];
 
       // 添加覆盖策略选项
       if (options?.policy === "overwrite") {
@@ -445,6 +462,7 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
           this.loginCmd.on("close", (code) => {
             if (code === 0) {
               if (hasLoginSuccess) {
+                AliyunPan.clearCaches();
                 this.logger.info("close: 阿里云盘登录成功");
                 this.loginCmd = null;
                 resolve();
@@ -570,8 +588,9 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
    */
   public async mkdir(remotePath: string): Promise<boolean> {
     try {
+      const driveId = await this.resolveDriveId();
       const targetPath = normalizeRemotePath(path.join(this.remotePath, remotePath));
-      await this.ensureRemoteDir(targetPath);
+      await this.ensureRemoteDir(targetPath, driveId);
       this.logger.info(`创建目录成功: ${targetPath}`);
       return true;
     } catch (error: any) {
