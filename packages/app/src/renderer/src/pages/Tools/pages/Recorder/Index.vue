@@ -383,7 +383,6 @@ const remove = async (id: string) => {
 };
 
 const startRecord = async (id: string) => {
-  console.log("开始录制", id);
   await recoderApi.startRecord(id);
   getList();
 };
