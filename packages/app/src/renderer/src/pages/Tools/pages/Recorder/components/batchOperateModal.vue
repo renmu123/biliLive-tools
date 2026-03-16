@@ -75,7 +75,7 @@
                 <n-text strong>{{
                   recorder.remarks || recorder.liveInfo?.owner || "未命名"
                 }}</n-text>
-                <n-tag size="small" :type="getPlatformTagType(recorder.providerId)">
+                <n-tag size="small" type="info">
                   {{ getPlatformName(recorder.providerId) }}
                 </n-tag>
                 <n-tag size="small" :type="recorder.recordHandle ? 'error' : 'default'">
@@ -125,6 +125,7 @@
 
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
+import { platformOptions } from "../data";
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
@@ -149,15 +150,6 @@ const selectedIds = ref<string[]>([]);
 
 // 操作中状态
 const operating = ref(false);
-
-// 平台选项
-const platformOptions = [
-  { label: "斗鱼", value: "DouYu" },
-  { label: "B站", value: "Bilibili" },
-  { label: "虎牙", value: "HuYa" },
-  { label: "抖音", value: "DouYin" },
-  { label: "小红书", value: "XHS" },
-];
 
 // 录制状态选项
 const recordStatusOptions = [
@@ -313,28 +305,17 @@ const cancel = () => {
   showModal.value = false;
 };
 
+const platformMap = platformOptions.reduce(
+  (map, option) => {
+    map[option.value] = option.label;
+    return map;
+  },
+  {} as Record<string, string>,
+);
+
 // 获取平台名称
 const getPlatformName = (providerId: string) => {
-  const map: Record<string, string> = {
-    DouYu: "斗鱼",
-    Bilibili: "B站",
-    HuYa: "虎牙",
-    DouYin: "抖音",
-    XHS: "小红书",
-  };
-  return map[providerId] || providerId;
-};
-
-// 获取平台标签类型
-const getPlatformTagType = (providerId: string) => {
-  const map: Record<string, "default" | "info" | "success" | "warning" | "error"> = {
-    DouYu: "warning",
-    Bilibili: "info",
-    HuYa: "warning",
-    DouYin: "error",
-    XHS: "error",
-  };
-  return map[providerId] || "default";
+  return platformMap[providerId] || providerId;
 };
 
 // 监听弹窗打开，重置状态并获取数据

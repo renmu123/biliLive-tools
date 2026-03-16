@@ -153,6 +153,7 @@ import listView from "./components/listView.vue";
 import { useRouter } from "vue-router";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import ColumnSelector from "@renderer/components/ColumnSelector.vue";
+import { platformOptions } from "./data";
 
 import { useEventListener, useStorage } from "@vueuse/core";
 import eventBus from "@renderer/utils/eventBus";
@@ -208,28 +209,6 @@ const params = ref<Parameters<typeof recoderApi.infoList>[0]>({
   page: 1,
 });
 
-const platformOptions = ref([
-  {
-    label: "斗鱼",
-    value: "DouYu",
-  },
-  {
-    label: "B站",
-    value: "Bilibili",
-  },
-  {
-    label: "虎牙",
-    value: "HuYa",
-  },
-  {
-    label: "抖音",
-    value: "DouYin",
-  },
-  {
-    label: "小红书",
-    value: "XHS",
-  },
-]);
 const statusOptions = ref([
   {
     label: "录制中",
