@@ -13,7 +13,7 @@
         </template>
         <image-crop v-model="options.config.cover"></image-crop>
       </n-form-item>
-      <n-form-item label="视频标题">
+      <n-form-item label="视频标题" style="margin-bottom: 10px">
         <template #label>
           <Tip :tip="titleTip" text="视频标题"></Tip>
         </template>
@@ -37,7 +37,7 @@
           >
         </template>
       </n-form-item>
-      <n-form-item label="分P标题" style="margin-top: 34px">
+      <n-form-item label="分P标题" style="margin-bottom: 10px">
         <template #label>
           <Tip :tip="partTitleTip" text="分P标题"></Tip>
         </template>
@@ -144,7 +144,7 @@
         />
       </n-form-item>
 
-      <n-form-item>
+      <n-form-item style="margin-bottom: 10px">
         <template #label>
           <Tip :tip="descTip" text="视频简介"></Tip>
         </template>
