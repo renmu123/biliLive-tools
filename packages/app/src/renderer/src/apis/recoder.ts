@@ -67,6 +67,18 @@ const cut = async (id: string) => {
   return res.data.payload;
 };
 
+const batchStartRecord = async (
+  ids: string[],
+): Promise<RecorderAPI["batchStartRecord"]["Resp"]> => {
+  const res = await request.post(`/recorder/manager/batch_start_record`, { ids });
+  return res.data.payload;
+};
+
+const batchStopRecord = async (ids: string[]): Promise<RecorderAPI["batchStopRecord"]["Resp"]> => {
+  const res = await request.post(`/recorder/manager/batch_stop_record`, { ids });
+  return res.data.payload;
+};
+
 const resolveChannel = async (url: string): Promise<RecorderAPI["resolveChannel"]["Resp"]> => {
   const res = await request.get(`/recorder/manager/resolveChannel`, {
     params: { url },
@@ -104,6 +116,8 @@ const recoder = {
   update,
   stopRecord,
   startRecord,
+  batchStartRecord,
+  batchStopRecord,
   resolveChannel,
   resolve,
   batchResolveChannel,

@@ -28,6 +28,7 @@ declare module 'vue' {
     InputDialog: typeof import('./src/components/InputDialog.vue')['default']
     LogModal: typeof import('./src/components/logModal.vue')['default']
     NAlert: typeof import('naive-ui')['NAlert']
+    NAvatar: typeof import('naive-ui')['NAvatar']
     NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
     NCascader: typeof import('naive-ui')['NCascader']

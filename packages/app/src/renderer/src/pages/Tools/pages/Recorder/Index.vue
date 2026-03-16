@@ -131,6 +131,10 @@
       :results="batchParseResults"
       @completed="handleBatchCompleted"
     ></batchResultModal>
+    <batchOperateModal
+      v-model:visible="batchOperateModalVisible"
+      @completed="handleBatchOperateCompleted"
+    ></batchOperateModal>
     <videoModal :id="editId" v-model:visible="videoModalVisible" :video-url="videoUrl"></videoModal>
   </div>
 </template>
@@ -142,6 +146,7 @@ import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
 import addModal from "./components/addModal.vue";
 import batchAddModal from "./components/batchAddModal.vue";
 import batchResultModal from "./components/batchResultModal.vue";
+import batchOperateModal from "./components/batchOperateModal.vue";
 import videoModal from "./components/videoModal.vue";
 import cardView from "./components/cardView.vue";
 import listView from "./components/listView.vue";
@@ -359,6 +364,7 @@ const addModalVisible = ref(false);
 const batchAddModalVisible = ref(false);
 const batchResultModalVisible = ref(false);
 const batchParseResults = ref<any[]>([]);
+const batchOperateModalVisible = ref(false);
 
 const add = async () => {
   editId.value = "";
@@ -367,6 +373,10 @@ const add = async () => {
 
 const batchAdd = async () => {
   batchAddModalVisible.value = true;
+};
+
+const batchOperate = async () => {
+  batchOperateModalVisible.value = true;
 };
 
 const confirm = useConfirm();
@@ -456,6 +466,11 @@ const handleBatchParsed = (results: any[]) => {
 const handleBatchCompleted = () => {
   // 刷新列表
   init();
+};
+
+const handleBatchOperateCompleted = async () => {
+  // 刷新列表
+  await getList();
 };
 
 const init = async () => {
@@ -605,11 +620,17 @@ const handleSortDirectionChange = (direction: "asc" | "desc") => {
   getList();
 };
 
-const actionBtns = ref([{ label: "批量添加", key: "batchAdd" }]);
+const actionBtns = ref([
+  { label: "批量添加", key: "batchAdd" },
+  { label: "批量操作", key: "batchOperate" },
+]);
 const handleActionClick = (key?: string | number) => {
   switch (key) {
     case "batchAdd":
       batchAdd();
+      break;
+    case "batchOperate":
+      batchOperate();
       break;
     case undefined:
       add();
