@@ -287,6 +287,8 @@ export type ToolConfig = {
     removeOrigin: boolean;
     /** 同步类型 */
     syncType?: AppConfig["sync"]["syncConfigs"][number]["syncSource"];
+    /** 阿里云盘上传位置 */
+    aliyunpanDriveType?: AliyunPanDriveType;
     /** 目标路径 */
     targetPath: string;
   };
@@ -552,12 +554,15 @@ export interface Recorder {
 
 export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "pan123" | "copy";
 
+export type AliyunPanDriveType = "backup" | "resource";
+
 export type SyncConfig = {
   id: string;
   name: string;
   syncSource: SyncType;
   folderStructure: string;
   targetFiles: ("source" | "danmaku" | "xml" | "cover")[];
+  aliyunpanDriveType?: AliyunPanDriveType;
   stringFilters?: "filterFourByteChars"[];
 };
 

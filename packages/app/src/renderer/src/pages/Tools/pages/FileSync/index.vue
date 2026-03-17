@@ -16,6 +16,13 @@
         placeholder="选择同步网盘"
         style="width: 140px; display: inline-block"
       />
+      <n-select
+        v-if="options.syncType === 'aliyunpan'"
+        v-model:value="options.aliyunpanDriveType"
+        :options="aliyunpanDriveOptions"
+        placeholder="选择上传位置"
+        style="width: 140px; display: inline-block"
+      />
       <n-input
         v-model:value="options.targetPath"
         placeholder="请输入目标路径"
@@ -37,6 +44,8 @@ import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSe
 import { useAppConfig } from "@renderer/stores";
 import { syncApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
+
+import type { AliyunPanDriveType } from "@biliLive-tools/types";
 
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
@@ -89,6 +98,17 @@ const syncConfigOptions = computed(() => {
   ];
 });
 
+const aliyunpanDriveOptions: Array<{ label: string; value: AliyunPanDriveType }> = [
+  {
+    label: "备份盘",
+    value: "backup",
+  },
+  {
+    label: "资源库",
+    value: "resource",
+  },
+];
+
 const sync = async () => {
   if (!options.syncType) {
     notice.error({
@@ -116,6 +136,8 @@ const sync = async () => {
       file: file.path,
       type: options.syncType,
       targetPath: options.targetPath,
+      aliyunpanDriveType:
+        options.syncType === "aliyunpan" ? options.aliyunpanDriveType || "backup" : undefined,
       options: {
         removeOrigin: options.removeOrigin,
       },

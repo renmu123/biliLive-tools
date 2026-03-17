@@ -240,6 +240,7 @@ export const useAppConfig = defineStore("appConfig", () => {
       fileSync: {
         removeOrigin: false,
         syncType: undefined,
+        aliyunpanDriveType: "backup",
         targetPath: "",
       },
       danmu: {
