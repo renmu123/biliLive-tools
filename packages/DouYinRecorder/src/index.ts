@@ -296,9 +296,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   client.on("chat", (msg) => {
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
+    let timestamp: number = Date.now();
+    if (this.useServerTimestamp && msg.eventTime) {
+      // 某些消息可能没有 eventTime 字段
+      timestamp = Number(msg.eventTime) * 1000;
+    }
     const comment: Comment = {
       type: "comment",
-      timestamp: this.useServerTimestamp ? Number(msg.eventTime) * 1000 : Date.now(),
+      timestamp: timestamp,
       text: msg.content,
       color: "#ffffff",
       sender: {
@@ -310,6 +315,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         // },
       },
     };
+    console.log("Message", JSON.stringify(msg), null, 2);
     this.emit("Message", comment);
     extraDataController.addMessage(comment);
   });
