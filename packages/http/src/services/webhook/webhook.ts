@@ -565,6 +565,7 @@ export class WebhookHandler {
         retry: 3,
         policy: "skip",
         type: syncConfig.syncSource,
+        aliyunpanDriveType: syncConfig.aliyunpanDriveType,
       });
       log.info(`开始同步${fileType}文件: ${filePath}`);
 
