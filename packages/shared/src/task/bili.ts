@@ -805,7 +805,7 @@ export async function editMedia(
         path: string;
         title?: string;
       }[],
-  options: BiliupConfig | any,
+  options: BiliupConfig,
   uid: number,
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];

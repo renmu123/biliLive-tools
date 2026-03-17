@@ -958,12 +958,13 @@ export class WebhookHandler {
       path: string;
       title: string;
     }[],
+    uploadPreset: BiliupConfig,
     limitedUploadTime: [string, string] | [],
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
     const checkCallback = this.setupDeleteAfterCheckLock(pathArray);
 
-    const task = await biliApi.editMedia(aid, pathArray, {}, uid, {
+    const task = await biliApi.editMedia(aid, pathArray, uploadPreset, uid, {
       limitedUploadTime,
       afterUploadDeletAction: "none",
       forceCheck: afterUploadDeletAction === "deleteAfterCheck",
@@ -1154,6 +1155,7 @@ export class WebhookHandler {
     filePaths: { part: Part; path: string; title: string }[],
     type: "raw" | "handled",
     config: RoomConfig,
+    uploadPreset: BiliupConfig,
     limitedUploadTime: [] | [string, string],
   ) {
     log.info("续传", filePaths);
@@ -1171,6 +1173,7 @@ export class WebhookHandler {
         path: item.path,
         title: item.title,
       })),
+      uploadPreset,
       limitedUploadTime,
       config.afterUploadDeletAction,
     );
@@ -1268,6 +1271,7 @@ export class WebhookHandler {
           filePaths,
           type,
           config,
+          uploadPreset,
           limitedUploadTime,
         );
       } else {

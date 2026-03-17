@@ -878,6 +878,7 @@ describe("WebhookHandler", () => {
               title: "part3",
             },
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -951,6 +952,7 @@ describe("WebhookHandler", () => {
               title: "part3",
             },
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -1021,6 +1023,7 @@ describe("WebhookHandler", () => {
               title: "part3-part3-username-123-3",
             },
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -1103,6 +1106,7 @@ describe("WebhookHandler", () => {
               title: "part5-part5-username-123-3",
             },
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -1508,6 +1512,7 @@ describe("WebhookHandler", () => {
               title: "part3",
             },
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -1585,6 +1590,7 @@ describe("WebhookHandler", () => {
               title: "part3",
             },
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -1657,6 +1663,7 @@ describe("WebhookHandler", () => {
               title: "part3-part3-username-123-3",
             },
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -1743,6 +1750,7 @@ describe("WebhookHandler", () => {
               title: "part5-part5-username-123-3",
             },
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -3565,6 +3573,7 @@ describe("Live", () => {
             123,
             789,
             expect.any(Array),
+            expect.anything(),
             expect.any(Array),
             "none",
           );
