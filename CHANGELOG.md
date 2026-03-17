@@ -1,3 +1,9 @@
+# Next
+
+## 功能
+
+- 同步：阿里云盘支持同步到资源库 [#382](https://github.com/renmu123/biliLive-tools/pull/382)
+
 # 3.10.2(2026.3.17)
 
 ## 优化
