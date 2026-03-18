@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/xhs-recorder",
-  "version": "1.13.1",
+  "version": "1.13.2",
   "description": "bililive-tools xhs recorder implemention",
   "main": "./lib/index.js",
   "type": "module",

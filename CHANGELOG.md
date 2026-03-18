@@ -4,6 +4,10 @@
 
 - 同步：阿里云盘支持同步到资源库 [#382](https://github.com/renmu123/biliLive-tools/pull/382)
 
+## Bug修复
+
+- 录制：修复小红书未设置cookie无法录制的bug
+
 # 3.10.2(2026.3.17)
 
 ## 优化

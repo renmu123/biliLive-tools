@@ -124,16 +124,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       roomId = info.roomId;
       liveStartTimeFromSearch = info.liveStartTime;
     }
+
+    console.log("roomid", roomId);
     if (!roomId) return null;
 
-    if (this.liveInfo?.liveId === banLiveId) {
-      this.tempStopIntervalCheck = true;
-    } else {
-      this.tempStopIntervalCheck = false;
-    }
-    if (this.tempStopIntervalCheck) return null;
-
     const liveInfo = await getInfo(roomId);
+    console.log("liveInfo", liveInfo);
     // @ts-ignore
     this.liveInfo = liveInfo!;
     if (liveStartTimeFromSearch) {
@@ -147,6 +143,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   const { living, owner, title, liveStartTime, recordStartTime } = this.liveInfo!;
+  if (this.liveInfo?.liveId === banLiveId) {
+    this.tempStopIntervalCheck = true;
+  } else {
+    this.tempStopIntervalCheck = false;
+  }
+  if (this.tempStopIntervalCheck) return null;
   if (!living) return null;
 
   // 检查标题是否包含关键词
