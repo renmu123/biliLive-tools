@@ -917,12 +917,15 @@ export class WebhookHandler {
    * 处理审核后删除的引用计数和回调
    * @private
    */
-  private setupDeleteAfterCheckLock(pathArray: { path: string; title: string }[]) {
+  private setupDeleteAfterCheckLock(
+    pathArray: { path: string; title: string }[],
+    afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
+  ) {
     // 返回 checkCallback
     return async (status: string) => {
-      console.log(`审核状态: ${status}`, pathArray);
-      if (status === "completed") {
-        // 审核通过，释放引用（会自动删除）
+      // console.log(`审核状态: ${status}`, pathArray);
+      if (status === "completed" && afterUploadDeletAction === "deleteAfterCheck") {
+        // 审核通过且配置为审核后删除，释放引用（会自动删除）
         for (const { path } of pathArray) {
           await this.fileRefManager.releaseRef(path);
         }
@@ -940,7 +943,7 @@ export class WebhookHandler {
     limitedUploadTime: [] | [string, string],
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
-    const checkCallback = this.setupDeleteAfterCheckLock(pathArray);
+    const checkCallback = this.setupDeleteAfterCheckLock(pathArray, afterUploadDeletAction);
 
     const task = await biliApi.addMedia(pathArray, options, uid, {
       limitedUploadTime,
@@ -963,7 +966,7 @@ export class WebhookHandler {
     limitedUploadTime: [string, string] | [],
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
-    const checkCallback = this.setupDeleteAfterCheckLock(pathArray);
+    const checkCallback = this.setupDeleteAfterCheckLock(pathArray, afterUploadDeletAction);
 
     const task = await biliApi.editMedia(aid, pathArray, uploadPreset, uid, {
       limitedUploadTime,
