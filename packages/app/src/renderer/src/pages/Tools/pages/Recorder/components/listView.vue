@@ -94,7 +94,7 @@
           {{
             item.disableAutoCheck
               ? "手动"
-              : `自动${item.tempStopIntervalCheck && !item.disableAutoCheck ? "(跳过本场直播)" : ""}`
+              : `自动${item.tempStopIntervalCheck && !item.disableAutoCheck ? "(跳过本场)" : ""}`
           }}
         </td>
         <td v-if="isColumnVisible('actions')">

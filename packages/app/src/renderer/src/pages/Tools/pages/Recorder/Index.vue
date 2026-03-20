@@ -80,6 +80,13 @@
             >
               切割
             </div>
+            <div
+              class="section"
+              @click="item.disableAutoCheck ? startMonitor(item.id) : stopMonitor(item.id)"
+            >
+              {{ item.disableAutoCheck ? "开始监控" : "停止监控" }}
+            </div>
+            <div class="divider"></div>
             <div class="section" @click="edit(item.id)">直播间设置</div>
             <div class="section" @click="refresh(item.id)">刷新直播间信息</div>
             <div
@@ -396,6 +403,23 @@ const cut = async (id: string) => {
   await recoderApi.cut(id);
 };
 
+const startMonitor = async (id: string) => {
+  await recoderApi.update(id, { id, disableAutoCheck: false } as any);
+  notice.success({
+    title: "已开始监控",
+  });
+  await recoderApi.startRecord(id);
+  getList();
+};
+
+const stopMonitor = async (id: string) => {
+  await recoderApi.update(id, { id, disableAutoCheck: true } as any);
+  notice.success({
+    title: "已停止监控",
+  });
+  getList();
+};
+
 const editId = ref("");
 const edit = async (id: string) => {
   editId.value = id;
@@ -634,6 +658,12 @@ const handleActionClick = (key?: string | number) => {
       color: var(--color-danger-text);
     }
   }
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--bg-hover);
+  margin: 4px 0;
 }
 .sort-buttons {
   display: flex;

@@ -4,9 +4,14 @@
 
 - 同步：阿里云盘支持同步到资源库 [#382](https://github.com/renmu123/biliLive-tools/pull/382)
 
+## 优化
+
+- 录制：支持快捷开始和停止监控直播间 [#388](https://github.com/renmu123/biliLive-tools/issues/388)
+
 ## Bug修复
 
 - 录制：修复小红书未设置cookie无法录制的bug
+- webhook: 修复某些情况下审核后删除会被额外执行 [#356](https://github.com/renmu123/biliLive-tools/issues/356)
 
 # 3.10.2(2026.3.17)
 
