@@ -3,6 +3,7 @@
 ## 功能
 
 - 同步：阿里云盘支持同步到资源库 [#382](https://github.com/renmu123/biliLive-tools/pull/382)
+- 录制：支持批量开始和暂停 [#384](https://github.com/renmu123/biliLive-tools/pull/384)
 
 ## 优化
 
