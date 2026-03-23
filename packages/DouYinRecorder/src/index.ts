@@ -315,7 +315,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         // },
       },
     };
-    console.log("Message", JSON.stringify(msg), null, 2);
     this.emit("Message", comment);
     extraDataController.addMessage(comment);
   });

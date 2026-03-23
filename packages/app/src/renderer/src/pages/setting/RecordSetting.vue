@@ -346,6 +346,14 @@
               <Tip text="Cookie" tip="用于录制会员直播"></Tip>
             </template>
             <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
+            <n-button
+              v-if="!isWeb"
+              type="primary"
+              style="margin-left: 10px"
+              @click="douyinLogin"
+              title="登录后退出即可获取cookie"
+              >登录</n-button
+            >
           </n-form-item>
           <n-form-item>
             <template #label>
@@ -524,6 +532,11 @@ const handleNameRuleBlur = async () => {
 const xhsLogin = async () => {
   const cookie = await window.api.cookie.xhsLogin();
   config.value.recorder.xhs.cookie = cookie;
+};
+
+const douyinLogin = async () => {
+  const cookie = await window.api.cookie.douyinLogin();
+  config.value.recorder.douyin.cookie = cookie;
 };
 </script>
 

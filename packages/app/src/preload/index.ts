@@ -27,6 +27,9 @@ export const api = {
     xhsLogin: () => {
       return ipcRenderer.invoke("cookie:xhs");
     },
+    douyinLogin: () => {
+      return ipcRenderer.invoke("cookie:douyin");
+    },
   },
   common: {
     readFile: (path: string) => {
