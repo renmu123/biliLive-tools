@@ -28,7 +28,10 @@ import { sendBySystem, send } from "../notify.js";
 import { danmaReport, parseDanmu } from "../danmu/index.js";
 
 import type { AppConfig } from "../config.js";
-import type { Recorder as RecorderConfigType } from "@biliLive-tools/types";
+import type {
+  Recorder as RecorderConfigType,
+  AppConfig as AppConfigType,
+} from "@biliLive-tools/types";
 import type { Recorder } from "@bililive-tools/manager";
 
 export { RecorderConfig };
@@ -99,6 +102,70 @@ export async function createRecorderManager(appConfig: AppConfig) {
   }
 
   /**
+   * 构建manager配置项
+   */
+  async function buildManagerOptions(config: AppConfigType) {
+    const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
+    const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
+    const maxThreadCount = config?.recorder?.maxThreadCount ?? 3;
+    const waitTime = config?.recorder?.waitTime ?? 0;
+
+    // 构建每个平台的检查配置
+    const providerCheckConfig: Record<
+      string,
+      {
+        autoCheckInterval?: number;
+        maxThreadCount?: number;
+        waitTime?: number;
+      }
+    > = {
+      [providerForBiliBili.id]: {
+        autoCheckInterval: config?.recorder?.bilibili.checkInterval ?? autoCheckInterval,
+        maxThreadCount: config?.recorder?.bilibili.maxThreadCount ?? maxThreadCount,
+        waitTime: config?.recorder?.bilibili.waitTime ?? waitTime,
+      },
+      [providerForDouYu.id]: {
+        autoCheckInterval: config?.recorder?.douyu.checkInterval ?? autoCheckInterval,
+        maxThreadCount: config?.recorder?.douyu.maxThreadCount ?? maxThreadCount,
+        waitTime: config?.recorder?.douyu.waitTime ?? waitTime,
+      },
+      [providerForHuYa.id]: {
+        autoCheckInterval: config?.recorder?.huya.checkInterval ?? autoCheckInterval,
+        maxThreadCount: config?.recorder?.huya.maxThreadCount ?? maxThreadCount,
+        waitTime: config?.recorder?.huya.waitTime ?? waitTime,
+      },
+      [providerForDouYin.id]: {
+        autoCheckInterval: config?.recorder?.douyin.checkInterval ?? autoCheckInterval,
+        maxThreadCount: config?.recorder?.douyin.maxThreadCount ?? maxThreadCount,
+        waitTime: config?.recorder?.douyin.waitTime ?? waitTime,
+      },
+      [providerForXHS.id]: {
+        autoCheckInterval: config?.recorder?.xhs.checkInterval ?? autoCheckInterval,
+        maxThreadCount: config?.recorder?.xhs.maxThreadCount ?? maxThreadCount,
+        waitTime: config?.recorder?.xhs.waitTime ?? waitTime,
+      },
+    };
+
+    return {
+      providers: [
+        providerForDouYu,
+        providerForHuYa,
+        providerForBiliBili,
+        providerForDouYin,
+        providerForXHS,
+      ],
+      autoRemoveSystemReservedChars: true,
+      autoCheckInterval: autoCheckInterval * 1000,
+      savePathRule: savePathRule,
+      biliBatchQuery: config?.recorder?.bilibili.useBatchQuery ?? false,
+      recordRetryImmediately: config?.recorder?.recordRetryImmediately ?? false,
+      maxThreadCount: maxThreadCount,
+      waitTime: waitTime,
+      providerCheckConfig,
+    };
+  }
+
+  /**
    * 全局配置更新后，更新录制器相关参数
    */
   async function updateRecorderManager(
@@ -118,6 +185,13 @@ export async function createRecorderManager(appConfig: AppConfig) {
     manager.savePathRule = savePathRule;
     manager.biliBatchQuery = config?.recorder?.bilibili.useBatchQuery ?? false;
     manager.recordRetryImmediately = config?.recorder?.recordRetryImmediately ?? false;
+
+    const managerOptions = await buildManagerOptions(config);
+
+    // 更新每个平台的检查配置
+    manager.providerCheckConfig = managerOptions.providerCheckConfig;
+    // TODO:需要删除
+    console.log("update", manager.providerCheckConfig);
 
     if (autoCheckLiveStatusAndRecord) {
       if (autoCheckLiveStatusAndRecord && !manager.isCheckLoopRunning) {
@@ -148,28 +222,12 @@ export async function createRecorderManager(appConfig: AppConfig) {
   setMesioPath(mesioPath);
   setBililivePath(bililiveRecorderPath);
 
-  const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
-  const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
-  const maxThreadCount = config?.recorder?.maxThreadCount ?? 3;
-  const waitTime = config?.recorder?.waitTime ?? 0;
   const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
 
-  const manager = createManager({
-    providers: [
-      providerForDouYu,
-      providerForHuYa,
-      providerForBiliBili,
-      providerForDouYin,
-      providerForXHS,
-    ],
-    autoRemoveSystemReservedChars: true,
-    autoCheckInterval: autoCheckInterval * 1000,
-    savePathRule: savePathRule,
-    biliBatchQuery: config?.recorder?.bilibili.useBatchQuery ?? false,
-    recordRetryImmediately: config?.recorder?.recordRetryImmediately ?? false,
-    maxThreadCount: maxThreadCount,
-    waitTime: waitTime,
-  });
+  const managerOptions = await buildManagerOptions(config);
+  const manager = createManager(managerOptions);
+  // TODO:需要删除
+  console.log("managerOptions", managerOptions);
 
   manager.on("RecorderDebugLog", ({ recorder, ...log }) => {
     if (log.type !== "ffmpeg") {
