@@ -117,7 +117,8 @@ describe("AliyunPan", () => {
           error: vi.fn(),
         } as never,
       });
-      vi.spyOn(fs, "pathExists").mockResolvedValue();
+      // @ts-expect-error
+      vi.spyOn(fs, "pathExists").mockResolvedValue(true);
 
       const resolveDriveId = vi
         .spyOn(aliyunPan as never, "resolveDriveId")
