@@ -236,6 +236,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       headers: {
         Referer: "https://live.bilibili.com/",
       },
+      proxy: this.proxy,
     },
     onEnd,
     async () => {
