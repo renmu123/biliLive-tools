@@ -701,4 +701,308 @@ describe("RecorderManager", () => {
       expect(liveStartHandler).toHaveBeenCalledWith({ recorder: biliRecorder });
     });
   });
+
+  describe("Per-Provider Check Configuration", () => {
+    let testProvider: TestProvider;
+    let bilibiliProvider: BilibiliTestProvider;
+
+    beforeEach(() => {
+      testProvider = new TestProvider();
+      bilibiliProvider = new BilibiliTestProvider();
+    });
+
+    describe("基本配置", () => {
+      it("应该正确创建包含 providerCheckConfig 的 RecorderManager", () => {
+        const manager = createRecorderManager({
+          providers: [testProvider, bilibiliProvider],
+          autoCheckInterval: 10000,
+          maxThreadCount: 3,
+          waitTime: 1000,
+          providerCheckConfig: {
+            Bilibili: {
+              autoCheckInterval: 5000,
+              maxThreadCount: 5,
+              waitTime: 500,
+            },
+            test: {
+              autoCheckInterval: 15000,
+              maxThreadCount: 2,
+            },
+          },
+        });
+
+        expect(manager.providerCheckConfig).toBeDefined();
+        expect(manager.providerCheckConfig.Bilibili).toEqual({
+          autoCheckInterval: 5000,
+          maxThreadCount: 5,
+          waitTime: 500,
+        });
+        expect(manager.providerCheckConfig.test).toEqual({
+          autoCheckInterval: 15000,
+          maxThreadCount: 2,
+        });
+      });
+
+      it("没有 providerCheckConfig 时应该使用空对象", () => {
+        const manager = createRecorderManager({
+          providers: [testProvider],
+        });
+
+        expect(manager.providerCheckConfig).toEqual({});
+      });
+    });
+
+    describe("getProviderCheckConfig 方法", () => {
+      it("应该返回 provider 特定的配置", () => {
+        const manager = createRecorderManager({
+          providers: [testProvider, bilibiliProvider],
+          autoCheckInterval: 10000,
+          maxThreadCount: 3,
+          waitTime: 1000,
+          providerCheckConfig: {
+            Bilibili: {
+              autoCheckInterval: 5000,
+              maxThreadCount: 5,
+              waitTime: 500,
+            },
+          },
+        });
+
+        const biliConfig = manager.getProviderCheckConfig("Bilibili");
+        expect(biliConfig).toEqual({
+          autoCheckInterval: 5000,
+          maxThreadCount: 5,
+          waitTime: 500,
+        });
+      });
+
+      it("没有配置的 provider 应该使用全局配置", () => {
+        const manager = createRecorderManager({
+          providers: [testProvider, bilibiliProvider],
+          autoCheckInterval: 10000,
+          maxThreadCount: 3,
+          waitTime: 1000,
+          providerCheckConfig: {
+            Bilibili: {
+              autoCheckInterval: 5000,
+            },
+          },
+        });
+
+        const testConfig = manager.getProviderCheckConfig("test");
+        expect(testConfig).toEqual({
+          autoCheckInterval: 10000,
+          maxThreadCount: 3,
+          waitTime: 1000,
+        });
+      });
+
+      it("应该支持部分覆盖配置", () => {
+        const manager = createRecorderManager({
+          providers: [testProvider, bilibiliProvider],
+          autoCheckInterval: 10000,
+          maxThreadCount: 3,
+          waitTime: 1000,
+          providerCheckConfig: {
+            Bilibili: {
+              autoCheckInterval: 5000,
+              maxThreadCount: 5,
+              // waitTime 未配置，应使用全局值
+            },
+          },
+        });
+
+        const biliConfig = manager.getProviderCheckConfig("Bilibili");
+        expect(biliConfig).toEqual({
+          autoCheckInterval: 5000,
+          maxThreadCount: 5,
+          waitTime: 1000, // 使用全局配置
+        });
+      });
+
+      it("应该正确处理全局配置的默认值", () => {
+        const manager = createRecorderManager({
+          providers: [testProvider],
+          // 不提供全局配置，使用默认值
+          providerCheckConfig: {
+            test: {
+              autoCheckInterval: 5000,
+            },
+          },
+        });
+
+        const testConfig = manager.getProviderCheckConfig("test");
+        expect(testConfig.autoCheckInterval).toBe(5000);
+        expect(testConfig.maxThreadCount).toBe(3); // 默认值
+        expect(testConfig.waitTime).toBe(0); // 默认值
+      });
+    });
+
+    describe("配置变更事件", () => {
+      it("修改 providerCheckConfig 应该触发 Updated 事件", () => {
+        const manager = createRecorderManager({
+          providers: [testProvider],
+        });
+
+        const updateHandler = vi.fn();
+        manager.on("Updated", updateHandler);
+
+        manager.providerCheckConfig = {
+          test: {
+            autoCheckInterval: 5000,
+          },
+        };
+
+        expect(updateHandler).toHaveBeenCalledWith(["providerCheckConfig"]);
+      });
+    });
+
+    describe("多 provider 检查循环", () => {
+      it("应该为每个 provider 创建独立的检查循环", async () => {
+        const manager = createRecorderManager({
+          providers: [testProvider, bilibiliProvider],
+          providerCheckConfig: {
+            test: {
+              autoCheckInterval: 100,
+              maxThreadCount: 1,
+            },
+            Bilibili: {
+              autoCheckInterval: 100,
+              maxThreadCount: 1,
+            },
+          },
+        });
+
+        const testRecorder = manager.addRecorder({
+          id: "test-recorder",
+          providerId: "test",
+          channelId: "test-channel",
+          quality: "highest",
+          streamPriorities: [],
+          sourcePriorities: [],
+        });
+
+        const biliRecorder = manager.addRecorder({
+          id: "bili-recorder",
+          providerId: "Bilibili",
+          channelId: "12345",
+          quality: "highest",
+          streamPriorities: [],
+          sourcePriorities: [],
+        });
+
+        manager.startCheckLoop();
+
+        // 等待两个循环都执行
+        await new Promise((resolve) => setTimeout(resolve, 250));
+
+        expect(testRecorder.checkLiveStatusAndRecord).toHaveBeenCalled();
+        expect(biliRecorder.checkLiveStatusAndRecord).toHaveBeenCalled();
+
+        manager.stopCheckLoop();
+      });
+
+      it("stopCheckLoop 应该停止所有 provider 的检查循环", async () => {
+        const manager = createRecorderManager({
+          providers: [testProvider, bilibiliProvider],
+          providerCheckConfig: {
+            test: {
+              autoCheckInterval: 100,
+            },
+            Bilibili: {
+              autoCheckInterval: 100,
+            },
+          },
+        });
+
+        const testRecorder = manager.addRecorder({
+          id: "test-recorder",
+          providerId: "test",
+          channelId: "test-channel",
+          quality: "highest",
+          streamPriorities: [],
+          sourcePriorities: [],
+        });
+
+        const biliRecorder = manager.addRecorder({
+          id: "bili-recorder",
+          providerId: "Bilibili",
+          channelId: "12345",
+          quality: "highest",
+          streamPriorities: [],
+          sourcePriorities: [],
+        });
+
+        manager.startCheckLoop();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        manager.stopCheckLoop();
+
+        const callCountBefore = (testRecorder.checkLiveStatusAndRecord as any).mock.calls.length;
+        const biliCallCountBefore = (biliRecorder.checkLiveStatusAndRecord as any).mock.calls
+          .length;
+
+        // 等待确保循环真的停止了
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        const callCountAfter = (testRecorder.checkLiveStatusAndRecord as any).mock.calls.length;
+        const biliCallCountAfter = (biliRecorder.checkLiveStatusAndRecord as any).mock.calls.length;
+
+        // 停止后调用次数应该不再增加
+        expect(callCountAfter).toBe(callCountBefore);
+        expect(biliCallCountAfter).toBe(biliCallCountBefore);
+      });
+    });
+
+    describe("向后兼容性", () => {
+      it("不提供 providerCheckConfig 时应该使用全局配置", () => {
+        const manager = createRecorderManager({
+          providers: [testProvider, bilibiliProvider],
+          autoCheckInterval: 10000,
+          maxThreadCount: 3,
+          waitTime: 1000,
+        });
+
+        const testConfig = manager.getProviderCheckConfig("test");
+        expect(testConfig).toEqual({
+          autoCheckInterval: 10000,
+          maxThreadCount: 3,
+          waitTime: 1000,
+        });
+
+        const biliConfig = manager.getProviderCheckConfig("Bilibili");
+        expect(biliConfig).toEqual({
+          autoCheckInterval: 10000,
+          maxThreadCount: 3,
+          waitTime: 1000,
+        });
+      });
+
+      it("旧的 API 应该继续工作", async () => {
+        const manager = createRecorderManager({
+          providers: [testProvider],
+          autoCheckInterval: 100,
+          maxThreadCount: 2,
+          waitTime: 50,
+        });
+
+        const recorder = manager.addRecorder({
+          id: "test-recorder",
+          providerId: "test",
+          channelId: "test-channel",
+          quality: "highest",
+          streamPriorities: [],
+          sourcePriorities: [],
+        });
+
+        manager.startCheckLoop();
+        await new Promise((resolve) => setTimeout(resolve, 150));
+
+        expect(recorder.checkLiveStatusAndRecord).toHaveBeenCalled();
+        expect(manager.isCheckLoopRunning).toBe(true);
+
+        manager.stopCheckLoop();
+        expect(manager.isCheckLoopRunning).toBe(false);
+      });
+    });
+  });
 });

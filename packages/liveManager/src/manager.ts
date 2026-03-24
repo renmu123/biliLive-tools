@@ -27,6 +27,15 @@ import {
 } from "./utils.js";
 import { StreamManager } from "./downloader/streamManager.js";
 
+export interface ProviderCheckConfig {
+  /** 检查循环间隔（毫秒） */
+  autoCheckInterval?: number;
+  /** 最大并发检查线程数 */
+  maxThreadCount?: number;
+  /** 每次检查之间的等待时间（毫秒） */
+  waitTime?: number;
+}
+
 export interface RecorderProvider<E extends AnyObject> {
   // Provider 的唯一 id，最好只由英文 + 数字组成
   // TODO: 可以加个检查 id 合法性的逻辑
@@ -66,6 +75,7 @@ const configurableProps = [
   "ffmpegOutputArgs",
   "biliBatchQuery",
   "recordRetryImmediately",
+  "providerCheckConfig",
 ] as const;
 type ConfigurableProp = (typeof configurableProps)[number];
 function isConfigurableProp(prop: unknown): prop is ConfigurableProp {
@@ -138,6 +148,13 @@ export interface RecorderManager<
   recordRetryImmediately: boolean;
   /** 缓存系统 */
   cache: RecorderCache;
+  /** 每个 provider 的检查配置 */
+  providerCheckConfig: Record<string, ProviderCheckConfig>;
+  /** 获取指定 provider 的检查配置（自动 fallback 到全局配置） */
+  getProviderCheckConfig: (
+    this: RecorderManager<ME, P, PE, E>,
+    providerId: string,
+  ) => Required<ProviderCheckConfig>;
 }
 
 export type RecorderManagerCreateOpts<
@@ -149,6 +166,8 @@ export type RecorderManagerCreateOpts<
   providers: P[];
   /** 自定义缓存实现，不提供则使用默认的内存缓存 */
   cache?: RecorderCache;
+  /** 每个 provider 的检查配置，key 为 provider.id */
+  providerCheckConfig?: Record<string, ProviderCheckConfig>;
 };
 
 export function createRecorderManager<
@@ -159,9 +178,10 @@ export function createRecorderManager<
 >(opts: RecorderManagerCreateOpts<ME, P, PE, E>): RecorderManager<ME, P, PE, E> {
   const recorders: Recorder<E>[] = [];
 
-  let checkLoopTimer: NodeJS.Timeout | undefined;
+  // 存储每个 provider 的 timer，key 为 providerId
+  const checkLoopTimers = new Map<string, NodeJS.Timeout>();
 
-  const multiThreadCheck = async (manager: RecorderManager<ME, P, PE, E>) => {
+  const multiThreadCheck = async (manager: RecorderManager<ME, P, PE, E>, providerId: string) => {
     const handleBatchQuery = async (obj: Record<string, boolean>) => {
       for (const recorder of recorders
         .filter((r) => !r.disableAutoCheck)
@@ -181,16 +201,18 @@ export function createRecorderManager<
 
     // 这里暂时不打算用 state == recording 来过滤，provider 必须内部自己处理录制过程中的 check，
     // 这样可以防止一些意外调用 checkLiveStatusAndRecord 时出现重复录制。
-    let needCheckRecorders = recorders
+    const needCheckRecorders = recorders
       .filter((r) => !r.disableAutoCheck)
-      .filter((r) => isBetweenTimeRange(r.handleTime));
-    let threads: Promise<void>[] = [];
+      .filter((r) => isBetweenTimeRange(r.handleTime))
+      .filter((r) => r.providerId === providerId);
 
-    if (manager.biliBatchQuery) {
-      const biliNeedCheckRecorders = needCheckRecorders
-        .filter((r) => r.providerId === "Bilibili")
-        .filter((r) => r.recordHandle == null);
-      needCheckRecorders = needCheckRecorders.filter((r) => r.providerId !== "Bilibili");
+    const providerConfig = manager.getProviderCheckConfig(providerId);
+    const threads: Promise<void>[] = [];
+
+    // Bilibili 批量查询特殊处理
+    if (providerId === "Bilibili" && manager.biliBatchQuery) {
+      const biliNeedCheckRecorders = needCheckRecorders.filter((r) => r.recordHandle == null);
+      // const biliRecordingRecorders = needCheckRecorders.filter((r) => r.recordHandle != null);
 
       const roomIds = biliNeedCheckRecorders.map((r) => r.channelId).map(Number);
       try {
@@ -201,10 +223,15 @@ export function createRecorderManager<
       } catch (err) {
         manager.emit("error", { source: "getBiliStatusInfoByRoomIds", err });
         // 如果批量查询失败，则使用单个查询
-        needCheckRecorders = needCheckRecorders.concat(biliNeedCheckRecorders);
+        needCheckRecorders.push(...biliNeedCheckRecorders);
       }
+
+      // 正在录制的也需要检查（放回队列）
+      // needCheckRecorders.length = 0;
+      // needCheckRecorders.push(...biliRecordingRecorders);
     }
 
+    // 为当前 provider 创建线程池
     const checkOnce = async () => {
       const recorder = needCheckRecorders.shift();
       if (recorder == null) return;
@@ -218,13 +245,13 @@ export function createRecorderManager<
       });
     };
 
-    threads = threads.concat(
-      range(0, manager.maxThreadCount).map(async () => {
+    threads.push(
+      ...range(0, providerConfig.maxThreadCount).map(async () => {
         while (needCheckRecorders.length > 0) {
           try {
             await checkOnce();
-            if (manager.waitTime > 0) {
-              await sleep(manager.waitTime);
+            if (providerConfig.waitTime > 0) {
+              await sleep(providerConfig.waitTime);
             }
           } catch (err) {
             manager.emit("error", { source: "checkOnceInThread", err });
@@ -351,6 +378,8 @@ export function createRecorderManager<
 
       this.emit("RecorderAdded", recorder.toJSON());
 
+      // startCheckLoop 会为所有注册的 provider 启动检查循环，无需在此处额外处理
+
       return recorder;
     },
     removeRecorder(recorder) {
@@ -405,7 +434,7 @@ export function createRecorderManager<
       return recorder;
     },
 
-    autoCheckInterval: opts.autoCheckInterval ?? 1000,
+    autoCheckInterval: opts.autoCheckInterval ?? 60000,
     maxThreadCount: opts.maxThreadCount ?? 3,
     waitTime: opts.waitTime ?? 0,
     isCheckLoopRunning: false,
@@ -414,27 +443,59 @@ export function createRecorderManager<
       this.isCheckLoopRunning = true;
       // TODO: emit updated event
 
-      const checkLoop = async () => {
-        try {
-          await multiThreadCheck(this);
-        } catch (err) {
-          this.emit("error", { source: "multiThreadCheck", err });
-        } finally {
-          if (!this.isCheckLoopRunning) {
-            // do nothing
-          } else {
-            checkLoopTimer = setTimeout(checkLoop, this.autoCheckInterval);
+      // 为每个 provider 创建独立的检查循环
+      const startProviderCheckLoop = (providerId: string) => {
+        const providerConfig = this.getProviderCheckConfig(providerId);
+
+        const checkLoop = async () => {
+          try {
+            // 只检查当前 provider 的 recorders
+            await multiThreadCheck(this, providerId);
+          } catch (err) {
+            this.emit("error", { source: "multiThreadCheck", err });
+          } finally {
+            if (!this.isCheckLoopRunning) {
+              // 停止了，清理 timer
+              const timer = checkLoopTimers.get(providerId);
+              if (timer) {
+                clearTimeout(timer);
+                checkLoopTimers.delete(providerId);
+              }
+            } else {
+              // 检查该 provider 是否还有 recorder
+              const hasRecorders = this.recorders.some((r) => r.providerId === providerId);
+              if (hasRecorders) {
+                // 继续循环
+                const timer = setTimeout(checkLoop, providerConfig.autoCheckInterval);
+                checkLoopTimers.set(providerId, timer);
+              } else {
+                // 没有 recorder 了，停止该 provider 的检查循环
+                // TODO: 也许不需要删除定时器
+                checkLoopTimers.delete(providerId);
+              }
+            }
           }
-        }
+        };
+
+        void checkLoop();
       };
 
-      void checkLoop();
+      // 直接从注册的 provider 获取所有 provider IDs
+      const providerIds = this.providers.map((p) => p.id);
+      for (const providerId of providerIds) {
+        startProviderCheckLoop(providerId);
+      }
     },
     stopCheckLoop() {
       if (!this.isCheckLoopRunning) return;
       this.isCheckLoopRunning = false;
       // TODO: emit updated event
-      clearTimeout(checkLoopTimer);
+
+      // 清理所有 provider 的 timer
+      for (const timer of checkLoopTimers.values()) {
+        clearTimeout(timer);
+      }
+      checkLoopTimers.clear();
     },
 
     savePathRule:
@@ -449,6 +510,17 @@ export function createRecorderManager<
     recordRetryImmediately: opts.recordRetryImmediately ?? false,
 
     cache: opts.cache ?? new RecorderCacheImpl(new MemoryCacheStore()),
+
+    providerCheckConfig: opts.providerCheckConfig ?? {},
+
+    getProviderCheckConfig(providerId: string) {
+      const providerConfig = this.providerCheckConfig[providerId];
+      return {
+        autoCheckInterval: providerConfig?.autoCheckInterval ?? this.autoCheckInterval,
+        maxThreadCount: providerConfig?.maxThreadCount ?? this.maxThreadCount,
+        waitTime: providerConfig?.waitTime ?? this.waitTime,
+      };
+    },
 
     ffmpegOutputArgs:
       opts.ffmpegOutputArgs ??

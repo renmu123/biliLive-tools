@@ -361,7 +361,16 @@ export type Theme = "system" | "light" | "dark";
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
 
-interface BilibiliRecorderConfig {
+interface RecorderCheckConfig {
+  /** 检查间隔 */
+  checkInterval?: number;
+  /** 并发数 */
+  maxThreadCount?: number;
+  /** 等待时间 */
+  waitTime?: number;
+}
+
+interface BilibiliRecorderConfig extends RecorderCheckConfig {
   /** 账号 */
   uid?: number;
   /** 画质 30000：杜比 20000：4K 25000：原画真彩 15000：2K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
@@ -377,13 +386,13 @@ interface BilibiliRecorderConfig {
   /** 自定义host */
   customHost?: string;
 }
-interface DouyuRecorderConfig {
+interface DouyuRecorderConfig extends RecorderCheckConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
   quality: 0 | 2 | 3 | 4 | 8;
   source: string;
 }
 
-interface HuyaRecorderConfig {
+interface HuyaRecorderConfig extends RecorderCheckConfig {
   /** 画质：0:原画 14100: 2khdr 14000: 2k 4200:hdr(10m) 8000:蓝光8m 4000:蓝光4m 2000:超清 500:流畅 */
   quality: 0 | 20000 | 10000 | 14100 | 14000 | 4200 | 8000 | 4000 | 2000 | 500;
   /** 流格式 */
@@ -393,7 +402,7 @@ interface HuyaRecorderConfig {
   api: "auto" | "web" | "wup" | "mp";
 }
 
-interface DouyinRecorderConfig {
+interface DouyinRecorderConfig extends RecorderCheckConfig {
   quality: "origin" | "uhd" | "hd" | "sd" | "ld" | "ao" | "real_origin";
   /** 抖音cookie */
   cookie: string;
@@ -405,7 +414,7 @@ interface DouyinRecorderConfig {
   api: "web" | "webHTML" | "mobile" | "userHTML" | "balance" | "random";
 }
 
-interface XhsRecorderConfig {
+interface XhsRecorderConfig extends RecorderCheckConfig {
   cookie: string;
 }
 
