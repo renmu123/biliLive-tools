@@ -7,7 +7,7 @@ import axios from "axios";
 import { taskQueue, HuyaDownloadVideoTask } from "../task/task.js";
 import { getBinPath, transcode } from "../task/video.js";
 import { uuid } from "../utils/index.js";
-import { getTempPath, replaceExtName } from "../utils/index.js";
+import { getTempPath, replaceExtName, sleep } from "../utils/index.js";
 
 async function download(
   output: string,
@@ -39,6 +39,7 @@ async function download(
     {
       onEnd: async () => {
         const outputName = `${name}.mp4`;
+        await sleep(2000);
         await transcode(
           tsOutput,
           outputName,
