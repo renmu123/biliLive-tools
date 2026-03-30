@@ -63,15 +63,18 @@ async function download(
   if ((await fs.pathExists(mp4Output)) && !options.override) throw new Error(`${mp4Output}已存在`);
   if (options.danmu !== "none" && !options.vid) throw new Error("下载弹幕时vid不能为空");
 
+  const { dir, name } = path.parse(output);
+  const tsOutput = path.join(dir, `${name}.ts`);
+  if (await fs.pathExists(tsOutput)) {
+    throw new Error(`${tsOutput}已存在，您可以直接执行转封装命令，或者删除后重新下载`);
+  }
+
   let m3u8Url = await getStream(decodeData, options.resoltion);
   if (!m3u8Url) {
     // 如果没有分辨率对应的流，那么获取最大分辨率的视频
     m3u8Url = await getStream(decodeData, "highest");
   }
   if (!m3u8Url) throw new Error("无法找到对应的流");
-
-  const { dir, name } = path.parse(output);
-  const tsOutput = path.join(dir, `${name}.ts`);
 
   const { ffmpegPath } = getBinPath();
   const downloader = new M3U8Downloader(m3u8Url, tsOutput, {

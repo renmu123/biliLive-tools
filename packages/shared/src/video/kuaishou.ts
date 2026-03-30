@@ -20,6 +20,9 @@ async function download(
 
   const { dir, name } = path.parse(output);
   const tsOutput = path.join(dir, `${name}.ts`);
+  if (await fs.pathExists(tsOutput)) {
+    throw new Error(`${tsOutput}已存在，您可以直接执行转封装命令，或者删除后重新下载`);
+  }
 
   const { ffmpegPath } = getBinPath();
   const downloader = new M3U8Downloader(url, tsOutput, {
