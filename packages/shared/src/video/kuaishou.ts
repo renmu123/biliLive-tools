@@ -4,7 +4,7 @@ import M3U8Downloader from "@renmu/m3u8-downloader";
 import axios from "axios";
 
 import { taskQueue, KuaishouDownloadVideoTask } from "../task/task.js";
-import { getBinPath } from "../task/video.js";
+import { getBinPath, transcode } from "../task/video.js";
 import { uuid } from "../utils/index.js";
 import { getTempPath } from "../utils/index.js";
 
@@ -17,15 +17,38 @@ async function download(
 ) {
   if ((await fs.pathExists(output)) && !options.override) throw new Error(`${output}已存在`);
 
+  const { dir, name } = path.parse(output);
+  const tsOutput = path.join(dir, `${name}.ts`);
+
   const { ffmpegPath } = getBinPath();
-  const downloader = new M3U8Downloader(url, output, {
-    convert2Mp4: true,
+  const downloader = new M3U8Downloader(url, tsOutput, {
+    convert2Mp4: false,
     ffmpegPath: ffmpegPath,
     segmentsDir: path.join(getTempPath(), uuid()),
   });
-  const task = new KuaishouDownloadVideoTask(downloader, {
-    name: `下载任务：${path.parse(output).name}`,
-  });
+  const task = new KuaishouDownloadVideoTask(
+    downloader,
+    {
+      name: `下载任务：${path.parse(output).name}`,
+    },
+    {
+      onEnd: async () => {
+        const outputName = `${name}.mp4`;
+        await transcode(
+          tsOutput,
+          outputName,
+          { encoder: "copy", audioCodec: "copy" },
+          {
+            saveType: 2,
+            savePath: dir,
+            override: false,
+            removeOrigin: true,
+            autoRun: true,
+          },
+        );
+      },
+    },
+  );
   taskQueue.addTask(task, true);
   return task;
 }
