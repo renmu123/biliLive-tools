@@ -9,6 +9,7 @@
 
 - 录制：支持快捷开始和停止监控直播间 [#388](https://github.com/renmu123/biliLive-tools/issues/388)
 - 录制：客户端抖音支持快速获取cookie
+- 同步：BaiduPCS-Go版本升级为 [v4.0.1](https://github.com/qjfoidnh/BaiduPCS-Go/releases/tag/v4.0.1)，添加`--norapid`来避免当前的接口问题
 
 ## Bug修复
 
