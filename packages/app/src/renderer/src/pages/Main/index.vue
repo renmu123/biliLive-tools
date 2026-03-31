@@ -106,6 +106,7 @@ activeKey.value = route.name as string;
 const collapsed = useStorage("collapsed", false);
 
 appConfig.getAppConfig();
+quenuStore.init();
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });

@@ -9,6 +9,7 @@ import {
   videoPresetApi,
   configApi,
   taskApi,
+  commonApi,
 } from "@renderer/apis";
 
 import type { Task } from "@renderer/types";
@@ -185,6 +186,8 @@ export const useQueueStore = defineStore("queue", () => {
   const runningTaskNum = ref(0);
   const queue = ref<Task[]>([]);
   const params = ref({ type: "" });
+  let eventSource: EventSource | null = null;
+  let checkTimer: number | null = null;
 
   const getQuenu = async () => {
     const res = await taskApi.list(params.value);
@@ -200,6 +203,33 @@ export const useQueueStore = defineStore("queue", () => {
     runningTaskNum.value = num;
   };
 
+  const init = async () => {
+    if (eventSource && eventSource.readyState !== 2) return;
+    eventSource = await commonApi.getRunningTaskNum();
+
+    eventSource.onmessage = function (event) {
+      const data = JSON.parse(event.data || "{}");
+      setRunningTaskNum(data.num);
+    };
+
+    // 清除之前的定时器
+    if (checkTimer) {
+      clearInterval(checkTimer);
+    }
+
+    // 每10分钟检查一次连接状态
+    checkTimer = window.setInterval(
+      () => {
+        if (eventSource && eventSource.readyState === 2) {
+          // 连接已关闭，重新初始化
+          eventSource = null;
+          init();
+        }
+      },
+      10 * 60 * 1000,
+    );
+  };
+
   watch(
     () => params.value,
     () => {
@@ -213,6 +243,7 @@ export const useQueueStore = defineStore("queue", () => {
     queue,
     params,
     setRunningTaskNum,
+    init,
   };
 });
 
