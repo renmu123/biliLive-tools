@@ -7,8 +7,8 @@ settings:
 catalogs:
   default:
     axios:
-      specifier: ^1.14.0
-      version: 1.14.1
+      specifier: ^1.7.8
+      version: 1.7.8
     better-sqlite3:
       specifier: 12.6.2
       version: 12.6.2
@@ -38,8 +38,8 @@ importers:
   .:
     dependencies:
       axios:
-        specifier: ^1.14.0
-        version: 1.14.1
+        specifier: ^1.7.8
+        version: 1.7.8
       fs-extra:
         specifier: ^11.2.0
         version: 11.2.0
@@ -103,7 +103,7 @@ importers:
         version: link:../liveManager
       axios:
         specifier: 'catalog:'
-        version: 1.14.1
+        version: 1.7.8
       blive-message-listener:
         specifier: ^0.5.2
         version: 0.5.2(bufferutil@4.0.8)(utf-8-validate@6.0.5)
@@ -195,7 +195,7 @@ importers:
         version: link:../liveManager
       axios:
         specifier: 'catalog:'
-        version: 1.14.1
+        version: 1.7.8
       douyin-danma-listener:
         specifier: workspace:*
         version: link:../DouYinDanma
@@ -220,7 +220,7 @@ importers:
         version: link:../liveManager
       axios:
         specifier: 'catalog:'
-        version: 1.14.1
+        version: 1.7.8
       douyu-api:
         specifier: ^0.2.1
         version: 0.2.1
@@ -261,7 +261,7 @@ importers:
         version: 2.0.3
       axios:
         specifier: 'catalog:'
-        version: 1.14.1
+        version: 1.7.8
       huya-danma-listener:
         specifier: workspace:*
         version: link:../huya-danmu
@@ -591,7 +591,7 @@ importers:
         version: 2.3.3
       axios:
         specifier: 'catalog:'
-        version: 1.14.1
+        version: 1.7.8
       ejs:
         specifier: ^3.1.10
         version: 3.1.10
@@ -2611,8 +2611,8 @@ packages:
     peerDependencies:
       axios: 0.x || 1.x
 
-  axios@1.14.1:
-    resolution: {integrity: sha512-vF/aB4vrIzLyOb2TB9gpuE8gusNHpZqk2ZZcAqSnRjW5IcY7tFSBEurD2tbakohj0Rw5xMHYwjSqOGSfr0iewA==}
+  axios@1.7.8:
+    resolution: {integrity: sha512-Uu0wb7KNqK2t5K+YQyVCLM76prD5sRFjKHbJYCP1J7JFGEQ6nN7HWn9+04LAeiJ3ji54lgS/gZCH1oxyrf1SPw==}
 
   babel-plugin-add-module-exports@0.2.1:
     resolution: {integrity: sha512-3AN/9V/rKuv90NG65m4tTHsI04XrCKsWbztIcW7a8H5iIN7WlvWucRtVV0V/rT4QvtA11n5Vmp20fLwfMWqp6g==}
@@ -3627,8 +3627,8 @@ packages:
   flv.js@1.6.2:
     resolution: {integrity: sha512-xre4gUbX1MPtgQRKj2pxJENp/RnaHaxYvy3YToVVCrSmAWUu85b9mug6pTXF6zakUjNP2lFWZ1rkSX7gxhB/2A==}
 
-  follow-redirects@1.15.11:
-    resolution: {integrity: sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==}
+  follow-redirects@1.15.9:
+    resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -4951,9 +4951,6 @@ packages:
   pkg-types@2.3.0:
     resolution: {integrity: sha512-SIqCzDRg0s9npO5XQ3tNZioRY1uK06lA41ynBC1YmFTmnY6FjUjVt6s4LoADmwoig1qqD0oK8h1p/8mlMx8Oig==}
 
-  plain-crypto-js@4.2.1:
-    resolution: {integrity: sha512-Wv41p4/aEMq03JjDqi0JxPYT4aoMbbQMSM8ur4QkjvjGEeuYvI7rGkqLcOZ7K1iThQGvpNvJnxRWcNodCNuEEQ==}
-
   plist@3.1.0:
     resolution: {integrity: sha512-uysumyrvkUX0rX/dEVqt8gC3sTBzd4zoWfLeS29nb53imdaXVvLINYXTI2GNqzaMuvacNx4uJQ8+b3zXR0pkgQ==}
     engines: {node: '>=10.4.0'}
@@ -5031,9 +5028,8 @@ packages:
     resolution: {integrity: sha512-mRUWCc3KUU4w1jU8sGxICXH/gNS94DvI1gxqDvBzhj1JpcsimQkYiOJfwsPUykUI5ZaspFbSgmBLER8IrQ3tqw==}
     engines: {node: '>=12.0.0'}
 
-  proxy-from-env@2.1.0:
-    resolution: {integrity: sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==}
-    engines: {node: '>=10'}
+  proxy-from-env@1.1.0:
+    resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
 
   prr@1.0.1:
     resolution: {integrity: sha512-yPw4Sng1gWghHQWj0B3ZggWUm4qVbPwPFcRG8KyxiU7J2OHFSoEHKS+EZ3fv5l1t9CyCiop6l/ZYeWbrgoQejw==}
@@ -5991,8 +5987,8 @@ packages:
   webworkify-webpack@2.1.5:
     resolution: {integrity: sha512-2akF8FIyUvbiBBdD+RoHpoTbHMQF2HwjcxfDvgztAX5YwbZNyrtfUMgvfgFVsgDhDPVTlkbb5vyasqDHfIDPQw==}
 
-  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
-    resolution: {commit: 24d1e719b4a6cac37a518b2bb10fe124527ef4ef, repo: git@github.com:xqq/webworkify-webpack.git, type: git}
+  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
+    resolution: {tarball: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef}
     version: 2.1.5
 
   whatwg-fetch@3.6.20:
@@ -6879,8 +6875,8 @@ snapshots:
     dependencies:
       '@bufbuild/protobuf': 2.2.3
       '@renmu/throttle': 1.0.3
-      axios: 1.14.1
-      axios-retry: 4.5.0(axios@1.14.1)
+      axios: 1.7.8
+      axios-retry: 4.5.0(axios@1.7.8)
       fast-xml-parser: 4.5.0
       p-queue: 8.1.0
       tiny-typed-emitter: 2.1.0
@@ -6895,8 +6891,8 @@ snapshots:
 
   '@renmu/m3u8-downloader@0.5.2':
     dependencies:
-      axios: 1.14.1
-      axios-retry: 4.5.0(axios@1.14.1)
+      axios: 1.7.8
+      axios-retry: 4.5.0(axios@1.7.8)
       fs-extra: 11.2.0
       m3u8-parser: 7.2.0
       p-queue: 8.1.0
@@ -8016,17 +8012,16 @@ snapshots:
       camel-case: 4.1.2
       fast-glob: 3.3.2
 
-  axios-retry@4.5.0(axios@1.14.1):
+  axios-retry@4.5.0(axios@1.7.8):
     dependencies:
-      axios: 1.14.1
+      axios: 1.7.8
       is-retry-allowed: 2.2.0
 
-  axios@1.14.1:
+  axios@1.7.8:
     dependencies:
-      follow-redirects: 1.15.11
-      form-data: 4.0.5
-      plain-crypto-js: 4.2.1
-      proxy-from-env: 2.1.0
+      follow-redirects: 1.15.9
+      form-data: 4.0.1
+      proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
 
@@ -8649,7 +8644,7 @@ snapshots:
 
   douyu-api@0.2.1:
     dependencies:
-      axios: 1.14.1
+      axios: 1.7.8
       fast-xml-parser: 4.5.0
       safe-eval: 0.4.1
     transitivePeerDependencies:
@@ -9218,7 +9213,7 @@ snapshots:
       es6-promise: 4.2.8
       webworkify-webpack: 2.1.5
 
-  follow-redirects@1.15.11: {}
+  follow-redirects@1.15.9: {}
 
   font-ls@0.6.4:
     dependencies:
@@ -10228,7 +10223,7 @@ snapshots:
   mpegts.js@1.8.0:
     dependencies:
       es6-promise: 4.2.8
-      webworkify-webpack: git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef
+      webworkify-webpack: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef
 
   ms@2.0.0: {}
 
@@ -10605,8 +10600,6 @@ snapshots:
       exsolve: 1.0.7
       pathe: 2.0.3
 
-  plain-crypto-js@4.2.1: {}
-
   plist@3.1.0:
     dependencies:
       '@xmldom/xmldom': 0.8.10
@@ -10705,7 +10698,7 @@ snapshots:
       '@types/node': 20.17.6
       long: 5.2.3
 
-  proxy-from-env@2.1.0: {}
+  proxy-from-env@1.1.0: {}
 
   prr@1.0.1:
     optional: true
@@ -11769,7 +11762,7 @@ snapshots:
 
   webworkify-webpack@2.1.5: {}
 
-  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
+  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
 
   whatwg-fetch@3.6.20: {}
 
