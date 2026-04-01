@@ -1,5 +1,9 @@
 # Next
 
+## 功能
+
+- 录制：不同平台支持单独的检查参数 [#392](https://github.com/renmu123/biliLive-tools/pull/392)
+
 ## 优化
 
 - 录播下载：优化合并时的背压处理以及重复文件判断
