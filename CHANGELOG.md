@@ -15,6 +15,7 @@
 
 - 同步：阿里云盘支持同步到资源库 [#382](https://github.com/renmu123/biliLive-tools/pull/382)
 - 录制：支持批量开始和暂停 [#384](https://github.com/renmu123/biliLive-tools/pull/384)
+- 录制：检查配置重构，不同平台支持不同的检查参数 [#392](https://github.com/renmu123/biliLive-tools/pull/392)
 
 ## 优化
 

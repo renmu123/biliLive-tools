@@ -36,6 +36,14 @@ const manager = createRecorderManager({
   waitTime: 0, // 检查后等待时间，单位毫秒
   autoRemoveSystemReservedChars: true, // 移除系统非法字符串
   biliBatchQuery: false, // B站检查使用批量接口
+  providerCheckConfig: {
+    // Bilibili 配置：高频检查，更多线程
+    Bilibili: {
+      autoCheckInterval: 5000, // 5秒检查一次
+      maxThreadCount: 5, // 最多5个并发线程
+      waitTime: 500, // 每次检查间隔0.5秒
+    },
+  },
 });
 
 // 不同provider支持的参数不尽相同，具体见相关文档

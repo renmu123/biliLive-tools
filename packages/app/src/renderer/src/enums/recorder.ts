@@ -402,6 +402,21 @@ export const textInfo = {
       tip: "如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，或者使用正则表达式（如：/回放|录播/i），录制中的直播隔约每五分钟会查询接口检查，手动录制的不会被影响",
       placeholder: "例如：回放,录播,重播 或 /回放|录播/i",
     },
+    checkInterval: {
+      text: "录制检查间隔",
+      tip: "每隔设置的时间对所有监听直播间进行状态检查，太快容易被风控~",
+      placeholder: "默认从全局继承",
+    },
+    maxThreadCount: {
+      text: "并发数",
+      tip: "同时最多运行的检查任务数量，和 检查间隔 共同构成了录制的循环检查周期",
+      placeholder: "默认从全局继承",
+    },
+    waitTime: {
+      text: "等待时间",
+      tip: "检查任务完成后的等待时间",
+      placeholder: "默认从全局继承",
+    },
   },
   bili: {
     uid: {
@@ -437,6 +452,10 @@ export const textInfo = {
     api: {
       text: "请求接口",
       tip: `为了星秀区而增加的参数，具体自己看文档吧~`,
+    },
+    formatName: {
+      text: "流格式",
+      tip: "默认优先flv模式，其次hls",
     },
   },
   douyin: {
