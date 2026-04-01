@@ -50,8 +50,8 @@
           <n-form-item>
             <template #label>
               <Tip
-                tip="每隔设置的时间对所有监听直播间进行状态检查，太快容易被风控~"
-                text="检查间隔"
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
               ></Tip>
             </template>
             <n-input-number
@@ -66,8 +66,8 @@
           <n-form-item>
             <template #label>
               <Tip
-                tip="同时最多运行的检查任务数量，和 检查间隔 共同构成了录制的循环检查周期"
-                text="并发数"
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
               ></Tip>
             </template>
             <n-input-number
@@ -81,7 +81,7 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip tip="检查任务完成后的等待时间" text="等待时间"></Tip>
+              <Tip :tip="textInfo.common.waitTime.tip" :text="textInfo.common.waitTime.text"></Tip>
             </template>
             <n-input-number
               v-model:value="config.recorder.waitTime"
@@ -263,6 +263,55 @@
             </template>
             <n-switch v-model:value="config.recorder.bilibili.useBatchQuery" />
           </n-form-item>
+          <div class="divider"></div>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.bilibili.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+              :placeholder="textInfo.common.checkInterval.placeholder"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.bilibili.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.maxThreadCount.placeholder"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.waitTime.text" :tip="textInfo.common.waitTime.tip"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.bilibili.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.waitTime.placeholder"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="douyu" tab="斗鱼" display-directive="show:lazy">
           <n-form-item>
@@ -280,6 +329,56 @@
             </template>
             <n-select v-model:value="config.recorder.douyu.source" :options="douyuSourceOptions" />
           </n-form-item>
+
+          <div class="divider"></div>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyu.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+              :placeholder="textInfo.common.checkInterval.placeholder"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyu.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.maxThreadCount.placeholder"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.waitTime.text" :tip="textInfo.common.waitTime.tip"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyu.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.waitTime.placeholder"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="huya" tab="虎牙" display-directive="show:lazy">
           <n-form-item>
@@ -290,10 +389,7 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip
-                :text="textInfo.douyin.formatName.text"
-                :tip="textInfo.douyin.formatName.tip"
-              ></Tip>
+              <Tip :text="textInfo.huya.formatName.text" :tip="textInfo.huya.formatName.tip"></Tip>
             </template>
             <n-select
               v-model:value="config.recorder.huya.formatName"
@@ -311,6 +407,56 @@
               <Tip :text="textInfo.huya.api.text" :tip="textInfo.huya.api.tip"></Tip>
             </template>
             <n-select v-model:value="config.recorder.huya.api" :options="huyaApiTypeOptions" />
+          </n-form-item>
+
+          <div class="divider"></div>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.huya.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+              :placeholder="textInfo.common.checkInterval.placeholder"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.huya.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.maxThreadCount.placeholder"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.waitTime.text" :tip="textInfo.common.waitTime.tip"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.huya.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.waitTime.placeholder"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
           </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="douyin" tab="抖音" display-directive="show:lazy">
@@ -361,6 +507,56 @@
             </template>
             <n-switch v-model:value="config.recorder.douyin.doubleScreen" />
           </n-form-item>
+
+          <div class="divider"></div>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyin.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+              :placeholder="textInfo.common.checkInterval.placeholder"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyin.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.maxThreadCount.placeholder"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.waitTime.text" :tip="textInfo.common.waitTime.tip"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyin.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.waitTime.placeholder"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="xhs" tab="小红书" display-directive="show:lazy">
           <h3 style="margin-bottom: 10px">设置Cookie可自动监听，建议使用小号</h3>
@@ -377,6 +573,56 @@
               title="登录后退出即可获取cookie，小红书一个帐号只能登录一端"
               >登录</n-button
             >
+          </n-form-item>
+
+          <div class="divider"></div>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.xhs.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+              :placeholder="textInfo.common.checkInterval.placeholder"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.xhs.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.maxThreadCount.placeholder"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.waitTime.text" :tip="textInfo.common.waitTime.tip"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.xhs.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.waitTime.placeholder"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
           </n-form-item>
         </n-tab-pane>
       </n-tabs>
@@ -577,5 +823,11 @@ h3 {
   :deep(.n-tabs-tab) {
     padding: 6px 0;
   }
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--bg-hover);
+  margin-bottom: 14px;
 }
 </style>
