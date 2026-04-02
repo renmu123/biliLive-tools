@@ -280,6 +280,8 @@ export type ToolConfig = {
     ignoreDanmu: boolean;
     /** 字幕导出 */
     exportSubtitle: boolean;
+    /** 忽略字幕 */
+    ignoreSubtitle: boolean;
   };
   /** 文件同步 */
   fileSync: {
@@ -891,6 +893,11 @@ export type VideoCodec =
   | "hevc_videotoolbox"
   | "av1_videotoolbox";
 
+export interface SubtitleOptions {
+  // 字幕字体大小
+  fontSize?: number;
+}
+
 export interface FfmpegOptions {
   encoder: VideoCodec;
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
@@ -977,6 +984,7 @@ export interface FfmpegOptions {
   timestampFollowDanmu?: boolean;
   /** pk优化 */
   pkOptimize?: boolean;
+  subtitleOptions?: SubtitleOptions;
 }
 
 export interface BiliupConfig {

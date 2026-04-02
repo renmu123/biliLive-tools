@@ -55,10 +55,13 @@
         </div>
         <div>
           <n-checkbox v-model:checked="exportOptions.ignoreDanmu" style="margin-top: 10px">
-            忽略弹幕
+            忽略弹幕渲染
+          </n-checkbox>
+          <n-checkbox v-model:checked="exportOptions.ignoreSubtitle" style="margin-top: 10px">
+            忽略字幕渲染
           </n-checkbox>
           <n-checkbox v-model:checked="exportOptions.exportSubtitle" style="margin-top: 10px">
-            导出字幕
+            单独导出srt字幕
           </n-checkbox>
         </div>
         <div>
@@ -150,13 +153,30 @@ const confirmExport = async () => {
   }
   const ffmpegOptiosn = (await ffmpegPresetApi.get(exportOptions.ffmpegPresetId)).config;
   let index = 1;
+
+  const srtContent = selectedCuts.value
+    .map((cut) => {
+      return cut.lyrics;
+    })
+    .filter((item) => item && item.length > 0)
+    .join("\n");
+
   // 存在弹幕时编码器不能为copy
-  if (ffmpegOptiosn.encoder === "copy" && props.files.danmuPath && !exportOptions.ignoreDanmu) {
-    notice.error({
-      title: "存在弹幕时编码器不能为copy",
-      duration: 1000,
-    });
-    return;
+  if (ffmpegOptiosn.encoder === "copy") {
+    if (props.files.danmuPath && !exportOptions.ignoreDanmu) {
+      notice.error({
+        title: "存在弹幕时编码器不能为copy",
+        duration: 1000,
+      });
+      return;
+    }
+    if (srtContent && !exportOptions.ignoreSubtitle) {
+      notice.error({
+        title: "存在字幕时编码器不能为copy",
+        duration: 1000,
+      });
+      return;
+    }
   }
 
   const segments: { start: number; end: number; name: string }[] = [];
@@ -179,6 +199,7 @@ const confirmExport = async () => {
       {
         videoFilePath: props.files.originVideoPath!,
         assFilePath: exportOptions.ignoreDanmu ? "" : props.files.danmuPath!,
+        srtContent: exportOptions.ignoreSubtitle ? "" : srtContent || "",
       },
       `${title}.mp4`,
       {
@@ -198,12 +219,6 @@ const confirmExport = async () => {
   }
 
   if (exportOptions.exportSubtitle) {
-    const srtContent = selectedCuts.value
-      .map((cut) => {
-        return cut.lyrics;
-      })
-      .join("\n");
-
     taskApi.cutSubtitle({
       srtContent: srtContent,
       segments,
