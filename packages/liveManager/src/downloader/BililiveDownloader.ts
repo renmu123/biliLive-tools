@@ -128,6 +128,7 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
   readonly disableDanma: boolean = false;
   readonly url: string;
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
+  readonly proxy?: string;
   readonly headers:
     | {
         [key: string]: string | undefined;
@@ -145,6 +146,7 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
     this.hasSegment = hasSegment;
     this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
+    this.proxy = opts.proxy;
     let videoFormat: "flv" = "flv";
 
     this.streamManager = new StreamManager(
@@ -193,6 +195,9 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
     const inputOptions = [...this.inputOptions, "--disable-log-file", "true"];
     if (this.debugLevel === "verbose") {
       inputOptions.push("-l", "Debug");
+    }
+    if (this.proxy) {
+      inputOptions.push(...["--proxy", this.proxy]);
     }
 
     if (this.headers) {
