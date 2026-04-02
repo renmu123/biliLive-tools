@@ -190,8 +190,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
     // 更新每个平台的检查配置
     manager.providerCheckConfig = managerOptions.providerCheckConfig;
-    // TODO:需要删除
-    console.log("update", manager.providerCheckConfig);
 
     if (autoCheckLiveStatusAndRecord) {
       if (autoCheckLiveStatusAndRecord && !manager.isCheckLoopRunning) {
