@@ -939,6 +939,7 @@ export const mergeAssMp4 = async (
     timestampFont?: string;
     limitTime?: [] | [string, string];
     autoRun?: boolean;
+    removeSubtitle?: boolean;
   } = {
     removeOrigin: false,
     startTimestamp: 0,
@@ -1011,10 +1012,10 @@ export const mergeAssMp4 = async (
           log.info("mergrAssMp4, remove hot progress origin file", assFile);
           await fs.unlink(files.hotProgressFilePath);
         }
-        // if (files.subtitlePath) {
-        //   log.info("mergrAssMp4, remove subtitle origin file", files.subtitlePath);
-        //   await fs.unlink(files.subtitlePath);
-        // }
+        if (files.subtitlePath && options.removeSubtitle) {
+          log.info("mergrAssMp4, remove subtitle origin file", files.subtitlePath);
+          await fs.unlink(files.subtitlePath);
+        }
       },
       onError: async () => {
         if (files.hotProgressFilePath) {
@@ -1043,6 +1044,8 @@ export const cut = async (
     savePath?: string;
     /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
     saveType: 1 | 2;
+    /** 是否删除字幕文件 */
+    removeSubtitle?: boolean;
   },
 ) => {
   const options = Object.assign(
@@ -1075,6 +1078,7 @@ export const cut = async (
     {
       removeOrigin: false,
       override: options.override,
+      removeSubtitle: options.removeSubtitle,
     },
     ffmpegOptions,
   );

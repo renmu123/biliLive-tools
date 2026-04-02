@@ -309,24 +309,23 @@ router.post("/cut", async (ctx) => {
     const end = ffmpegOptions.to || 0;
 
     const nodeList = parseSync(srtContent);
-    const segmentNodes = nodeList
-      .filter((node) => {
-        if (node.type !== "cue") return false;
-        const cueStart = node.data.start;
-        const cueEnd = node.data.end;
-        return cueStart >= start * 1000 && cueEnd <= end * 1000;
-      })
-      .map((node) => {
-        if (node.type !== "cue") return node;
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            start: node.data.start - start * 1000,
-            end: node.data.end - start * 1000,
-          },
-        };
-      });
+    const segmentNodes = nodeList.filter((node) => {
+      if (node.type !== "cue") return false;
+      const cueStart = node.data.start;
+      const cueEnd = node.data.end;
+      return cueStart >= start * 1000 && cueEnd <= end * 1000;
+    });
+    // .map((node) => {
+    //   if (node.type !== "cue") return node;
+    //   return {
+    //     ...node,
+    //     data: {
+    //       ...node.data,
+    //       start: node.data.start - start * 1000,
+    //       end: node.data.end - start * 1000,
+    //     },
+    //   };
+    // });
     // console.log(`分割片段: ${name}, 节点数量: ${segmentNodes.length}`);
     if (segmentNodes.length !== 0) {
       const cutedSrtContent = stringifySync(segmentNodes, { format: "SRT" });
@@ -334,7 +333,10 @@ router.post("/cut", async (ctx) => {
       subtitlePath = tempPath;
     }
   }
-  const task = await cut({ ...files, subtitlePath }, output, ffmpegOptions, options);
+  const task = await cut({ ...files, subtitlePath }, output, ffmpegOptions, {
+    ...options,
+    removeSubtitle: true,
+  });
   ctx.body = { taskId: task.taskId };
 });
 
