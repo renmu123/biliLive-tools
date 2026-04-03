@@ -57,9 +57,10 @@
           <n-checkbox v-model:checked="exportOptions.ignoreDanmu" style="margin-top: 10px">
             忽略弹幕渲染
           </n-checkbox>
-          <n-checkbox v-model:checked="exportOptions.ignoreSubtitle" style="margin-top: 10px">
-            忽略字幕渲染
-          </n-checkbox>
+          <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px">
+            <n-checkbox v-model:checked="exportOptions.ignoreSubtitle"> 忽略字幕渲染 </n-checkbox>
+            <n-button size="small" @click="showSubtitleStyleModal = true"> 配置字幕样式 </n-button>
+          </div>
           <n-checkbox v-model:checked="exportOptions.exportSubtitle" style="margin-top: 10px">
             单独导出srt字幕
           </n-checkbox>
@@ -94,12 +95,22 @@
       </template>
     </n-card>
   </n-modal>
+
+  <!-- 字幕样式配置弹框 -->
+  <SubtitleStyleModal
+    v-model="showSubtitleStyleModal"
+    :initial-config="currentSubtitleStyle"
+    @confirm="handleSubtitleStyleConfirm"
+  />
 </template>
 
 <script setup lang="ts">
 import { toReactive } from "@vueuse/core";
+import type { SubtitleOptions } from "@biliLive-tools/types";
+import SubtitleStyleModal from "./SubtitleStyleModal.vue";
 
 import { ffmpegPresetApi, taskApi } from "@renderer/apis";
+import subtitleStyleApi from "@renderer/apis/subtitleStyle";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useFfmpegPreset, useAppConfig, useSegmentStore } from "@renderer/stores";
 import filenamify from "filenamify/browser";
@@ -127,6 +138,12 @@ const props = withDefaults(defineProps<Props>(), {
 // }>();
 
 const visible = defineModel<boolean>({ required: true, default: false });
+
+// 字幕样式配置弹框显示状态
+const showSubtitleStyleModal = ref(false);
+
+// 当前字幕样式配置
+const currentSubtitleStyle = ref<SubtitleOptions>();
 
 const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
 const { appConfig } = storeToRefs(useAppConfig());
@@ -206,6 +223,7 @@ const confirmExport = async () => {
         ...ffmpegOptiosn,
         ss: start,
         to: end,
+        subtitleOptions: exportOptions.ignoreSubtitle ? undefined : currentSubtitleStyle.value,
       },
       {
         override: exportOptions.override,
@@ -249,6 +267,29 @@ async function getDir() {
   if (!path) return;
   exportOptions.savePath = path;
 }
+
+// 初始化字幕样式配置
+const initSubtitleStyle = async () => {
+  const styleId = exportOptions.subtitleStyleId || "default";
+  currentSubtitleStyle.value = await subtitleStyleApi.get(styleId);
+};
+
+// 处理字幕样式配置确认
+const handleSubtitleStyleConfirm = async (config: SubtitleOptions) => {
+  const styleId = exportOptions.subtitleStyleId || "default";
+  await subtitleStyleApi.update(styleId, config);
+  currentSubtitleStyle.value = config;
+  if (!exportOptions.subtitleStyleId) {
+    exportOptions.subtitleStyleId = "default";
+  }
+};
+
+// 当弹框打开时初始化字幕样式
+watch(visible, (newVal) => {
+  if (newVal) {
+    initSubtitleStyle();
+  }
+});
 
 const titleList = ref([
   {
