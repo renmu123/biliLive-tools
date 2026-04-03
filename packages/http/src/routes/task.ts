@@ -25,7 +25,7 @@ import {
   checkMergeVideos,
 } from "@biliLive-tools/shared/task/video.js";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
-import { trashItem, parseSavePath } from "@biliLive-tools/shared/utils/index.js";
+import { trashItem, parseSavePath, uuid, getTempPath } from "@biliLive-tools/shared/utils/index.js";
 import {
   testVirtualRecordConfig,
   executeVirtualRecordConfig,
@@ -299,7 +299,44 @@ router.post("/flvRepair", async (ctx) => {
  */
 router.post("/cut", async (ctx) => {
   const { files, output, options, ffmpegOptions } = ctx.request.body as any;
-  const task = await cut(files, output, ffmpegOptions, options);
+
+  // 处理srt字幕切割
+  const srtContent = files.srtContent;
+  let subtitlePath: string | undefined;
+  if (srtContent && typeof srtContent === "string") {
+    const tempPath = path.join(getTempPath(), `${uuid()}.srt`);
+    const start = ffmpegOptions.ss || 0;
+    const end = ffmpegOptions.to || 0;
+
+    const nodeList = parseSync(srtContent);
+    const segmentNodes = nodeList.filter((node) => {
+      if (node.type !== "cue") return false;
+      const cueStart = node.data.start;
+      const cueEnd = node.data.end;
+      return cueStart >= start * 1000 && cueEnd <= end * 1000;
+    });
+    // .map((node) => {
+    //   if (node.type !== "cue") return node;
+    //   return {
+    //     ...node,
+    //     data: {
+    //       ...node.data,
+    //       start: node.data.start - start * 1000,
+    //       end: node.data.end - start * 1000,
+    //     },
+    //   };
+    // });
+    // console.log(`分割片段: ${name}, 节点数量: ${segmentNodes.length}`);
+    if (segmentNodes.length !== 0) {
+      const cutedSrtContent = stringifySync(segmentNodes, { format: "SRT" });
+      await fs.writeFile(tempPath, cutedSrtContent, "utf-8");
+      subtitlePath = tempPath;
+    }
+  }
+  const task = await cut({ ...files, subtitlePath }, output, ffmpegOptions, {
+    ...options,
+    removeSubtitle: true,
+  });
   ctx.body = { taskId: task.taskId };
 });
 

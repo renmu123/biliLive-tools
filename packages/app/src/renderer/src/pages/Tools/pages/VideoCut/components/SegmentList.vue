@@ -680,7 +680,7 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
   } catch (error: any) {
     notice.error({
       title: "字幕识别失败",
-      content: error.message || "未知错误",
+      content: error.message || error.error || "未知错误",
       duration: 5000,
     });
   } finally {
