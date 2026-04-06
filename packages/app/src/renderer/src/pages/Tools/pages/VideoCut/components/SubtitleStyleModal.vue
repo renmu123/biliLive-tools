@@ -20,10 +20,13 @@
             <n-divider style="margin: 10px 0">字体设置</n-divider>
 
             <n-form-item label="字体名称">
-              <n-input
+              <n-select
                 v-model:value="styleConfig.fontName"
-                placeholder="如: Arial, 微软雅黑"
+                :options="fontOptions"
+                filterable
+                virtual-scroll
                 clearable
+                placeholder="不选就是默认字体"
               />
             </n-form-item>
 
@@ -169,8 +172,10 @@
 </template>
 
 <script setup lang="ts">
-import type { SubtitleOptions } from "@biliLive-tools/types";
 import subtitleStyleApi from "@renderer/apis/subtitleStyle";
+import { commonApi } from "@renderer/apis";
+
+import type { SubtitleOptions } from "@biliLive-tools/types";
 
 const visible = defineModel<boolean>({ required: true, default: false });
 const emit = defineEmits<{
@@ -312,6 +317,7 @@ watch(
         const defaultConfig = await subtitleStyleApi.getDefault();
         styleConfig.value = { ...defaultConfig };
       }
+      getFonts();
     }
   },
 );
@@ -328,6 +334,38 @@ const handleCancel = () => {
 const handleConfirm = () => {
   emit("confirm", { ...styleConfig.value });
   visible.value = false;
+};
+
+const fontOptions = ref<
+  {
+    label: string;
+    value: string;
+  }[]
+>([]);
+const getFonts = async () => {
+  if (!window.isWeb) {
+    // @ts-ignore
+    const data = await window.queryLocalFonts();
+    fontOptions.value = data.map((item: any) => {
+      return {
+        label: item.fullName,
+        value: item.fullName,
+      };
+    });
+  } else {
+    try {
+      const data = await commonApi.getFontList();
+      fontOptions.value = data.map((item) => {
+        return {
+          label: item.fullName,
+          value: item.fullName,
+        };
+      });
+    } catch (error) {
+      fontOptions.value = [];
+      console.error(error);
+    }
+  }
 };
 </script>
 

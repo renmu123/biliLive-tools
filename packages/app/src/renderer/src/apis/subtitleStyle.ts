@@ -8,16 +8,16 @@ const DEFAULT_STYLE_ID = "default";
  */
 export const getDefaultSubtitleStyle = (): SubtitleOptions => {
   return {
-    fontName: "Arial",
-    fontSize: 24,
+    fontName: undefined,
+    fontSize: 22,
     primaryColour: "#FFFFFF", // 白色文字
     outlineColour: "#000000", // 黑色边框
     backColour: "#000000", // 黑色阴影
     bold: 0,
     italic: 0,
     underline: 0,
-    outline: 2,
-    shadow: 1,
+    outline: 1,
+    shadow: 0,
     alignment: 2, // 居中下
     marginL: 20,
     marginR: 20,

@@ -22,6 +22,7 @@ import {
   getUnusedFileName,
   replaceExtName,
   calculateFileQuickHash,
+  RGB2BGR,
 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask, AbstractTask } from "./task.js";
@@ -33,6 +34,7 @@ import type {
   VideoMergeOptions,
   DanmuConfig,
   HotProgressOptions,
+  SubtitleOptions,
 } from "@biliLive-tools/types";
 import type Ffmpeg from "@biliLive-tools/types/ffmpeg.js";
 
@@ -316,8 +318,60 @@ export class ComplexFilter {
     return this.addFilter("scale", scaleFilter);
   }
 
-  addSubtitleFilter(assFile: string) {
-    return this.addFilter("subtitles", `${escaped(assFile)}`);
+  addSubtitleFilter(assFile: string, options?: SubtitleOptions) {
+    let filter = `${escaped(assFile)}`;
+    if (options) {
+      let forceStyle: string[] = [];
+
+      if (options.fontName) {
+        forceStyle.push(`FontName=${options.fontName}`);
+      }
+      if (options.fontSize) {
+        forceStyle.push(`FontSize=${options.fontSize}`);
+      }
+      if (options.primaryColour) {
+        forceStyle.push(`PrimaryColour=&H${RGB2BGR(options.primaryColour).replace("#", "")}`);
+      }
+      if (options.outlineColour) {
+        forceStyle.push(`OutlineColour=&H${RGB2BGR(options.outlineColour).replace("#", "")}`);
+      }
+      if (options.backColour) {
+        forceStyle.push(`BackColour=&H${RGB2BGR(options.backColour).replace("#", "")}`);
+      }
+      if (options.bold !== undefined) {
+        forceStyle.push(`Bold=${options.bold}`);
+      }
+      if (options.italic !== undefined) {
+        forceStyle.push(`Italic=${options.italic}`);
+      }
+      if (options.underline !== undefined) {
+        forceStyle.push(`Underline=${options.underline}`);
+      }
+      if (options.outline) {
+        forceStyle.push(`Outline=${options.outline}`);
+      }
+      if (options.shadow) {
+        forceStyle.push(`Shadow=${options.shadow}`);
+      }
+      if (options.alignment) {
+        forceStyle.push(`Alignment=${options.alignment}`);
+      }
+      if (options.marginL) {
+        forceStyle.push(`MarginL=${options.marginL}`);
+      }
+      if (options.marginR) {
+        forceStyle.push(`MarginR=${options.marginR}`);
+      }
+      if (options.marginV) {
+        forceStyle.push(`MarginV=${options.marginV}`);
+      }
+
+      if (options)
+        if (forceStyle.length > 0) {
+          filter += `:force_style='${forceStyle.join(",")}'`;
+        }
+    }
+    return this.addFilter("subtitles", filter);
   }
 
   addColorkeyFilter(inputs?: string[]) {
@@ -783,7 +837,7 @@ export const genMergeAssMp4Command = async (
     }
     // 字幕文件
     if (subtitleFile) {
-      complexFilter.addSubtitleFilter(subtitleFile);
+      complexFilter.addSubtitleFilter(subtitleFile, ffmpegOptions.subtitleOptions);
     }
 
     // 先渲染后缩放
