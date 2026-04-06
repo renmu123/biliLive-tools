@@ -36,6 +36,9 @@ import type { Recorder } from "@bililive-tools/manager";
 
 export { RecorderConfig };
 
+// 缓存直播结束通知的最后触发时间，避免频繁通知
+const endLiveNotificationCache = new Map<string, number>();
+
 async function sendStartLiveNotification(
   appConfig: AppConfig,
   recorder: Recorder,
@@ -67,6 +70,18 @@ async function sendEndLiveNotification(
   recorder: Recorder,
   config: RecorderConfigType,
 ) {
+  const cacheKey = `${recorder.providerId}_${recorder.id}`;
+  const now = Date.now();
+  const lastNotificationTime = endLiveNotificationCache.get(cacheKey);
+
+  // 如果距离上次通知不到10分钟，跳过
+  if (lastNotificationTime && now - lastNotificationTime < 10 * 60 * 1000) {
+    logger.info(
+      `跳过直播结束通知，距离上次通知不到10分钟：${config.remarks} (${config.channelId})`,
+    );
+    return;
+  }
+
   const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
   const title = `${name}(${config.channelId}) 录制已停止`;
 
@@ -81,6 +96,9 @@ async function sendEndLiveNotification(
   } else {
     await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
   }
+
+  // 更新最后通知时间
+  endLiveNotificationCache.set(cacheKey, now);
 }
 
 export async function createRecorderManager(appConfig: AppConfig) {
