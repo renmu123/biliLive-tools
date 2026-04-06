@@ -69,11 +69,15 @@ RUN mkdir public && mkdir data && mkdir bin
 
 COPY --from=frontend-build /app/packages/app/out/renderer /app/public
 COPY --from=base /app/docker/Caddyfile ./
+COPY --from=base /app/docker/entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
 
 ENV NODE_ENV=production
 
 EXPOSE 3000
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["caddy", "run", "--config", "/app/Caddyfile"]
 
 # ============================================
@@ -95,6 +99,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=backend-build /app/docker/config.json ./
 COPY --from=backend-build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
+COPY --from=base /app/docker/entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
 
 ENV NODE_ENV=production
 ENV IS_DOCKER=true
@@ -103,6 +110,7 @@ ENV ALIYUNPAN_CONFIG_DIR=/app/data
 
 EXPOSE 18010
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["node", "index.cjs", "server", "--config", "config.json"]
 
 # ============================================
@@ -143,8 +151,9 @@ COPY --from=frontend-build /app/packages/app/out/renderer /app/public
 COPY --from=base /app/docker/config.json /app/backend/config.json
 COPY --from=base /app/docker/fullstack-Caddyfile /etc/caddy/Caddyfile
 COPY --from=base /app/docker/start.sh /app/start.sh
+COPY --from=base /app/docker/entrypoint.sh /entrypoint.sh
 
-RUN chmod +x /app/start.sh
+RUN chmod +x /app/start.sh /entrypoint.sh
 
 ENV NODE_ENV=production
 ENV IS_DOCKER=true
@@ -154,4 +163,5 @@ ENV TZ=Asia/Shanghai
 
 EXPOSE 3000
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/app/start.sh"]
