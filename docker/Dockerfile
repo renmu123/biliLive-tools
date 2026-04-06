@@ -69,15 +69,11 @@ RUN mkdir public && mkdir data && mkdir bin
 
 COPY --from=frontend-build /app/packages/app/out/renderer /app/public
 COPY --from=base /app/docker/Caddyfile ./
-COPY --from=base /app/docker/entrypoint.sh /entrypoint.sh
-
-RUN chmod +x /entrypoint.sh
 
 ENV NODE_ENV=production
 
 EXPOSE 3000
 
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["caddy", "run", "--config", "/app/Caddyfile"]
 
 # ============================================
@@ -94,7 +90,7 @@ COPY --from=backend-build /app/packages/CLI/node_modules /app/node_modules
 COPY --from=backend-build /app/packages/app/resources/bin /app/bin
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libfontconfig1-dev && \
+    apt-get install -y --no-install-recommends libfontconfig1-dev gosu && \
     apt-get install -y /app/bin/audiowaveform.deb && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=backend-build /app/docker/config.json ./
@@ -107,6 +103,8 @@ ENV NODE_ENV=production
 ENV IS_DOCKER=true
 ENV BAIDUPCS_GO_CONFIG_DIR=/app/data
 ENV ALIYUNPAN_CONFIG_DIR=/app/data
+ENV TZ=Asia/Shanghai
+ENV PUID=0 PGID=0 UMASK=022
 
 EXPOSE 18010
 
@@ -135,7 +133,8 @@ RUN apt-get update && \
     debian-keyring \
     debian-archive-keyring \
     apt-transport-https \
-    curl && \
+    curl \
+    gosu && \
     apt-get install -y /app/bin/audiowaveform.deb && \
     curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg && \
     curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list && \
@@ -160,6 +159,7 @@ ENV IS_DOCKER=true
 ENV BAIDUPCS_GO_CONFIG_DIR=/app/data
 ENV ALIYUNPAN_CONFIG_DIR=/app/data
 ENV TZ=Asia/Shanghai
+ENV PUID=0 PGID=0 UMASK=022
 
 EXPOSE 3000
 
