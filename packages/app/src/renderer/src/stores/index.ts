@@ -11,6 +11,7 @@ import {
   taskApi,
   commonApi,
 } from "@renderer/apis";
+import { useSubtitles } from "./subtitles";
 
 import type { Task } from "@renderer/types";
 
@@ -325,6 +326,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         title: "{{filename}}-{{label}}-{{num}}",
         danmuPresetId: "default",
         ignoreDanmu: false,
+        ignoreSubtitle: false,
         exportSubtitle: true,
       },
     },
@@ -403,7 +405,6 @@ export interface Segment {
   tags?: any;
   index: number;
   loading?: boolean;
-  lyrics?: string;
 }
 type SegmentWithRequiredEnd = Required<Pick<Segment, "end">> & Omit<Segment, "end">;
 type SegmentEventType = "add" | "remove" | "update" | "clear";
@@ -429,6 +430,7 @@ export const useSegmentStore = defineStore("segment", () => {
     }),
   );
   const historyStore = useHistoryStore<Segment[]>({ limit: 30 });
+  const subtitleStore = useSubtitles();
 
   const index = ref(0);
 
@@ -542,6 +544,9 @@ export const useSegmentStore = defineStore("segment", () => {
           selectCutId.value = null;
         }
       }
+      // 级联删除关联的字幕
+      subtitleStore.removeBySourceId(id);
+
       recordHistory();
       emit("remove", { id });
     }
@@ -581,9 +586,13 @@ export const useSegmentStore = defineStore("segment", () => {
     if (!currentSegment.name && previousSegment.name) {
       currentSegment.name = previousSegment.name;
     }
-    // 将前一个片段的歌词合并到当前片段
-    if (previousSegment.lyrics) {
-      currentSegment.lyrics = (previousSegment.lyrics || "") + "\n" + (currentSegment.lyrics || "");
+    const previousSegmentLyrics = subtitleStore.getBySourceId(previousSegment.id)?.[0]?.content;
+    if (previousSegmentLyrics) {
+      const currentSegmentLyrics = subtitleStore.getBySourceId(currentSegment.id)?.[0]?.content;
+      subtitleStore.setForSegment(
+        currentSegment.id,
+        previousSegmentLyrics + (currentSegmentLyrics ? `\n${currentSegmentLyrics}` : ""),
+      );
     }
 
     // 删除前一个片段
@@ -607,9 +616,13 @@ export const useSegmentStore = defineStore("segment", () => {
     if (!currentSegment.name && nextSegment.name) {
       currentSegment.name = nextSegment.name;
     }
-    // 将后一个片段的歌词合并到当前片段
-    if (nextSegment.lyrics) {
-      currentSegment.lyrics = (currentSegment.lyrics || "") + "\n" + (nextSegment.lyrics || "");
+    const nextSegmentLyrics = subtitleStore.getBySourceId(nextSegment.id)?.[0]?.content;
+    if (nextSegmentLyrics) {
+      const currentSegmentLyrics = subtitleStore.getBySourceId(currentSegment.id)?.[0]?.content;
+      subtitleStore.setForSegment(
+        currentSegment.id,
+        currentSegmentLyrics ? `${currentSegmentLyrics}\n${nextSegmentLyrics}` : nextSegmentLyrics,
+      );
     }
 
     // 删除后一个片段
@@ -624,16 +637,24 @@ export const useSegmentStore = defineStore("segment", () => {
     rawCuts.value = [];
     index.value = 0; // 清空时初始化 index
     selectCutId.value = null; // 重置选中状态
+
+    // 清空所有字幕
+    subtitleStore.clear();
+
     recordHistory();
     emit("clear");
   };
 
-  // 获取所有片段的歌词合并文本
+  // 获取所有选中片段的合并字幕文本
   const getCombinedLyrics = () => {
-    return cuts.value
-      .filter((segment) => segment.lyrics)
-      .map((segment) => segment.lyrics)
-      .join("\n");
+    // 获取选中的片段（需要有 end 值）
+    const segments = selectedCuts.value.map((seg) => ({
+      id: seg.id,
+      start: seg.start,
+      end: seg.end,
+    }));
+
+    return subtitleStore.getCombinedForSegments(segments);
   };
 
   return {
@@ -662,3 +683,6 @@ export const useSegmentStore = defineStore("segment", () => {
     getCombinedLyrics,
   };
 });
+
+// 导出字幕 Store
+export { useSubtitles, type SubtitleItem } from "./subtitles";

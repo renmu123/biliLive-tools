@@ -158,7 +158,7 @@
 import { useThemeStore } from "@renderer/stores/theme";
 import SearchPopover from "./SearchPopover.vue";
 import { secondsToTimemark } from "@renderer/utils";
-import { useSegmentStore } from "@renderer/stores";
+import { useSegmentStore, useSubtitles } from "@renderer/stores";
 import {
   RadioButtonOffSharp,
   CheckmarkCircleOutline,
@@ -256,6 +256,7 @@ useEventListener(window, "resize", () => {
 const videoInstance = inject("videoInstance") as Ref<InstanceType<typeof VideoPlayer>>;
 
 const { cuts, selectCutId } = storeToRefs(useSegmentStore());
+const subtitleStore = useSubtitles();
 const {
   addSegment,
   removeSegment,
@@ -579,7 +580,8 @@ const songRecognize = async (segment: Segment) => {
       segment.start,
       segment.end!,
     );
-    updateSegment(segment.id, { name: data.name, lyrics: data.lyrics || "" });
+    updateSegment(segment.id, { name: data.name });
+    subtitleStore.setForSegment(segment.id, data.lyrics || "");
 
     resetSubtitle();
     if (data.name) {
@@ -660,9 +662,7 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
         offset: segment.start,
       },
     );
-
-    // 更新片段的字幕数据
-    updateSegment(segment.id, { lyrics: data.srt || "" });
+    subtitleStore.setForSegment(segment.id, data.srt || "");
 
     resetSubtitle();
 

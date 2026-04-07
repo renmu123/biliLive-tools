@@ -148,6 +148,7 @@ const currentSubtitleStyle = ref<SubtitleOptions>();
 const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
 const { appConfig } = storeToRefs(useAppConfig());
 const { cuts, selectedCuts } = storeToRefs(useSegmentStore());
+const { getCombinedLyrics } = useSegmentStore();
 
 const notice = useNotification();
 
@@ -171,12 +172,8 @@ const confirmExport = async () => {
   const ffmpegOptiosn = (await ffmpegPresetApi.get(exportOptions.ffmpegPresetId)).config;
   let index = 1;
 
-  const srtContent = selectedCuts.value
-    .map((cut) => {
-      return cut.lyrics;
-    })
-    .filter((item) => item && item.length > 0)
-    .join("\n");
+  // 获取合并的字幕内容
+  const srtContent = getCombinedLyrics();
 
   // 存在弹幕时编码器不能为copy
   if (ffmpegOptiosn.encoder === "copy") {
