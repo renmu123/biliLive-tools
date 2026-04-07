@@ -443,7 +443,6 @@ const importGlobalSubtitle = async () => {
  */
 const updatePlayerSubtitles = () => {
   if (!videoInstance.value) return;
-
   const combinedLyrics = getCombinedLyrics();
   // @ts-ignore
   videoInstance.value?.artplayerPluginSubtitle?.setContent(combinedLyrics, "srt");

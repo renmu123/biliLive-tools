@@ -106,63 +106,54 @@ export const useSubtitles = defineStore("subtitles", () => {
 
   /**
    * 获取指定 segments 的合并字幕（用于渲染和导出）
-   * 优先使用片段字幕，没有则使用全局字幕
+   * 首先加载全局字幕，然后用片段特定字幕替换对应时间段
    *
    * @param segments - segment 对象数组，需包含 id, start, end 字段
    * @returns SRT 格式的合并字幕字符串
    */
   const getCombinedForSegments = (segments: Array<{ id: string; start: number; end: number }>) => {
     const parser = new SrtParser();
-    const allNodes: any[] = [];
 
-    // 获取全局字幕（如果有）
+    // 1. 以全局字幕为基础节点列表
     const globalSubtitles = getGlobal();
     const globalSubtitle = globalSubtitles.length > 0 ? globalSubtitles[0] : null;
-    let globalNodes: any[] = [];
+    let mergedNodes: any[] = [];
 
     if (globalSubtitle) {
       try {
-        globalNodes = parser.fromSrt(globalSubtitle.content);
+        mergedNodes = parser.fromSrt(globalSubtitle.content);
       } catch (error) {
         console.error("解析全局字幕失败:", error);
       }
     }
 
+    // 2. 用片段字幕替换对应时段的全局字幕
     for (const segment of segments) {
-      // 1. 优先查找片段字幕
       const segmentSubtitles = getBySourceId(segment.id);
-      let subtitle = segmentSubtitles.length > 0 ? segmentSubtitles[0] : null;
-
-      // 2. 没有片段字幕则使用全局字幕
-      if (!subtitle && globalSubtitle) {
-        subtitle = globalSubtitle;
-      }
-
-      if (!subtitle) continue;
-
-      try {
-        // 3. 解析 SRT
-        const nodes = subtitle === globalSubtitle ? globalNodes : parser.fromSrt(subtitle.content);
-
-        // 4. 过滤时间范围内的字幕
-        const filteredNodes = nodes.filter((node) => {
-          return node.startSeconds >= segment.start && node.endSeconds <= segment.end;
-        });
-
-        // 5. 时间偏移（转换为相对时间，相对于当前片段的开始时间）
-        const offsetNodes = filteredNodes.map((node) => ({
-          ...node,
-          startSeconds: node.startSeconds - segment.start,
-          endSeconds: node.endSeconds - segment.start,
-        }));
-
-        allNodes.push(...offsetNodes);
-      } catch (error) {
-        console.error(`解析 segment ${segment.id} 的字幕失败:`, error);
+      if (segmentSubtitles.length > 0) {
+        // 移除该时段内的全局字幕
+        mergedNodes = mergedNodes.filter(
+          (node) => !(node.startSeconds >= segment.start && node.endSeconds <= segment.end),
+        );
+        // 添加片段字幕
+        try {
+          const nodes = parser.fromSrt(segmentSubtitles[0].content);
+          const filteredNodes = nodes.filter(
+            (node) => node.startSeconds >= segment.start && node.endSeconds <= segment.end,
+          );
+          mergedNodes.push(...filteredNodes);
+        } catch (error) {
+          console.error(`解析 segment ${segment.id} 的字幕失败:`, error);
+        }
       }
     }
 
-    // 6. 生成最终 SRT
+    // 3. 按开始时间排序
+    mergedNodes.sort((a, b) => a.startSeconds - b.startSeconds);
+
+    const allNodes = mergedNodes;
+
+    // 生成最终 SRT
     if (allNodes.length === 0) {
       return "";
     }

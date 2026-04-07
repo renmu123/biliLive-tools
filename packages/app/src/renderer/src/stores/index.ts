@@ -655,12 +655,11 @@ export const useSegmentStore = defineStore("segment", () => {
   // 获取所有选中片段的合并字幕文本
   const getCombinedLyrics = () => {
     // 获取选中的片段（需要有 end 值）
-    const segments = selectedCuts.value.map((seg) => ({
+    const segments = cuts.value.map((seg) => ({
       id: seg.id,
       start: seg.start,
       end: seg.end,
     }));
-
     return subtitleStore.getCombinedForSegments(segments);
   };
 

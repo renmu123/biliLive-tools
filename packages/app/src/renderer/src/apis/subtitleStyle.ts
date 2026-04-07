@@ -21,7 +21,7 @@ export const getDefaultSubtitleStyle = (): SubtitleOptions => {
     alignment: 2, // 居中下
     marginL: 20,
     marginR: 20,
-    marginV: 20,
+    marginV: 0,
   };
 };
 
