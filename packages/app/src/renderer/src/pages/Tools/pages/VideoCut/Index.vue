@@ -12,8 +12,11 @@
         @files-dropped="handleDroppedFiles"
       />
 
+      <!-- 拖动分隔条 -->
+      <div class="resize-handle" @mousedown="startResize"></div>
+
       <!-- 右侧分段列表区域 -->
-      <div class="segment-section">
+      <div class="segment-section" :style="{ width: segmentWidth + 'px' }">
         <div class="btns page-header">
           <ButtonGroup :options="projectMenuItems" @click="handleProjectMenuClick" size="small"
             >添加/替换</ButtonGroup
@@ -599,6 +602,29 @@ const openWaveformAnalyzerDialog = () => {
   waveformAnalyzerDialogVisible.value = true;
 };
 
+// 右侧面板宽度拖拽
+const segmentWidth = useStorage("cut-segment-panel-width", 245);
+
+const startResize = (e: MouseEvent) => {
+  e.preventDefault();
+  const startX = e.clientX;
+  const startWidth = segmentWidth.value;
+
+  const onMouseMove = (e: MouseEvent) => {
+    const delta = startX - e.clientX;
+    const newWidth = Math.min(700, Math.max(160, startWidth + delta));
+    segmentWidth.value = newWidth;
+  };
+
+  const onMouseUp = () => {
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+  };
+
+  document.addEventListener("mousemove", onMouseMove);
+  document.addEventListener("mouseup", onMouseUp);
+};
+
 const waveformAnalyzerConfirm = async (
   data: {
     startTime: number;
@@ -628,14 +654,31 @@ const waveformAnalyzerConfirm = async (
 .upper-section {
   flex: 1;
   display: flex;
-  gap: 10px;
+  gap: 4px;
   min-height: 0;
   padding: 0;
   overflow: hidden;
 }
 
+.resize-handle {
+  width: 3px;
+  cursor: col-resize;
+  flex-shrink: 0;
+  background: rgba(144, 147, 153, 0.25);
+  border-radius: 2px;
+  transition: background 0.2s;
+
+  &:hover {
+    background: skyblue;
+  }
+
+  &:active {
+    background: skyblue;
+  }
+}
+
 .segment-section {
-  width: 245px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
