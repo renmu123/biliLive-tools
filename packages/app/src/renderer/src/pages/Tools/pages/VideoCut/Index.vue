@@ -17,40 +17,77 @@
 
       <!-- 右侧分段列表区域 -->
       <div class="segment-section" :style="{ width: segmentWidth + 'px' }">
-        <div class="btns page-header">
-          <ButtonGroup :options="projectMenuItems" @click="handleProjectMenuClick" size="small"
-            >添加/替换</ButtonGroup
-          >
-
-          <n-button
-            class="cut-export"
-            type="info"
-            :disabled="!files.videoPath"
-            @click="exportCuts"
-            size="small"
-          >
-            导出
-          </n-button>
+        <!-- 左侧视图切换图标栏 -->
+        <div class="view-sidebar">
+          <n-tooltip placement="left">
+            <template #trigger>
+              <div
+                class="sidebar-icon"
+                :class="{ active: activeSegmentView === 'cuts' }"
+                @click="activeSegmentView = 'cuts'"
+              >
+                <n-icon size="18"><Cut /></n-icon>
+              </div>
+            </template>
+            切片列表
+          </n-tooltip>
+          <n-tooltip placement="left">
+            <template #trigger>
+              <div
+                class="sidebar-icon"
+                :class="{ active: activeSegmentView === 'config' }"
+                @click="activeSegmentView = 'config'"
+              >
+                <n-icon size="18"><SettingsOutline /></n-icon>
+              </div>
+            </template>
+            配置
+          </n-tooltip>
         </div>
-        <div class="segment-list-container">
-          <SegmentList
-            :danma-list="danmaList"
-            :files="files"
-            :danmaSearchMask="danmaSearchMask"
-          ></SegmentList>
+
+        <!-- 内容区 -->
+        <div class="view-content">
+          <!-- 切片视图 -->
+          <template v-if="activeSegmentView === 'cuts'">
+            <div class="btns page-header">
+              <ButtonGroup :options="projectMenuItems" @click="handleProjectMenuClick" size="small"
+                >添加/替换</ButtonGroup
+              >
+              <n-button
+                class="cut-export"
+                type="info"
+                :disabled="!files.videoPath"
+                @click="exportCuts"
+                size="small"
+              >
+                <n-icon size="18"><Cut /></n-icon>
+                导出
+              </n-button>
+            </div>
+            <div class="segment-list-container">
+              <SegmentList
+                :danma-list="danmaList"
+                :files="files"
+                :danmaSearchMask="danmaSearchMask"
+              ></SegmentList>
+            </div>
+          </template>
+
+          <!-- 配置视图 -->
+          <SegmentConfigView
+            v-else-if="activeSegmentView === 'config'"
+            :client-options="clientOptions"
+            v-model:hot-progress-visible="hotProgressVisible"
+            v-model:show-video-time="showVideoTime"
+            v-model:danma-search-mask="danmaSearchMask"
+            v-model:waveform-visible="waveformVisible"
+          />
         </div>
       </div>
     </div>
 
-    <!-- 下侧配置项区域 -->
-    <ConfigPanel
-      :client-options="clientOptions"
-      v-model:hot-progress-visible="hotProgressVisible"
-      v-model:show-video-time="showVideoTime"
-      v-model:danma-search-mask="danmaSearchMask"
-      v-model:waveform-visible="waveformVisible"
-      :waveform-loading="waveformLoading"
-    />
+    <!-- 下侧波形图区域 -->
+    <WaveformPanel v-model:waveform-visible="waveformVisible" :waveform-loading="waveformLoading" />
   </div>
   <DanmuFactorySettingDailog
     v-model:visible="xmlConvertVisible"
@@ -73,6 +110,7 @@ defineOptions({
   name: "videoCut",
 });
 import { toReactive } from "@vueuse/core";
+import { SettingsOutline, Cut } from "@vicons/ionicons5";
 import { supportedVideoExtensions } from "@renderer/utils";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
@@ -80,8 +118,9 @@ import { useSegmentStore, useAppConfig, useSubtitles } from "@renderer/stores";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import VideoPlayer from "./components/VideoPlayer.vue";
-import ConfigPanel from "./components/ConfigPanel.vue";
+import WaveformPanel from "./components/WaveformPanel.vue";
 import WaveformAnalyzerDialog from "./components/WaveformAnalyzerDialog.vue";
+import SegmentConfigView from "./components/SegmentConfigView.vue";
 import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
 import { useConfirm } from "@renderer/hooks";
@@ -106,6 +145,7 @@ const clientOptions = useStorage("cut-hotprogress", {
 const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
 const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 const showVideoTime = useStorage("cut-show-video-time", true);
+const activeSegmentView = ref<"cuts" | "config">("cuts");
 
 const waveformAnalyzerConfig = useStorage("cut-waveform-analyzer-config-new", {
   energyPercentile: 50, // 能量百分位阈值 (0-100)
@@ -612,7 +652,7 @@ const startResize = (e: MouseEvent) => {
 
   const onMouseMove = (e: MouseEvent) => {
     const delta = startX - e.clientX;
-    const newWidth = Math.min(700, Math.max(160, startWidth + delta));
+    const newWidth = Math.min(700, Math.max(190, startWidth + delta));
     segmentWidth.value = newWidth;
   };
 
@@ -680,8 +720,51 @@ const waveformAnalyzerConfirm = async (
 .segment-section {
   flex-shrink: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   min-height: 0;
+}
+
+.view-sidebar {
+  width: 32px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 4px;
+  gap: 4px;
+  border-right: 1px solid var(--border-color);
+
+  .sidebar-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-muted, #999);
+    transition:
+      background 0.15s,
+      color 0.15s;
+
+    &:hover {
+      background: rgba(144, 147, 153, 0.15);
+      color: var(--text-color, #333);
+    }
+
+    &.active {
+      background: rgba(24, 160, 88, 0.12);
+      color: #18a058;
+    }
+  }
+}
+
+.view-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-left: 6px;
 
   .btns {
     display: flex;
@@ -689,12 +772,16 @@ const waveformAnalyzerConfirm = async (
     margin-bottom: 10px;
     gap: 6px;
     flex-shrink: 0;
+    margin-top: 4px;
   }
+
   .segment-list-container {
+    flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 6px;
     scrollbar-gutter: stable;
+
     &::-webkit-scrollbar {
       width: 4px;
     }

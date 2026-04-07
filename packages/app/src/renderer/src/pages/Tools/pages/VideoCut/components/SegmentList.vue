@@ -772,7 +772,7 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
 
   .view {
     // max-height: calc(100vh - 100px);
-    min-width: 210px;
+    // min-width: 210px;
     overflow: auto;
   }
   .btns {
