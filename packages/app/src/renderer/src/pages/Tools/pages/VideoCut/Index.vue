@@ -43,6 +43,18 @@
             </template>
             配置
           </n-tooltip>
+          <n-tooltip placement="left">
+            <template #trigger>
+              <div
+                class="sidebar-icon"
+                :class="{ active: activeSegmentView === 'subtitle' }"
+                @click="activeSegmentView = 'subtitle'"
+              >
+                <n-icon size="18"><DocumentTextOutline /></n-icon>
+              </div>
+            </template>
+            字幕编辑
+          </n-tooltip>
         </div>
 
         <!-- 内容区 -->
@@ -82,6 +94,9 @@
             v-model:danma-search-mask="danmaSearchMask"
             v-model:waveform-visible="waveformVisible"
           />
+
+          <!-- 字幕编辑视图 -->
+          <SubtitleView v-else-if="activeSegmentView === 'subtitle'" />
         </div>
       </div>
     </div>
@@ -110,7 +125,7 @@ defineOptions({
   name: "videoCut",
 });
 import { toReactive } from "@vueuse/core";
-import { SettingsOutline, Cut } from "@vicons/ionicons5";
+import { SettingsOutline, Cut, DocumentTextOutline } from "@vicons/ionicons5";
 import { supportedVideoExtensions } from "@renderer/utils";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
@@ -121,6 +136,7 @@ import VideoPlayer from "./components/VideoPlayer.vue";
 import WaveformPanel from "./components/WaveformPanel.vue";
 import WaveformAnalyzerDialog from "./components/WaveformAnalyzerDialog.vue";
 import SegmentConfigView from "./components/SegmentConfigView.vue";
+import SubtitleView from "./components/SubtitleView.vue";
 import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
 import { useConfirm } from "@renderer/hooks";
@@ -145,7 +161,7 @@ const clientOptions = useStorage("cut-hotprogress", {
 const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
 const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 const showVideoTime = useStorage("cut-show-video-time", true);
-const activeSegmentView = ref<"cuts" | "config">("cuts");
+const activeSegmentView = ref<"cuts" | "config" | "subtitle">("cuts");
 
 const waveformAnalyzerConfig = useStorage("cut-waveform-analyzer-config-new", {
   energyPercentile: 50, // 能量百分位阈值 (0-100)
