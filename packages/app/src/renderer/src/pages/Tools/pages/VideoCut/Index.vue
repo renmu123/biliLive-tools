@@ -73,7 +73,7 @@ import { toReactive } from "@vueuse/core";
 import { supportedVideoExtensions } from "@renderer/utils";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
-import { useSegmentStore, useAppConfig } from "@renderer/stores";
+import { useSegmentStore, useAppConfig, useSubtitles } from "@renderer/stores";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import VideoPlayer from "./components/VideoPlayer.vue";
@@ -154,6 +154,8 @@ const segmentStore = useSegmentStore();
 const { undo, redo, clear: clearCuts, getCombinedLyrics } = useSegmentStore();
 const { selectedCuts } = storeToRefs(useSegmentStore());
 
+const subtitleStore = useSubtitles();
+
 const videoVCutOptions = toReactive(
   computed({
     get: () => appConfig.value.tool.videoCut,
@@ -167,6 +169,7 @@ const projectMenuItems = computed(() => {
   const list = [
     { label: "导入项目文件", key: "importProject" },
     { label: "加载弹幕", key: "importDanmu" },
+    { label: "加载字幕", key: "importGlobalSubtitle" },
     ...projectMenuOptions.value,
     { label: "关闭", key: "closeVideo", disabled: !files.value.videoPath },
   ];
@@ -329,9 +332,7 @@ const loadProject = async (filePath: string) => {
   loadVideo(videoPath);
   if (projectFile) {
     await loadProjectFile(projectFile);
-    const combinedLyrics = getCombinedLyrics();
-    // @ts-ignore
-    videoInstance?.value?.artplayerPluginSubtitle?.setContent(combinedLyrics, "srt");
+    updatePlayerSubtitles();
   }
 };
 
@@ -390,6 +391,8 @@ const handleProjectMenuClick = async (key?: string | number) => {
     await closeAllResources();
   } else if (key === "importDanmu") {
     await selectLoadFile(["ass", "xml"]);
+  } else if (key === "importGlobalSubtitle") {
+    await importGlobalSubtitle();
   } else if (key === "openSubWindow") {
     openSubWindow();
   } else if (key === "importProject") {
@@ -399,6 +402,51 @@ const handleProjectMenuClick = async (key?: string | number) => {
   } else {
     handleProjectAction(key);
   }
+};
+
+/**
+ * 导入全局字幕
+ */
+const importGlobalSubtitle = async () => {
+  const selectedFiles = await showFileDialog({
+    extensions: ["srt"],
+  });
+  if (!selectedFiles || selectedFiles.length === 0) return;
+
+  const filePath = selectedFiles[0];
+  try {
+    // 读取 SRT 文件内容
+    const content = await commonApi.readDanma(filePath);
+
+    // 设置全局字幕
+    subtitleStore.setGlobal(content);
+
+    // 更新视频播放器的字幕显示
+    updatePlayerSubtitles();
+
+    notice.success({
+      title: "全局字幕导入成功",
+      duration: 2000,
+    });
+  } catch (error) {
+    console.error("导入全局字幕失败:", error);
+    notice.error({
+      title: "全局字幕导入失败",
+      content: (error as Error).message,
+      duration: 3000,
+    });
+  }
+};
+
+/**
+ * 更新视频播放器的字幕显示
+ */
+const updatePlayerSubtitles = () => {
+  if (!videoInstance.value) return;
+
+  const combinedLyrics = getCombinedLyrics();
+  // @ts-ignore
+  videoInstance.value?.artplayerPluginSubtitle?.setContent(combinedLyrics, "srt");
 };
 
 /**
