@@ -580,8 +580,12 @@ export const useSegmentStore = defineStore("segment", () => {
     const currentSegment = rawCuts.value[currentIndex];
     const previousSegment = rawCuts.value[currentIndex - 1];
 
-    // 更新当前片段的开始时间为前一个片段的开始时间
-    currentSegment.start = previousSegment.start;
+    // 更新片段时间
+    const start = Math.min(currentSegment.start, previousSegment.start);
+    const end = Math.max(currentSegment.end || 0, previousSegment.end || 0);
+    currentSegment.start = start;
+    currentSegment.end = end;
+
     // 如果名称为空，使用前一个片段的名称
     if (!currentSegment.name && previousSegment.name) {
       currentSegment.name = previousSegment.name;
@@ -610,8 +614,11 @@ export const useSegmentStore = defineStore("segment", () => {
     const currentSegment = rawCuts.value[currentIndex];
     const nextSegment = rawCuts.value[currentIndex + 1];
 
-    // 更新当前片段的结束时间为后一个片段的结束时间
-    currentSegment.end = nextSegment.end;
+    const start = Math.min(currentSegment.start, nextSegment.start);
+    const end = Math.max(currentSegment.end || 0, nextSegment.end || 0);
+    // 更新片段时间
+    currentSegment.start = start;
+    currentSegment.end = end;
     // 如果名称为空，使用后一个片段的名称
     if (!currentSegment.name && nextSegment.name) {
       currentSegment.name = nextSegment.name;
