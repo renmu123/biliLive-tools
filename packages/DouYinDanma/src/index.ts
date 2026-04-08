@@ -1,4 +1,3 @@
-import { parse, format } from "node:url";
 import WebSocket from "ws";
 import { TypedEmitter } from "tiny-typed-emitter";
 
@@ -20,22 +19,7 @@ import type {
   ScreenChatMessage,
 } from "../types/types.js";
 
-function buildRequestUrl(url: string): string {
-  const parsedUrl = parse(url, true);
-  const existingParams = parsedUrl.query;
 
-  existingParams["aid"] = "6383";
-  existingParams["device_platform"] = "web";
-  existingParams["browser_language"] = "zh-CN";
-  existingParams["browser_platform"] = "Win32";
-  existingParams["browser_name"] = "Mozilla";
-  existingParams["browser_version"] = "92.0.4515.159";
-
-  parsedUrl.search = null;
-  parsedUrl.query = existingParams;
-
-  return format(parsedUrl);
-}
 
 interface Events {
   init: (url: string) => void;
@@ -115,6 +99,9 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.ws = new WebSocket(url, {
       headers: {
         Cookie: cookies,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        Origin: "https://live.douyin.com",
+        Referer: "https://live.douyin.com/",
       },
     });
 
@@ -451,19 +438,38 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     }
 
     const webcast5Params = {
+      app_name: "douyin_web",
       room_id: roomId,
       compress: "gzip",
       version_code: String(versionCode),
       webcast_sdk_version: webcastSdkVersion,
+      update_version_code: webcastSdkVersion,
       live_id: "1",
       did_rule: "3",
       user_unique_id: userUniqueId,
       identity: "audience",
       signature: signature.toString(),
+      device_platform: "web",
+      cookie_enabled: "true",
+      screen_width: "1920",
+      screen_height: "1080",
+      browser_language: "zh-CN",
+      browser_platform: "Win32",
+      browser_name: "Mozilla",
+      browser_version: "5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+      browser_online: "true",
+      tz_name: "Etc/GMT-8",
+      host: "https://live.douyin.com",
+      aid: "6383",
+      endpoint: "live_pc",
+      support_wrds: "1",
+      im_path: "/webcast/im/fetch/",
+      need_persist_msg_count: "15",
+      heartbeatDuration: "0",
     };
 
     const wssUrl = `wss://${this.host}/webcast/im/push/v2/?${new URLSearchParams(webcast5Params).toString()}`;
-    return buildRequestUrl(wssUrl);
+    return wssUrl;
   }
 }
 
