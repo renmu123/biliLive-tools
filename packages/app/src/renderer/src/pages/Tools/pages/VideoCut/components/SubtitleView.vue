@@ -32,7 +32,8 @@
                 :value="node.text"
                 class="text-input"
                 @update:value="(v) => updateNodeField(idx, 'text', v)"
-                @blur="flushToStore"
+                @blur="handleBlur"
+                @dblclick="seekVideo(node.startSeconds)"
               />
             </div>
             <div class="node-right">
@@ -42,14 +43,14 @@
                   size="tiny"
                   class="time-input"
                   @update:value="(v) => updateNodeField(idx, 'startTime', v)"
-                  @blur="flushToStore"
+                  @blur="handleBlur"
                 />
                 <n-input
                   :value="node.endTime"
                   size="tiny"
                   class="time-input"
                   @update:value="(v) => updateNodeField(idx, 'endTime', v)"
-                  @blur="flushToStore"
+                  @blur="handleBlur"
                 />
               </div>
               <n-button text type="error" size="small" class="delete-btn" @click="deleteNode(idx)">
@@ -77,6 +78,9 @@ import SrtParser from "srt-parser-2";
 import { useSegmentStore, useSubtitles } from "@renderer/stores";
 import { secondsToTimemark } from "@renderer/utils";
 
+import type VideoPlayer from "./components/VideoPlayer.vue";
+
+const videoInstance = inject("videoInstance") as Ref<InstanceType<typeof VideoPlayer>>;
 const segmentStore = useSegmentStore();
 const { cuts } = storeToRefs(segmentStore);
 const subtitleStore = useSubtitles();
@@ -142,9 +146,13 @@ function loadNodes(segmentId: string) {
   } catch {
     nodes.value = [];
   }
+  console.log("Loaded nodes:", nodes.value);
 }
 
+let isDirty = false;
+
 function updateNodeField(idx: number, field: keyof SrtNode, value: string) {
+  isDirty = true;
   (nodes.value[idx] as any)[field] = value;
 }
 
@@ -169,6 +177,12 @@ function addNode() {
   nodes.value.push(newNode);
   flushToStore();
 }
+
+const handleBlur = () => {
+  if (!isDirty) return;
+  isDirty = false;
+  flushToStore();
+};
 
 /** 将当前 nodes 写回 subtitleStore */
 function flushToStore() {
@@ -204,11 +218,18 @@ function flushToStore() {
     nextTick(() => {
       isFlushing = false;
     });
+
+    const combinedLyrics = segmentStore.getCombinedLyrics();
+    videoInstance.value.artplayerPluginSubtitle.setContent(combinedLyrics, "srt");
   } catch (e) {
     isFlushing = false;
     console.error("生成 SRT 失败:", e);
   }
 }
+
+const seekVideo = (seconds: number) => {
+  videoInstance.value.seek = seconds + 0.01;
+};
 
 /** 秒数 → SRT 时间字符串 HH:MM:SS,mmm */
 function formatTime(seconds: number): string {
@@ -278,8 +299,8 @@ function parseTimeToSeconds(timeStr: string): number {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 6px 8px;
-  border: 1px solid var(--n-border-color, #e0e0e0);
+  // padding: 3px 4px;
+  // border: 1px solid var(--n-border-color, #e0e0e0);
   border-radius: 4px;
 
   .node-index {

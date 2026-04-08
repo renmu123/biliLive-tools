@@ -660,7 +660,8 @@ export const useSegmentStore = defineStore("segment", () => {
       start: seg.start,
       end: seg.end,
     }));
-    return subtitleStore.getCombinedForSegments(segments);
+    const content = subtitleStore.getCombinedForSegments(segments);
+    return content;
   };
 
   return {
