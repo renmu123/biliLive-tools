@@ -53,10 +53,10 @@
                   @blur="handleBlur"
                 />
               </div>
-              <n-button text type="error" size="small" class="delete-btn" @click="deleteNode(idx)">
-                <n-icon size="16"><TrashOutline /></n-icon>
-              </n-button>
             </div>
+            <n-button text type="error" size="small" class="delete-btn" @click="deleteNode(idx)">
+              <n-icon size="16"><TrashOutline /></n-icon>
+            </n-button>
           </div>
         </div>
       </div>
@@ -162,9 +162,8 @@ function deleteNode(idx: number) {
 }
 
 function addNode() {
-  const seg = cuts.value.find((s) => s.id === selectedSegmentId.value);
-  const start = seg?.start ?? 0;
-  const end = Math.min(seg?.end ?? start + 2, start + 2);
+  const start = videoInstance.value.currentTime ?? 0;
+  const end = start + 4;
 
   const newNode: SrtNode = {
     id: String(nodes.value.length + 1),
@@ -312,6 +311,7 @@ function parseTimeToSeconds(timeStr: string): number {
     display: flex;
     gap: 6px;
     align-items: stretch;
+    position: relative;
 
     .node-text {
       flex: 1;
@@ -354,8 +354,8 @@ function parseTimeToSeconds(timeStr: string): number {
 
     .delete-btn {
       position: absolute;
-      top: -10px;
-      right: -10px;
+      top: -6px;
+      right: -6px;
       display: none;
     }
     &:hover {
