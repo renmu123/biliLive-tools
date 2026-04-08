@@ -21,6 +21,7 @@ export function useProjectManager(
   const { appConfig } = storeToRefs(useAppConfig());
   const { rawCuts } = storeToRefs(useSegmentStore());
   const segmentStore = useSegmentStore();
+  const subtitleStore = useSubtitles();
 
   // 项目文件路径
   const projectFilePath = ref("");
@@ -51,7 +52,6 @@ export function useProjectManager(
       segmentStore.init(segments);
 
       // 加载字幕数据（如果有）
-      const subtitleStore = useSubtitles();
       subtitleStore.clear();
       if (projectData.subtitles && Array.isArray(projectData.subtitles)) {
         projectData.subtitles.forEach((subtitle: any) => {
@@ -137,8 +137,6 @@ export function useProjectManager(
     }
 
     // 获取字幕数据
-    const subtitleStore = useSubtitles();
-
     const projectData = {
       version: 1,
       mediaFileName: window.path.basename(mediaFileName),
@@ -256,6 +254,15 @@ export function useProjectManager(
 
   watch(
     () => rawCuts.value,
+    () => {
+      if (appConfig.value.videoCut.autoSave) {
+        saveProject(true);
+      }
+    },
+    { deep: true },
+  );
+  watch(
+    () => subtitleStore.items,
     () => {
       if (appConfig.value.videoCut.autoSave) {
         saveProject(true);

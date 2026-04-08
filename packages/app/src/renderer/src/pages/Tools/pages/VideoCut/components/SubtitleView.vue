@@ -87,13 +87,14 @@ const subtitleStore = useSubtitles();
 
 const selectedSegmentId = ref<string | null>(null);
 
-// 下拉选项：片段名 + 时间范围
-const segmentOptions = computed(() =>
-  cuts.value.map((seg) => ({
+// 下拉选项：全局字幕 + 片段名 + 时间范围
+const segmentOptions = computed(() => [
+  { label: "全局字幕", value: "__global__" },
+  ...cuts.value.map((seg) => ({
     label: `${seg.name}（${secondsToTimemark(seg.start)} - ${secondsToTimemark(seg.end ?? 0)}）`,
     value: seg.id,
   })),
-);
+]);
 
 // SRT 解析器
 const parser = new SrtParser();
@@ -136,6 +137,23 @@ watch(
 );
 
 function loadNodes(segmentId: string) {
+  // 处理全局字幕
+  if (segmentId === "__global__") {
+    const globalSubtitles = subtitleStore.getGlobal();
+    if (globalSubtitles.length === 0) {
+      nodes.value = [];
+      return;
+    }
+    try {
+      nodes.value = parser.fromSrt(globalSubtitles[0].content) as SrtNode[];
+    } catch {
+      nodes.value = [];
+    }
+    console.log("Loaded global nodes:", nodes.value);
+    return;
+  }
+
+  // 处理片段字幕
   const subtitles = subtitleStore.getBySourceId(segmentId);
   if (subtitles.length === 0) {
     nodes.value = [];
@@ -196,12 +214,8 @@ function flushToStore() {
     }))
     .filter((n) => n.startSeconds < n.endSeconds);
 
+  // 如果没有有效节点，跳过后续处理
   if (validNodes.length === 0) {
-    isFlushing = true;
-    subtitleStore.removeBySourceId(selectedSegmentId.value);
-    nextTick(() => {
-      isFlushing = false;
-    });
     return;
   }
 
@@ -213,7 +227,14 @@ function flushToStore() {
   try {
     const srtContent = parser.toSrt(validNodes as any);
     isFlushing = true;
-    subtitleStore.setForSegment(selectedSegmentId.value, srtContent);
+
+    // 保存全局字幕或片段字幕
+    if (selectedSegmentId.value === "__global__") {
+      subtitleStore.setGlobal(srtContent);
+    } else {
+      subtitleStore.setForSegment(selectedSegmentId.value, srtContent);
+    }
+
     nextTick(() => {
       isFlushing = false;
     });
