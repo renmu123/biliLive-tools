@@ -343,12 +343,20 @@ const vendorSelectOptions = computed(() => {
 
 // 根据 tag 筛选模型
 const getModelOptionsByTag = (tag: "llm" | "asr") => {
-  return config.value.ai.models
+  const items = config.value.ai.models
     .filter((model) => model.tags && model.tags.includes(tag))
     .map((model) => ({
       label: model.modelName + (model.remark ? ` (${model.remark})` : ""),
       value: model.modelId,
     }));
+
+  if (tag === "asr") {
+    items.push({
+      label: "B接口（仅供测试，不支持歌词）",
+      value: "bcut",
+    });
+  }
+  return items;
 };
 
 // 供应商选项

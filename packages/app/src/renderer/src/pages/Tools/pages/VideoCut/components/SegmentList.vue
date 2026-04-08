@@ -614,27 +614,27 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
   // 获取配置（尝试获取，如果失败则使用默认值）
   let modelId: string | undefined = undefined;
 
-  try {
-    const config = await window.api.config.getAll();
-    const models = config?.ai?.models || [];
-    if (models.length === 0) {
-      notice.error({
-        title: "请先在设置中配置AI模型",
-        duration: 3000,
-      });
-      return;
-    }
-    modelId = config?.ai?.subtitleRecognize?.modelId;
-    if (!modelId) {
-      notice.error({
-        title: "请先在设置中配置字幕识别模型",
-        duration: 3000,
-      });
-      return;
-    }
-  } catch (error) {
+  const config = await window.api.config.getAll();
+  const models = config?.ai?.models || [];
+  if (models.length === 0) {
     notice.error({
-      title: "获取配置失败，请先配置AI模型",
+      title: "请先在设置中配置AI模型",
+      duration: 3000,
+    });
+    return;
+  }
+  modelId = config?.ai?.subtitleRecognize?.modelId;
+  if (!modelId) {
+    notice.error({
+      title: "请先在设置中配置字幕识别模型",
+      duration: 3000,
+    });
+    return;
+  }
+
+  if (modelId === "bcut" && segment.end! - segment.start > 60 * 20) {
+    notice.error({
+      title: "当前模型不适合识别超过20分钟的片段，请先切割片段",
       duration: 3000,
     });
     return;
