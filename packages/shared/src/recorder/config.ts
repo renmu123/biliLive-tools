@@ -64,6 +64,14 @@ export default class RecorderConfig {
           } else if (setting.providerId === "XHS") {
             return get(globalConfig, "xhs.cookie");
           }
+        } else if (key === "douyinCookieMode") {
+          if (setting.providerId === "DouYin") {
+            return get(globalConfig, "douyin.mode", "always");
+          }
+        } else if (key === "douyinCookieAccounts") {
+          if (setting.providerId === "DouYin") {
+            return get(globalConfig, "douyin.accounts", []);
+          }
         } else if (key === "doubleScreen") {
           if (setting.providerId === "DouYin") {
             return get(globalConfig, "douyin.doubleScreen");
@@ -128,7 +136,20 @@ export default class RecorderConfig {
         }
       }
     } else if (setting.providerId === "DouYin") {
-      auth = getValue("cookie");
+      const cookieMode = getValue("douyinCookieMode") ?? "always";
+      const accounts = (getValue("douyinCookieAccounts") ?? []) as Array<{
+        cookie?: string;
+        enabled?: boolean;
+      }>;
+      const enabledAccount = accounts.find((item) => item.enabled !== false && item.cookie);
+      const legacyCookie = getValue("cookie");
+      if (cookieMode === "off") {
+        auth = undefined;
+      } else if (enabledAccount?.cookie) {
+        auth = enabledAccount.cookie;
+      } else {
+        auth = legacyCookie;
+      }
       uid = setting?.uid;
     } else if (setting.providerId === "XHS") {
       auth = getValue("cookie");

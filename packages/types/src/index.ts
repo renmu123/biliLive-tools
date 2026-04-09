@@ -71,9 +71,21 @@ export const recorderNoGlobalFollowFields: Array<
   "videoFormat",
   "recorderType",
   "cookie",
+  "douyinCookieMode",
+  "douyinCookieAccounts",
   "doubleScreen",
   "useServerTimestamp",
 ];
+
+export type DouyinCookieMode = "off" | "always" | "gift_save_only";
+
+export interface DouyinCookieAccount {
+  id: string;
+  remark: string;
+  cookie: string;
+  enabled: boolean;
+  weight: number;
+}
 
 // 通用预设
 export type CommonPreset<T> = {
@@ -406,6 +418,10 @@ interface DouyinRecorderConfig extends RecorderCheckConfig {
   quality: "origin" | "uhd" | "hd" | "sd" | "ld" | "ao" | "real_origin";
   /** 抖音cookie */
   cookie: string;
+  /** 抖音cookie模式 */
+  mode: DouyinCookieMode;
+  /** 抖音cookie账号池 */
+  accounts: DouyinCookieAccount[];
   /** 流格式 */
   formatName: FormatName;
   /** 是否使用双屏直播流 */
@@ -543,6 +559,10 @@ export interface Recorder {
   weight: number;
   /** 抖音cookie */
   cookie?: string;
+  /** 抖音cookie模式（直播间可覆盖全局） */
+  douyinCookieMode?: DouyinCookieMode;
+  /** 抖音cookie账号池（直播间可覆盖全局） */
+  douyinCookieAccounts?: DouyinCookieAccount[];
   /** 是否使用双屏直播流 */
   doubleScreen?: boolean;
   /** 流格式优先级 */

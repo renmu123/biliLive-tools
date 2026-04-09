@@ -43,6 +43,8 @@ describe("RecorderConfig", () => {
           douyin: {
             quality: "high",
             doubleScreen: true,
+            mode: "always",
+            accounts: [],
           },
           quality: "default",
         };
@@ -284,6 +286,82 @@ describe("RecorderConfig", () => {
         api: "auto",
         useServerTimestamp: true,
       });
+    });
+
+    it("应该优先使用抖音账号池中的启用cookie", () => {
+      mockAppConfig.get.mockImplementation((key: string) => {
+        if (key === "recorder") {
+          return {
+            douyin: {
+              quality: "high",
+              doubleScreen: true,
+              mode: "always",
+              cookie: "legacy_cookie",
+              accounts: [
+                {
+                  id: "acc-1",
+                  remark: "主号",
+                  cookie: "pool_cookie",
+                  enabled: true,
+                  weight: 1,
+                },
+              ],
+            },
+          };
+        }
+        if (key === "recorders") {
+          return [
+            {
+              id: "test7",
+              providerId: "DouYin",
+              channelId: "1001",
+              owner: "owner7",
+            },
+          ];
+        }
+        return null;
+      });
+
+      const result = recorderConfig.get("test7");
+      expect(result?.auth).toBe("pool_cookie");
+    });
+
+    it("抖音mode为off时应禁用auth", () => {
+      mockAppConfig.get.mockImplementation((key: string) => {
+        if (key === "recorder") {
+          return {
+            douyin: {
+              quality: "high",
+              doubleScreen: true,
+              mode: "off",
+              cookie: "legacy_cookie",
+              accounts: [
+                {
+                  id: "acc-1",
+                  remark: "主号",
+                  cookie: "pool_cookie",
+                  enabled: true,
+                  weight: 1,
+                },
+              ],
+            },
+          };
+        }
+        if (key === "recorders") {
+          return [
+            {
+              id: "test8",
+              providerId: "DouYin",
+              channelId: "1002",
+              owner: "owner8",
+            },
+          ];
+        }
+        return null;
+      });
+
+      const result = recorderConfig.get("test8");
+      expect(result?.auth).toBeUndefined();
     });
 
     it("应该正确处理没有 uid 的情况", () => {
