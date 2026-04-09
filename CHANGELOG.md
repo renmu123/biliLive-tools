@@ -16,6 +16,7 @@
 ## 其他
 
 - 支持 ghcr 镜像，为那些无法访问dockerhub的用户提供另一种选择
+- DanmakuFactory升级至[2.1.1](https://github.com/renmu123/DanmakuFactory/releases/tag/v2.1.1)处理MacOS下的动态编译问题
 
 # 3.11.0(2026.3.30)
 
