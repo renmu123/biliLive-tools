@@ -36,7 +36,7 @@
     "@bililive-tools/xhs-recorder": "workspace:*",
     "@bililive-tools/manager": "workspace:*",
     "@napi-rs/canvas": "^0.1.60",
-    "@renmu/bili-api": "2.12.3",
+    "@renmu/bili-api": "2.13.0",
     "@renmu/fluent-ffmpeg": "2.3.3",
     "@renmu/m3u8-downloader": "^0.5.2",
     "@renmu/node-shazam": "^2.0.3",

@@ -328,7 +328,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       enableStructuredOutput: true,
     },
     subtitleRecognize: {
-      modelId: "",
+      modelId: "bcut",
     },
   },
   biliUpload: {
