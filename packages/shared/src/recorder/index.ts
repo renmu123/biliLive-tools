@@ -242,8 +242,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
   const managerOptions = await buildManagerOptions(config);
   const manager = createManager(managerOptions);
-  // TODO:需要删除
-  console.log("managerOptions", managerOptions);
 
   manager.on("RecorderDebugLog", ({ recorder, ...log }) => {
     if (log.type !== "ffmpeg") {

@@ -35,6 +35,7 @@ export interface LiveInfo {
   cover: string;
   channelId: string;
   living: boolean;
+  area?: string;
 }
 export type GetLiveInfoResp = LiveInfo[];
 
