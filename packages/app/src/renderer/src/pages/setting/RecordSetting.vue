@@ -489,20 +489,6 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip text="Cookie" tip="用于录制会员直播"></Tip>
-            </template>
-            <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
-            <n-button
-              v-if="!isWeb"
-              type="primary"
-              style="margin-left: 10px"
-              @click="douyinLogin"
-              title="登录后退出即可获取cookie"
-              >登录</n-button
-            >
-          </n-form-item>
-          <n-form-item>
-            <template #label>
               <Tip text="Cookie模式" tip="控制抖音Cookie在录制流程中的启用范围"></Tip>
             </template>
             <n-select
@@ -520,7 +506,7 @@
                 >新增账号</n-button
               >
               <div
-                v-for="account in config.recorder.douyin.accounts"
+                v-for="account in globalDouyinAccountsSorted"
                 :key="account.id"
                 style="display: flex; gap: 10px; align-items: center"
               >
@@ -737,6 +723,20 @@ const removeGlobalDouyinAccount = (id: string) => {
   );
 };
 
+const globalDouyinAccountsSorted = computed(() => {
+  return (config.value?.recorder?.douyin?.accounts ?? [])
+    .map((account, index) => ({ account, index }))
+    .sort((a, b) => {
+      const weightA = Number(a.account.weight ?? 0);
+      const weightB = Number(b.account.weight ?? 0);
+      if (weightA === weightB) {
+        return a.index - b.index;
+      }
+      return weightA - weightB;
+    })
+    .map((item) => item.account);
+});
+
 watch(
   () => config.value?.recorder?.douyin,
   () => {
@@ -867,10 +867,6 @@ const xhsLogin = async () => {
   config.value.recorder.xhs.cookie = cookie;
 };
 
-const douyinLogin = async () => {
-  const cookie = await window.api.cookie.douyinLogin();
-  config.value.recorder.douyin.cookie = cookie;
-};
 </script>
 
 <style scoped lang="less">

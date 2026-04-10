@@ -65,6 +65,13 @@
               {{ item.providerId }}</a
             >
             <span
+              v-if="item.providerId === 'DouYin' && item.extra?.currentDouyinCookieRemark"
+              class="tag cookie-remark"
+              :title="`当前 Cookie 备注：${item.extra.currentDouyinCookieRemark}`"
+            >
+              当前 Cookie：{{ item.extra.currentDouyinCookieRemark }}
+            </span>
+            <span
               class="tag state"
               :class="{
                 error: item.state === 'check-error',
@@ -267,6 +274,11 @@ const stateMap = {
       }
     }
 
+    &.cookie-remark {
+      background-color: #f6ffed;
+      color: #389e0d;
+    }
+
     [data-theme="dark"] & {
       &.channel {
         background-color: #111d2c;
@@ -279,6 +291,11 @@ const stateMap = {
           background-color: #512c2c;
           color: #ff7875;
         }
+      }
+
+      &.cookie-remark {
+        background-color: #1f3a1f;
+        color: #95de64;
       }
     }
   }

@@ -506,6 +506,8 @@ export interface Recorder {
     /** 头像 */
     avatar?: string;
     lastRecordTime?: number | null;
+    /** 当前使用的抖音 Cookie 账号备注（仅展示，不包含 Cookie 内容） */
+    currentDouyinCookieRemark?: string;
   };
   disableAutoCheck?: boolean;
   /** 发送至发送至软件webhook */
