@@ -3,6 +3,24 @@
     <div class="user-info">
       <div class="login-btns">
         <n-button type="primary" @click="login">登录账号</n-button>
+        <n-button @click="exportAllAccounts">导出所有账号</n-button>
+        <n-button @click="triggerImportAll">导入所有账号</n-button>
+        <n-button :disabled="!userInfo.uid" @click="exportCurrentAccount">导出账号</n-button>
+        <n-button :disabled="!userInfo.uid" @click="triggerImportCurrent">导入账号</n-button>
+        <input
+          ref="singleImportInput"
+          type="file"
+          accept="application/json"
+          style="display: none"
+          @change="onImportSingleFileChange"
+        />
+        <input
+          ref="allImportInput"
+          type="file"
+          accept="application/json"
+          style="display: none"
+          @change="onImportAllFileChange"
+        />
       </div>
     </div>
     <div class="container">
@@ -42,6 +60,7 @@
 <script setup lang="ts">
 import { userApi, taskApi } from "@renderer/apis";
 import { useClipboard } from "@vueuse/core";
+import type { BiliUser } from "@biliLive-tools/types";
 
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
 import BiliLoginDialog from "./components/BiliLoginDialog.vue";
@@ -127,6 +146,89 @@ const updateAuth = async (uid: number) => {
 };
 
 const { copy } = useClipboard({ legacy: true });
+const singleImportInput = ref<HTMLInputElement | null>(null);
+const allImportInput = ref<HTMLInputElement | null>(null);
+
+const downloadJSON = (name: string, data: unknown) => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+const readJSONFile = async <T>(file: File): Promise<T> => {
+  const text = await file.text();
+  return JSON.parse(text) as T;
+};
+
+const exportCurrentAccount = async () => {
+  if (!userInfo.value.uid) return;
+  const user = await userApi.exportSingle(userInfo.value.uid);
+  downloadJSON(`bili-user-${userInfo.value.uid}.json`, user);
+  notice.success({
+    title: "导出成功",
+    duration: 1200,
+  });
+};
+
+const exportAllAccounts = async () => {
+  const users = await userApi.exportAll();
+  downloadJSON("bili-users-all.json", users);
+  notice.success({
+    title: "导出成功",
+    duration: 1200,
+  });
+};
+
+const triggerImportCurrent = () => {
+  singleImportInput.value?.click();
+};
+
+const triggerImportAll = () => {
+  allImportInput.value?.click();
+};
+
+const onImportSingleFileChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  try {
+    const user = await readJSONFile<BiliUser>(file);
+    await userApi.importSingle(user);
+    await getUsers();
+    notice.success({
+      title: "导入成功",
+      duration: 1200,
+    });
+  } finally {
+    input.value = "";
+  }
+};
+
+const onImportAllFileChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  try {
+    const users = await readJSONFile<BiliUser[]>(file);
+    await userApi.importAll(users);
+    await getUsers();
+    notice.success({
+      title: "导入成功",
+      duration: 1200,
+    });
+  } finally {
+    input.value = "";
+  }
+};
+
 const getCookie = async (uid: number) => {
   const cookie = await userApi.getCookie(uid);
   await copy(cookie);

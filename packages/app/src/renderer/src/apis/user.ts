@@ -1,5 +1,6 @@
 import request from "./request";
 import { generateHMACSHA256 } from "../utils";
+import type { BiliUser } from "@biliLive-tools/types";
 
 /**
  * @description Get user list
@@ -58,12 +59,42 @@ const getCookie = async (uid: number) => {
   return data;
 };
 
+const exportAll = async (): Promise<BiliUser[]> => {
+  const res = await request.get(`/user/export`);
+  return res.data;
+};
+
+const exportSingle = async (uid: number): Promise<BiliUser> => {
+  const res = await request.post(`/user/export_single`, {
+    uid,
+  });
+  return res.data;
+};
+
+const importAll = async (users: BiliUser[]) => {
+  const res = await request.post(`/user/import`, {
+    users,
+  });
+  return res.data;
+};
+
+const importSingle = async (user: BiliUser) => {
+  const res = await request.post(`/user/import_single`, {
+    user,
+  });
+  return res.data;
+};
+
 const userApi = {
   getList: getUserList,
   refresh,
   delete: deleteUser,
   updateAuth,
   getCookie,
+  exportAll,
+  exportSingle,
+  importAll,
+  importSingle,
 };
 
 export default userApi;
