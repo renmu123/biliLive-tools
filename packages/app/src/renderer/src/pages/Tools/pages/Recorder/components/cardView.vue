@@ -64,6 +64,7 @@
             <a class="link tag channel" target="_blank" :href="item.channelURL" title="点击可访问">
               {{ item.providerId }}</a
             >
+            <span class="tag area" v-if="item.area">{{ item.area }}</span>
             <span
               class="tag state"
               :class="{
@@ -253,6 +254,13 @@ const stateMap = {
     font-size: 12px;
     color: #555;
 
+    &.area {
+      background: linear-gradient(135deg, #e8fff4 0%, #d7f4ff 100%);
+      border: 1px solid #9adbbd;
+      color: #1f7a52;
+      font-weight: 500;
+    }
+
     &.channel {
       background-color: #e6f7ff;
       color: #1890ff;
@@ -268,6 +276,12 @@ const stateMap = {
     }
 
     [data-theme="dark"] & {
+      &.area {
+        background: linear-gradient(135deg, rgba(22, 58, 46, 0.92) 0%, rgba(16, 49, 67, 0.92) 100%);
+        border: 1px solid #2f8f6b;
+        color: #8fe3be;
+      }
+
       &.channel {
         background-color: #111d2c;
         color: #59adf1;
