@@ -1,3 +1,7 @@
+# 1.15.0
+
+- 分区参数支持
+
 # 1.14.0
 
 - 不同平台支持单独的检查参数 [#392](https://github.com/renmu123/biliLive-tools/pull/392)

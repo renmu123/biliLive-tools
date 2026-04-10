@@ -1,3 +1,7 @@
+# 1.15.0
+
+- 分区参数支持
+
 # 1.12.0
 
 - 禁止标题关键词支持正则 [#307](https://github.com/renmu123/biliLive-tools/pull/307)

@@ -83,7 +83,7 @@
         <td v-if="isColumnVisible('recordParams')" :title="item?.recordHandle?.url">
           {{
             item.state === "recording"
-              ? `${item.usedSource}/${item.usedStream}/${item?.recordHandle?.recorderType}`
+              ? `${item.area}/${item.usedSource}/${item.usedStream}/${item?.recordHandle?.recorderType}`
               : ""
           }}
         </td>

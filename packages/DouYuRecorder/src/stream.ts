@@ -13,6 +13,7 @@ export async function getInfo(channelId: string): Promise<{
   cover: string;
   liveId: string;
   recordStartTime: Date;
+  area: string;
   // gifts: {
   //   id: string;
   //   name: string;
@@ -75,6 +76,7 @@ export async function getInfo(channelId: string): Promise<{
     liveStartTime: startTime,
     liveId: utils.md5(`${channelId}-${startTime?.getTime() ?? Date.now()}`),
     recordStartTime: recordStartTime,
+    area: data.room.second_lvl_name,
     // gifts: data.gift.map((g) => ({
     //   id: g.id,
     //   name: g.name,

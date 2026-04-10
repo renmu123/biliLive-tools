@@ -189,6 +189,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     cover: string;
     liveId?: string;
     recordStartTime: Date;
+    area?: string;
   };
   tempStopIntervalCheck?: boolean;
   /** 缓存实例（命名空间） */
@@ -218,6 +219,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     channelId: ChannelId;
     living: boolean;
     liveStartTime: Date;
+    area: string;
   }>;
   getStream: (this: Recorder<E>) => Promise<{
     source: string;
