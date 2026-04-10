@@ -422,19 +422,6 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <Tip text="Cookie" tip="我也不知道有啥用，可能哪天被风控的时候用得上吧"></Tip>
-              </template>
-              <n-input
-                v-model:value="config.cookie"
-                type="password"
-                :disabled="globalFieldsObj.cookie"
-              />
-              <n-checkbox v-model:checked="globalFieldsObj.cookie" class="global-checkbox"
-                >全局</n-checkbox
-              >
-            </n-form-item>
-            <n-form-item>
-              <template #label>
                 <Tip text="Cookie模式" tip="控制直播流Cookie注入策略"></Tip>
               </template>
               <n-select
@@ -460,7 +447,7 @@
                   >新增账号</n-button
                 >
                 <div
-                  v-for="account in config.douyinCookieAccounts"
+                  v-for="account in douyinCookieAccountsSorted"
                   :key="account.id"
                   style="display: flex; gap: 10px; align-items: center"
                 >
@@ -469,12 +456,6 @@
                     placeholder="备注"
                     :disabled="globalFieldsObj.douyinCookieAccounts"
                     style="width: 140px"
-                  />
-                  <n-input
-                    v-model:value="account.cookie"
-                    type="password"
-                    placeholder="Cookie"
-                    :disabled="globalFieldsObj.douyinCookieAccounts"
                   />
                   <n-input-number
                     v-model:value="account.weight"
@@ -485,17 +466,6 @@
                   >
                     <template #prefix>权重</template>
                   </n-input-number>
-                  <n-switch
-                    v-model:value="account.enabled"
-                    :disabled="globalFieldsObj.douyinCookieAccounts"
-                  />
-                  <n-button
-                    type="error"
-                    ghost
-                    :disabled="globalFieldsObj.douyinCookieAccounts"
-                    @click="removeDouyinCookieAccount(account.id)"
-                    >删除</n-button
-                  >
                 </div>
               </div>
               <n-checkbox
@@ -804,12 +774,19 @@ const addDouyinCookieAccount = () => {
   config.value.douyinCookieAccounts?.push(createDouyinCookieAccount());
 };
 
-const removeDouyinCookieAccount = (id: string) => {
-  ensureDouyinCookieConfig();
-  config.value.douyinCookieAccounts = (config.value.douyinCookieAccounts ?? []).filter(
-    (account) => account.id !== id,
-  );
-};
+const douyinCookieAccountsSorted = computed(() => {
+  return (config.value?.douyinCookieAccounts ?? [])
+    .map((account, index) => ({ account, index }))
+    .sort((a, b) => {
+      const weightA = Number(a.account.weight ?? 0);
+      const weightB = Number(b.account.weight ?? 0);
+      if (weightA === weightB) {
+        return a.index - b.index;
+      }
+      return weightA - weightB;
+    })
+    .map((item) => item.account);
+});
 
 const confirmDialog = useConfirm();
 const confirm = async () => {
@@ -995,13 +972,6 @@ watch(
     }
     if (val.recorderType) {
       config.value.recorderType = appConfig.value.recorder.recorderType;
-    }
-    if (val.cookie) {
-      if (config.value.providerId === "DouYin") {
-        config.value.cookie = appConfig.value.recorder.douyin.cookie;
-      } else if (config.value.providerId === "XHS") {
-        config.value.cookie = appConfig.value.recorder.xhs.cookie;
-      }
     }
     if (val.doubleScreen) {
       config.value.doubleScreen = appConfig.value.recorder.douyin.doubleScreen;
