@@ -308,6 +308,7 @@ const list = computed(() => {
       avatar: item?.liveInfo?.avatar || liveInfo?.avatar || item?.extra?.avatar,
       roomTitle: item?.liveInfo?.title || liveInfo?.title,
       living: item?.liveInfo?.living ?? liveInfo?.living,
+      area: item?.liveInfo?.area || liveInfo?.area,
     };
   });
 

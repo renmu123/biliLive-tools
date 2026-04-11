@@ -3,6 +3,8 @@
 ## 功能
 
 - 录制：不同平台支持单独的检查参数 [#392](https://github.com/renmu123/biliLive-tools/pull/392)
+- 切片：字幕识别支持B接口 [#402](https://github.com/renmu123/biliLive-tools/pull/402)
+- 录制：部分平台支持分区展示 [#404](https://github.com/renmu123/biliLive-tools/pull/404)
 
 ## 优化
 
@@ -11,6 +13,12 @@
 - 同步：目录结构支持时分秒
 - 通知：录制结束通知增加十分钟缓存，避免某些情况下的重复通知
 - 切片：片段栏目大小支持拖动，UI优化
+- 虚拟录制：支持设置起始时间
+
+## 其他
+
+- 支持 ghcr 镜像，为那些无法访问dockerhub的用户提供另一种选择
+- DanmakuFactory升级至[2.1.1](https://github.com/renmu123/DanmakuFactory/releases/tag/v2.1.1)处理MacOS下的动态编译问题
 
 ## Bug修复
 
