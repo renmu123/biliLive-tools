@@ -166,6 +166,57 @@ const readJSONFile = async <T>(file: File): Promise<T> => {
   return JSON.parse(text) as T;
 };
 
+const isBiliUser = (value: unknown): value is BiliUser => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const user = value as {
+    mid?: unknown;
+    accessToken?: unknown;
+    refreshToken?: unknown;
+    cookie?: unknown;
+  };
+
+  return (
+    typeof user.mid === "number"
+    && typeof user.accessToken === "string"
+    && typeof user.refreshToken === "string"
+    && !!user.cookie
+    && typeof user.cookie === "object"
+  );
+};
+
+const triggerImportCurrent = () => {
+  singleImportInput.value?.click();
+};
+
+const onImportSingleFileChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  try {
+    const payload = await readJSONFile<unknown>(file);
+    if (!isBiliUser(payload)) {
+      throw new Error("invalid user payload");
+    }
+
+    await userApi.importSingle(payload);
+    await getUsers();
+    notice.success({
+      title: "导入成功",
+      duration: 1200,
+    });
+  } catch {
+    notice.error({
+      title: "导入失败，文件格式错误",
+      duration: 1600,
+    });
+  } finally {
+    input.value = "";
+  }
+};
 const exportCurrentAccount = async (uid: number) => {
   const user = await userApi.exportSingle(uid);
   downloadJSON(`bili-user-${uid}.json`, user);
@@ -184,30 +235,8 @@ const exportAllAccounts = async () => {
   });
 };
 
-const triggerImportCurrent = () => {
-  singleImportInput.value?.click();
-};
-
 const triggerImportAll = () => {
   allImportInput.value?.click();
-};
-
-const onImportSingleFileChange = async (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
-
-  try {
-    const user = await readJSONFile<BiliUser>(file);
-    await userApi.importSingle(user);
-    await getUsers();
-    notice.success({
-      title: "导入成功",
-      duration: 1200,
-    });
-  } finally {
-    input.value = "";
-  }
 };
 
 const onImportAllFileChange = async (event: Event) => {
@@ -216,12 +245,28 @@ const onImportAllFileChange = async (event: Event) => {
   if (!file) return;
 
   try {
-    const users = await readJSONFile<BiliUser[]>(file);
-    await userApi.importAll(users);
+    const payload = await readJSONFile<unknown>(file);
+
+    if (Array.isArray(payload)) {
+      if (!payload.every(isBiliUser)) {
+        throw new Error("invalid user list payload");
+      }
+      await userApi.importAll(payload);
+    } else if (isBiliUser(payload)) {
+      await userApi.importSingle(payload);
+    } else {
+      throw new Error("invalid user payload");
+    }
+
     await getUsers();
     notice.success({
       title: "导入成功",
       duration: 1200,
+    });
+  } catch {
+    notice.error({
+      title: "导入失败，文件格式错误",
+      duration: 1600,
     });
   } finally {
     input.value = "";
