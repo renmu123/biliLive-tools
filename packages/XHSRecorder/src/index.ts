@@ -117,6 +117,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         liveStartTime: info.liveStartTime,
         recordStartTime: new Date(),
         liveId: info.roomId,
+        area: "",
       };
       if (!isLiving) {
         return null;
