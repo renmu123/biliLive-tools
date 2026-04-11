@@ -489,7 +489,10 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip text="Cookie模式" tip="控制抖音Cookie在录制流程中的启用范围"></Tip>
+              <Tip
+                text="Cookie模式"
+                tip="不启用：录制流程不注入 Cookie；始终启用：录制中持续注入；仅保存礼物：仅在录制中且开启保存礼物时注入。未录制状态下不会注入。"
+              ></Tip>
             </template>
             <n-select
               v-model:value="config.recorder.douyin.mode"
@@ -519,6 +522,7 @@
                   v-model:value="account.cookie"
                   type="password"
                   placeholder="请输入Cookie"
+                  style="width: 260px"
                 />
                 <n-input-number
                   v-model:value="account.weight"
