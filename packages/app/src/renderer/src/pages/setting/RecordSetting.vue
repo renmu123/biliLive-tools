@@ -520,7 +520,16 @@
                   type="password"
                   placeholder="请输入Cookie"
                 />
-                <n-input-number v-model:value="account.weight" min="1" step="1" style="width: 100px">
+                <n-input-number
+                  v-model:value="account.weight"
+                  :min="1"
+                  :show-button="false"
+                  placeholder="随机"
+                  clearable
+                  :parse="(val: string) => (val ? Number(val.replace(/\D/g, '')) : null)"
+                  :format="(val: number | null) => (val ? String(val) : '')"
+                  style="width: 100px"
+                >
                   <template #prefix>权重</template>
                 </n-input-number>
                 <n-switch v-model:value="account.enabled" />

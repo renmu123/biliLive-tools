@@ -119,6 +119,11 @@ export default class RecorderConfig {
       }
     };
 
+    const normalizeDouyinAccountWeight = (weight: unknown) => {
+      const parsedWeight = Number(weight);
+      return Number.isFinite(parsedWeight) && parsedWeight > 0 ? parsedWeight : 1;
+    };
+
     const pickWeightedDouyinAccount = (
       accounts: Array<{
         remark?: string;
@@ -135,7 +140,7 @@ export default class RecorderConfig {
       const normalizedAccounts = enabledAccounts.map((item) => ({
         ...item,
         cookie: item.cookie?.trim(),
-        weight: Number(item.weight) > 0 ? Number(item.weight) : 1,
+        weight: normalizeDouyinAccountWeight(item.weight),
       }));
       const totalWeight = normalizedAccounts.reduce((sum, item) => sum + item.weight, 0);
       let random = Math.random() * totalWeight;
