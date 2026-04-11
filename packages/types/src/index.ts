@@ -897,7 +897,7 @@ export type VideoCodec =
 
 export interface SubtitleOptions {
   // 字体名称
-  fontName?: string;
+  fontName?: string | null;
   // 字幕字体大小
   fontSize?: number;
   // 主颜色 (文字颜色，格式: &HBBGGRR& 或 #RRGGBB)

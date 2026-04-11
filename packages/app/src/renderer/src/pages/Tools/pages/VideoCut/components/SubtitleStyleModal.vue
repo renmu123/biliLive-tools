@@ -12,6 +12,11 @@
         <h3 style="margin: 0">字幕样式配置</h3>
       </template>
 
+      <div class="flex" style="gap: 10px; align-items: center; margin-bottom: 16px">
+        <span style="flex: none">预设</span>
+        <n-select v-model:value="presetId" :options="presetOptions" placeholder="选择预设" />
+      </div>
+
       <div style="display: flex; gap: 20px">
         <!-- 左侧配置区 -->
         <div style="flex: 1; overflow-y: auto; max-height: calc(85vh - 150px)">
@@ -161,46 +166,84 @@
 
       <template #footer>
         <div class="footer">
-          <n-button class="btn" @click="handleReset">恢复默认</n-button>
           <div style="flex: 1"></div>
+          <n-button
+            v-if="presetId !== 'default'"
+            text
+            class="btn"
+            type="error"
+            @click="deletePreset"
+            >删除</n-button
+          >
           <n-button class="btn" @click="handleCancel">取消</n-button>
-          <n-button class="btn" type="primary" @click="handleConfirm">确定</n-button>
+          <ButtonGroup :options="actionBtns" @click="handleActionClick">保存</ButtonGroup>
         </div>
       </template>
+
+      <n-modal v-model:show="nameModelVisible">
+        <n-card style="width: 600px" :bordered="false" role="dialog" aria-modal="true">
+          <n-input
+            v-model:value="tempPresetName"
+            placeholder="请输入预设名称"
+            maxlength="15"
+            @keyup.enter="saveConfirm"
+          />
+          <template #footer>
+            <div style="text-align: right">
+              <n-button @click="nameModelVisible = false">取消</n-button>
+              <n-button type="primary" style="margin-left: 10px" @click="saveConfirm"
+                >确认</n-button
+              >
+            </div>
+          </template>
+        </n-card>
+      </n-modal>
     </n-card>
   </n-modal>
 </template>
 
 <script setup lang="ts">
-import subtitleStyleApi from "@renderer/apis/subtitleStyle";
+import { subtitleStylePresetApi } from "@renderer/apis/presets";
 import { commonApi } from "@renderer/apis";
+import ButtonGroup from "@renderer/components/ButtonGroup.vue";
+import { useConfirm } from "@renderer/hooks";
+import { uuid } from "@renderer/utils";
+
+import { cloneDeep } from "lodash-es";
 
 import type { SubtitleOptions } from "@biliLive-tools/types";
+import type { SubtitleStylePreset } from "@renderer/apis/presets/subtitleStyle";
 
 const visible = defineModel<boolean>({ required: true, default: false });
 const emit = defineEmits<{
   (event: "confirm", value: SubtitleOptions): void;
 }>();
 
-const props = defineProps<{
-  initialConfig?: SubtitleOptions;
-}>();
+const notice = useNotification();
+const confirmDialog = useConfirm();
+
+const presetId = ref<string>("default");
+const currentPreset = ref<SubtitleStylePreset>({
+  id: "default",
+  name: "默认配置",
+  config: {},
+});
 
 const styleConfig = ref<SubtitleOptions>({
-  fontName: "Arial",
-  fontSize: 24,
-  primaryColour: "#FFFFFF",
-  outlineColour: "#000000",
-  backColour: "#000000",
+  fontName: undefined,
+  fontSize: 22,
+  primaryColour: "#FFFFFF", // 白色文字
+  outlineColour: "#000000", // 黑色边框
+  backColour: "#000000", // 黑色阴影
   bold: 0,
   italic: 0,
   underline: 0,
-  outline: 2,
-  shadow: 1,
-  alignment: 2,
+  outline: 1,
+  shadow: 0,
+  alignment: 2, // 居中下
   marginL: 20,
   marginR: 20,
-  marginV: 20,
+  marginV: 0,
 });
 
 // 布尔值辅助变量
@@ -243,6 +286,21 @@ const alignmentOptions = [
   { label: "顶部居中", value: 6 },
   { label: "右上", value: 7 },
 ];
+
+// 预设选项
+const presetOptions = ref<{ label: string; value: string }[]>([]);
+
+const loadPresets = async () => {
+  try {
+    const presets = await subtitleStylePresetApi.list();
+    presetOptions.value = presets.map((p) => ({
+      label: p.name,
+      value: p.id,
+    }));
+  } catch (error) {
+    console.error("Failed to load presets:", error);
+  }
+};
 
 // 预览容器样式
 const previewContainerStyle = computed(() => {
@@ -311,29 +369,122 @@ watch(
   () => visible.value,
   async (newVal) => {
     if (newVal) {
-      if (props.initialConfig) {
-        styleConfig.value = { ...props.initialConfig };
-      } else {
-        const defaultConfig = await subtitleStyleApi.getDefault();
-        styleConfig.value = { ...defaultConfig };
-      }
+      await loadPresets();
       getFonts();
     }
   },
 );
 
-const handleReset = async () => {
-  const defaultConfig = await subtitleStyleApi.getDefault();
-  styleConfig.value = { ...defaultConfig };
-};
+watch(
+  () => presetId.value,
+  async (val) => {
+    if (val) {
+      console.log("Selected preset ID:", val);
+      try {
+        currentPreset.value = await subtitleStylePresetApi.get(val);
+        styleConfig.value = { ...currentPreset.value.config };
+      } catch (error) {
+        console.error("Failed to load preset:", error);
+      }
+    }
+  },
+);
 
 const handleCancel = () => {
   visible.value = false;
 };
 
-const handleConfirm = () => {
-  emit("confirm", { ...styleConfig.value });
+const saveConfig = async () => {
+  await subtitleStylePresetApi.save({
+    ...currentPreset.value,
+    config: toRaw(styleConfig.value),
+  });
+  notice.success({
+    title: "保存成功",
+    duration: 1000,
+  });
+  await loadPresets();
+  confirm();
+};
+
+const confirm = () => {
+  emit("confirm", styleConfig.value);
   visible.value = false;
+};
+
+const deletePreset = async () => {
+  const [status] = await confirmDialog.warning({
+    content: "是否确认删除该预设？",
+  });
+  if (!status) return;
+
+  await subtitleStylePresetApi.remove(presetId.value);
+  presetId.value = "default";
+  notice.success({
+    title: "删除成功",
+    duration: 1000,
+  });
+  await loadPresets();
+};
+
+const nameModelVisible = ref(false);
+const tempPresetName = ref("");
+const isRename = ref(false);
+
+const rename = async () => {
+  tempPresetName.value = currentPreset.value.name;
+  isRename.value = true;
+  nameModelVisible.value = true;
+};
+
+const saveAs = async () => {
+  isRename.value = false;
+  tempPresetName.value = "";
+  nameModelVisible.value = true;
+};
+
+const saveConfirm = async () => {
+  if (!tempPresetName.value) {
+    notice.warning({
+      title: "预设名称不得为空",
+      duration: 2000,
+    });
+    return;
+  }
+
+  const preset = cloneDeep(currentPreset.value);
+  if (!isRename.value) {
+    preset.id = uuid();
+  }
+  preset.name = tempPresetName.value;
+  preset.config = toRaw(styleConfig.value);
+  await subtitleStylePresetApi.save(preset);
+  nameModelVisible.value = false;
+  notice.success({
+    title: "保存成功",
+    duration: 1000,
+  });
+  presetId.value = preset.id;
+  await loadPresets();
+};
+
+const actionBtns = ref([
+  { label: "另存为", key: "saveAnother" },
+  { label: "重命名", key: "rename" },
+]);
+
+const handleActionClick = async (key?: string | number) => {
+  switch (key) {
+    case "saveAnother":
+      saveAs();
+      break;
+    case "rename":
+      rename();
+      break;
+    case undefined:
+      saveConfig();
+      break;
+  }
 };
 
 const fontOptions = ref<

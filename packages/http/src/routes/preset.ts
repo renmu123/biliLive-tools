@@ -87,4 +87,28 @@ router.put("/ffmpeg/:id", async (ctx) => {
   ctx.body = await preset.save({ ...data, id: ctx.params.id });
 });
 
+////////////////// 字幕样式预设 ///////////////////////////////
+router.get("/subtitle-style", async (ctx) => {
+  const preset = container.resolve("subtitleStylePreset");
+  ctx.body = await preset.list();
+});
+router.get("/subtitle-style/:id", async (ctx) => {
+  const preset = container.resolve("subtitleStylePreset");
+  ctx.body = await preset.get(ctx.params.id);
+});
+router.post("/subtitle-style", async (ctx) => {
+  const preset = container.resolve("subtitleStylePreset");
+  const data: any = ctx.request.body;
+  ctx.body = await preset.save(data);
+});
+router.del("/subtitle-style/:id", async (ctx) => {
+  const preset = container.resolve("subtitleStylePreset");
+  ctx.body = await preset.delete(ctx.params.id);
+});
+router.put("/subtitle-style/:id", async (ctx) => {
+  const preset = container.resolve("subtitleStylePreset");
+  const data: any = ctx.request.body;
+  ctx.body = await preset.save({ ...data, id: ctx.params.id });
+});
+
 export default router;

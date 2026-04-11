@@ -109,8 +109,7 @@ import { toReactive } from "@vueuse/core";
 import type { SubtitleOptions } from "@biliLive-tools/types";
 import SubtitleStyleModal from "./SubtitleStyleModal.vue";
 
-import { ffmpegPresetApi, taskApi } from "@renderer/apis";
-import subtitleStyleApi from "@renderer/apis/subtitleStyle";
+import { ffmpegPresetApi, taskApi, subtitleStylePresetApi } from "@renderer/apis";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useFfmpegPreset, useAppConfig, useSegmentStore } from "@renderer/stores";
 import filenamify from "filenamify/browser";
@@ -268,17 +267,13 @@ async function getDir() {
 // 初始化字幕样式配置
 const initSubtitleStyle = async () => {
   const styleId = exportOptions.subtitleStyleId || "default";
-  currentSubtitleStyle.value = await subtitleStyleApi.get(styleId);
+  const data = await subtitleStylePresetApi.get(styleId);
+  currentSubtitleStyle.value = data.config;
 };
 
 // 处理字幕样式配置确认
 const handleSubtitleStyleConfirm = async (config: SubtitleOptions) => {
-  const styleId = exportOptions.subtitleStyleId || "default";
-  await subtitleStyleApi.update(styleId, config);
   currentSubtitleStyle.value = config;
-  if (!exportOptions.subtitleStyleId) {
-    exportOptions.subtitleStyleId = "default";
-  }
 };
 
 // 当弹框打开时初始化字幕样式
