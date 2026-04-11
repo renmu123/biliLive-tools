@@ -3,8 +3,9 @@
 ## 功能
 
 - 录制：不同平台支持单独的检查参数 [#392](https://github.com/renmu123/biliLive-tools/pull/392)
-- 切片：字幕识别支持B接口 [#402](https://github.com/renmu123/biliLive-tools/pull/402)
 - 录制：部分平台支持分区展示 [#404](https://github.com/renmu123/biliLive-tools/pull/404)
+- 切片：字幕识别支持B接口 [#402](https://github.com/renmu123/biliLive-tools/pull/402)
+- 切片：支持字幕渲染、简易字幕编辑器[#398](https://github.com/renmu123/biliLive-tools/pull/398)
 
 ## 优化
 
