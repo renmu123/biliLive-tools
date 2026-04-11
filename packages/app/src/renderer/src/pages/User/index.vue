@@ -3,10 +3,8 @@
     <div class="user-info">
       <div class="login-btns">
         <n-button type="primary" @click="login">登录账号</n-button>
-        <n-button @click="exportAllAccounts">导出所有账号</n-button>
-        <n-button @click="triggerImportAll">导入所有账号</n-button>
-        <n-button :disabled="!userInfo.uid" @click="exportCurrentAccount">导出账号</n-button>
-        <n-button :disabled="!userInfo.uid" @click="triggerImportCurrent">导入账号</n-button>
+        <n-button @click="exportAllAccounts">导出用户</n-button>
+        <n-button @click="triggerImportAll">导入用户</n-button>
         <input
           ref="singleImportInput"
           type="file"
@@ -49,6 +47,8 @@
           <div class="section" @click="updateAccountInfo(item.uid)">刷新信息</div>
           <div class="section" @click="updateAuth(item.uid)">更新授权</div>
           <div class="section" @click="getCookie(item.uid)">复制cookie</div>
+          <div class="section" @click="exportCurrentAccount(item.uid)">导出账号</div>
+          <div class="section" @click="triggerImportCurrent">导入账号</div>
           <div class="section section-danger" @click="logout(item.uid)">退出账号</div>
         </n-popover>
       </div>
@@ -166,10 +166,9 @@ const readJSONFile = async <T>(file: File): Promise<T> => {
   return JSON.parse(text) as T;
 };
 
-const exportCurrentAccount = async () => {
-  if (!userInfo.value.uid) return;
-  const user = await userApi.exportSingle(userInfo.value.uid);
-  downloadJSON(`bili-user-${userInfo.value.uid}.json`, user);
+const exportCurrentAccount = async (uid: number) => {
+  const user = await userApi.exportSingle(uid);
+  downloadJSON(`bili-user-${uid}.json`, user);
   notice.success({
     title: "导出成功",
     duration: 1200,
