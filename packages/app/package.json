@@ -27,6 +27,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@imengyu/vue3-context-menu": "^1.5.2",
     "@napi-rs/canvas": "^0.1.60",
+    "@renmu/node-shazam": "^2.0.3",
     "better-sqlite3": "catalog:",
     "bufferutil": "^4.0.8",
     "electron-context-menu": "4.1.1",
@@ -34,14 +35,13 @@
     "electron-store": "^10.0.0",
     "electron-updater": "^6.3.9",
     "font-ls": "catalog:",
-    "@renmu/node-shazam": "^2.0.3",
+    "music-segment-detector": "^0.3.1",
     "ntsuspend": "catalog:",
     "semver": "^7.6.3",
     "trash": "^9.0.0",
+    "undici": "^7.24.0",
     "utf-8-validate": "^6.0.5",
-    "wavesurfer.js": "^7.11.1",
-    "music-segment-detector": "^0.3.1",
-    "undici": "^7.24.0"
+    "wavesurfer.js": "^7.11.1"
   },
   "devDependencies": {
     "@biliLive-tools/http": "workspace:*",
@@ -87,6 +87,7 @@
     "path-unified": "^0.2.0",
     "pinia": "^3.0.1",
     "sortablejs": "^1.15.6",
+    "srt-parser-2": "^1.2.3",
     "unplugin-auto-import": "^20.2.0",
     "unplugin-vue-components": "^30.0.0",
     "vite": "^7.1.10",

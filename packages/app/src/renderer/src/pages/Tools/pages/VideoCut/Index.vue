@@ -17,40 +17,92 @@
 
       <!-- 右侧分段列表区域 -->
       <div class="segment-section" :style="{ width: segmentWidth + 'px' }">
-        <div class="btns page-header">
-          <ButtonGroup :options="projectMenuItems" @click="handleProjectMenuClick" size="small"
-            >添加/替换</ButtonGroup
-          >
-
-          <n-button
-            class="cut-export"
-            type="info"
-            :disabled="!files.videoPath"
-            @click="exportCuts"
-            size="small"
-          >
-            导出
-          </n-button>
+        <!-- 左侧视图切换图标栏 -->
+        <div class="view-sidebar">
+          <n-tooltip placement="left">
+            <template #trigger>
+              <div
+                class="sidebar-icon"
+                :class="{ active: activeSegmentView === 'cuts' }"
+                @click="activeSegmentView = 'cuts'"
+              >
+                <n-icon size="18"><Cut /></n-icon>
+              </div>
+            </template>
+            切片列表
+          </n-tooltip>
+          <n-tooltip placement="left">
+            <template #trigger>
+              <div
+                class="sidebar-icon"
+                :class="{ active: activeSegmentView === 'config' }"
+                @click="activeSegmentView = 'config'"
+              >
+                <n-icon size="18"><SettingsOutline /></n-icon>
+              </div>
+            </template>
+            配置
+          </n-tooltip>
+          <n-tooltip placement="left">
+            <template #trigger>
+              <div
+                class="sidebar-icon"
+                :class="{ active: activeSegmentView === 'subtitle' }"
+                @click="activeSegmentView = 'subtitle'"
+              >
+                <n-icon size="18"><DocumentTextOutline /></n-icon>
+              </div>
+            </template>
+            字幕编辑
+          </n-tooltip>
         </div>
-        <div class="segment-list-container">
-          <SegmentList
-            :danma-list="danmaList"
-            :files="files"
-            :danmaSearchMask="danmaSearchMask"
-          ></SegmentList>
+
+        <!-- 内容区 -->
+        <div class="view-content">
+          <!-- 切片视图 -->
+          <template v-if="activeSegmentView === 'cuts'">
+            <div class="btns page-header">
+              <ButtonGroup :options="projectMenuItems" @click="handleProjectMenuClick" size="small"
+                >添加/替换</ButtonGroup
+              >
+              <n-button
+                class="cut-export"
+                type="info"
+                :disabled="!files.videoPath"
+                @click="exportCuts"
+                size="small"
+              >
+                <n-icon size="18"><Cut /></n-icon>
+                导出
+              </n-button>
+            </div>
+            <div class="segment-list-container">
+              <SegmentList
+                :danma-list="danmaList"
+                :files="files"
+                :danmaSearchMask="danmaSearchMask"
+              ></SegmentList>
+            </div>
+          </template>
+
+          <!-- 配置视图 -->
+          <SegmentConfigView
+            v-else-if="activeSegmentView === 'config'"
+            :client-options="clientOptions"
+            v-model:hot-progress-visible="hotProgressVisible"
+            v-model:show-video-time="showVideoTime"
+            v-model:danma-search-mask="danmaSearchMask"
+            v-model:waveform-visible="waveformVisible"
+          />
+
+          <!-- 字幕编辑视图 -->
+          <SubtitleView v-else-if="activeSegmentView === 'subtitle'" />
         </div>
       </div>
     </div>
 
-    <!-- 下侧配置项区域 -->
-    <ConfigPanel
-      :client-options="clientOptions"
-      v-model:hot-progress-visible="hotProgressVisible"
-      v-model:show-video-time="showVideoTime"
-      v-model:danma-search-mask="danmaSearchMask"
-      v-model:waveform-visible="waveformVisible"
-      :waveform-loading="waveformLoading"
-    />
+    <!-- 下侧波形图区域 -->
+    <WaveformPanel v-model:waveform-visible="waveformVisible" :waveform-loading="waveformLoading" />
   </div>
   <DanmuFactorySettingDailog
     v-model:visible="xmlConvertVisible"
@@ -73,15 +125,18 @@ defineOptions({
   name: "videoCut",
 });
 import { toReactive } from "@vueuse/core";
+import { SettingsOutline, Cut, DocumentTextOutline } from "@vicons/ionicons5";
 import { supportedVideoExtensions } from "@renderer/utils";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
-import { useSegmentStore, useAppConfig } from "@renderer/stores";
+import { useSegmentStore, useAppConfig, useSubtitles } from "@renderer/stores";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import VideoPlayer from "./components/VideoPlayer.vue";
-import ConfigPanel from "./components/ConfigPanel.vue";
+import WaveformPanel from "./components/WaveformPanel.vue";
 import WaveformAnalyzerDialog from "./components/WaveformAnalyzerDialog.vue";
+import SegmentConfigView from "./components/SegmentConfigView.vue";
+import SubtitleView from "./components/SubtitleView.vue";
 import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
 import { useConfirm } from "@renderer/hooks";
@@ -106,6 +161,7 @@ const clientOptions = useStorage("cut-hotprogress", {
 const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
 const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 const showVideoTime = useStorage("cut-show-video-time", true);
+const activeSegmentView = ref<"cuts" | "config" | "subtitle">("cuts");
 
 const waveformAnalyzerConfig = useStorage("cut-waveform-analyzer-config-new", {
   energyPercentile: 50, // 能量百分位阈值 (0-100)
@@ -157,6 +213,8 @@ const segmentStore = useSegmentStore();
 const { undo, redo, clear: clearCuts, getCombinedLyrics } = useSegmentStore();
 const { selectedCuts } = storeToRefs(useSegmentStore());
 
+const subtitleStore = useSubtitles();
+
 const videoVCutOptions = toReactive(
   computed({
     get: () => appConfig.value.tool.videoCut,
@@ -170,6 +228,7 @@ const projectMenuItems = computed(() => {
   const list = [
     { label: "导入项目文件", key: "importProject" },
     { label: "加载弹幕", key: "importDanmu" },
+    { label: "加载字幕", key: "importGlobalSubtitle" },
     ...projectMenuOptions.value,
     { label: "关闭", key: "closeVideo", disabled: !files.value.videoPath },
   ];
@@ -332,9 +391,7 @@ const loadProject = async (filePath: string) => {
   loadVideo(videoPath);
   if (projectFile) {
     await loadProjectFile(projectFile);
-    const combinedLyrics = getCombinedLyrics();
-    // @ts-ignore
-    videoInstance?.value?.artplayerPluginSubtitle?.setContent(combinedLyrics, "srt");
+    updatePlayerSubtitles();
   }
 };
 
@@ -393,6 +450,8 @@ const handleProjectMenuClick = async (key?: string | number) => {
     await closeAllResources();
   } else if (key === "importDanmu") {
     await selectLoadFile(["ass", "xml"]);
+  } else if (key === "importGlobalSubtitle") {
+    await importGlobalSubtitle();
   } else if (key === "openSubWindow") {
     openSubWindow();
   } else if (key === "importProject") {
@@ -402,6 +461,50 @@ const handleProjectMenuClick = async (key?: string | number) => {
   } else {
     handleProjectAction(key);
   }
+};
+
+/**
+ * 导入全局字幕
+ */
+const importGlobalSubtitle = async () => {
+  const selectedFiles = await showFileDialog({
+    extensions: ["srt"],
+  });
+  if (!selectedFiles || selectedFiles.length === 0) return;
+
+  const filePath = selectedFiles[0];
+  try {
+    // 读取 SRT 文件内容
+    const content = await commonApi.readDanma(filePath);
+
+    // 设置全局字幕
+    subtitleStore.setGlobal(content);
+
+    // 更新视频播放器的字幕显示
+    updatePlayerSubtitles();
+
+    notice.success({
+      title: "全局字幕导入成功",
+      duration: 2000,
+    });
+  } catch (error) {
+    console.error("导入全局字幕失败:", error);
+    notice.error({
+      title: "全局字幕导入失败",
+      content: (error as Error).message,
+      duration: 3000,
+    });
+  }
+};
+
+/**
+ * 更新视频播放器的字幕显示
+ */
+const updatePlayerSubtitles = () => {
+  if (!videoInstance.value) return;
+  const combinedLyrics = getCombinedLyrics();
+  // @ts-ignore
+  videoInstance.value?.artplayerPluginSubtitle?.setContent(combinedLyrics, "srt");
 };
 
 /**
@@ -565,7 +668,7 @@ const startResize = (e: MouseEvent) => {
 
   const onMouseMove = (e: MouseEvent) => {
     const delta = startX - e.clientX;
-    const newWidth = Math.min(700, Math.max(160, startWidth + delta));
+    const newWidth = Math.min(700, Math.max(190, startWidth + delta));
     segmentWidth.value = newWidth;
   };
 
@@ -633,8 +736,51 @@ const waveformAnalyzerConfirm = async (
 .segment-section {
   flex-shrink: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   min-height: 0;
+}
+
+.view-sidebar {
+  width: 32px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 4px;
+  gap: 4px;
+  border-right: 1px solid var(--border-color);
+
+  .sidebar-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-muted, #999);
+    transition:
+      background 0.15s,
+      color 0.15s;
+
+    &:hover {
+      background: rgba(144, 147, 153, 0.15);
+      color: var(--text-color, #333);
+    }
+
+    &.active {
+      background: rgba(24, 160, 88, 0.12);
+      color: #18a058;
+    }
+  }
+}
+
+.view-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-left: 6px;
 
   .btns {
     display: flex;
@@ -642,12 +788,16 @@ const waveformAnalyzerConfirm = async (
     margin-bottom: 10px;
     gap: 6px;
     flex-shrink: 0;
+    margin-top: 4px;
   }
+
   .segment-list-container {
+    flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 6px;
     scrollbar-gutter: stable;
+
     &::-webkit-scrollbar {
       width: 4px;
     }

@@ -197,7 +197,7 @@ const flvRepair = async (
 };
 
 const cut = async (
-  files: { videoFilePath: string; assFilePath?: string },
+  files: { videoFilePath: string; assFilePath?: string; srtContent?: string },
   output: string,
   ffmpegOptions: FfmpegOptions,
   options: {

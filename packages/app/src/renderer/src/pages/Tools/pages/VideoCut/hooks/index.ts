@@ -1,6 +1,6 @@
 import { Ref } from "vue";
 import JSON5 from "json5";
-import { useAppConfig, useSegmentStore } from "@renderer/stores";
+import { useAppConfig, useSegmentStore, useSubtitles } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 import { showSaveDialog } from "@renderer/utils/fileSystem";
 import { commonApi } from "@renderer/apis";
@@ -20,7 +20,8 @@ export function useProjectManager(
   const notice = useNotification();
   const { appConfig } = storeToRefs(useAppConfig());
   const { rawCuts } = storeToRefs(useSegmentStore());
-  const { init } = useSegmentStore();
+  const segmentStore = useSegmentStore();
+  const subtitleStore = useSubtitles();
 
   // 项目文件路径
   const projectFilePath = ref("");
@@ -48,7 +49,27 @@ export function useProjectManager(
         ...item,
         checked: true,
       }));
-      init(segments);
+      segmentStore.init(segments);
+
+      // 加载字幕数据（如果有）
+      subtitleStore.clear();
+      if (projectData.subtitles && Array.isArray(projectData.subtitles)) {
+        projectData.subtitles.forEach((subtitle: any) => {
+          const segment = segmentStore.cuts[subtitle.index];
+          if (segment) {
+            subtitleStore.add({
+              sourceId: segment.id,
+              content: subtitle.content,
+            });
+          } else {
+            // 如果没有对应的 segment，作为全局字幕添加
+            subtitleStore.add({
+              sourceId: null,
+              content: subtitle.content,
+            });
+          }
+        });
+      }
     } catch (error) {
       notice.error({
         title: "项目文件解析失败，请确认文件有效",
@@ -114,15 +135,23 @@ export function useProjectManager(
       });
       return;
     }
+
+    // 获取字幕数据
     const projectData = {
       version: 1,
       mediaFileName: window.path.basename(mediaFileName),
-      cutSegments: rawCuts.value.map(({ start, end, name, tags, lyrics }) => ({
+      subtitles: subtitleStore.items.map(({ sourceId, content }) => {
+        const segmentIndex = segmentStore.cuts.findIndex((segment) => segment.id === sourceId);
+        return {
+          index: segmentIndex >= 0 ? segmentIndex : null,
+          content,
+        };
+      }),
+      cutSegments: rawCuts.value.map(({ start, end, name, tags }) => ({
         start,
         end,
         name,
         tags,
-        lyrics,
       })),
     };
 
@@ -225,6 +254,15 @@ export function useProjectManager(
 
   watch(
     () => rawCuts.value,
+    () => {
+      if (appConfig.value.videoCut.autoSave) {
+        saveProject(true);
+      }
+    },
+    { deep: true },
+  );
+  watch(
+    () => subtitleStore.items,
     () => {
       if (appConfig.value.videoCut.autoSave) {
         saveProject(true);

@@ -280,6 +280,10 @@ export type ToolConfig = {
     ignoreDanmu: boolean;
     /** 字幕导出 */
     exportSubtitle: boolean;
+    /** 忽略字幕 */
+    ignoreSubtitle: boolean;
+    /** 字幕样式ID */
+    subtitleStyleId?: string;
   };
   /** 文件同步 */
   fileSync: {
@@ -891,6 +895,37 @@ export type VideoCodec =
   | "hevc_videotoolbox"
   | "av1_videotoolbox";
 
+export interface SubtitleOptions {
+  // 字体名称
+  fontName?: string | null;
+  // 字幕字体大小
+  fontSize?: number;
+  // 主颜色 (文字颜色，格式: &HBBGGRR& 或 #RRGGBB)
+  primaryColour?: string;
+  // 边框颜色 (格式: &HBBGGRR& 或 #RRGGBB)
+  outlineColour?: string;
+  // 阴影颜色 (格式: &HBBGGRR& 或 #RRGGBB)
+  backColour?: string;
+  // 粗体 (0=关闭, -1=开启)
+  bold?: number;
+  // 斜体 (0=关闭, -1=开启)
+  italic?: number;
+  // 下划线 (0=关闭, -1=开启)
+  underline?: number;
+  // 边框宽度
+  outline?: number;
+  // 阴影距离
+  shadow?: number;
+  // 对齐方式 (1=左下, 2=居中下, 3=右下, 5=左上, 6=居中上, 7=右上, 9=左中, 10=居中, 11=右中)
+  alignment?: number;
+  // 左边距
+  marginL?: number;
+  // 右边距
+  marginR?: number;
+  // 垂直边距
+  marginV?: number;
+}
+
 export interface FfmpegOptions {
   encoder: VideoCodec;
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
@@ -977,6 +1012,7 @@ export interface FfmpegOptions {
   timestampFollowDanmu?: boolean;
   /** pk优化 */
   pkOptimize?: boolean;
+  subtitleOptions?: SubtitleOptions;
 }
 
 export interface BiliupConfig {

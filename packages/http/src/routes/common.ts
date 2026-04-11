@@ -208,9 +208,9 @@ router.post("/readDanma", async (ctx) => {
     filepath: string;
   };
   // 只允许读取ass或xml文件
-  if (!filepath.endsWith(".ass") && !filepath.endsWith(".xml")) {
+  if (!filepath.endsWith(".ass") && !filepath.endsWith(".xml") && !filepath.endsWith(".srt")) {
     ctx.status = 400;
-    ctx.body = "文件不是ass或xml格式";
+    ctx.body = "文件不是ass、xml或srt格式";
     return;
   }
 

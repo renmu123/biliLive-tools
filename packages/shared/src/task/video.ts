@@ -22,6 +22,7 @@ import {
   getUnusedFileName,
   replaceExtName,
   calculateFileQuickHash,
+  RGB2BGR,
 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask, AbstractTask } from "./task.js";
@@ -33,6 +34,7 @@ import type {
   VideoMergeOptions,
   DanmuConfig,
   HotProgressOptions,
+  SubtitleOptions,
 } from "@biliLive-tools/types";
 import type Ffmpeg from "@biliLive-tools/types/ffmpeg.js";
 
@@ -316,8 +318,60 @@ export class ComplexFilter {
     return this.addFilter("scale", scaleFilter);
   }
 
-  addSubtitleFilter(assFile: string) {
-    return this.addFilter("subtitles", `${escaped(assFile)}`);
+  addSubtitleFilter(assFile: string, options?: SubtitleOptions) {
+    let filter = `${escaped(assFile)}`;
+    if (options) {
+      let forceStyle: string[] = [];
+
+      if (options.fontName) {
+        forceStyle.push(`FontName=${options.fontName}`);
+      }
+      if (options.fontSize) {
+        forceStyle.push(`FontSize=${options.fontSize}`);
+      }
+      if (options.primaryColour) {
+        forceStyle.push(`PrimaryColour=&H${RGB2BGR(options.primaryColour).replace("#", "")}`);
+      }
+      if (options.outlineColour) {
+        forceStyle.push(`OutlineColour=&H${RGB2BGR(options.outlineColour).replace("#", "")}`);
+      }
+      if (options.backColour) {
+        forceStyle.push(`BackColour=&H${RGB2BGR(options.backColour).replace("#", "")}`);
+      }
+      if (options.bold !== undefined) {
+        forceStyle.push(`Bold=${options.bold}`);
+      }
+      if (options.italic !== undefined) {
+        forceStyle.push(`Italic=${options.italic}`);
+      }
+      if (options.underline !== undefined) {
+        forceStyle.push(`Underline=${options.underline}`);
+      }
+      if (options.outline) {
+        forceStyle.push(`Outline=${options.outline}`);
+      }
+      if (options.shadow) {
+        forceStyle.push(`Shadow=${options.shadow}`);
+      }
+      if (options.alignment) {
+        forceStyle.push(`Alignment=${options.alignment}`);
+      }
+      if (options.marginL) {
+        forceStyle.push(`MarginL=${options.marginL}`);
+      }
+      if (options.marginR) {
+        forceStyle.push(`MarginR=${options.marginR}`);
+      }
+      if (options.marginV) {
+        forceStyle.push(`MarginV=${options.marginV}`);
+      }
+
+      if (options)
+        if (forceStyle.length > 0) {
+          filter += `:force_style='${forceStyle.join(",")}'`;
+        }
+    }
+    return this.addFilter("subtitles", filter);
   }
 
   addColorkeyFilter(inputs?: string[]) {
@@ -708,6 +762,7 @@ export const genMergeAssMp4Command = async (
     assFilePath: string | undefined;
     outputPath: string;
     hotProgressFilePath: string | undefined;
+    subtitlePath?: string;
   },
   ffmpegOptions: FfmpegOptions = {
     encoder: "libx264",
@@ -724,6 +779,7 @@ export const genMergeAssMp4Command = async (
 ) => {
   const command = ffmpeg(files.videoFilePath).output(files.outputPath);
   const assFile = files.assFilePath;
+  const subtitleFile = files.subtitlePath;
   const complexFilter = new ComplexFilter();
 
   // 获取添加drawtext的参数，为空就是不支持添加
@@ -769,6 +825,7 @@ export const genMergeAssMp4Command = async (
       });
     }
 
+    // 弹幕文件
     if (assFile) {
       if (files.hotProgressFilePath) {
         const subtitleStream = complexFilter.addSubtitleFilter(assFile);
@@ -778,6 +835,11 @@ export const genMergeAssMp4Command = async (
         complexFilter.addSubtitleFilter(assFile);
       }
     }
+    // 字幕文件
+    if (subtitleFile) {
+      complexFilter.addSubtitleFilter(subtitleFile, ffmpegOptions.subtitleOptions);
+    }
+
     // 先渲染后缩放
     if (
       (scaleMethod === "auto" || scaleMethod === "after") &&
@@ -909,8 +971,11 @@ export const genMergeAssMp4Command = async (
  * @param {string} files.videoFilePath 视频文件路径
  * @param {string} files.assFilePath 弹幕文件路径，不能有空格
  * @param {string} files.outputPath 输出文件路径
+ * @param {string} files.hotProgressFilePath 高能进度条文件路径
+ * @param {string} files.subtitlePath 字幕文件路径
  * @param {object} options
  * @param {boolean} options.removeOrigin 是否删除原始文件
+ * @param {number} options.startTimestamp 视频录制开始的秒时间戳，默认为0
  * @param {object} ffmpegOptions ffmpeg参数
  */
 export const mergeAssMp4 = async (
@@ -919,6 +984,7 @@ export const mergeAssMp4 = async (
     assFilePath: string | undefined;
     outputPath: string;
     hotProgressFilePath: string | undefined;
+    subtitlePath?: string;
   },
   options: {
     removeOrigin: boolean;
@@ -927,6 +993,7 @@ export const mergeAssMp4 = async (
     timestampFont?: string;
     limitTime?: [] | [string, string];
     autoRun?: boolean;
+    removeSubtitle?: boolean;
   } = {
     removeOrigin: false,
     startTimestamp: 0,
@@ -999,6 +1066,10 @@ export const mergeAssMp4 = async (
           log.info("mergrAssMp4, remove hot progress origin file", assFile);
           await fs.unlink(files.hotProgressFilePath);
         }
+        if (files.subtitlePath && options.removeSubtitle) {
+          log.info("mergrAssMp4, remove subtitle origin file", files.subtitlePath);
+          await fs.unlink(files.subtitlePath);
+        }
       },
       onError: async () => {
         if (files.hotProgressFilePath) {
@@ -1018,7 +1089,7 @@ export const mergeAssMp4 = async (
  * 切割视频
  */
 export const cut = async (
-  files: { videoFilePath: string; assFilePath?: string },
+  files: { videoFilePath: string; assFilePath?: string; subtitlePath?: string },
   output: string,
   ffmpegOptions: FfmpegOptions,
   option: {
@@ -1027,6 +1098,8 @@ export const cut = async (
     savePath?: string;
     /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
     saveType: 1 | 2;
+    /** 是否删除字幕文件 */
+    removeSubtitle?: boolean;
   },
 ) => {
   const options = Object.assign(
@@ -1054,10 +1127,12 @@ export const cut = async (
       assFilePath: files.assFilePath,
       outputPath: outputFile,
       hotProgressFilePath: undefined,
+      subtitlePath: files.subtitlePath,
     },
     {
       removeOrigin: false,
       override: options.override,
+      removeSubtitle: options.removeSubtitle,
     },
     ffmpegOptions,
   );

@@ -163,6 +163,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       danmuPresetId: "default",
       ignoreDanmu: false,
       exportSubtitle: true,
+      ignoreSubtitle: false,
     },
   },
   task: {
