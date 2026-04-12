@@ -138,27 +138,27 @@ export async function createRecorderManager(appConfig: AppConfig) {
       }
     > = {
       [providerForBiliBili.id]: {
-        autoCheckInterval: config?.recorder?.bilibili.checkInterval ?? autoCheckInterval,
+        autoCheckInterval: (config?.recorder?.bilibili.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.bilibili.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.bilibili.waitTime ?? waitTime,
       },
       [providerForDouYu.id]: {
-        autoCheckInterval: config?.recorder?.douyu.checkInterval ?? autoCheckInterval,
+        autoCheckInterval: (config?.recorder?.douyu.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.douyu.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.douyu.waitTime ?? waitTime,
       },
       [providerForHuYa.id]: {
-        autoCheckInterval: config?.recorder?.huya.checkInterval ?? autoCheckInterval,
+        autoCheckInterval: (config?.recorder?.huya.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.huya.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.huya.waitTime ?? waitTime,
       },
       [providerForDouYin.id]: {
-        autoCheckInterval: config?.recorder?.douyin.checkInterval ?? autoCheckInterval,
+        autoCheckInterval: (config?.recorder?.douyin.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.douyin.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.douyin.waitTime ?? waitTime,
       },
       [providerForXHS.id]: {
-        autoCheckInterval: config?.recorder?.xhs.checkInterval ?? autoCheckInterval,
+        autoCheckInterval: (config?.recorder?.xhs.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.xhs.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.xhs.waitTime ?? waitTime,
       },
