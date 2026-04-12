@@ -16,6 +16,15 @@ const router = new Router({
 
 const upload = multer({ dest: os.tmpdir() });
 
+type VerifyBiliKeyReason = "missing" | "mismatch" | "error" | "ok";
+
+interface VerifyBiliKeyResponse {
+  configured: boolean;
+  valid: boolean;
+  matched: boolean;
+  reason: VerifyBiliKeyReason;
+}
+
 router.get("/", async (ctx) => {
   const config = appConfig.getAll();
   ctx.body = config;
@@ -37,6 +46,51 @@ router.post("/set", async (ctx) => {
   // @ts-ignore
   appConfig.set(data.key, data.value);
   ctx.body = "success";
+});
+
+router.post("/verifyBiliKey", async (ctx) => {
+  try {
+    const serverKey = process.env.BILILIVE_TOOLS_BILIKEY;
+    const configured = typeof serverKey === "string" && serverKey.trim().length > 0;
+
+    const requestBody = ctx.request.body as { key?: unknown };
+    const rawInput = typeof requestBody?.key === "string" ? requestBody.key : "";
+    const inputKey = rawInput.trim();
+
+    let response: VerifyBiliKeyResponse;
+    if (!configured) {
+      response = {
+        configured: false,
+        valid: false,
+        matched: false,
+        reason: "missing",
+      };
+    } else if (inputKey === serverKey) {
+      response = {
+        configured: true,
+        valid: true,
+        matched: true,
+        reason: "ok",
+      };
+    } else {
+      response = {
+        configured: true,
+        valid: false,
+        matched: false,
+        reason: "mismatch",
+      };
+    }
+
+    ctx.body = response;
+  } catch {
+    const response: VerifyBiliKeyResponse = {
+      configured: false,
+      valid: false,
+      matched: false,
+      reason: "error",
+    };
+    ctx.body = response;
+  }
 });
 
 router.post("/resetBin", async (ctx) => {
