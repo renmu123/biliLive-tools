@@ -1259,6 +1259,8 @@ export const biliApi = {
   editVideoPartName,
   queryVideoStatus,
   getPlayUrl,
+  readUser,
+  writeUser,
 };
 
 export default biliApi;
