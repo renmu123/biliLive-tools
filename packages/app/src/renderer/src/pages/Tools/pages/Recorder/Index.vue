@@ -119,7 +119,7 @@
           v-model:page-size="recorderLocalParams.pageSize"
           :item-count="pagination.itemCount"
           show-size-picker
-          :page-sizes="[10, 20, 30, 40, 50, 100]"
+          :page-sizes="[10, 20, 30, 40, 50]"
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
         />
