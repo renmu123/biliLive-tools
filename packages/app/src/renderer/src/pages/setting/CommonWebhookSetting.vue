@@ -533,6 +533,24 @@
         >全局</n-checkbox
       >
     </n-form-item>
+    <n-form-item v-if="data.uploadNoDanmu">
+      <template #label>
+        <Tip
+          text="上传到同一稿件"
+          tip="开启后，处理版和非弹幕版会共用同一个稿件号，并按固定顺序追加分P：每个分段先上传处理版，再上传非弹幕版"
+        ></Tip>
+      </template>
+      <n-switch
+        v-model:value="data.uploadToSameMedia"
+        :disabled="globalFieldsObj.uploadToSameMedia"
+      />
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.uploadToSameMedia"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
   </template>
 </template>
 

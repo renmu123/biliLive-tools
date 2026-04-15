@@ -62,6 +62,8 @@ export interface RoomConfig {
   uploadHandleTime: [string, string];
   /** 同时上传无弹幕视频 */
   uploadNoDanmu: boolean;
+  /** 将处理版和无弹幕版上传到同一稿件 */
+  uploadToSameMedia: boolean;
   /** 同时上传无弹幕视频预设 */
   noDanmuVideoPreset: string;
   /** 限制只在某一段时间处理视频 */
@@ -160,6 +162,7 @@ export class ConfigManager {
       "23:59:59",
     ];
     const uploadNoDanmu = this.getRoomSetting("uploadNoDanmu", roomSetting) ?? false;
+    const uploadToSameMedia = this.getRoomSetting("uploadToSameMedia", roomSetting) ?? false;
     const noDanmuVideoPreset = this.getRoomSetting("noDanmuVideoPreset", roomSetting) || "default";
 
     // 如果没有开启断播续传，那么不需要合并part
@@ -211,6 +214,7 @@ export class ConfigManager {
       limitUploadTime,
       uploadHandleTime,
       uploadNoDanmu,
+      uploadToSameMedia,
       noDanmuVideoPreset,
       videoHandleTime: limitVideoConvertTime ? videoHandleTime : undefined,
       partTitleTemplate: this.getRoomSetting("partTitleTemplate", roomSetting) || "{{filename}}",

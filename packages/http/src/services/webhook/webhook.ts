@@ -32,7 +32,7 @@ import type {
   HotProgressOptions,
 } from "@biliLive-tools/types";
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
-import type { Options, Platform } from "../../types/webhook.js";
+import type { Options, Platform, UploadStatus } from "../../types/webhook.js";
 import type { RoomConfig } from "./ConfigManager.js";
 
 export const enum EventType {
@@ -40,6 +40,15 @@ export const enum EventType {
   CloseEvent = "FileClosed",
   ErrorEvent = "FileError",
 }
+
+type UploadFileItem = {
+  part: Part;
+  path: string;
+  title: string;
+  type: "raw" | "handled";
+};
+
+const SAME_MEDIA_UPLOAD_ORDER: Array<"handled" | "raw"> = ["handled", "raw"];
 
 export class WebhookHandler {
   liveManager: LiveManager = new LiveManager();
@@ -1029,6 +1038,118 @@ export class WebhookHandler {
     return { filePaths, cover };
   }
 
+  private isSameMediaUploadEnabled(config: RoomConfig): boolean {
+    return config.uploadNoDanmu && config.uploadToSameMedia;
+  }
+
+  private updateUploadStatusForItems(filePaths: UploadFileItem[], status: UploadStatus) {
+    for (const item of filePaths) {
+      item.part.updateUploadStatus(status, item.type === "raw");
+    }
+  }
+
+  private formatSameMediaPartTitle(title: string, type: "raw" | "handled"): string {
+    const suffix = type === "handled" ? "处理版" : "原始版";
+    return `${title}-${suffix}`;
+  }
+
+  private getSameMediaUploadCandidates(part: Part, config: RoomConfig) {
+    const candidates = {
+      handled: {
+        type: "handled" as const,
+        path: part.filePath,
+        status: part.uploadStatus,
+        canUpload: part.canUpload("handled"),
+        enabled: true,
+      },
+      raw: {
+        type: "raw" as const,
+        path: part.rawFilePath,
+        status: part.rawUploadStatus,
+        canUpload: part.canUpload("raw"),
+        enabled: config.uploadNoDanmu,
+      },
+    };
+
+    return SAME_MEDIA_UPLOAD_ORDER.map((type) => candidates[type]);
+  }
+
+  private getUploadedItemCountForSameMedia(live: Live, config: RoomConfig): number {
+    let uploadedCount = 0;
+
+    for (const part of live.parts) {
+      if (part.uploadStatus === "uploaded") {
+        uploadedCount++;
+      }
+      if (config.uploadNoDanmu && part.rawUploadStatus === "uploaded") {
+        uploadedCount++;
+      }
+    }
+
+    return uploadedCount;
+  }
+
+  private buildSameMediaUploadFileList(
+    live: Live,
+    config: RoomConfig,
+  ): { filePaths: UploadFileItem[]; cover?: string } {
+    let cover: string | undefined;
+    const filePaths: UploadFileItem[] = [];
+    let currentIndex = this.getUploadedItemCountForSameMedia(live, config) + 1;
+
+    for (const part of live.parts) {
+      const orderedItems = this.getSameMediaUploadCandidates(part, config);
+
+      for (const item of orderedItems) {
+        if (item.enabled === false) continue;
+        if (item.status === "uploaded" || item.status === "error") continue;
+        if (!item.canUpload) {
+          return { filePaths, cover };
+        }
+
+        const filename = path.parse(item.path).name;
+        const baseTitle = formatPartTitle(
+          {
+            title: part.title,
+            username: live.username,
+            roomId: live.roomId,
+            time: part?.startTime
+              ? new Date(part.startTime).toISOString()
+              : new Date().toISOString(),
+            filename,
+            index: currentIndex,
+          },
+          config.partTitleTemplate ?? "{{filename}}",
+        );
+
+        filePaths.push({
+          part,
+          path: item.path,
+          title: this.formatSameMediaPartTitle(baseTitle, item.type),
+          type: item.type,
+        });
+
+        if (!cover) {
+          cover = part.cover;
+        }
+
+        currentIndex++;
+      }
+    }
+
+    return { filePaths, cover };
+  }
+
+  private validateCombinedUploadConfig(filePaths: UploadFileItem[], config: RoomConfig): boolean {
+    if (!config.uid) {
+      this.updateUploadStatusForItems(filePaths, "error");
+      log.error("无须上传，uid未配置");
+      return false;
+    }
+
+    return true;
+  }
+
   /**
    * 验证上传配置
    * @private
@@ -1100,6 +1221,14 @@ export class WebhookHandler {
     }
 
     return uploadPreset;
+  }
+
+  private async prepareSharedUploadPreset(
+    config: RoomConfig,
+    live: Live,
+    cover?: string,
+  ): Promise<BiliupConfig> {
+    return this.prepareUploadPreset("handled", config, live, cover);
   }
 
   /**
@@ -1233,6 +1362,112 @@ export class WebhookHandler {
     );
   }
 
+  private async performContinueUploadForSameMedia(
+    live: Live,
+    aid: number,
+    filePaths: UploadFileItem[],
+    config: RoomConfig,
+    uploadPreset: BiliupConfig,
+    limitedUploadTime: [] | [string, string],
+  ) {
+    log.info("同稿件续传", filePaths);
+
+    live.aid = aid;
+    this.updateUploadStatusForItems(filePaths, "uploading");
+
+    await this.addEditMediaTask(
+      config.uid!,
+      aid,
+      filePaths.map((item) => ({
+        path: item.path,
+        title: item.title,
+      })),
+      uploadPreset,
+      limitedUploadTime,
+      config.afterUploadDeletAction,
+    );
+
+    this.updateUploadStatusForItems(filePaths, "uploaded");
+  }
+
+  private async performNewUploadForSameMedia(
+    live: Live,
+    filePaths: UploadFileItem[],
+    config: RoomConfig,
+    uploadPreset: BiliupConfig,
+    limitedUploadTime: [] | [string, string],
+  ) {
+    this.updateUploadStatusForItems(filePaths, "uploading");
+
+    const videoTitle = this.formatUploadTitle(
+      live,
+      filePaths[0].part,
+      "handled",
+      uploadPreset,
+      config,
+    );
+    uploadPreset.title = videoTitle;
+
+    const aid = (await this.addUploadTask(
+      config.uid!,
+      filePaths.map((item) => ({
+        path: item.path,
+        title: item.title,
+      })),
+      uploadPreset,
+      limitedUploadTime,
+      config.afterUploadDeletAction,
+    )) as number;
+
+    live.aid = Number(aid);
+    this.updateUploadStatusForItems(filePaths, "uploaded");
+  }
+
+  private async uploadVideoToSameMedia(live: Live, config: RoomConfig) {
+    if (live.hasUploadingParts("handled") || live.hasUploadingParts("raw")) {
+      return;
+    }
+
+    const { filePaths, cover } = this.buildSameMediaUploadFileList(live, config);
+    if (filePaths.length === 0) {
+      return;
+    }
+
+    if (!this.validateCombinedUploadConfig(filePaths, config)) {
+      return;
+    }
+
+    const uploadPreset = await this.prepareSharedUploadPreset(config, live, cover);
+    const limitedUploadTime: [] | [string, string] = config.limitUploadTime
+      ? config.uploadHandleTime
+      : [];
+    const sharedAid = live.aid ?? live.rawAid;
+
+    try {
+      if (sharedAid) {
+        await this.performContinueUploadForSameMedia(
+          live,
+          sharedAid,
+          filePaths,
+          config,
+          uploadPreset,
+          limitedUploadTime,
+        );
+      } else {
+        await this.performNewUploadForSameMedia(
+          live,
+          filePaths,
+          config,
+          uploadPreset,
+          limitedUploadTime,
+        );
+      }
+    } catch (error) {
+      log.error(error);
+      this.updateUploadStatusForItems(filePaths, "error");
+    }
+  }
+
   /**
    * 上传单个类型的视频（弹幕版或原始版）
    * @private
@@ -1298,6 +1533,13 @@ export class WebhookHandler {
    * @param type 上传类型：handled-弹幕版，raw-原始版，undefined-两者都上传
    */
   handleLive = async (live: Live, type?: "handled" | "raw") => {
+    const config = this.configManager.getConfig(live.roomId);
+
+    if (this.isSameMediaUploadEnabled(config)) {
+      await this.uploadVideoToSameMedia(live, config);
+      return;
+    }
+
     if (type) {
       if (type === "handled") {
         await this.uploadVideoByType(live, "handled");

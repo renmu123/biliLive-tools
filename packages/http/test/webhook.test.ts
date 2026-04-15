@@ -3086,6 +3086,54 @@ describe("Live", () => {
 
           expect(result.filePaths[0].title).toBe("P2 part2");
         });
+
+        it("应在同稿件模式下按处理版优先并追加原始版后缀", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/handled1.mp4",
+            rawFilePath: "/path/to/raw1.mp4",
+            recordStatus: "handled",
+            uploadStatus: "uploaded",
+            rawUploadStatus: "uploaded",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part 1",
+          });
+
+          live.addPart({
+            partId: "part-2",
+            filePath: "/path/to/handled2.mp4",
+            rawFilePath: "/path/to/raw2.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            rawUploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:05:00Z").getTime(),
+            title: "Part 2",
+          });
+
+          const config = {
+            uploadNoDanmu: true,
+            uploadToSameMedia: true,
+            partTitleTemplate: "P{{index}} {{filename}}",
+          } as any;
+
+          // @ts-ignore
+          const result = webhookHandler.buildSameMediaUploadFileList(live, config);
+
+          expect(result.filePaths).toHaveLength(2);
+          expect(result.filePaths[0].type).toBe("handled");
+          expect(result.filePaths[0].title).toBe("P3 handled2-处理版");
+          expect(result.filePaths[1].type).toBe("raw");
+          expect(result.filePaths[1].title).toBe("P4 raw2-原始版");
+        });
       });
 
       describe("validateUploadConfig", () => {
@@ -3622,6 +3670,65 @@ describe("Live", () => {
           await webhookHandler.uploadVideoByType(live, "handled");
 
           expect(live.parts[0].uploadStatus).toBe("error");
+        });
+
+        it("应在同稿件模式下共用同一个稿件并保持分P顺序", async () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/handled1.mp4",
+            rawFilePath: "/path/to/raw1.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            rawUploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part 1",
+          });
+
+          // @ts-ignore
+          vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
+            uid: 123,
+            uploadPresetId: "preset-1",
+            uploadNoDanmu: true,
+            uploadToSameMedia: true,
+            useLiveCover: false,
+            limitUploadTime: false,
+            uploadHandleTime: ["00:00:00", "23:59:59"],
+            partTitleTemplate: "P{{index}} {{filename}}",
+            afterUploadDeletAction: "none",
+            title: "Test Video {{user}}",
+          });
+
+          // @ts-ignore
+          webhookHandler.videoPreset.get = vi.fn().mockResolvedValue({
+            config: { title: "Preset {{title}}" },
+          });
+
+          const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(456);
+
+          await webhookHandler.handleLive(live);
+
+          expect(addUploadTaskSpy).toHaveBeenCalledWith(
+            123,
+            [
+              { path: "/path/to/handled1.mp4", title: "P1 handled1-处理版" },
+              { path: "/path/to/raw1.mp4", title: "P2 raw1-原始版" },
+            ],
+            expect.anything(),
+            [],
+            "none",
+          );
+          expect(live.aid).toBe(456);
+          expect(live.parts[0].uploadStatus).toBe("uploaded");
+          expect(live.parts[0].rawUploadStatus).toBe("uploaded");
         });
       });
     });

@@ -149,6 +149,8 @@ export type CommonRoomConfig = {
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
+  // 将处理版和非弹幕版上传到同一稿件
+  uploadToSameMedia?: boolean;
   // 上传非视频版预设
   noDanmuVideoPreset?: string;
 };
