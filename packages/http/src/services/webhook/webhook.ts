@@ -48,6 +48,16 @@ type UploadFileItem = {
   type: "raw" | "handled";
 };
 
+type RuntimePart = Part & {
+  handledCid?: number;
+  rawCid?: number;
+};
+
+type SortParamItem = {
+  filePath: string;
+  cid?: number;
+};
+
 const SAME_MEDIA_UPLOAD_ORDER: Array<"handled" | "raw"> = ["handled", "raw"];
 
 export class WebhookHandler {
@@ -902,15 +912,92 @@ export class WebhookHandler {
    * 通用上传任务处理逻辑
    * @private
    */
-  private async handleUploadTask(task: any, pathArray: { path: string; title: string }[]) {
+  private getRuntimePart(part: Part): RuntimePart {
+    return part as RuntimePart;
+  }
+
+  private setPartCid(part: Part, type: "raw" | "handled", cid?: number) {
+    if (!cid) return;
+
+    const runtimePart = this.getRuntimePart(part);
+    if (type === "handled") {
+      runtimePart.handledCid = cid;
+    } else {
+      runtimePart.rawCid = cid;
+    }
+  }
+
+  private getPartCid(part: Part, type: "raw" | "handled"): number | undefined {
+    const runtimePart = this.getRuntimePart(part);
+    return type === "handled" ? runtimePart.handledCid : runtimePart.rawCid;
+  }
+
+  private toPathArray(items: UploadFileItem[]): { path: string; title: string }[] {
+    return items.map((item) => ({
+      path: item.path,
+      title: item.title,
+    }));
+  }
+
+  private createUploadItems(
+    filePaths: { part: Part; path: string; title: string }[],
+    type: "raw" | "handled",
+  ): UploadFileItem[] {
+    return filePaths.map((item) => ({
+      ...item,
+      type,
+    }));
+  }
+
+  private writeUploadResultToParts(
+    uploadedItems: UploadFileItem[],
+    data: {
+      cid: number;
+      filename: string;
+      title: string;
+      filePath: string;
+    }[],
+  ) {
+    const itemQueue = new Map<string, UploadFileItem[]>();
+
+    for (const item of uploadedItems) {
+      const queue = itemQueue.get(item.path) ?? [];
+      queue.push(item);
+      itemQueue.set(item.path, queue);
+    }
+
+    for (const result of data) {
+      const queue = itemQueue.get(result.filePath);
+      const item = queue?.shift();
+      if (!item) continue;
+
+      this.setPartCid(item.part, item.type, result.cid);
+    }
+  }
+
+  private async handleUploadTask(task: any, uploadedItems: UploadFileItem[]) {
     return new Promise((resolve, reject) => {
-      task.on("task-end", async () => {
-        // 释放所有文件的引用
-        for (const { path } of pathArray) {
-          await this.fileRefManager.releaseRef(path);
-        }
-        resolve(task.output);
-      });
+      task.on(
+        "task-end",
+        async (payload: {
+          taskId: string;
+          data?: {
+            cid: number;
+            filename: string;
+            title: string;
+            filePath: string;
+          }[];
+        }) => {
+          const data = payload?.data ?? [];
+          this.writeUploadResultToParts(uploadedItems, data);
+
+          // 释放所有文件的引用
+          for (const { path } of uploadedItems) {
+            await this.fileRefManager.releaseRef(path);
+          }
+          resolve(task.output);
+        },
+      );
 
       task.on("task-error", () => {
         reject(new Error("Upload task failed"));
@@ -944,14 +1031,12 @@ export class WebhookHandler {
 
   addUploadTask = async (
     uid: number,
-    pathArray: {
-      path: string;
-      title: string;
-    }[],
+    uploadedItems: UploadFileItem[],
     options: BiliupConfig,
     limitedUploadTime: [] | [string, string],
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
+    const pathArray = this.toPathArray(uploadedItems);
     const checkCallback = this.setupDeleteAfterCheckLock(pathArray, afterUploadDeletAction);
 
     const task = await biliApi.addMedia(pathArray, options, uid, {
@@ -961,30 +1046,31 @@ export class WebhookHandler {
       checkCallback,
     });
 
-    return this.handleUploadTask(task, pathArray);
+    return this.handleUploadTask(task, uploadedItems);
   };
 
   addEditMediaTask = async (
     uid: number,
     aid: number,
-    pathArray: {
-      path: string;
-      title: string;
-    }[],
+    uploadedItems: UploadFileItem[],
     uploadPreset: BiliupConfig,
     limitedUploadTime: [string, string] | [],
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
+    sortParams?: SortParamItem[],
   ) => {
+    const pathArray = this.toPathArray(uploadedItems);
     const checkCallback = this.setupDeleteAfterCheckLock(pathArray, afterUploadDeletAction);
 
+    // 参数sortParams: array<{filePath:string;cid?:number}>，表示按照 filePath 对历史分P和当前上传文件统一排序
     const task = await biliApi.editMedia(aid, pathArray, uploadPreset, uid, {
       limitedUploadTime,
       afterUploadDeletAction: "none",
       forceCheck: afterUploadDeletAction === "deleteAfterCheck",
       checkCallback,
+      sortParams,
     });
 
-    return this.handleUploadTask(task, pathArray);
+    return this.handleUploadTask(task, uploadedItems);
   };
 
   /**
@@ -1072,6 +1158,32 @@ export class WebhookHandler {
     };
 
     return SAME_MEDIA_UPLOAD_ORDER.map((type) => candidates[type]);
+  }
+
+  private buildSameMediaSortParams(live: Live, config: RoomConfig): SortParamItem[] {
+    const sortParams: SortParamItem[] = [];
+
+    for (const part of live.parts) {
+      const orderedItems = this.getSameMediaUploadCandidates(part, config);
+
+      for (const item of orderedItems) {
+        if (item.enabled === false || item.status === "error") {
+          continue;
+        }
+
+        const cid = this.getPartCid(part, item.type);
+        sortParams.push({
+          filePath: item.path,
+          cid,
+        });
+
+        if (item.status !== "uploaded" && !item.canUpload) {
+          return sortParams;
+        }
+      }
+    }
+
+    return sortParams;
   }
 
   private getUploadedItemCountForSameMedia(live: Live, config: RoomConfig): number {
@@ -1293,6 +1405,8 @@ export class WebhookHandler {
   ) {
     log.info("续传", filePaths);
 
+    const uploadedItems = this.createUploadItems(filePaths, type);
+
     live.batchUpdateUploadStatus(
       filePaths.map((item) => item.part),
       "uploading",
@@ -1302,10 +1416,7 @@ export class WebhookHandler {
     await this.addEditMediaTask(
       config.uid!,
       aid,
-      filePaths.map((item) => ({
-        path: item.path,
-        title: item.title,
-      })),
+      uploadedItems,
       uploadPreset,
       limitedUploadTime,
       config.afterUploadDeletAction,
@@ -1331,6 +1442,7 @@ export class WebhookHandler {
     limitedUploadTime: [] | [string, string],
   ) {
     const aidField = type === "handled" ? "aid" : "rawAid";
+    const uploadedItems = this.createUploadItems(filePaths, type);
 
     live.batchUpdateUploadStatus(
       filePaths.map((item) => item.part),
@@ -1344,10 +1456,7 @@ export class WebhookHandler {
 
     const aid = (await this.addUploadTask(
       config.uid!,
-      filePaths.map((item) => ({
-        path: item.path,
-        title: item.title,
-      })),
+      uploadedItems,
       uploadPreset,
       limitedUploadTime,
       config.afterUploadDeletAction,
@@ -1371,6 +1480,7 @@ export class WebhookHandler {
     limitedUploadTime: [] | [string, string],
   ) {
     log.info("同稿件续传", filePaths);
+    const sortParams = this.buildSameMediaSortParams(live, config);
 
     live.aid = aid;
     this.updateUploadStatusForItems(filePaths, "uploading");
@@ -1378,13 +1488,11 @@ export class WebhookHandler {
     await this.addEditMediaTask(
       config.uid!,
       aid,
-      filePaths.map((item) => ({
-        path: item.path,
-        title: item.title,
-      })),
+      filePaths,
       uploadPreset,
       limitedUploadTime,
       config.afterUploadDeletAction,
+      sortParams,
     );
 
     this.updateUploadStatusForItems(filePaths, "uploaded");
@@ -1410,10 +1518,7 @@ export class WebhookHandler {
 
     const aid = (await this.addUploadTask(
       config.uid!,
-      filePaths.map((item) => ({
-        path: item.path,
-        title: item.title,
-      })),
+      filePaths,
       uploadPreset,
       limitedUploadTime,
       config.afterUploadDeletAction,
@@ -1530,7 +1635,7 @@ export class WebhookHandler {
   /**
    * 处理直播上传
    * @param live 直播数据
-   * @param type 上传类型：handled-弹幕版，raw-原始版，undefined-两者都上传
+   * @param type 上传类型：handled-弹幕版，raw-原始版
    */
   handleLive = async (live: Live, type?: "handled" | "raw") => {
     const config = this.configManager.getConfig(live.roomId);

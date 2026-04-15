@@ -375,8 +375,10 @@ export async function editMediaApi(
   video: { cid: number; filename: string; title: string; desc?: string }[],
   options: BiliupConfig,
 ) {
-  const mediaOptions = {};
-  console.log("编辑视频", options);
+  const mediaOptions = {
+    sortByCid: options.sortByCid,
+  };
+  // console.log("编辑视频", options);
 
   // const globalConfig = container.resolve("globalConfig");
   // const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
@@ -812,6 +814,8 @@ export async function editMedia(
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
     // 强制检查稿件状态
     forceCheck?: boolean;
+    // 用于排序，按照列表顺序排序，cid可能为空，如果cid为空从上传分P件名中提取cid
+    sortParams?: { filePath: string; cid?: number }[];
     checkCallback?: (status: "completed" | "error") => void;
   },
 ) {
@@ -831,6 +835,7 @@ export async function editMedia(
       uid,
       mediaOptions: formattedOptions,
       aid,
+      sortParams: extraOptions?.sortParams,
     },
     {
       onEnd: async () => {

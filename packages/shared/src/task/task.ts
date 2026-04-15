@@ -269,12 +269,12 @@ export class BiliPartVideoTask extends AbstractTask {
   type = TaskType.biliUpload;
   callback: {
     onStart?: () => void;
-    onEnd?: (output: { cid: number; filename: string; title: string }) => void;
+    onEnd?: (output: { cid: number; filename: string; title: string; filePath: string }) => void;
     onError?: (err: string) => void;
     onProgress?: (progress: number) => number;
   };
   useUploadPartPersistence: boolean;
-  completedPart: { cid: number; filename: string; title: string } | null = null;
+  completedPart: { cid: number; filename: string; title: string; filePath: string } | null = null;
   private speedCalculator: SpeedCalculator;
   uid: number;
   constructor(
@@ -332,11 +332,14 @@ export class BiliPartVideoTask extends AbstractTask {
           }
         }
 
-        this.completedPart = data;
+        this.completedPart = {
+          ...data,
+          filePath: this.command.filePath,
+        };
         this.endTime = Date.now();
         // 重置进度追踪
         this.speedCalculator.reset();
-        callback.onEnd && callback.onEnd(data);
+        callback.onEnd && callback.onEnd(this.completedPart);
         this.emitter.emit("task-end", { taskId: this.taskId });
       },
     );
@@ -390,6 +393,7 @@ export class BiliPartVideoTask extends AbstractTask {
             cid: part.cid,
             filename: part.filename,
             title: this.command.title,
+            filePath: this.command.filePath,
           };
           this.endTime = Date.now();
           // 重置进度追踪
@@ -640,7 +644,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.progress = 100;
       this.callback.onEnd && this.callback.onEnd(data);
       this.output = String(data.aid);
-      this.emitter.emit("task-end", { taskId: this.taskId });
+      this.emitter.emit("task-end", { taskId: this.taskId, data: parts });
       uploadPartService.removeByCids(parts.map((part) => part.cid));
       statisticsService.addOrUpdate({
         where: { stat_key: this.lastUpdateTimeKey },
@@ -666,12 +670,14 @@ export class BiliAddVideoTask extends BiliVideoTask {
 export class BiliEditVideoTask extends BiliVideoTask {
   aid: number;
   mediaOptions: BiliupConfig;
+  sortParams?: { filePath: string; cid?: number }[];
   constructor(
     options: {
       name: string;
       uid: number;
       mediaOptions: BiliupConfig;
       aid: number;
+      sortParams?: { filePath: string; cid?: number }[];
     },
     callback: {
       onStart?: () => void;
@@ -736,15 +742,29 @@ export class BiliEditVideoTask extends BiliVideoTask {
       return;
     }
     try {
+      const sortByCid: Array<number> = [];
+      if (this.sortParams && Array.isArray(this.sortParams)) {
+        for (const param of this.sortParams) {
+          if (param.cid) {
+            sortByCid.push(param.cid);
+          } else {
+            const part = parts.find((p) => p.filePath === param.filePath);
+            if (part) {
+              sortByCid.push(part.cid);
+            }
+          }
+        }
+      }
       const data = await retryWithAxiosError(
-        () => editMediaApi(this.uid, this.aid, parts, this.mediaOptions),
+        () =>
+          editMediaApi(this.uid, this.aid, parts, { ...this.mediaOptions, sortByCid: sortByCid }),
         5,
       );
       this.status = "completed";
       this.progress = 100;
       this.callback.onEnd && this.callback.onEnd(data);
       this.output = String(data.aid);
-      this.emitter.emit("task-end", { taskId: this.taskId });
+      this.emitter.emit("task-end", { taskId: this.taskId, data: parts });
       uploadPartService.removeByCids(parts.map((part) => part.cid));
       statisticsService.addOrUpdate({
         where: { stat_key: this.lastUpdateTimeKey },
