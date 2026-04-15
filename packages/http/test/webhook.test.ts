@@ -30,12 +30,7 @@ vi.spyOn(utils, "sleep").mockImplementation(async () => {
   return undefined;
 });
 
-const uploadItemMatcher = (
-  part: Part,
-  type: "raw" | "handled",
-  path: string,
-  title: string,
-) =>
+const uploadItemMatcher = (part: Part, type: "raw" | "handled", path: string, title: string) =>
   expect.objectContaining({
     part,
     type,
@@ -488,9 +483,7 @@ describe("WebhookHandler", () => {
         // Assert
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          [
-            uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1"),
-          ],
+          [uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1")],
           {
             ...DEFAULT_BILIUP_CONFIG,
             title: "webhook-title",
@@ -540,9 +533,7 @@ describe("WebhookHandler", () => {
         // Assert
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          [
-            uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1"),
-          ],
+          [uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1")],
           {
             ...DEFAULT_BILIUP_CONFIG,
             title: "webhook-title-live-title",
@@ -594,9 +585,7 @@ describe("WebhookHandler", () => {
         // Assert
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          [
-            uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1"),
-          ],
+          [uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1")],
           {
             ...DEFAULT_BILIUP_CONFIG,
             title: "live-title-username-2022.01.01-123",
@@ -3703,12 +3692,7 @@ describe("Live", () => {
                 "/path/to/handled1.mp4",
                 "P1 handled1-处理版",
               ),
-              uploadItemMatcher(
-                live.parts[0],
-                "raw",
-                "/path/to/raw1.mp4",
-                "P2 raw1-原始版",
-              ),
+              uploadItemMatcher(live.parts[0], "raw", "/path/to/raw1.mp4", "P2 raw1-原始版"),
             ],
             expect.anything(),
             [],
