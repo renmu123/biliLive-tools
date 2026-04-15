@@ -30,6 +30,19 @@ vi.spyOn(utils, "sleep").mockImplementation(async () => {
   return undefined;
 });
 
+const uploadItemMatcher = (
+  part: Part,
+  type: "raw" | "handled",
+  path: string,
+  title: string,
+) =>
+  expect.objectContaining({
+    part,
+    type,
+    path,
+    title,
+  });
+
 describe("WebhookHandler", () => {
   let webhookHandler: WebhookHandler;
 
@@ -476,10 +489,7 @@ describe("WebhookHandler", () => {
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
           [
-            {
-              path: "/path/to/part1.mp4",
-              title: "part1",
-            },
+            uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1"),
           ],
           {
             ...DEFAULT_BILIUP_CONFIG,
@@ -531,10 +541,7 @@ describe("WebhookHandler", () => {
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
           [
-            {
-              path: "/path/to/part1.mp4",
-              title: "part1",
-            },
+            uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1"),
           ],
           {
             ...DEFAULT_BILIUP_CONFIG,
@@ -588,10 +595,7 @@ describe("WebhookHandler", () => {
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
           [
-            {
-              path: "/path/to/part1.mp4",
-              title: "part1",
-            },
+            uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1"),
           ],
           {
             ...DEFAULT_BILIUP_CONFIG,
@@ -662,18 +666,9 @@ describe("WebhookHandler", () => {
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
           [
-            {
-              path: "/path/to/part1.mp4",
-              title: "part1",
-            },
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1"),
+            uploadItemMatcher(live.parts[1], "handled", "/path/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "handled", "/path/to/part3.mp4", "part3"),
           ],
           {
             ...DEFAULT_BILIUP_CONFIG,
@@ -869,14 +864,8 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[1], "handled", "/path/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "handled", "/path/to/part3.mp4", "part3"),
           ],
           expect.anything(),
           [],
@@ -943,14 +932,8 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[1], "handled", "/path/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "handled", "/path/to/part3.mp4", "part3"),
           ],
           expect.anything(),
           [],
@@ -1014,14 +997,18 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2-part2-username-123-2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3-part3-username-123-3",
-            },
+            uploadItemMatcher(
+              live.parts[1],
+              "handled",
+              "/path/to/part2.mp4",
+              "part2-part2-username-123-2",
+            ),
+            uploadItemMatcher(
+              live.parts[2],
+              "handled",
+              "/path/to/part3.mp4",
+              "part3-part3-username-123-3",
+            ),
           ],
           expect.anything(),
           [],
@@ -1097,14 +1084,18 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3-part3-username-123-2",
-            },
-            {
-              path: "/path/to/part5.mp4",
-              title: "part5-part5-username-123-3",
-            },
+            uploadItemMatcher(
+              live.parts[2],
+              "handled",
+              "/path/to/part3.mp4",
+              "part3-part3-username-123-2",
+            ),
+            uploadItemMatcher(
+              live.parts[4],
+              "handled",
+              "/path/to/part5.mp4",
+              "part5-part5-username-123-3",
+            ),
           ],
           expect.anything(),
           [],
@@ -1278,18 +1269,9 @@ describe("WebhookHandler", () => {
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
           [
-            {
-              path: "/rawPath/to/part1.mp4",
-              title: "part1",
-            },
-            {
-              path: "/rawPath/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/rawPath/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[0], "raw", "/rawPath/to/part1.mp4", "part1"),
+            uploadItemMatcher(live.parts[1], "raw", "/rawPath/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "raw", "/rawPath/to/part3.mp4", "part3"),
           ],
           {
             ...DEFAULT_BILIUP_CONFIG,
@@ -1503,14 +1485,8 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[1], "raw", "/path/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "raw", "/path/to/part3.mp4", "part3"),
           ],
           expect.anything(),
           [],
@@ -1581,14 +1557,8 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[1], "raw", "/path/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "raw", "/path/to/part3.mp4", "part3"),
           ],
           expect.anything(),
           [],
@@ -1654,14 +1624,18 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2-part2-username-123-2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3-part3-username-123-3",
-            },
+            uploadItemMatcher(
+              live.parts[1],
+              "raw",
+              "/path/to/part2.mp4",
+              "part2-part2-username-123-2",
+            ),
+            uploadItemMatcher(
+              live.parts[2],
+              "raw",
+              "/path/to/part3.mp4",
+              "part3-part3-username-123-3",
+            ),
           ],
           expect.anything(),
           [],
@@ -1741,14 +1715,18 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3-part3-username-123-2",
-            },
-            {
-              path: "/path/to/part5.mp4",
-              title: "part5-part5-username-123-3",
-            },
+            uploadItemMatcher(
+              live.parts[2],
+              "raw",
+              "/path/to/part3.mp4",
+              "part3-part3-username-123-2",
+            ),
+            uploadItemMatcher(
+              live.parts[4],
+              "raw",
+              "/path/to/part5.mp4",
+              "part5-part5-username-123-3",
+            ),
           ],
           expect.anything(),
           [],
@@ -3719,8 +3697,18 @@ describe("Live", () => {
           expect(addUploadTaskSpy).toHaveBeenCalledWith(
             123,
             [
-              { path: "/path/to/handled1.mp4", title: "P1 handled1-处理版" },
-              { path: "/path/to/raw1.mp4", title: "P2 raw1-原始版" },
+              uploadItemMatcher(
+                live.parts[0],
+                "handled",
+                "/path/to/handled1.mp4",
+                "P1 handled1-处理版",
+              ),
+              uploadItemMatcher(
+                live.parts[0],
+                "raw",
+                "/path/to/raw1.mp4",
+                "P2 raw1-原始版",
+              ),
             ],
             expect.anything(),
             [],
