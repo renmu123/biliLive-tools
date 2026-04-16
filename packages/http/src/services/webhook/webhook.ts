@@ -1039,6 +1039,8 @@ export class WebhookHandler {
     const pathArray = this.toPathArray(uploadedItems);
     const checkCallback = this.setupDeleteAfterCheckLock(pathArray, afterUploadDeletAction);
 
+    // console.log("upload", pathArray);
+
     const task = await biliApi.addMedia(pathArray, options, uid, {
       limitedUploadTime,
       afterUploadDeletAction: "none",
@@ -1061,6 +1063,7 @@ export class WebhookHandler {
     const pathArray = this.toPathArray(uploadedItems);
     const checkCallback = this.setupDeleteAfterCheckLock(pathArray, afterUploadDeletAction);
 
+    // console.log("sortParams111111111", sortParams, pathArray);
     // 参数sortParams: array<{filePath:string;cid?:number}>，表示按照 filePath 对历史分P和当前上传文件统一排序
     const task = await biliApi.editMedia(aid, pathArray, uploadPreset, uid, {
       limitedUploadTime,
@@ -1139,34 +1142,33 @@ export class WebhookHandler {
     return `${title}-${suffix}`;
   }
 
-  private getSameMediaUploadCandidates(part: Part, config: RoomConfig) {
-    const candidates = {
-      handled: {
-        type: "handled" as const,
+  private getSameMediaUploadCandidate(part: Part, type: "raw" | "handled", config: RoomConfig) {
+    if (type === "handled") {
+      return {
+        type,
         path: part.filePath,
         status: part.uploadStatus,
         canUpload: part.canUpload("handled"),
         enabled: true,
-      },
-      raw: {
-        type: "raw" as const,
-        path: part.rawFilePath,
-        status: part.rawUploadStatus,
-        canUpload: part.canUpload("raw"),
-        enabled: config.uploadNoDanmu,
-      },
-    };
+      };
+    }
 
-    return SAME_MEDIA_UPLOAD_ORDER.map((type) => candidates[type]);
+    return {
+      type,
+      path: part.rawFilePath,
+      status: part.rawUploadStatus,
+      canUpload: part.canUpload("raw"),
+      enabled: config.uploadNoDanmu,
+    };
   }
 
   private buildSameMediaSortParams(live: Live, config: RoomConfig): SortParamItem[] {
     const sortParams: SortParamItem[] = [];
 
-    for (const part of live.parts) {
-      const orderedItems = this.getSameMediaUploadCandidates(part, config);
+    for (const type of SAME_MEDIA_UPLOAD_ORDER) {
+      for (const part of live.parts) {
+        const item = this.getSameMediaUploadCandidate(part, type, config);
 
-      for (const item of orderedItems) {
         if (item.enabled === false || item.status === "error") {
           continue;
         }
@@ -1209,15 +1211,13 @@ export class WebhookHandler {
     const filePaths: UploadFileItem[] = [];
     let currentIndex = this.getUploadedItemCountForSameMedia(live, config) + 1;
 
-    for (const part of live.parts) {
-      const orderedItems = this.getSameMediaUploadCandidates(part, config);
+    for (const type of SAME_MEDIA_UPLOAD_ORDER) {
+      for (const part of live.parts) {
+        const item = this.getSameMediaUploadCandidate(part, type, config);
 
-      for (const item of orderedItems) {
         if (item.enabled === false) continue;
         if (item.status === "uploaded" || item.status === "error") continue;
-        if (!item.canUpload) {
-          return { filePaths, cover };
-        }
+        if (!item.canUpload) continue;
 
         const filename = path.parse(item.path).name;
         const baseTitle = formatPartTitle(
@@ -1237,7 +1237,7 @@ export class WebhookHandler {
         filePaths.push({
           part,
           path: item.path,
-          title: this.formatSameMediaPartTitle(baseTitle, item.type),
+          title: baseTitle,
           type: item.type,
         });
 
@@ -1534,6 +1534,7 @@ export class WebhookHandler {
     }
 
     const { filePaths, cover } = this.buildSameMediaUploadFileList(live, config);
+    // console.log("同稿件上传候选列表", filePaths);
     if (filePaths.length === 0) {
       return;
     }
