@@ -3054,7 +3054,7 @@ describe("Live", () => {
           expect(result.filePaths[0].title).toBe("P2 part2");
         });
 
-        it("应在同稿件模式下按处理版优先并追加原始版后缀", () => {
+        it("应在同稿件模式下先收集全部处理版，再收集原始版", () => {
           const live = new Live({
             eventId: "123",
             platform: "blrec",
@@ -3086,6 +3086,17 @@ describe("Live", () => {
             title: "Part 2",
           });
 
+          live.addPart({
+            partId: "part-3",
+            filePath: "/path/to/handled3.mp4",
+            rawFilePath: "/path/to/raw3.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            rawUploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:10:00Z").getTime(),
+            title: "Part 3",
+          });
+
           const config = {
             uploadNoDanmu: true,
             uploadToSameMedia: true,
@@ -3095,11 +3106,85 @@ describe("Live", () => {
           // @ts-ignore
           const result = webhookHandler.buildSameMediaUploadFileList(live, config);
 
-          expect(result.filePaths).toHaveLength(2);
+          expect(result.filePaths).toHaveLength(4);
           expect(result.filePaths[0].type).toBe("handled");
-          expect(result.filePaths[0].title).toBe("P3 handled2-处理版");
-          expect(result.filePaths[1].type).toBe("raw");
-          expect(result.filePaths[1].title).toBe("P4 raw2-原始版");
+          expect(result.filePaths[0].part.partId).toBe("part-2");
+          expect(result.filePaths[0].title).toBe("P3 handled2");
+          expect(result.filePaths[1].type).toBe("handled");
+          expect(result.filePaths[1].part.partId).toBe("part-3");
+          expect(result.filePaths[1].title).toBe("P4 handled3");
+          expect(result.filePaths[2].type).toBe("raw");
+          expect(result.filePaths[2].part.partId).toBe("part-2");
+          expect(result.filePaths[2].title).toBe("P5 raw2");
+          expect(result.filePaths[3].type).toBe("raw");
+          expect(result.filePaths[3].part.partId).toBe("part-3");
+          expect(result.filePaths[3].title).toBe("P6 raw3");
+        });
+
+        it("应在同稿件续传排序中先排列全部处理版，再排列原始版", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/handled1.mp4",
+            rawFilePath: "/path/to/raw1.mp4",
+            recordStatus: "handled",
+            uploadStatus: "uploaded",
+            rawUploadStatus: "uploaded",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part 1",
+          });
+
+          live.addPart({
+            partId: "part-2",
+            filePath: "/path/to/handled2.mp4",
+            rawFilePath: "/path/to/raw2.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            rawUploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:05:00Z").getTime(),
+            title: "Part 2",
+          });
+
+          live.addPart({
+            partId: "part-3",
+            filePath: "/path/to/handled3.mp4",
+            rawFilePath: "/path/to/raw3.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            rawUploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:10:00Z").getTime(),
+            title: "Part 3",
+          });
+
+          const config = {
+            uploadNoDanmu: true,
+            uploadToSameMedia: true,
+          } as any;
+
+          // @ts-ignore
+          webhookHandler.setPartCid(live.parts[0], "handled", 101);
+          // @ts-ignore
+          webhookHandler.setPartCid(live.parts[0], "raw", 102);
+
+          // @ts-ignore
+          const result = webhookHandler.buildSameMediaSortParams(live, config);
+
+          expect(result).toEqual([
+            { filePath: "/path/to/handled1.mp4", cid: 101 },
+            { filePath: "/path/to/handled2.mp4", cid: undefined },
+            { filePath: "/path/to/handled3.mp4", cid: undefined },
+            { filePath: "/path/to/raw1.mp4", cid: 102 },
+            { filePath: "/path/to/raw2.mp4", cid: undefined },
+            { filePath: "/path/to/raw3.mp4", cid: undefined },
+          ]);
         });
       });
 
@@ -3686,13 +3771,8 @@ describe("Live", () => {
           expect(addUploadTaskSpy).toHaveBeenCalledWith(
             123,
             [
-              uploadItemMatcher(
-                live.parts[0],
-                "handled",
-                "/path/to/handled1.mp4",
-                "P1 handled1-处理版",
-              ),
-              uploadItemMatcher(live.parts[0], "raw", "/path/to/raw1.mp4", "P2 raw1-原始版"),
+              uploadItemMatcher(live.parts[0], "handled", "/path/to/handled1.mp4", "P1 handled1"),
+              uploadItemMatcher(live.parts[0], "raw", "/path/to/raw1.mp4", "P2 raw1"),
             ],
             expect.anything(),
             [],
