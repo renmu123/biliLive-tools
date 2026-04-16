@@ -689,6 +689,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
     super(options, callback);
     this.aid = options.aid;
     this.mediaOptions = options.mediaOptions;
+    this.sortParams = options.sortParams;
 
     this.on("completed", () => {
       this.submit();
