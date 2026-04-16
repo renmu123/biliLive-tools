@@ -1479,7 +1479,7 @@ export class WebhookHandler {
     uploadPreset: BiliupConfig,
     limitedUploadTime: [] | [string, string],
   ) {
-    log.info("同稿件续传", filePaths);
+    // log.info("同稿件续传", filePaths);
     const sortParams = this.buildSameMediaSortParams(live, config);
 
     live.aid = aid;
