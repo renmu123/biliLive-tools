@@ -86,7 +86,29 @@ export interface RoomConfig {
  * 配置管理器 - 负责处理webhook配置相关逻辑
  */
 export class ConfigManager {
+  private static readonly APP_CONFIG_CACHE_TTL = 30 * 1000;
+
+  private appConfigCache?: {
+    value: ReturnType<AppConfig["getAll"]>;
+    expiresAt: number;
+  };
+
   constructor(private appConfig: AppConfig) {}
+
+  private getAppConfigAll() {
+    const now = Date.now();
+    if (this.appConfigCache && this.appConfigCache.expiresAt > now) {
+      return this.appConfigCache.value;
+    }
+
+    const value = this.appConfig.getAll();
+    this.appConfigCache = {
+      value,
+      expiresAt: now + ConfigManager.APP_CONFIG_CACHE_TTL,
+    };
+
+    return value;
+  }
 
   /**
    * 判断房间是否开启
@@ -115,7 +137,7 @@ export class ConfigManager {
    * @returns 房间配置对象
    */
   getConfig(roomId: string): RoomConfig {
-    const appConfigAll = this.appConfig.getAll();
+    const appConfigAll = this.getAppConfigAll();
     const roomSetting: AppRoomConfig | undefined = appConfigAll.webhook?.rooms?.[roomId];
 
     const danmu = this.getRoomSetting("danmu", roomSetting) ?? false;
@@ -239,7 +261,7 @@ export class ConfigManager {
     key: K,
     roomSetting?: AppRoomConfig,
   ): CommonRoomConfig[K] | undefined {
-    const appConfigAll = this.appConfig.getAll();
+    const appConfigAll = this.getAppConfigAll();
 
     if (roomSetting) {
       if (roomSetting.noGlobal?.includes(key)) {
@@ -259,7 +281,7 @@ export class ConfigManager {
   getSyncConfig(roomId: string) {
     const { syncId } = this.getConfig(roomId);
     if (!syncId) return null;
-    const appConfig = this.appConfig.getAll();
+    const appConfig = this.getAppConfigAll();
     const syncConfig = appConfig.sync?.syncConfigs?.find((cfg) => cfg.id === syncId);
     if (!syncConfig) return null;
     return syncConfig;
