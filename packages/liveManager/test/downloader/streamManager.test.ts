@@ -9,11 +9,17 @@ vi.mock("../../src/xml_stream_controller", () => ({
       meta: {
         recordStartTimestamp: Date.now(),
       },
-      messages: [],
+      pendingMessages: [],
     },
     addMessage: vi.fn(),
     setMeta: vi.fn(),
     flush: vi.fn(),
+    getStats: vi.fn().mockReturnValue({
+      danmaNum: 3,
+      uniqMember: 2,
+      scNum: 1,
+      guardNum: 0,
+    }),
   }),
 }));
 // vi.mock("../src/utils");
@@ -54,6 +60,12 @@ describe("StreamManager", () => {
     await streamManager.handleVideoCompleted();
     expect(streamManager.emit).toHaveBeenCalledWith("videoFileCompleted", {
       filename: "mocked/path.ts",
+      stats: {
+        danmaNum: 3,
+        uniqMember: 2,
+        scNum: 1,
+        guardNum: 0,
+      },
     });
   });
 
@@ -100,6 +112,12 @@ describe("Segment", () => {
     await segmentManager.handleSegmentEnd();
     expect(segmentManager.emit).toHaveBeenCalledWith("videoFileCompleted", {
       filename: "mocked/path.ts",
+      stats: {
+        danmaNum: 3,
+        uniqMember: 2,
+        scNum: 1,
+        guardNum: 0,
+      },
     });
   });
   it("should handle segment manual end", async () => {
@@ -108,6 +126,12 @@ describe("Segment", () => {
     await segmentManager.onSegmentStart("'mockedFilename.ts'");
     expect(segmentManager.emit).toHaveBeenCalledWith("videoFileCompleted", {
       filename: "mocked/path.ts",
+      stats: {
+        danmaNum: 3,
+        uniqMember: 2,
+        scNum: 1,
+        guardNum: 0,
+      },
     });
   });
 

@@ -3,6 +3,7 @@ import { EventEmitter } from "node:events";
 import type { VideoFormat } from "../index.js";
 import type { FormatName } from "./index.js";
 import type { XmlStreamController } from "../xml_stream_controller.js";
+import type { VideoFileCompletedPayload } from "./streamManager.js";
 
 export type Segment = number | string | undefined;
 
@@ -56,7 +57,7 @@ export interface IDownloader extends EventEmitter {
       title?: string;
     }) => void,
   ): this;
-  on(event: "videoFileCompleted", listener: (data: { filename: string }) => void): this;
+  on(event: "videoFileCompleted", listener: (data: VideoFileCompletedPayload) => void): this;
   on(event: "DebugLog", listener: (data: { type: string; text: string }) => void): this;
   on(event: "progress", listener: (info: any) => void): this;
   on(event: string, listener: (...args: any[]) => void): this;
@@ -65,7 +66,7 @@ export interface IDownloader extends EventEmitter {
     event: "videoFileCreated",
     data: { filename: string; cover?: string; rawFilename?: string; title?: string },
   ): boolean;
-  emit(event: "videoFileCompleted", data: { filename: string }): boolean;
+  emit(event: "videoFileCompleted", data: VideoFileCompletedPayload): boolean;
   emit(event: "DebugLog", data: { type: string; text: string }): boolean;
   emit(event: "progress", info: any): boolean;
   emit(event: string, ...args: any[]): boolean;

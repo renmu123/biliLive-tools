@@ -14,6 +14,7 @@ import {
   DebugLog,
   Progress,
 } from "./recorder.js";
+import type { XmlStreamStats } from "./xml_stream_controller.js";
 import {
   AnyObject,
   UnknownObject,
@@ -97,7 +98,11 @@ export interface RecorderManager<
       cover?: string;
       rawFilename?: string;
     };
-    videoFileCompleted: { recorder: SerializedRecorder<E>; filename: string };
+    videoFileCompleted: {
+      recorder: SerializedRecorder<E>;
+      filename: string;
+      stats?: XmlStreamStats;
+    };
     RecorderProgress: { recorder: SerializedRecorder<E>; progress: Progress };
     RecoderLiveStart: { recorder: Recorder<E> };
 
@@ -311,8 +316,8 @@ export function createRecorderManager<
         }
         this.emit("videoFileCreated", { recorder: recorder.toJSON(), filename, rawFilename });
       });
-      recorder.on("videoFileCompleted", ({ filename }) =>
-        this.emit("videoFileCompleted", { recorder: recorder.toJSON(), filename }),
+      recorder.on("videoFileCompleted", ({ filename, stats }) =>
+        this.emit("videoFileCompleted", { recorder: recorder.toJSON(), filename, stats }),
       );
       recorder.on("Message", (message) =>
         this.emit("Message", { recorder: recorder.toJSON(), message }),

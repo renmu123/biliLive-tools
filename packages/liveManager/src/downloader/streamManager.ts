@@ -14,9 +14,15 @@ import {
 
 import type { RecorderCreateOpts } from "../recorder.js";
 import type { TrueVideoFormat } from "../index.js";
+import type { XmlStreamStats } from "../xml_stream_controller.js";
 
 export type GetSavePath = (data: { startTime: number; title?: string }) => string;
 type RecorderType = Exclude<RecorderCreateOpts["recorderType"], undefined | "auto">;
+
+export interface VideoFileCompletedPayload {
+  filename: string;
+  stats?: XmlStreamStats;
+}
 
 export class Segment extends EventEmitter {
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
@@ -36,6 +42,13 @@ export class Segment extends EventEmitter {
     this.videoExt = videoExt;
   }
 
+  private getVideoFileCompletedPayload(): VideoFileCompletedPayload {
+    return {
+      filename: this.outputFilePath,
+      stats: this.extraDataController?.getStats(),
+    };
+  }
+
   async handleSegmentEnd() {
     if (!this.outputVideoFilePath) {
       this.emit("DebugLog", {
@@ -45,6 +58,7 @@ export class Segment extends EventEmitter {
       return;
     }
 
+    const data = this.getVideoFileCompletedPayload();
     try {
       this.emit("DebugLog", {
         type: "info",
@@ -54,14 +68,14 @@ export class Segment extends EventEmitter {
         retry(() => fs.rename(this.rawRecordingVideoPath, this.outputFilePath), 20, 1000),
         this.extraDataController?.flush(),
       ]);
-      this.emit("videoFileCompleted", { filename: this.outputFilePath });
+      this.emit("videoFileCompleted", data);
     } catch (err) {
       this.emit("DebugLog", {
         type: "error",
         text: "videoFileCompleted error " + String(err),
       });
       // 虽然重命名失败了，但是也当作完成处理，避免卡住录制流程
-      this.emit("videoFileCompleted", { filename: this.outputFilePath });
+      this.emit("videoFileCompleted", data);
     }
   }
 
@@ -216,8 +230,13 @@ export class StreamManager extends EventEmitter {
         await this.segment.handleSegmentEnd();
       } else {
         if (this.recordStartTime) {
-          await this.getExtraDataController()?.flush();
-          this.emit("videoFileCompleted", { filename: this.videoFilePath });
+          const stats = this.extraDataController?.getStats();
+          const extraDataController = this.getExtraDataController();
+          await extraDataController?.flush();
+          this.emit("videoFileCompleted", {
+            filename: this.videoFilePath,
+            stats: stats,
+          });
         }
       }
     } else if (this.recorderType === "mesio") {
