@@ -10,7 +10,7 @@ import {
   aliyunpanLogin,
   pan123Login,
 } from "@biliLive-tools/shared/task/sync.js";
-import { getTempPath } from "@biliLive-tools/shared/utils/index.js";
+import { getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
 
 import type { SyncType } from "@biliLive-tools/types";
 
@@ -31,7 +31,7 @@ async function uploadTest(params: {
   const tempDir = getTempPath();
   // 在临时文件新建一个文件，内容为"biliLive-tools"
   const tempFilePath = path.join(tempDir, "biliLive-tools-upload-test.txt");
-  await fs.writeFile(tempFilePath, "biliLive-tools");
+  await fs.writeFile(tempFilePath, `biliLive-tools-${uuid()}`);
   return new Promise(async (resolve, reject) => {
     const task = await addSyncTask({
       input: tempFilePath,

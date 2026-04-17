@@ -154,3 +154,5 @@ export function buildRoomLink(platform: string, roomId: string): string | null {
   const link = platformRoomLinkMap[platformLower]?.(roomId);
   return link ?? null;
 }
+
+export { verifyBiliKey } from "./security";

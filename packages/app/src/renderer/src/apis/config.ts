@@ -1,5 +1,13 @@
-import request from "./request";
 import type { AppConfig } from "@biliLive-tools/types";
+
+import request from "./request";
+
+export interface VerifyBiliKeyResponse {
+  configured: boolean;
+  valid: boolean;
+  matched: boolean;
+  reason: "missing" | "mismatch" | "error" | "ok";
+}
 
 export const get = async (): Promise<AppConfig> => {
   if (window.isWeb) {
@@ -67,6 +75,11 @@ export const importConfig = async (file: File): Promise<void> => {
   return res.data;
 };
 
+export const verifyBiliKey = async (key: string): Promise<VerifyBiliKeyResponse> => {
+  const res = await request.post(`/config/verifyBiliKey`, { key });
+  return res.data;
+};
+
 const config = {
   get,
   set,
@@ -75,6 +88,7 @@ const config = {
   notifyTest,
   exportConfig,
   importConfig,
+  verifyBiliKey,
 };
 
 export default config;
