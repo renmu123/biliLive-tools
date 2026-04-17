@@ -50,6 +50,7 @@
               'recorder',
               'videoCut',
               'Queue',
+              'WebhookMonitor',
               'User',
               'About',
               'FileSync',
@@ -415,6 +416,20 @@ const menuOptions = computed<MenuOption[]>(() => {
         ),
       key: "Queue",
       icon: renderQueueIcon(QueueIcon),
+    },
+    {
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "WebhookMonitor",
+            },
+          },
+          { default: () => "录制监控" },
+        ),
+      key: "WebhookMonitor",
+      icon: renderIcon(LiveTvRound),
     },
     {
       label: () =>

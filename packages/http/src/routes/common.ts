@@ -16,11 +16,219 @@ import recorderService from "../services/recorder.js";
 
 import { config, handler, appConfig, fileCache } from "../index.js";
 import { container } from "../index.js";
+import type { Live as WebhookLive } from "../services/webhook/Live.js";
+import type { Part as WebhookPart, UploadStatus } from "../types/webhook.js";
 
 const router = new Router({
   prefix: "/common",
 });
 const upload = multer({ dest: os.tmpdir() });
+
+type MonitorLiveStatus =
+  | "recording"
+  | "processing"
+  | "pendingUpload"
+  | "uploading"
+  | "completed"
+  | "error";
+
+interface WebhookMonitorPart {
+  partId: string;
+  title: string;
+  startTime: number | null;
+  endTime: number | null;
+  durationMs: number | null;
+  recordStatus: WebhookPart["recordStatus"];
+  uploadStatus: UploadStatus;
+  rawUploadStatus: UploadStatus;
+  cover: string | null;
+  filePath: string;
+  rawFilePath: string;
+  isAbnormal: boolean;
+  pendingUpload: boolean;
+  pendingRawUpload: boolean;
+}
+
+interface WebhookMonitorLive {
+  eventId: string;
+  roomId: string;
+  platform: string;
+  software: string;
+  title: string;
+  username: string;
+  startTime: number;
+  endTime: number | null;
+  durationMs: number | null;
+  status: MonitorLiveStatus;
+  isActive: boolean;
+  isAbnormal: boolean;
+  abnormalPartIds: string[];
+  aid?: number;
+  rawAid?: number;
+  stats: {
+    totalParts: number;
+    recordingParts: number;
+    recordedParts: number;
+    prehandledParts: number;
+    handledParts: number;
+    errorParts: number;
+    pendingUploadParts: number;
+    uploadingParts: number;
+    uploadedParts: number;
+    pendingRawUploadParts: number;
+    rawUploadingParts: number;
+    rawUploadedParts: number;
+  };
+  parts: WebhookMonitorPart[];
+}
+
+interface WebhookMonitorResponse {
+  summary: {
+    totalLives: number;
+    activeLives: number;
+    abnormalLives: number;
+    recordingParts: number;
+    processingParts: number;
+    pendingUploadParts: number;
+    uploadingParts: number;
+    errorParts: number;
+  };
+  lives: WebhookMonitorLive[];
+}
+
+function computeDurationMs(startTime?: number, endTime?: number): number | null {
+  if (!startTime) return null;
+  const end = endTime ?? Date.now();
+  return Math.max(0, end - startTime);
+}
+
+function isAbnormalPart(part: WebhookPart, parts: WebhookPart[], index: number): boolean {
+  return part.recordStatus === "recording" && index < parts.length - 1;
+}
+
+function getLiveStatus(parts: WebhookMonitorPart[]): MonitorLiveStatus {
+  if (
+    parts.some(
+      (part) =>
+        part.recordStatus === "error" ||
+        part.uploadStatus === "error" ||
+        part.rawUploadStatus === "error" ||
+        part.isAbnormal,
+    )
+  ) {
+    return "error";
+  }
+
+  if (parts.some((part) => part.recordStatus === "recording")) {
+    return "recording";
+  }
+
+  if (
+    parts.some((part) => part.uploadStatus === "uploading" || part.rawUploadStatus === "uploading")
+  ) {
+    return "uploading";
+  }
+
+  if (parts.some((part) => part.pendingUpload || part.pendingRawUpload)) {
+    return "pendingUpload";
+  }
+
+  if (parts.some((part) => ["recorded", "prehandled"].includes(part.recordStatus))) {
+    return "processing";
+  }
+
+  return "completed";
+}
+
+function mapWebhookLive(live: WebhookLive): WebhookMonitorLive {
+  const parts = live.parts.map((part, index) => {
+    const pendingUpload = part.recordStatus === "handled" && part.uploadStatus === "pending";
+    const pendingRawUpload =
+      (part.recordStatus === "prehandled" || part.recordStatus === "handled") &&
+      part.rawUploadStatus === "pending";
+
+    return {
+      partId: part.partId,
+      title: part.title,
+      startTime: part.startTime ?? null,
+      endTime: part.endTime ?? null,
+      durationMs: computeDurationMs(part.startTime, part.endTime),
+      recordStatus: part.recordStatus,
+      uploadStatus: part.uploadStatus,
+      rawUploadStatus: part.rawUploadStatus,
+      cover: part.cover ?? null,
+      filePath: part.filePath,
+      rawFilePath: part.rawFilePath,
+      isAbnormal: isAbnormalPart(part, live.parts, index),
+      pendingUpload,
+      pendingRawUpload,
+    };
+  });
+
+  const stats = {
+    totalParts: parts.length,
+    recordingParts: parts.filter((part) => part.recordStatus === "recording").length,
+    recordedParts: parts.filter((part) => part.recordStatus === "recorded").length,
+    prehandledParts: parts.filter((part) => part.recordStatus === "prehandled").length,
+    handledParts: parts.filter((part) => part.recordStatus === "handled").length,
+    errorParts: parts.filter((part) => part.recordStatus === "error" || part.isAbnormal).length,
+    pendingUploadParts: parts.filter((part) => part.pendingUpload || part.pendingRawUpload).length,
+    uploadingParts: parts.filter(
+      (part) => part.uploadStatus === "uploading" || part.rawUploadStatus === "uploading",
+    ).length,
+    uploadedParts: parts.filter((part) => part.uploadStatus === "uploaded").length,
+    pendingRawUploadParts: parts.filter((part) => part.pendingRawUpload).length,
+    rawUploadingParts: parts.filter((part) => part.rawUploadStatus === "uploading").length,
+    rawUploadedParts: parts.filter((part) => part.rawUploadStatus === "uploaded").length,
+  };
+  const abnormalPartIds = parts.filter((part) => part.isAbnormal).map((part) => part.partId);
+  const endTime = live.parts.length > 0 ? (live.getMaxEndTime() ?? null) : null;
+  const status = getLiveStatus(parts);
+
+  return {
+    eventId: live.eventId,
+    roomId: live.roomId,
+    platform: live.platform,
+    software: live.software,
+    title: live.title,
+    username: live.username,
+    startTime: live.startTime,
+    endTime,
+    durationMs: computeDurationMs(live.startTime, endTime ?? undefined),
+    status,
+    isActive: status !== "completed",
+    isAbnormal: abnormalPartIds.length > 0 || stats.errorParts > 0,
+    abnormalPartIds,
+    aid: live.aid,
+    rawAid: live.rawAid,
+    stats,
+    parts,
+  };
+}
+
+function buildWebhookMonitorResponse(lives: WebhookLive[]): WebhookMonitorResponse {
+  const monitorLives = lives.map(mapWebhookLive);
+
+  return {
+    summary: {
+      totalLives: monitorLives.length,
+      activeLives: monitorLives.filter((live) => live.isActive).length,
+      abnormalLives: monitorLives.filter((live) => live.isAbnormal).length,
+      recordingParts: monitorLives.reduce((sum, live) => sum + live.stats.recordingParts, 0),
+      processingParts: monitorLives.reduce(
+        (sum, live) => sum + live.stats.recordedParts + live.stats.prehandledParts,
+        0,
+      ),
+      pendingUploadParts: monitorLives.reduce(
+        (sum, live) => sum + live.stats.pendingUploadParts,
+        0,
+      ),
+      uploadingParts: monitorLives.reduce((sum, live) => sum + live.stats.uploadingParts, 0),
+      errorParts: monitorLives.reduce((sum, live) => sum + live.stats.errorParts, 0),
+    },
+    lives: monitorLives,
+  };
+}
 
 router.get("/version", (ctx) => {
   ctx.body = config.version;
@@ -111,6 +319,24 @@ router.get("/files", async (ctx) => {
     ctx.body = "Unable to scan directory";
     return;
   }
+});
+
+router.get("/file", async (ctx) => {
+  const { path: filePath } = ctx.request.query as { path?: string };
+
+  if (!filePath) {
+    ctx.status = 400;
+    ctx.body = "missing path";
+    return;
+  }
+
+  if (!(await fs.pathExists(filePath))) {
+    ctx.status = 404;
+    ctx.body = "file not found";
+    return;
+  }
+
+  ctx.body = fs.createReadStream(filePath);
 });
 
 router.post("/fileJoin", async (ctx) => {
@@ -468,6 +694,62 @@ router.post("/handleWebhook", async (ctx) => {
 router.post("/webhook", async (ctx) => {
   const liveList = handler.liveData;
   ctx.body = liveList;
+});
+
+router.get("/webhook/monitor", async (ctx) => {
+  const { roomId, platform, status, activeOnly, abnormalOnly, keyword } = ctx.request.query as {
+    roomId?: string;
+    platform?: string;
+    status?: MonitorLiveStatus | "all";
+    activeOnly?: string;
+    abnormalOnly?: string;
+    keyword?: string;
+  };
+
+  const normalizedKeyword = keyword?.trim().toLowerCase();
+  const response = buildWebhookMonitorResponse(handler.liveData as unknown as WebhookLive[]);
+
+  response.lives = response.lives
+    .filter((live) => {
+      if (roomId && live.roomId !== roomId) return false;
+      if (platform && platform !== "all" && live.platform !== platform) return false;
+      if (status && status !== "all" && live.status !== status) return false;
+      if (activeOnly === "true" && !live.isActive) return false;
+      if (abnormalOnly === "true" && !live.isAbnormal) return false;
+      if (
+        normalizedKeyword &&
+        ![live.title, live.username, live.roomId, live.platform, live.software]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(normalizedKeyword))
+      ) {
+        return false;
+      }
+      return true;
+    })
+    .sort((left, right) => {
+      if (left.isAbnormal !== right.isAbnormal) return left.isAbnormal ? -1 : 1;
+      if (left.isActive !== right.isActive) return left.isActive ? -1 : 1;
+      return right.startTime - left.startTime;
+    });
+
+  response.summary = {
+    totalLives: response.lives.length,
+    activeLives: response.lives.filter((live) => live.isActive).length,
+    abnormalLives: response.lives.filter((live) => live.isAbnormal).length,
+    recordingParts: response.lives.reduce((sum, live) => sum + live.stats.recordingParts, 0),
+    processingParts: response.lives.reduce(
+      (sum, live) => sum + live.stats.recordedParts + live.stats.prehandledParts,
+      0,
+    ),
+    pendingUploadParts: response.lives.reduce(
+      (sum, live) => sum + live.stats.pendingUploadParts,
+      0,
+    ),
+    uploadingParts: response.lives.reduce((sum, live) => sum + live.stats.uploadingParts, 0),
+    errorParts: response.lives.reduce((sum, live) => sum + live.stats.errorParts, 0),
+  };
+
+  ctx.body = response;
 });
 
 /**

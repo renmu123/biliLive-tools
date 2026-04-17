@@ -87,6 +87,11 @@ const router = createRouter({
           component: () => import("../pages/Queue/index.vue"),
         },
         {
+          path: "/webhook-monitor",
+          name: "WebhookMonitor",
+          component: () => import("../pages/WebhookMonitor/index.vue"),
+        },
+        {
           path: "/user",
           name: "User",
           component: () => import("../pages/User/index.vue"),
