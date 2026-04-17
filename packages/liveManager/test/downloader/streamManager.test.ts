@@ -3,20 +3,6 @@ import fs from "fs/promises";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { StreamManager, Segment } from "../../src/downloader/streamManager";
 
-vi.mock("../../src/record_extra_data_controller", () => ({
-  createRecordExtraDataController: () => ({
-    data: {
-      meta: {
-        recordStartTimestamp: Date.now(),
-      },
-      messages: [],
-    },
-    addMessage: vi.fn(),
-    setMeta: vi.fn(),
-    flush: vi.fn(),
-  }),
-}));
-
 vi.mock("../../src/xml_stream_controller", () => ({
   createRecordExtraDataController: () => ({
     data: {
