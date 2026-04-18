@@ -61,7 +61,6 @@ router.get("/files", async (ctx) => {
 
   if (root == "/" && process.platform === "win32") {
     const drives = await getDriveLetters();
-    root = drives[0];
     ctx.body = {
       list: drives.map((drive) => ({ type: "directory", name: drive, path: `${drive}\\` })),
       parent: "",
@@ -80,6 +79,7 @@ router.get("/files", async (ctx) => {
       type: "directory" | "file";
       name: string;
       path: string;
+      size?: number;
     }[] = [];
     for (const name of paths) {
       const filePath = path.join(root, name);
@@ -94,6 +94,7 @@ router.get("/files", async (ctx) => {
           type: type,
           name: name,
           path: filePath,
+          size: type === "file" ? fileStat.size : undefined,
         });
       } catch (error) {
         continue;
