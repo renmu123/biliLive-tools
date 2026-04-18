@@ -245,8 +245,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
   };
   downloader.on("videoFileCreated", handleVideoCreated);
-  downloader.on("videoFileCompleted", ({ filename }) => {
-    this.emit("videoFileCompleted", { filename });
+  downloader.on("videoFileCompleted", (data) => {
+    this.emit("videoFileCompleted", data);
   });
   downloader.on("DebugLog", (data) => {
     this.emit("DebugLog", data);

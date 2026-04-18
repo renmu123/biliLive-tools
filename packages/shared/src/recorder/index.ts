@@ -338,8 +338,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
       platform: recorder.providerId,
     });
   });
-  manager.on("videoFileCompleted", async ({ recorder, filename }) => {
-    logger.info("Manager videoFileCompleted", { recorder, filename });
+  manager.on("videoFileCompleted", async ({ recorder, filename, stats }) => {
+    logger.info("Manager videoFileCompleted", { recorder, filename, stats });
 
     const endTime = new Date();
     const data = recorderConfig.get(recorder.id);
@@ -378,7 +378,18 @@ export async function createRecorderManager(appConfig: AppConfig) {
         },
       );
 
-      if (xmlFile && (await fs.pathExists(xmlFile))) {
+      if (stats) {
+        recordHistory.upadteLive(
+          {
+            video_file: filename,
+            live_id: liveId,
+          },
+          {
+            danma_num: stats.danmaNum,
+            interact_num: stats.uniqMember,
+          },
+        );
+      } else if (xmlFile && (await fs.pathExists(xmlFile))) {
         const { uniqMember, danmaNum } = await danmaReport(xmlFile);
         recordHistory.upadteLive(
           {
