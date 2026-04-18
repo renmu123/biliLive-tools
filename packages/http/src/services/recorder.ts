@@ -271,7 +271,9 @@ export function createPagedResultGetter<T>(
 }
 
 export function recorderToClient(recorder: Recorder): ClientRecorder {
-  return {
+  type DouyinCookieMode = "always" | "off" | "only-save-gift" | "gift_save_only";
+  type RecorderWithDouyinCookieMode = Recorder & { douyinCookieMode?: DouyinCookieMode };
+  const clientRecorder: ClientRecorder = {
     ...omit(
       recorder,
       "all",
@@ -286,6 +288,22 @@ export function recorderToClient(recorder: Recorder): ClientRecorder {
     recordHandle: recorder.recordHandle && omit(recorder.recordHandle, "stop"),
     liveInfo: recorder.liveInfo,
   };
+
+  if (recorder.providerId === "DouYin" && clientRecorder.extra?.currentDouyinCookieRemark) {
+    const cookieMode = (recorder as RecorderWithDouyinCookieMode).douyinCookieMode ?? "always";
+    const shouldApplyCookie =
+      cookieMode === "always" ||
+      ((cookieMode === "only-save-gift" || cookieMode === "gift_save_only") &&
+        recorder.saveGiftDanma === true);
+    const shouldShowRemark = recorder.state === "recording" && shouldApplyCookie;
+
+    if (!shouldShowRemark) {
+      const { currentDouyinCookieRemark: _hidden, ...restExtra } = clientRecorder.extra;
+      clientRecorder.extra = restExtra;
+    }
+  }
+
+  return clientRecorder;
 }
 
 export function resolveChannel(url: string) {

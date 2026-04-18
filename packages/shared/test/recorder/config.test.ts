@@ -43,6 +43,8 @@ describe("RecorderConfig", () => {
           douyin: {
             quality: "high",
             doubleScreen: true,
+            mode: "always",
+            accounts: [],
           },
           quality: "default",
         };
@@ -284,6 +286,160 @@ describe("RecorderConfig", () => {
         api: "auto",
         useServerTimestamp: true,
       });
+    });
+
+    it("应该优先使用抖音账号池中的启用cookie", () => {
+      mockAppConfig.get.mockImplementation((key: string) => {
+        if (key === "recorder") {
+          return {
+            douyin: {
+              quality: "high",
+              doubleScreen: true,
+              mode: "always",
+              cookie: "legacy_cookie",
+              accounts: [
+                {
+                  id: "acc-1",
+                  remark: "主号",
+                  cookie: "pool_cookie",
+                  enabled: true,
+                  weight: 1,
+                },
+              ],
+            },
+          };
+        }
+        if (key === "recorders") {
+          return [
+            {
+              id: "test7",
+              providerId: "DouYin",
+              channelId: "1001",
+              owner: "owner7",
+            },
+          ];
+        }
+        return null;
+      });
+
+      const result = recorderConfig.get("test7");
+      expect(result?.auth).toBe("pool_cookie");
+    });
+
+    describe("抖音账号池权重归一化", () => {
+      const originalMathRandom = Math.random;
+
+      afterEach(() => {
+        Math.random = originalMathRandom;
+      });
+
+      const expectSelectedCookieByWeight = (weight: unknown, expectedCookie: string) => {
+        Math.random = vi.fn(() => 0.75) as unknown as () => number;
+
+        mockAppConfig.get.mockImplementation((key: string) => {
+          if (key === "recorder") {
+            return {
+              douyin: {
+                quality: "high",
+                doubleScreen: true,
+                mode: "always",
+                accounts: [
+                  {
+                    id: "acc-a",
+                    remark: "账号A",
+                    cookie: "cookie-a",
+                    enabled: true,
+                    weight,
+                  },
+                  {
+                    id: "acc-b",
+                    remark: "账号B",
+                    cookie: "cookie-b",
+                    enabled: true,
+                    weight: 1,
+                  },
+                ],
+              },
+            };
+          }
+          if (key === "recorders") {
+            return [
+              {
+                id: "test-weight",
+                providerId: "DouYin",
+                channelId: "2001",
+                owner: "weight-owner",
+              },
+            ];
+          }
+          return null;
+        });
+
+        const result = recorderConfig.get("test-weight");
+        expect(result?.auth).toBe(expectedCookie);
+      };
+
+      it("缺省权重应归一化为基线权重1（默认随机）", () => {
+        expectSelectedCookieByWeight(undefined, "cookie-b");
+      });
+
+      it("空字符串权重应归一化为基线权重1", () => {
+        expectSelectedCookieByWeight("", "cookie-b");
+      });
+
+      it("0权重应归一化为基线权重1", () => {
+        expectSelectedCookieByWeight(0, "cookie-b");
+      });
+
+      it("负数权重应归一化为基线权重1", () => {
+        expectSelectedCookieByWeight(-5, "cookie-b");
+      });
+
+      it("非数字字符串权重应归一化为基线权重1", () => {
+        expectSelectedCookieByWeight("abc", "cookie-b");
+      });
+
+      it("正整数字符串权重应按数值参与随机", () => {
+        expectSelectedCookieByWeight("3", "cookie-a");
+      });
+    });
+
+    it("抖音mode为off时应禁用auth", () => {
+      mockAppConfig.get.mockImplementation((key: string) => {
+        if (key === "recorder") {
+          return {
+            douyin: {
+              quality: "high",
+              doubleScreen: true,
+              mode: "off",
+              cookie: "legacy_cookie",
+              accounts: [
+                {
+                  id: "acc-1",
+                  remark: "主号",
+                  cookie: "pool_cookie",
+                  enabled: true,
+                  weight: 1,
+                },
+              ],
+            },
+          };
+        }
+        if (key === "recorders") {
+          return [
+            {
+              id: "test8",
+              providerId: "DouYin",
+              channelId: "1002",
+              owner: "owner8",
+            },
+          ];
+        }
+        return null;
+      });
+
+      const result = recorderConfig.get("test8");
+      expect(result?.auth).toBeUndefined();
     });
 
     it("应该正确处理没有 uid 的情况", () => {
