@@ -1,3 +1,4 @@
+import { exec } from "node:child_process";
 import path from "node:path";
 import os from "node:os";
 import fs from "fs-extra";
@@ -26,15 +27,22 @@ router.get("/version", (ctx) => {
 });
 
 function getDriveLetters(): Promise<string[]> {
-  const driveLetters = Array.from({ length: 26 }, (_, index) => {
-    return `${String.fromCharCode(65 + index)}:\\`;
-  });
+  return new Promise((resolve, reject) => {
+    exec("wmic logicaldisk get name", { windowsHide: true }, (error, stdout, stderr) => {
+      if (error) {
+        reject(`Error: ${stderr}`);
+        return;
+      }
 
-  return Promise.all(
-    driveLetters.map(async (drive) => {
-      return (await fs.pathExists(drive)) ? drive : null;
-    }),
-  ).then((drives) => drives.filter((drive): drive is string => Boolean(drive)));
+      // 解析输出，提取盘符
+      const drives = stdout
+        .split("\r\r\n")
+        .filter((line) => line.trim() && line.includes(":"))
+        .map((line) => line.trim());
+
+      resolve(drives);
+    });
+  });
 }
 
 function isDriveLetter(letter: string): boolean {
