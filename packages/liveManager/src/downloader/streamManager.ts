@@ -95,7 +95,7 @@ export class Segment extends EventEmitter {
     }
     let recordSavePath = this.getSavePath({
       startTime: startTime,
-      title: liveInfo?.title,
+      title: liveInfo?.title ? liveInfo.title : undefined,
     });
     // 文件重复判断
     if (fsSync.existsSync(recordSavePath + "." + this.videoExt)) {
