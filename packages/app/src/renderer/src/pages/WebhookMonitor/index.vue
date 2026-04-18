@@ -6,24 +6,19 @@
         clearable
         placeholder="搜索标题、主播、房间号"
         @keydown.enter="fetchMonitorData"
+        style="width: 300px"
       />
-      <n-input
-        v-model:value="filters.roomId"
-        clearable
-        placeholder="房间号"
-        @keydown.enter="fetchMonitorData"
-      />
-      <n-select v-model:value="filters.platform" :options="platformOptions" style="width: 140px" />
-      <n-select v-model:value="filters.status" :options="statusOptions" style="width: 160px" />
-      <n-switch v-model:value="filters.activeOnly" size="small" />
+      <!-- <n-select v-model:value="filters.platform" :options="platformOptions" style="width: 140px" /> -->
+      <!-- <n-select v-model:value="filters.status" :options="statusOptions" style="width: 160px" /> -->
+      <!-- <n-switch v-model:value="filters.activeOnly" size="small" />
       <span class="switch-label">仅活跃</span>
       <n-switch v-model:value="filters.abnormalOnly" size="small" />
-      <span class="switch-label">仅异常</span>
-      <div class="toolbar-actions">
-        <n-button tertiary @click="checkAbnormalParts">检测异常</n-button>
-        <n-button @click="resetFilters">重置</n-button>
-        <n-button type="primary" :loading="loading" @click="fetchMonitorData">刷新</n-button>
-      </div>
+      <span class="switch-label">仅异常</span> -->
+      <!-- <div class="toolbar-actions"> -->
+      <n-button :loading="exporting" @click="exportRawWebhookData">导出数据</n-button>
+      <n-button @click="resetFilters">重置</n-button>
+      <n-button type="primary" @click="fetchMonitorData">刷新</n-button>
+      <!-- </div> -->
     </div>
 
     <n-grid cols="1 s:2 m:3 l:6" responsive="screen" x-gap="12" y-gap="12" class="summary-grid">
@@ -64,24 +59,23 @@
         <div class="live-header">
           <div class="live-title-block">
             <div class="live-title-row">
-              <h3>{{ live.title || "未命名直播" }}</h3>
-              <n-tag size="small" :type="getLiveTagType(live.status)">{{
+              <h3>{{ live.title || "未知" }}</h3>
+              <!-- <n-tag size="small" :type="getLiveTagType(live.status)">{{
                 liveStatusLabelMap[live.status]
-              }}</n-tag>
-              <n-tag v-if="live.isAbnormal" size="small" type="error">异常</n-tag>
+              }}</n-tag> -->
+              <!-- <n-tag v-if="live.isAbnormal" size="small" type="error">异常</n-tag> -->
             </div>
             <div class="live-meta">
-              <span>{{ live.username || "未知主播" }}</span>
+              <span>{{ live.username || "未知" }}</span>
               <span>{{ live.platform }}</span>
               <span>房间 {{ live.roomId }}</span>
               <span>{{ formatTime(live.startTime) }}</span>
               <span>{{ formatDuration(live.durationMs) }}</span>
             </div>
           </div>
-          <div class="live-actions">
+          <!-- <div class="live-actions">
             <n-button size="small" quaternary @click="openUploadReason(live)">上传诊断</n-button>
-            <n-button size="small" quaternary @click="openLiveDetail(live)">查看详情</n-button>
-          </div>
+          </div> -->
         </div>
 
         <div class="stats-row">
@@ -102,8 +96,8 @@
                 :key="part.partId"
                 :class="['part-row', { abnormal: part.isAbnormal }]"
               >
-                <div class="cover-box">
-                  <img v-if="part.cover" :src="toPreviewUrl(part.cover)" alt="cover" />
+                <div class="cover-box" v-if="!isWeb">
+                  <img v-if="part.cover" :src="part.cover" alt="cover" />
                   <div v-else class="cover-placeholder">无封面</div>
                 </div>
                 <div class="part-main" @click="openPartDetail(live, part)">
@@ -112,18 +106,18 @@
                     <n-tag size="small" :type="getRecordTagType(part.recordStatus)">
                       {{ recordStatusLabelMap[part.recordStatus] }}
                     </n-tag>
-                    <n-tag size="small" :type="getUploadTagType(part.uploadStatus)">
+                    <!-- <n-tag size="small" :type="getUploadTagType(part.uploadStatus)">
                       弹幕版 {{ uploadStatusLabelMap[part.uploadStatus] }}
                     </n-tag>
                     <n-tag size="small" :type="getUploadTagType(part.rawUploadStatus)">
                       原片 {{ uploadStatusLabelMap[part.rawUploadStatus] }}
-                    </n-tag>
+                    </n-tag> -->
                   </div>
                   <div class="part-meta">
                     <span>{{ formatTime(part.startTime) }}</span>
                     <span>{{ formatTime(part.endTime) }}</span>
                     <span>{{ formatDuration(part.durationMs) }}</span>
-                    <span v-if="part.pendingUpload || part.pendingRawUpload">等待上传</span>
+                    <!-- <span v-if="part.pendingUpload || part.pendingRawUpload">等待上传</span> -->
                   </div>
                 </div>
                 <div class="part-actions">
@@ -134,11 +128,8 @@
                     secondary
                     @click="markAbnormalPartHandled(part.partId)"
                   >
-                    标记处理
+                    详情
                   </n-button>
-                  <n-button size="small" quaternary @click="openPartDetail(live, part)"
-                    >详情</n-button
-                  >
                 </div>
               </div>
             </div>
@@ -169,48 +160,61 @@
               <n-descriptions-item label="结束时间">{{
                 formatTime(selectedLive.endTime)
               }}</n-descriptions-item>
-              <n-descriptions-item label="会话状态">
+              <!-- <n-descriptions-item label="会话状态">
                 <n-tag size="small" :type="getLiveTagType(selectedLive.status)">
                   {{ liveStatusLabelMap[selectedLive.status] }}
                 </n-tag>
-              </n-descriptions-item>
+              </n-descriptions-item> -->
             </n-descriptions>
           </n-tab-pane>
           <n-tab-pane name="part" tab="分段详情">
             <template v-if="selectedPart">
               <n-descriptions :column="1" bordered label-placement="left" size="small">
-                <n-descriptions-item label="分段标题">{{ selectedPart.title }}</n-descriptions-item>
+                <n-descriptions-item label="分段标题">{{
+                  selectedPartRaw?.title || selectedPart.title
+                }}</n-descriptions-item>
                 <n-descriptions-item label="录制状态">
-                  {{ recordStatusLabelMap[selectedPart.recordStatus] }}
+                  {{
+                    recordStatusLabelMap[selectedPartRaw?.recordStatus || selectedPart.recordStatus]
+                  }}
                 </n-descriptions-item>
                 <n-descriptions-item label="弹幕版上传">
-                  {{ uploadStatusLabelMap[selectedPart.uploadStatus] }}
+                  {{
+                    uploadStatusLabelMap[selectedPartRaw?.uploadStatus || selectedPart.uploadStatus]
+                  }}
                 </n-descriptions-item>
                 <n-descriptions-item label="原片上传">
-                  {{ uploadStatusLabelMap[selectedPart.rawUploadStatus] }}
+                  {{
+                    uploadStatusLabelMap[
+                      selectedPartRaw?.rawUploadStatus || selectedPart.rawUploadStatus
+                    ]
+                  }}
                 </n-descriptions-item>
                 <n-descriptions-item label="开始时间">{{
-                  formatTime(selectedPart.startTime)
+                  formatTime(selectedPartRaw?.startTime ?? selectedPart.startTime)
                 }}</n-descriptions-item>
                 <n-descriptions-item label="结束时间">{{
-                  formatTime(selectedPart.endTime)
+                  formatTime(selectedPartRaw?.endTime ?? selectedPart.endTime)
                 }}</n-descriptions-item>
                 <n-descriptions-item label="处理后文件">{{
-                  selectedPart.filePath || "-"
+                  selectedPartRaw?.filePath || selectedPart.filePath || "-"
                 }}</n-descriptions-item>
                 <n-descriptions-item label="原始文件">{{
-                  selectedPart.rawFilePath || "-"
+                  selectedPartRaw?.rawFilePath || selectedPart.rawFilePath || "-"
                 }}</n-descriptions-item>
+                <n-descriptions-item label="原始数据">
+                  <pre class="raw-json">{{ formattedSelectedPartRaw }}</pre>
+                </n-descriptions-item>
               </n-descriptions>
             </template>
             <n-empty v-else description="请选择一个分段" />
           </n-tab-pane>
-          <n-tab-pane name="diagnosis" tab="诊断">
+          <!-- <n-tab-pane name="diagnosis" tab="诊断">
             <n-alert v-if="diagnosis" :type="diagnosis.hasError ? 'error' : 'success'" show-icon>
               {{ diagnosis.errorInfo }}
             </n-alert>
-            <n-empty v-else description="点击“上传诊断”获取结果" />
-          </n-tab-pane>
+            <n-empty v-else description="没啥东西" />
+          </n-tab-pane> -->
         </n-tabs>
       </template>
     </n-modal>
@@ -223,7 +227,7 @@ defineOptions({
 });
 
 import { commonApi, webhookApi } from "@renderer/apis";
-import request from "@renderer/apis/request";
+import { saveAs } from "file-saver";
 
 import type {
   WebhookLiveStatus,
@@ -237,6 +241,7 @@ interface UploadDiagnosis {
   errorInfo: string;
 }
 
+const isWeb = window.isWeb;
 const message = useMessage();
 
 const emptyMonitorData = (): WebhookMonitorResponse => ({
@@ -255,20 +260,19 @@ const emptyMonitorData = (): WebhookMonitorResponse => ({
 
 const monitorData = ref<WebhookMonitorResponse>(emptyMonitorData());
 const loading = ref(false);
+const exporting = ref(false);
 const detailVisible = ref(false);
 const diagnosis = ref<UploadDiagnosis | null>(null);
 const selectedLive = ref<WebhookMonitorLive | null>(null);
 const selectedPart = ref<WebhookMonitorPart | null>(null);
 const filters = reactive<{
   keyword: string;
-  roomId: string;
   platform: string;
   status: WebhookLiveStatus | "all";
   activeOnly: boolean;
   abnormalOnly: boolean;
 }>({
   keyword: "",
-  roomId: "",
   platform: "all",
   status: "all",
   activeOnly: true,
@@ -299,30 +303,29 @@ const uploadStatusLabelMap: Record<WebhookMonitorPart["uploadStatus"], string> =
   error: "错误",
 };
 
-const statusOptions = [
-  { label: "全部状态", value: "all" },
-  { label: "录制中", value: "recording" },
-  { label: "处理中", value: "processing" },
-  { label: "待上传", value: "pendingUpload" },
-  { label: "上传中", value: "uploading" },
-  { label: "已完成", value: "completed" },
-  { label: "异常", value: "error" },
-];
+// const statusOptions = [
+//   { label: "全部状态", value: "all" },
+//   { label: "录制中", value: "recording" },
+//   { label: "处理中", value: "processing" },
+//   { label: "待上传", value: "pendingUpload" },
+//   { label: "上传中", value: "uploading" },
+//   { label: "已完成", value: "completed" },
+//   { label: "异常", value: "error" },
+// ];
 
-const platformOptions = computed(() => {
-  const platforms = new Set(monitorData.value.lives.map((live) => live.platform).filter(Boolean));
-  return [
-    { label: "全部平台", value: "all" },
-    ...Array.from(platforms).map((platform) => ({ label: platform, value: platform })),
-  ];
-});
+// const platformOptions = computed(() => {
+//   const platforms = new Set(monitorData.value.lives.map((live) => live.platform).filter(Boolean));
+//   return [
+//     { label: "全部平台", value: "all" },
+//     ...Array.from(platforms).map((platform) => ({ label: platform, value: platform })),
+//   ];
+// });
 
 const fetchMonitorData = async () => {
   loading.value = true;
   try {
     monitorData.value = await webhookApi.getMonitorData({
       keyword: filters.keyword || undefined,
-      roomId: filters.roomId || undefined,
       platform: filters.platform,
       status: filters.status,
       activeOnly: filters.activeOnly,
@@ -352,7 +355,6 @@ const fetchMonitorData = async () => {
 
 const resetFilters = () => {
   filters.keyword = "";
-  filters.roomId = "";
   filters.platform = "all";
   filters.status = "all";
   filters.activeOnly = true;
@@ -360,11 +362,19 @@ const resetFilters = () => {
   fetchMonitorData();
 };
 
-const openLiveDetail = (live: WebhookMonitorLive) => {
-  selectedLive.value = live;
-  selectedPart.value = live.parts[0] ?? null;
-  diagnosis.value = null;
-  detailVisible.value = true;
+const exportRawWebhookData = async () => {
+  if (exporting.value) return;
+
+  exporting.value = true;
+  try {
+    const blob = await commonApi.exportWebhookRaw();
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    saveAs(blob, `webhook-raw-${timestamp}.json`);
+  } catch (error) {
+    message.error(String(error));
+  } finally {
+    exporting.value = false;
+  }
 };
 
 const openPartDetail = (live: WebhookMonitorLive, part: WebhookMonitorPart) => {
@@ -372,6 +382,13 @@ const openPartDetail = (live: WebhookMonitorLive, part: WebhookMonitorPart) => {
   selectedPart.value = part;
   detailVisible.value = true;
 };
+
+const selectedPartRaw = computed(() => selectedPart.value?.raw ?? null);
+
+const formattedSelectedPartRaw = computed(() => {
+  if (!selectedPartRaw.value) return "-";
+  return JSON.stringify(selectedPartRaw.value, null, 2);
+});
 
 const openUploadReason = async (live: WebhookMonitorLive) => {
   try {
@@ -381,21 +398,6 @@ const openUploadReason = async (live: WebhookMonitorLive) => {
       selectedPart.value = live.parts[0] ?? null;
     }
     detailVisible.value = true;
-  } catch (error) {
-    message.error(String(error));
-  }
-};
-
-const checkAbnormalParts = async () => {
-  try {
-    const abnormalParts = await commonApi.testWebhook();
-    if (abnormalParts.length === 0) {
-      message.success("没有检测到异常分段");
-      return;
-    }
-    message.warning(`检测到 ${abnormalParts.length} 个异常分段`);
-    filters.abnormalOnly = true;
-    await fetchMonitorData();
   } catch (error) {
     message.error(String(error));
   }
@@ -425,12 +427,12 @@ const getRecordTagType = (status: WebhookMonitorPart["recordStatus"]) => {
   return "default";
 };
 
-const getUploadTagType = (status: WebhookMonitorPart["uploadStatus"]) => {
-  if (status === "error") return "error";
-  if (status === "uploading") return "warning";
-  if (status === "uploaded") return "success";
-  return "default";
-};
+// const getUploadTagType = (status: WebhookMonitorPart["uploadStatus"]) => {
+//   if (status === "error") return "error";
+//   if (status === "uploading") return "warning";
+//   if (status === "uploaded") return "success";
+//   return "default";
+// };
 
 const formatTime = (value: number | null) => {
   if (!value) return "-";
@@ -446,59 +448,61 @@ const formatDuration = (durationMs: number | null) => {
   return [hours, minutes, seconds].map((item) => String(item).padStart(2, "0")).join(":");
 };
 
-const toPreviewUrl = (coverPath: string) => {
-  const encodedPath = encodeURIComponent(coverPath);
-  return `${request.defaults.baseURL}/common/file?path=${encodedPath}`;
-};
+fetchMonitorData();
 
-let intervalId: NodeJS.Timeout | null = null;
-const createInterval = () => {
-  if (intervalId || document.hidden) return;
-  const interval = window.isWeb ? 4000 : 2000;
-  intervalId = setInterval(() => {
-    fetchMonitorData();
-  }, interval);
-};
+// const toPreviewUrl = (coverPath: string) => {
+//   const encodedPath = encodeURIComponent(coverPath);
+//   return `${request.defaults.baseURL}/common/file?path=${encodedPath}`;
+// };
 
-const cleanInterval = () => {
-  if (!intervalId) return;
-  clearInterval(intervalId);
-  intervalId = null;
-};
+// let intervalId: NodeJS.Timeout | null = null;
+// const createInterval = () => {
+//   if (intervalId || document.hidden) return;
+//   const interval = window.isWeb ? 4000 : 2000;
+//   intervalId = setInterval(() => {
+//     fetchMonitorData();
+//   }, interval);
+// };
 
-const handleVisibilityChange = () => {
-  if (document.hidden) {
-    cleanInterval();
-  } else {
-    fetchMonitorData();
-    createInterval();
-  }
-};
+// const cleanInterval = () => {
+//   if (!intervalId) return;
+//   clearInterval(intervalId);
+//   intervalId = null;
+// };
 
-onActivated(() => {
-  fetchMonitorData();
-  createInterval();
-});
+// const handleVisibilityChange = () => {
+//   if (document.hidden) {
+//     cleanInterval();
+//   } else {
+//     fetchMonitorData();
+//     createInterval();
+//   }
+// };
 
-onDeactivated(() => {
-  cleanInterval();
-});
+// onActivated(() => {
+//   fetchMonitorData();
+//   createInterval();
+// });
 
-onMounted(() => {
-  document.addEventListener("visibilitychange", handleVisibilityChange);
-});
+// onDeactivated(() => {
+//   cleanInterval();
+// });
 
-onBeforeUnmount(() => {
-  cleanInterval();
-  document.removeEventListener("visibilitychange", handleVisibilityChange);
-});
+// onMounted(() => {
+//   document.addEventListener("visibilitychange", handleVisibilityChange);
+// });
 
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    cleanInterval();
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-  });
-}
+// onBeforeUnmount(() => {
+//   cleanInterval();
+//   document.removeEventListener("visibilitychange", handleVisibilityChange);
+// });
+
+// if (import.meta.hot) {
+//   import.meta.hot.dispose(() => {
+//     cleanInterval();
+//     document.removeEventListener("visibilitychange", handleVisibilityChange);
+//   });
+// }
 </script>
 
 <style scoped lang="less">
@@ -668,6 +672,16 @@ if (import.meta.hot) {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.raw-json {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 12px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
 }
 
 @media (max-width: 768px) {

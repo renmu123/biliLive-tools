@@ -11,6 +11,19 @@ export type WebhookLiveStatus =
 export type WebhookRecordStatus = "recording" | "recorded" | "prehandled" | "handled" | "error";
 export type WebhookUploadStatus = "pending" | "uploading" | "uploaded" | "error";
 
+export interface RawWebhookPart {
+  partId: string;
+  title: string;
+  startTime?: number;
+  endTime?: number;
+  recordStatus: WebhookRecordStatus;
+  filePath: string;
+  uploadStatus: WebhookUploadStatus;
+  cover?: string;
+  rawFilePath: string;
+  rawUploadStatus: WebhookUploadStatus;
+}
+
 export interface WebhookMonitorPart {
   partId: string;
   title: string;
@@ -26,6 +39,7 @@ export interface WebhookMonitorPart {
   isAbnormal: boolean;
   pendingUpload: boolean;
   pendingRawUpload: boolean;
+  raw: RawWebhookPart;
 }
 
 export interface WebhookMonitorLive {

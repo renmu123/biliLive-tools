@@ -423,20 +423,6 @@ const menuOptions = computed<MenuOption[]>(() => {
           RouterLink,
           {
             to: {
-              name: "WebhookMonitor",
-            },
-          },
-          { default: () => "录制监控" },
-        ),
-      key: "WebhookMonitor",
-      icon: renderIcon(LiveTvRound),
-    },
-    {
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
               name: "User",
             },
           },

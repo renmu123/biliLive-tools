@@ -47,6 +47,7 @@ interface WebhookMonitorPart {
   isAbnormal: boolean;
   pendingUpload: boolean;
   pendingRawUpload: boolean;
+  raw: WebhookPart;
 }
 
 interface WebhookMonitorLive {
@@ -162,6 +163,7 @@ function mapWebhookLive(live: WebhookLive): WebhookMonitorLive {
       isAbnormal: isAbnormalPart(part, live.parts, index),
       pendingUpload,
       pendingRawUpload,
+      raw: part,
     };
   });
 
@@ -421,6 +423,15 @@ router.get("/statistics", async (ctx) => {
 router.get("/exportLogs", async (ctx) => {
   const logFilePath = config.logPath;
   ctx.body = fs.createReadStream(logFilePath);
+});
+
+router.get("/exportWebhookRaw", async (ctx) => {
+  const payload = JSON.stringify(handler.liveData, null, 2);
+  const fileName = `webhook-raw-${Date.now()}.json`;
+
+  ctx.set("Content-Type", "application/json; charset=utf-8");
+  ctx.set("Content-Disposition", `attachment; filename="${fileName}"`);
+  ctx.body = Buffer.from(payload, "utf-8");
 });
 
 router.get("/getLogContent", async (ctx) => {
