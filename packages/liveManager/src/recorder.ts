@@ -150,6 +150,7 @@ export type GetSavePath = (data: {
   startTime: number;
   liveStartTime: Date;
   recordStartTime: Date;
+  extraMs?: boolean;
 }) => string;
 
 export interface Recorder<E extends AnyObject = UnknownObject>

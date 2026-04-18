@@ -572,6 +572,8 @@ export function genSavePathFromRule<
     startTime: number;
     liveStartTime: Date;
     recordStartTime: Date;
+    // 如果存在这个参数，那么会在生成路径时补充毫秒时间戳，避免生成重复文件名造成覆盖
+    extraMs?: boolean;
   },
 ): string {
   // TODO: 这里随便写的，后面再优化
@@ -600,6 +602,9 @@ export function genSavePathFromRule<
   };
 
   let savePathRule = manager.savePathRule;
+  if (extData?.extraMs) {
+    savePathRule += "_{ms}";
+  }
   try {
     savePathRule = ejs.render(savePathRule, params);
   } catch (error) {

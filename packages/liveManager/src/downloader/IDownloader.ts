@@ -11,7 +11,7 @@ export type Segment = number | string | undefined;
  */
 export interface BaseRecorderOptions {
   url: string;
-  getSavePath: (data: { startTime: number; title?: string }) => string;
+  getSavePath: (data: { startTime: number; title?: string; extraMs?: boolean }) => string;
   segment: Segment;
   inputOptions?: string[];
   disableDanma?: boolean;
@@ -35,7 +35,7 @@ export interface IDownloader extends EventEmitter {
   readonly disableDanma: boolean;
   readonly url: string;
   readonly headers: { [key: string]: string | undefined } | undefined;
-  readonly getSavePath: (data: { startTime: number; title?: string }) => string;
+  readonly getSavePath: (data: { startTime: number; title?: string; extraMs?: boolean }) => string;
 
   // 核心方法
   run(): void;
