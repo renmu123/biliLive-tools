@@ -499,7 +499,26 @@
         >全局</n-checkbox
       >
     </n-form-item>
-    <n-form-item v-if="data.uploadNoDanmu" label="非弹幕版上传预设">
+
+    <n-form-item v-if="data.uploadNoDanmu">
+      <template #label>
+        <Tip
+          text="上传到同一稿件"
+          tip="弹幕版和非弹幕版会共用同一个稿件，最后排序优先弹幕版在前，你可以在分P标题中使用{{hasDanmaStr}}占位符区分，使用弹幕版上传预设"
+        ></Tip>
+      </template>
+      <n-switch
+        v-model:value="data.uploadToSameMedia"
+        :disabled="globalFieldsObj.uploadToSameMedia"
+      />
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.uploadToSameMedia"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
+    <n-form-item v-if="!data.uploadToSameMedia && data.uploadNoDanmu" label="非弹幕版上传预设">
       <n-select
         v-model:value="data.noDanmuVideoPreset"
         :options="props.biliupPresetsOptions"

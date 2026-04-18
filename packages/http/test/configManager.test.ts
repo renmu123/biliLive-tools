@@ -343,6 +343,103 @@ describe("ConfigManager", () => {
         expect(result.uploadNoDanmu).toBe(true);
       });
     });
+
+    describe("uploadToSameMedia", () => {
+      it("should uploadToSameMedia default to false", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              autoPartMerge: false,
+              partMergeMinute: 10,
+              uploadNoDanmu: true,
+            },
+          }),
+        };
+        // @ts-ignore
+        const configManager = new ConfigManager(appConfig);
+        const result = configManager.getConfig("123");
+        expect(result.uploadToSameMedia).toBe(false);
+      });
+
+      it("should uploadToSameMedia return true when configured", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              autoPartMerge: false,
+              partMergeMinute: 10,
+              uid: 123,
+              uploadNoDanmu: true,
+              uploadToSameMedia: true,
+            },
+          }),
+        };
+        // @ts-ignore
+        const configManager = new ConfigManager(appConfig);
+        const result = configManager.getConfig("123");
+        expect(result.uploadToSameMedia).toBe(true);
+      });
+    });
+
+    describe("removeSourceAferrConvert2Mp4", () => {
+      it("should removeSourceAferrConvert2Mp4 return true when convert2Mp4 open and afterConvertAction includes removeAfterConvert2Mp4", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              autoPartMerge: false,
+              partMergeMinute: 10,
+              convert2Mp4: true,
+              afterConvertAction: ["removeAfterConvert2Mp4"],
+            },
+          }),
+        };
+        // @ts-ignore
+        const configManager = new ConfigManager(appConfig);
+        const roomId = "123";
+        const result = configManager.getConfig(roomId);
+        expect(result.removeSourceAferrConvert2Mp4).toBe(true);
+      });
+
+      it("should removeSourceAferrConvert2Mp4 return false when convert2Mp4 close and afterConvertAction includes removeAfterConvert2Mp4", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              autoPartMerge: false,
+              partMergeMinute: 10,
+              convert2Mp4: false,
+              afterConvertAction: ["removeAfterConvert2Mp4"],
+            },
+          }),
+        };
+        // @ts-ignore
+        const configManager = new ConfigManager(appConfig);
+        const roomId = "123";
+        const result = configManager.getConfig(roomId);
+        expect(result.removeSourceAferrConvert2Mp4).toBe(false);
+      });
+
+      it("should removeSourceAferrConvert2Mp4 return false when convert2Mp4 open and afterConvertAction not includes removeAfterConvert2Mp4", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              autoPartMerge: false,
+              partMergeMinute: 10,
+              convert2Mp4: true,
+              afterConvertAction: [],
+            },
+          }),
+        };
+        // @ts-ignore
+        const configManager = new ConfigManager(appConfig);
+        const roomId = "123";
+        const result = configManager.getConfig(roomId);
+        expect(result.removeSourceAferrConvert2Mp4).toBe(false);
+      });
+    });
   });
 
   describe("getSyncConfig", () => {

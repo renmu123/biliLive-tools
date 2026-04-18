@@ -32,7 +32,7 @@ import type {
   HotProgressOptions,
 } from "@biliLive-tools/types";
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
-import type { Options, Platform } from "../../types/webhook.js";
+import type { Options, Platform, UploadStatus } from "../../types/webhook.js";
 import type { RoomConfig } from "./ConfigManager.js";
 
 export const enum EventType {
@@ -40,6 +40,25 @@ export const enum EventType {
   CloseEvent = "FileClosed",
   ErrorEvent = "FileError",
 }
+
+type UploadFileItem = {
+  part: Part;
+  path: string;
+  title: string;
+  type: "raw" | "handled";
+};
+
+type RuntimePart = Part & {
+  handledCid?: number;
+  rawCid?: number;
+};
+
+type SortParamItem = {
+  filePath: string;
+  cid?: number;
+};
+
+const SAME_MEDIA_UPLOAD_ORDER: Array<"handled" | "raw"> = ["handled", "raw"];
 
 export class WebhookHandler {
   liveManager: LiveManager = new LiveManager();
@@ -893,15 +912,92 @@ export class WebhookHandler {
    * 通用上传任务处理逻辑
    * @private
    */
-  private async handleUploadTask(task: any, pathArray: { path: string; title: string }[]) {
+  private getRuntimePart(part: Part): RuntimePart {
+    return part as RuntimePart;
+  }
+
+  private setPartCid(part: Part, type: "raw" | "handled", cid?: number) {
+    if (!cid) return;
+
+    const runtimePart = this.getRuntimePart(part);
+    if (type === "handled") {
+      runtimePart.handledCid = cid;
+    } else {
+      runtimePart.rawCid = cid;
+    }
+  }
+
+  private getPartCid(part: Part, type: "raw" | "handled"): number | undefined {
+    const runtimePart = this.getRuntimePart(part);
+    return type === "handled" ? runtimePart.handledCid : runtimePart.rawCid;
+  }
+
+  private toPathArray(items: UploadFileItem[]): { path: string; title: string }[] {
+    return items.map((item) => ({
+      path: item.path,
+      title: item.title,
+    }));
+  }
+
+  private createUploadItems(
+    filePaths: { part: Part; path: string; title: string }[],
+    type: "raw" | "handled",
+  ): UploadFileItem[] {
+    return filePaths.map((item) => ({
+      ...item,
+      type,
+    }));
+  }
+
+  private writeUploadResultToParts(
+    uploadedItems: UploadFileItem[],
+    data: {
+      cid: number;
+      filename: string;
+      title: string;
+      filePath: string;
+    }[],
+  ) {
+    const itemQueue = new Map<string, UploadFileItem[]>();
+
+    for (const item of uploadedItems) {
+      const queue = itemQueue.get(item.path) ?? [];
+      queue.push(item);
+      itemQueue.set(item.path, queue);
+    }
+
+    for (const result of data) {
+      const queue = itemQueue.get(result.filePath);
+      const item = queue?.shift();
+      if (!item) continue;
+
+      this.setPartCid(item.part, item.type, result.cid);
+    }
+  }
+
+  private async handleUploadTask(task: any, uploadedItems: UploadFileItem[]) {
     return new Promise((resolve, reject) => {
-      task.on("task-end", async () => {
-        // 释放所有文件的引用
-        for (const { path } of pathArray) {
-          await this.fileRefManager.releaseRef(path);
-        }
-        resolve(task.output);
-      });
+      task.on(
+        "task-end",
+        async (payload: {
+          taskId: string;
+          data?: {
+            cid: number;
+            filename: string;
+            title: string;
+            filePath: string;
+          }[];
+        }) => {
+          const data = payload?.data ?? [];
+          this.writeUploadResultToParts(uploadedItems, data);
+
+          // 释放所有文件的引用
+          for (const { path } of uploadedItems) {
+            await this.fileRefManager.releaseRef(path);
+          }
+          resolve(task.output);
+        },
+      );
 
       task.on("task-error", () => {
         reject(new Error("Upload task failed"));
@@ -935,15 +1031,15 @@ export class WebhookHandler {
 
   addUploadTask = async (
     uid: number,
-    pathArray: {
-      path: string;
-      title: string;
-    }[],
+    uploadedItems: UploadFileItem[],
     options: BiliupConfig,
     limitedUploadTime: [] | [string, string],
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
+    const pathArray = this.toPathArray(uploadedItems);
     const checkCallback = this.setupDeleteAfterCheckLock(pathArray, afterUploadDeletAction);
+
+    // console.log("upload", pathArray);
 
     const task = await biliApi.addMedia(pathArray, options, uid, {
       limitedUploadTime,
@@ -952,30 +1048,32 @@ export class WebhookHandler {
       checkCallback,
     });
 
-    return this.handleUploadTask(task, pathArray);
+    return this.handleUploadTask(task, uploadedItems);
   };
 
   addEditMediaTask = async (
     uid: number,
     aid: number,
-    pathArray: {
-      path: string;
-      title: string;
-    }[],
+    uploadedItems: UploadFileItem[],
     uploadPreset: BiliupConfig,
     limitedUploadTime: [string, string] | [],
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
+    sortParams?: SortParamItem[],
   ) => {
+    const pathArray = this.toPathArray(uploadedItems);
     const checkCallback = this.setupDeleteAfterCheckLock(pathArray, afterUploadDeletAction);
 
+    // console.log("sortParams111111111", sortParams, pathArray);
+    // 参数sortParams: array<{filePath:string;cid?:number}>，表示按照 filePath 对历史分P和当前上传文件统一排序
     const task = await biliApi.editMedia(aid, pathArray, uploadPreset, uid, {
       limitedUploadTime,
       afterUploadDeletAction: "none",
       forceCheck: afterUploadDeletAction === "deleteAfterCheck",
       checkCallback,
+      sortParams,
     });
 
-    return this.handleUploadTask(task, pathArray);
+    return this.handleUploadTask(task, uploadedItems);
   };
 
   /**
@@ -1027,6 +1125,141 @@ export class WebhookHandler {
     }
 
     return { filePaths, cover };
+  }
+
+  private isSameMediaUploadEnabled(config: RoomConfig): boolean {
+    return config.uploadNoDanmu && config.uploadToSameMedia;
+  }
+
+  private updateUploadStatusForItems(filePaths: UploadFileItem[], status: UploadStatus) {
+    for (const item of filePaths) {
+      item.part.updateUploadStatus(status, item.type === "raw");
+    }
+  }
+
+  private formatSameMediaPartTitle(title: string, type: "raw" | "handled"): string {
+    const suffix = type === "handled" ? "处理版" : "原始版";
+    return `${title}-${suffix}`;
+  }
+
+  private getSameMediaUploadCandidate(part: Part, type: "raw" | "handled", config: RoomConfig) {
+    if (type === "handled") {
+      return {
+        type,
+        path: part.filePath,
+        status: part.uploadStatus,
+        canUpload: part.canUpload("handled"),
+        enabled: true,
+      };
+    }
+
+    return {
+      type,
+      path: part.rawFilePath,
+      status: part.rawUploadStatus,
+      canUpload: part.canUpload("raw"),
+      enabled: config.uploadNoDanmu,
+    };
+  }
+
+  private buildSameMediaSortParams(live: Live, config: RoomConfig): SortParamItem[] {
+    const sortParams: SortParamItem[] = [];
+
+    for (const type of SAME_MEDIA_UPLOAD_ORDER) {
+      for (const part of live.parts) {
+        const item = this.getSameMediaUploadCandidate(part, type, config);
+
+        if (item.enabled === false || item.status === "error") {
+          continue;
+        }
+
+        const cid = this.getPartCid(part, item.type);
+        sortParams.push({
+          filePath: item.path,
+          cid,
+        });
+
+        if (item.status !== "uploaded" && !item.canUpload) {
+          return sortParams;
+        }
+      }
+    }
+
+    return sortParams;
+  }
+
+  private getUploadedItemCountForSameMedia(live: Live, config: RoomConfig): number {
+    let uploadedCount = 0;
+
+    for (const part of live.parts) {
+      if (part.uploadStatus === "uploaded") {
+        uploadedCount++;
+      }
+      if (config.uploadNoDanmu && part.rawUploadStatus === "uploaded") {
+        uploadedCount++;
+      }
+    }
+
+    return uploadedCount;
+  }
+
+  private buildSameMediaUploadFileList(
+    live: Live,
+    config: RoomConfig,
+  ): { filePaths: UploadFileItem[]; cover?: string } {
+    let cover: string | undefined;
+    const filePaths: UploadFileItem[] = [];
+    let currentIndex = this.getUploadedItemCountForSameMedia(live, config) + 1;
+
+    for (const type of SAME_MEDIA_UPLOAD_ORDER) {
+      for (const part of live.parts) {
+        const item = this.getSameMediaUploadCandidate(part, type, config);
+
+        if (item.enabled === false) continue;
+        if (item.status === "uploaded" || item.status === "error") continue;
+        if (!item.canUpload) continue;
+
+        const filename = path.parse(item.path).name;
+        const baseTitle = formatPartTitle(
+          {
+            title: part.title,
+            username: live.username,
+            roomId: live.roomId,
+            time: part?.startTime
+              ? new Date(part.startTime).toISOString()
+              : new Date().toISOString(),
+            filename,
+            index: currentIndex,
+          },
+          config.partTitleTemplate ?? "{{filename}}",
+        );
+
+        filePaths.push({
+          part,
+          path: item.path,
+          title: baseTitle,
+          type: item.type,
+        });
+
+        if (!cover) {
+          cover = part.cover;
+        }
+
+        currentIndex++;
+      }
+    }
+
+    return { filePaths, cover };
+  }
+
+  private validateCombinedUploadConfig(filePaths: UploadFileItem[], config: RoomConfig): boolean {
+    if (!config.uid) {
+      this.updateUploadStatusForItems(filePaths, "error");
+      log.error("无须上传，uid未配置");
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -1102,6 +1335,14 @@ export class WebhookHandler {
     return uploadPreset;
   }
 
+  private async prepareSharedUploadPreset(
+    config: RoomConfig,
+    live: Live,
+    cover?: string,
+  ): Promise<BiliupConfig> {
+    return this.prepareUploadPreset("handled", config, live, cover);
+  }
+
   /**
    * 格式化上传视频标题
    * @private
@@ -1164,6 +1405,8 @@ export class WebhookHandler {
   ) {
     log.info("续传", filePaths);
 
+    const uploadedItems = this.createUploadItems(filePaths, type);
+
     live.batchUpdateUploadStatus(
       filePaths.map((item) => item.part),
       "uploading",
@@ -1173,10 +1416,7 @@ export class WebhookHandler {
     await this.addEditMediaTask(
       config.uid!,
       aid,
-      filePaths.map((item) => ({
-        path: item.path,
-        title: item.title,
-      })),
+      uploadedItems,
       uploadPreset,
       limitedUploadTime,
       config.afterUploadDeletAction,
@@ -1202,6 +1442,7 @@ export class WebhookHandler {
     limitedUploadTime: [] | [string, string],
   ) {
     const aidField = type === "handled" ? "aid" : "rawAid";
+    const uploadedItems = this.createUploadItems(filePaths, type);
 
     live.batchUpdateUploadStatus(
       filePaths.map((item) => item.part),
@@ -1215,10 +1456,7 @@ export class WebhookHandler {
 
     const aid = (await this.addUploadTask(
       config.uid!,
-      filePaths.map((item) => ({
-        path: item.path,
-        title: item.title,
-      })),
+      uploadedItems,
       uploadPreset,
       limitedUploadTime,
       config.afterUploadDeletAction,
@@ -1231,6 +1469,109 @@ export class WebhookHandler {
       "uploaded",
       type,
     );
+  }
+
+  private async performContinueUploadForSameMedia(
+    live: Live,
+    aid: number,
+    filePaths: UploadFileItem[],
+    config: RoomConfig,
+    uploadPreset: BiliupConfig,
+    limitedUploadTime: [] | [string, string],
+  ) {
+    // log.info("同稿件续传", filePaths);
+    const sortParams = this.buildSameMediaSortParams(live, config);
+
+    live.aid = aid;
+    this.updateUploadStatusForItems(filePaths, "uploading");
+
+    await this.addEditMediaTask(
+      config.uid!,
+      aid,
+      filePaths,
+      uploadPreset,
+      limitedUploadTime,
+      config.afterUploadDeletAction,
+      sortParams,
+    );
+
+    this.updateUploadStatusForItems(filePaths, "uploaded");
+  }
+
+  private async performNewUploadForSameMedia(
+    live: Live,
+    filePaths: UploadFileItem[],
+    config: RoomConfig,
+    uploadPreset: BiliupConfig,
+    limitedUploadTime: [] | [string, string],
+  ) {
+    this.updateUploadStatusForItems(filePaths, "uploading");
+
+    const videoTitle = this.formatUploadTitle(
+      live,
+      filePaths[0].part,
+      "handled",
+      uploadPreset,
+      config,
+    );
+    uploadPreset.title = videoTitle;
+
+    const aid = (await this.addUploadTask(
+      config.uid!,
+      filePaths,
+      uploadPreset,
+      limitedUploadTime,
+      config.afterUploadDeletAction,
+    )) as number;
+
+    live.aid = Number(aid);
+    this.updateUploadStatusForItems(filePaths, "uploaded");
+  }
+
+  private async uploadVideoToSameMedia(live: Live, config: RoomConfig) {
+    if (live.hasUploadingParts("handled") || live.hasUploadingParts("raw")) {
+      return;
+    }
+
+    const { filePaths, cover } = this.buildSameMediaUploadFileList(live, config);
+    // console.log("同稿件上传候选列表", filePaths);
+    if (filePaths.length === 0) {
+      return;
+    }
+
+    if (!this.validateCombinedUploadConfig(filePaths, config)) {
+      return;
+    }
+
+    const uploadPreset = await this.prepareSharedUploadPreset(config, live, cover);
+    const limitedUploadTime: [] | [string, string] = config.limitUploadTime
+      ? config.uploadHandleTime
+      : [];
+    const sharedAid = live.aid ?? live.rawAid;
+
+    try {
+      if (sharedAid) {
+        await this.performContinueUploadForSameMedia(
+          live,
+          sharedAid,
+          filePaths,
+          config,
+          uploadPreset,
+          limitedUploadTime,
+        );
+      } else {
+        await this.performNewUploadForSameMedia(
+          live,
+          filePaths,
+          config,
+          uploadPreset,
+          limitedUploadTime,
+        );
+      }
+    } catch (error) {
+      log.error(error);
+      this.updateUploadStatusForItems(filePaths, "error");
+    }
   }
 
   /**
@@ -1295,9 +1636,16 @@ export class WebhookHandler {
   /**
    * 处理直播上传
    * @param live 直播数据
-   * @param type 上传类型：handled-弹幕版，raw-原始版，undefined-两者都上传
+   * @param type 上传类型：handled-弹幕版，raw-原始版
    */
   handleLive = async (live: Live, type?: "handled" | "raw") => {
+    const config = this.configManager.getConfig(live.roomId);
+
+    if (this.isSameMediaUploadEnabled(config)) {
+      await this.uploadVideoToSameMedia(live, config);
+      return;
+    }
+
     if (type) {
       if (type === "handled") {
         await this.uploadVideoByType(live, "handled");
