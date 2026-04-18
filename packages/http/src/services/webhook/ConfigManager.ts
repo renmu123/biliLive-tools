@@ -166,13 +166,7 @@ export class ConfigManager {
     const syncId = this.getRoomSetting("syncId", roomSetting);
     const afterConvertAction = this.getRoomSetting("afterConvertAction", roomSetting) ?? [];
 
-    // TODO: 兼容废弃选项，过渡期后删除
-    const removeSourceAferrConvert2Mp4Before = this.getRoomSetting(
-      "removeSourceAferrConvert2Mp4",
-      roomSetting,
-    );
-    const removeSourceAferrConvert2Mp4 =
-      afterConvertAction.includes("removeAfterConvert2Mp4") || !!removeSourceAferrConvert2Mp4Before;
+    const removeSourceAferrConvert2Mp4 = afterConvertAction.includes("removeAfterConvert2Mp4");
     const afterConvertRemoveVideoRaw = afterConvertAction.includes("removeVideo");
     const afterConvertRemoveXmlRaw = afterConvertAction.includes("removeXml");
     const afterConvertRemoveFlvRaw = afterConvertAction.includes("removeAfterFlvRepair");

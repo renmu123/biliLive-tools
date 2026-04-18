@@ -90,7 +90,7 @@ export class Segment extends EventEmitter {
     }
     this.outputVideoFilePath = this.getSavePath({
       startTime: startTime,
-      title: liveInfo?.title,
+      title: liveInfo?.title ? liveInfo.title : undefined,
     });
 
     ensureFolderExist(this.outputVideoFilePath);

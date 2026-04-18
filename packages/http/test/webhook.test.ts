@@ -348,7 +348,6 @@ describe("WebhookHandler", () => {
           open: true,
           title: "test",
           convert2Mp4Option: true,
-          removeSourceAferrConvert2Mp4: true,
           minSize: 1,
           partMergeMinute: 10,
         });

@@ -180,7 +180,7 @@ type LiveInfoCacheEntry = {
   expiresAt: number;
 };
 
-const LIVE_INFO_CACHE_TTL = 10 * 60 * 1000;
+const LIVE_INFO_CACHE_TTL = 20 * 60 * 1000;
 const LIVE_INFO_CACHE_STORAGE_KEY = "recorder-live-info-cache";
 
 // 列配置
@@ -597,7 +597,7 @@ const handleBatchOperateCompleted = async () => {
 
 const init = async () => {
   await getList();
-  await getLiveInfo(false);
+  getLiveInfo(false);
 };
 
 init();
@@ -623,6 +623,7 @@ onDeactivated(() => {
 
 onActivated(() => {
   createInterval();
+  getLiveInfo(false);
 });
 
 // 在模块失活时清除定时器
