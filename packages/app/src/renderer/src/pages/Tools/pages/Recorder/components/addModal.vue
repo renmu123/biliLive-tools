@@ -422,14 +422,59 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <Tip text="Cookie" tip="我也不知道有啥用，可能哪天被风控的时候用得上吧"></Tip>
+                <Tip text="Cookie模式" tip="控制直播流Cookie注入策略"></Tip>
               </template>
-              <n-input
-                v-model:value="config.cookie"
-                type="password"
-                :disabled="globalFieldsObj.cookie"
+              <n-select
+                v-model:value="config.douyinCookieMode"
+                :options="douyinCookieModeOptions"
+                :disabled="globalFieldsObj.douyinCookieMode"
               />
-              <n-checkbox v-model:checked="globalFieldsObj.cookie" class="global-checkbox"
+              <n-checkbox v-model:checked="globalFieldsObj.douyinCookieMode" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip text="Cookie账号池" tip="直播间维度维护多个Cookie账号"></Tip>
+              </template>
+              <div style="display: flex; width: 100%; flex-direction: column; gap: 10px">
+                <n-button
+                  type="primary"
+                  ghost
+                  style="width: fit-content"
+                  @click="addDouyinCookieAccount"
+                  :disabled="globalFieldsObj.douyinCookieAccounts"
+                  >新增账号</n-button
+                >
+                <div
+                  v-for="account in douyinCookieAccountsSorted"
+                  :key="account.id"
+                  style="display: flex; gap: 10px; align-items: center"
+                >
+                  <n-input
+                    v-model:value="account.remark"
+                    placeholder="备注"
+                    :disabled="globalFieldsObj.douyinCookieAccounts"
+                    style="width: 140px"
+                  />
+                  <n-input-number
+                    v-model:value="account.weight"
+                    :min="1"
+                    :show-button="false"
+                    placeholder="随机"
+                    clearable
+                    :parse="(val: string) => (val ? Number(val.replace(/\D/g, '')) : null)"
+                    :format="(val: number | null) => (val ? String(val) : '')"
+                    style="width: 100px"
+                    :disabled="globalFieldsObj.douyinCookieAccounts"
+                  >
+                    <template #prefix>权重</template>
+                  </n-input-number>
+                </div>
+              </div>
+              <n-checkbox
+                v-model:checked="globalFieldsObj.douyinCookieAccounts"
+                class="global-checkbox"
                 >全局</n-checkbox
               >
             </n-form-item>
@@ -657,12 +702,13 @@ import {
   recorderDebugLevelOptions,
   douyinApiTypeOptions,
   huyaApiTypeOptions,
+  douyinCookieModeOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
 import { cloneDeep } from "lodash-es";
 
-import type { Recorder } from "@biliLive-tools/types";
+import type { Recorder, DouyinCookieAccount } from "@biliLive-tools/types";
 
 interface Props {
   id?: string;
@@ -695,6 +741,8 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     videoFormat: true,
     recorderType: true,
     cookie: true,
+    douyinCookieMode: true,
+    douyinCookieAccounts: true,
     doubleScreen: true,
     useServerTimestamp: true,
     debugLevel: true,
@@ -704,6 +752,45 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
 
 const recordConfig = cloneDeep(defaultRecordConfig);
 const config = ref(recordConfig);
+
+const createDouyinCookieAccount = (): DouyinCookieAccount => ({
+  id: `dy-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+  remark: "",
+  cookie: "",
+  enabled: true,
+  weight: 1,
+});
+
+const ensureDouyinCookieConfig = () => {
+  if (!config.value || config.value.providerId !== "DouYin") {
+    return;
+  }
+  if (!config.value.douyinCookieMode) {
+    config.value.douyinCookieMode = "always";
+  }
+  if (!Array.isArray(config.value.douyinCookieAccounts)) {
+    config.value.douyinCookieAccounts = [];
+  }
+};
+
+const addDouyinCookieAccount = () => {
+  ensureDouyinCookieConfig();
+  config.value.douyinCookieAccounts?.push(createDouyinCookieAccount());
+};
+
+const douyinCookieAccountsSorted = computed(() => {
+  return (config.value?.douyinCookieAccounts ?? [])
+    .map((account, index) => ({ account, index }))
+    .sort((a, b) => {
+      const weightA = Number(a.account.weight ?? 0);
+      const weightB = Number(b.account.weight ?? 0);
+      if (weightA === weightB) {
+        return a.index - b.index;
+      }
+      return weightA - weightB;
+    })
+    .map((item) => item.account);
+});
 
 const confirmDialog = useConfirm();
 const confirm = async () => {
@@ -792,6 +879,10 @@ const initGlobalFields = () => {
     videoFormat: !(config.value?.noGlobalFollowFields ?? []).includes("videoFormat"),
     recorderType: !(config.value?.noGlobalFollowFields ?? []).includes("recorderType"),
     cookie: !(config.value?.noGlobalFollowFields ?? []).includes("cookie"),
+    douyinCookieMode: !(config.value?.noGlobalFollowFields ?? []).includes("douyinCookieMode"),
+    douyinCookieAccounts: !(config.value?.noGlobalFollowFields ?? []).includes(
+      "douyinCookieAccounts",
+    ),
     doubleScreen: !(config.value?.noGlobalFollowFields ?? []).includes("doubleScreen"),
     useServerTimestamp: !(config.value?.noGlobalFollowFields ?? []).includes("useServerTimestamp"),
     debugLevel: !(config.value?.noGlobalFollowFields ?? []).includes("debugLevel"),
@@ -886,15 +977,14 @@ watch(
     if (val.recorderType) {
       config.value.recorderType = appConfig.value.recorder.recorderType;
     }
-    if (val.cookie) {
-      if (config.value.providerId === "DouYin") {
-        config.value.cookie = appConfig.value.recorder.douyin.cookie;
-      } else if (config.value.providerId === "XHS") {
-        config.value.cookie = appConfig.value.recorder.xhs.cookie;
-      }
-    }
     if (val.doubleScreen) {
       config.value.doubleScreen = appConfig.value.recorder.douyin.doubleScreen;
+    }
+    if (val.douyinCookieMode) {
+      config.value.douyinCookieMode = appConfig.value.recorder.douyin.mode;
+    }
+    if (val.douyinCookieAccounts) {
+      config.value.douyinCookieAccounts = cloneDeep(appConfig.value.recorder.douyin.accounts ?? []);
     }
     if (val.useServerTimestamp) {
       config.value.useServerTimestamp = appConfig.value.recorder.useServerTimestamp;
@@ -916,6 +1006,14 @@ watch(
   {
     deep: true,
   },
+);
+
+watch(
+  () => [showModal.value, config.value?.providerId],
+  () => {
+    ensureDouyinCookieConfig();
+  },
+  { immediate: true },
 );
 </script>
 

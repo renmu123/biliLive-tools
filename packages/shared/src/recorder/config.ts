@@ -1,8 +1,8 @@
-import { get } from "lodash-es";
-import { getCookie } from "../task/bili.js";
-
 import type { Recorder } from "@biliLive-tools/types";
+import { get } from "lodash-es";
+
 import type { AppConfig } from "../config.js";
+import { getCookie } from "../task/bili.js";
 
 // 定义独立配置类
 export default class RecorderConfig {
@@ -22,9 +22,18 @@ export default class RecorderConfig {
         formatPriorities?: Array<"hls" | "flv">;
       })
     | null {
-    const getValue = (key: any): any => {
-      if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
-        return setting?.[key];
+    const settings = this.appConfig.get("recorders");
+    const globalConfig = this.appConfig.get("recorder");
+
+    const setting = settings.find((item) => item.id === id);
+    if (!setting) return null;
+
+    const noGlobalFollowFields = (setting.noGlobalFollowFields ?? []) as readonly string[];
+    const settingRecord = setting as unknown as Record<string, unknown>;
+
+    const getValue = (key: string) => {
+      if (noGlobalFollowFields.includes(key)) {
+        return settingRecord[key];
       } else {
         if (key === "uid") {
           return get(globalConfig, "bilibili.uid");
@@ -59,10 +68,16 @@ export default class RecorderConfig {
         } else if (key === "source") {
           return get(globalConfig, "douyu.source");
         } else if (key === "cookie") {
-          if (setting.providerId === "DouYin") {
-            return get(globalConfig, "douyin.cookie");
-          } else if (setting.providerId === "XHS") {
+          if (setting.providerId === "XHS") {
             return get(globalConfig, "xhs.cookie");
+          }
+        } else if (key === "douyinCookieMode") {
+          if (setting.providerId === "DouYin") {
+            return get(globalConfig, "douyin.mode", "always");
+          }
+        } else if (key === "douyinCookieAccounts") {
+          if (setting.providerId === "DouYin") {
+            return get(globalConfig, "douyin.accounts", []);
           }
         } else if (key === "doubleScreen") {
           if (setting.providerId === "DouYin") {
@@ -104,15 +119,46 @@ export default class RecorderConfig {
       }
     };
 
-    const settings = this.appConfig.get("recorders");
-    const globalConfig = this.appConfig.get("recorder");
+    const normalizeDouyinAccountWeight = (weight: unknown) => {
+      const parsedWeight = Number(weight);
+      return Number.isFinite(parsedWeight) && parsedWeight > 0 ? parsedWeight : 1;
+    };
 
-    const setting = settings.find((setting) => setting.id === id)!;
-    if (!setting) return null;
+    const pickWeightedDouyinAccount = (
+      accounts: Array<{
+        remark?: string;
+        cookie?: string;
+        enabled?: boolean;
+        weight?: number;
+      }>,
+    ) => {
+      const enabledAccounts = accounts.filter((item) => item.enabled !== false && item.cookie?.trim());
+      if (enabledAccounts.length === 0) {
+        return undefined;
+      }
+
+      const normalizedAccounts = enabledAccounts.map((item) => ({
+        ...item,
+        cookie: item.cookie?.trim(),
+        weight: normalizeDouyinAccountWeight(item.weight),
+      }));
+      const totalWeight = normalizedAccounts.reduce((sum, item) => sum + item.weight, 0);
+      let random = Math.random() * totalWeight;
+
+      for (const account of normalizedAccounts) {
+        random -= account.weight;
+        if (random <= 0) {
+          return account;
+        }
+      }
+
+      return normalizedAccounts[normalizedAccounts.length - 1];
+    };
 
     // 授权处理
-    let uid: number | string | undefined = undefined;
+    let uid: number | string | undefined;
     let auth: string | undefined;
+    let currentDouyinCookieRemark: string | undefined;
     if (setting.providerId === "Bilibili") {
       uid = getValue("uid");
       if (uid) {
@@ -128,7 +174,22 @@ export default class RecorderConfig {
         }
       }
     } else if (setting.providerId === "DouYin") {
-      auth = getValue("cookie");
+      const cookieMode = getValue("douyinCookieMode") ?? "always";
+      const accounts = (getValue("douyinCookieAccounts") ?? []) as Array<{
+        remark?: string;
+        cookie?: string;
+        enabled?: boolean;
+        weight?: number;
+      }>;
+      const selectedAccount = pickWeightedDouyinAccount(accounts);
+      if (cookieMode === "off") {
+        auth = undefined;
+      } else if (selectedAccount?.cookie) {
+        auth = selectedAccount.cookie;
+        currentDouyinCookieRemark = selectedAccount.remark?.trim() || undefined;
+      } else {
+        auth = undefined;
+      }
       uid = setting?.uid;
     } else if (setting.providerId === "XHS") {
       auth = getValue("cookie");
@@ -161,7 +222,7 @@ export default class RecorderConfig {
         sourcePriorities = getValue("sourcePriorities");
       }
     }
-    let api = getValue("api") ?? "auto";
+    const api = getValue("api") ?? "auto";
 
     // 弹幕处理
     let disableProvideCommentsWhenRecording =
@@ -171,7 +232,10 @@ export default class RecorderConfig {
       disableProvideCommentsWhenRecording = true;
     }
 
-    return {
+    const result: Recorder & {
+      auth?: string;
+      formatPriorities?: Array<"hls" | "flv">;
+    } = {
       ...setting,
       quality: getValue("quality") ?? "highest",
       line: getValue("line"),
@@ -187,7 +251,6 @@ export default class RecorderConfig {
       recorderType: getValue("recorderType") ?? "ffmpeg",
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
-      customHost: getValue("customHost"),
       useServerTimestamp: getValue("useServerTimestamp") ?? true,
       formatName: formatName,
       codecName: getValue("codecName") ?? "auto",
@@ -197,6 +260,21 @@ export default class RecorderConfig {
       sourcePriorities: sourcePriorities,
       api: api,
     };
+
+    const customHost = getValue("customHost");
+    if (customHost !== undefined) {
+      result.customHost = customHost;
+    }
+
+    const extra = {
+      ...(setting.extra ?? {}),
+      ...(currentDouyinCookieRemark !== undefined ? { currentDouyinCookieRemark } : {}),
+    };
+    if (Object.keys(extra).length > 0) {
+      result.extra = extra;
+    }
+
+    return result;
   }
   public list() {
     const recorders = this.appConfig.get("recorders");

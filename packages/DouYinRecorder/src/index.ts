@@ -186,6 +186,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedStream = stream.name;
   this.usedSource = stream.source;
 
+  type DouyinCookieMode = "always" | "off" | "only-save-gift" | "gift_save_only";
+  type RecorderWithDouyinCookieMode = Recorder & { douyinCookieMode?: DouyinCookieMode };
+  const cookieMode = (this as RecorderWithDouyinCookieMode).douyinCookieMode ?? "always";
+  const shouldApplyCookie =
+    cookieMode === "always" ||
+    ((cookieMode === "only-save-gift" || cookieMode === "gift_save_only") &&
+      this.saveGiftDanma === true);
+  const appliedCookie = shouldApplyCookie ? this.auth : undefined;
+
   let isEnded = false;
   const onEnd = (...args: unknown[]) => {
     if (isEnded) return;
@@ -219,7 +228,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       debugLevel: this.debugLevel ?? "none",
       onlyAudio: stream.onlyAudio,
       headers: {
-        Cookie: this.auth,
+        Cookie: appliedCookie,
       },
     },
     onEnd,
@@ -277,7 +286,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const GIFT_DELAY = 5000;
 
   const client = new DouYinDanmaClient(this?.liveInfo?.liveId as string, {
-    cookie: this.auth,
+    cookie: appliedCookie,
   });
   client.on("chat", (msg) => {
     const extraDataController = downloader.getExtraDataController();
