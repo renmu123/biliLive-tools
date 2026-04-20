@@ -1137,11 +1137,6 @@ export class WebhookHandler {
     }
   }
 
-  private formatSameMediaPartTitle(title: string, type: "raw" | "handled"): string {
-    const suffix = type === "handled" ? "处理版" : "原始版";
-    return `${title}-${suffix}`;
-  }
-
   private getSameMediaUploadCandidate(part: Part, type: "raw" | "handled", config: RoomConfig) {
     if (type === "handled") {
       return {
