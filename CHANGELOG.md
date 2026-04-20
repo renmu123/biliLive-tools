@@ -13,6 +13,7 @@
 - 录制：录播姬引擎支持显示录制的文件大小
 - Webhook：正式废弃“封装后删除源文件”选项，请使用「处理后操作」中的「删除转封装为mp4的原文件」
 - UI：web文件浏览器增加大小显示 [#416](https://github.com/renmu123/biliLive-tools/pull/416)
+- 弹幕：优化docker下渲染emoji的表现
 
 ## 其他
 
