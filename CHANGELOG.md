@@ -15,6 +15,10 @@
 - UI：web文件浏览器增加大小显示 [#416](https://github.com/renmu123/biliLive-tools/pull/416)
 - 弹幕：优化docker下渲染emoji的表现
 
+## Bug修复
+
+- 视频下载：修复B站视频下载多分P弹幕错误的bug
+
 ## 其他
 
 - mesio二进制依赖升级到 [0.4.0](https://github.com/hua0512/rust-srec/releases/tag/mesio-v0.4.0)
