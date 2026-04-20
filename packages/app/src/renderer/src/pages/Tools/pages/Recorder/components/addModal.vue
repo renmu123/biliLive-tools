@@ -491,7 +491,7 @@
               >全局</n-checkbox
             >
           </n-form-item>
-          <n-form-item>
+          <n-form-item v-if="!config.disableAutoCheck">
             <template #label>
               <Tip
                 text="监控时间段"
