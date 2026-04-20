@@ -239,6 +239,12 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
       time = timeMatch[1];
     }
 
+    const spaceMath = line.match(/下载进度:\s*([\d.]+\s*MB)\s*/);
+    if (spaceMath) {
+      const space = spaceMath[1];
+      time = time ? `${time} ${space}` : space;
+    }
+
     return {
       time,
     };

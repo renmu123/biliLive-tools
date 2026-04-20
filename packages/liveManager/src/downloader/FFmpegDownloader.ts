@@ -192,7 +192,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
 
     const timeMatch = line.match(/time=([0-9:.]+)/);
     if (timeMatch) {
-      time = timeMatch[1];
+      time = timeMatch[1].split(".")[0];
     }
 
     return {

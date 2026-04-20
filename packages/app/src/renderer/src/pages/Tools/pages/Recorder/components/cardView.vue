@@ -119,7 +119,7 @@ const list = computed(() => props.list);
 
 function formatProgress(time?: string) {
   if (!time) return "";
-  return time.split(".")[0];
+  return time;
 }
 
 const stateMap = {
