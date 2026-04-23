@@ -159,13 +159,13 @@ function filter(
 
 ##### sc (SuperChat/醒目留言)
 
-<!-- | 参数          | 类型   | 说明             |
+| 参数          | 类型   | 说明             |
 | ------------- | ------ | ---------------- |
 | `#text`       | string | SC内容           |
 | `@_user`      | string | 发送者用户名     |
 | `@_uid`       | string | 发送者用户ID     |
 | `@_price`     | number | SC金额           |
-| `@_timestamp` | number | 发送的Unix时间戳 | -->
+| `@_timestamp` | number | 发送的Unix时间戳 |
 
 ##### gift (礼物)
 
@@ -180,12 +180,15 @@ function filter(
 
 ##### guard (舰长/上舰)
 
-<!-- | 参数          | 类型   | 说明             |
+| 参数          | 类型   | 说明             |
 | ------------- | ------ | ---------------- |
 | `@_user`      | string | 购买者用户名     |
 | `@_uid`       | string | 购买者用户ID     |
+| `@_price`     | number | 金额             |
+| `@_giftname`  | string | 名称             |
 | `@_level`     | number | 舰长等级         |
-| `@_timestamp` | number | 购买的Unix时间戳 | -->
+| `@_giftcount` | number | 礼物数量         |
+| `@_timestamp` | number | 购买的Unix时间戳 |
 
 #### 使用示例
 
@@ -220,6 +223,75 @@ function filter(type, data, logger) {
 ::: tip 提示
 转换完成后建议用文本编辑器打开生成的 ASS 文件，检查过滤效果是否符合预期。
 :::
+
+### Transform 函数
+
+Transform 函数也写在同一个自定义函数输入框中，并且会在 `filter` 执行后运行，可用于动态修改数据，或通过返回对象里的 `type` 将当前消息重新分配到 `danmu`、`sc`、`guard`、`gift` 这四类之一。
+
+#### 函数签名
+
+```typescript
+function transform(
+  type: "danmu" | "sc" | "guard" | "gift",
+  data: DanmakuData,
+  logger: Console,
+): DanmakuData;
+```
+
+**返回值:**
+
+- 返回对象: 使用返回的新对象继续后续处理
+
+#### 注意事项
+
+- 若返回对象包含 `type` 字段，将按该字段重新分桶，例如把普通弹幕转成礼物消息
+- `danmu` 类型至少需要保留 `@_p`
+- `sc`、`guard`、`gift` 类型至少需要保留 `@_ts`
+- 若目标类型缺少必需字段，该条数据会被记录错误日志并丢弃，不会中断整个转换任务
+
+#### 使用示例
+
+```js
+function transform(type, data) {
+  if (type !== "danmu") return data;
+
+  if (data["#text"]?.includes("礼物弹幕")) {
+    return {
+      type: "gift",
+      "@_ts": data["@_p"]?.split(",")[0] ?? "0",
+      "@_user": data["@_user"],
+      "@_giftname": data["#text"],
+      "@_giftcount": "1",
+    };
+  }
+
+  if (data["#text"]?.includes("测试")) {
+    data["#text"] = data["#text"].replaceAll("测试", "已处理");
+  }
+
+  return data;
+}
+
+function filter(type, data) {
+  if (type !== "danmu") return true;
+  return data["#text"]?.length <= 30;
+}
+```
+
+一个更加复杂的示例，将礼物动态修改为了弹幕
+
+```js
+function transform(type, data, logger) {
+  if (type === "gift") {
+    data["#text"] = `${data["@_user"]}送出 ${data["@_giftname"]}x${data["@_giftcount"]}`;
+    // 可参考B站弹幕格式
+    data["@_p"] = `${data["@_ts"]},1,25,13369599,0,0,0,0,0`;
+    data["type"] = "danmu";
+  }
+
+  return data;
+}
+```
 
 ### 自定义参数函数
 

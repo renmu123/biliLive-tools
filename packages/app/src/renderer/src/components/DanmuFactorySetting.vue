@@ -350,13 +350,13 @@
         <template #label>
           <Tip
             text="自定义函数"
-            tip="此功能为biliLive-tools的原生实现，非danmakufactory实现，具体使用见文档"
+            tip="此功能为biliLive-tools的原生实现，非danmakufactory实现；支持 custom、filter、transform，具体使用见文档"
           ></Tip>
         </template>
         <n-input
           v-model:value="config.filterFunction"
           type="textarea"
-          placeholder="使用自定义函数来实现更多复杂功能，支持运行时改变参数以及过滤弹幕，具体使用见文档"
+          placeholder="在同一个输入框中编写 custom、filter、transform，自定义参数、筛选弹幕，或通过返回对象的 type 重新分配消息类型"
           style="width: 100%"
           :input-props="{ spellcheck: 'false' }"
         />
