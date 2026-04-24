@@ -24,6 +24,7 @@
 ## 其他
 
 - mesio二进制依赖升级到 [0.4.0](https://github.com/hua0512/rust-srec/releases/tag/mesio-v0.4.0)
+- DanmakuFactory升级至[2.1.2](https://github.com/renmu123/DanmakuFactory/releases/tag/v2.1.2)处理MacOS下的动态编译问题
 
 # 3.12.1(2026.04.12)
 
