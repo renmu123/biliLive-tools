@@ -2,6 +2,7 @@
 
 ## 功能
 
+- Webhook：上传非弹幕时支持上传到同一稿件 [#413](https://github.com/renmu123/biliLive-tools/pull/413)
 - 用户：支持用户账号导入导出 [#409](https://github.com/renmu123/biliLive-tools/pull/409)
 - 录制：优化重复文件的生成逻辑，避免覆盖 [#414](https://github.com/renmu123/biliLive-tools/pull/414)
 - 弹幕：自定义函数增加了`transform`来动态修改弹幕内容 [#424](https://github.com/renmu123/biliLive-tools/issues/424)
