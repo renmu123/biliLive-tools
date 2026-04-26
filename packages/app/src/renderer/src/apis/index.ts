@@ -8,6 +8,7 @@ import biliApi from "./bili";
 import api from "./request";
 import videoApi from "./video";
 import recordHistoryApi from "./recordHistory";
+import streamerDetailApi from "./streamerDetail";
 import danmaApi from "./danma";
 import aiApi from "./ai";
 
@@ -24,6 +25,7 @@ export {
   videoApi,
   syncApi,
   recordHistoryApi,
+  streamerDetailApi,
   danmaApi,
   aiApi,
 };
