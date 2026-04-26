@@ -1,3 +1,9 @@
+# Next
+
+## 优化
+
+- 录制：抖音用户页请求增加额外的错误判断 [#425](https://github.com/renmu123/biliLive-tools/pull/425)
+
 # 3.13.0(2026.04.26)
 
 ## 功能
