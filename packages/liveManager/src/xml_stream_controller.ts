@@ -9,6 +9,13 @@ import { pick } from "lodash-es";
 import { Message } from "./common.js";
 import { asyncThrottle } from "./utils.js";
 
+export interface XmlStreamStats {
+  danmaNum: number;
+  uniqMember: number;
+  scNum: number;
+  guardNum: number;
+}
+
 export interface XmlStreamData {
   meta: {
     title?: string;
@@ -30,6 +37,7 @@ export interface XmlStreamController {
   addMessage: (message: Message) => void;
   setMeta: (meta: Partial<XmlStreamData["meta"]>) => Promise<void>;
   flush: () => Promise<void>;
+  getStats: () => XmlStreamStats;
 }
 
 export function createRecordExtraDataController(savePath: string): XmlStreamController {
@@ -42,6 +50,23 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
   let hasCompleted = false;
   let isWriting = false;
   let isInitialized = false;
+  let danmaNum = 0;
+  let scNum = 0;
+  let guardNum = 0;
+  const interactedUsers = new Set<string>();
+
+  const getStats = (): XmlStreamStats => ({
+    danmaNum,
+    uniqMember: interactedUsers.size,
+    scNum,
+    guardNum,
+  });
+
+  const trackInteractedUser = (message: Message) => {
+    const userName = message.sender?.name?.trim();
+    if (!userName) return;
+    interactedUsers.add(userName);
+  };
 
   // 初始化文件
   const initializeFile = async () => {
@@ -94,6 +119,14 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
 
   const addMessage: XmlStreamController["addMessage"] = (message) => {
     if (hasCompleted) return;
+    if (message.type === "comment") {
+      danmaNum += 1;
+    } else if (message.type === "super_chat") {
+      scNum += 1;
+    } else if (message.type === "guard") {
+      guardNum += 1;
+    }
+    trackInteractedUser(message);
     // if (!isInitialized) return;
     data.pendingMessages.push(message);
     // 确保文件已初始化
@@ -128,6 +161,7 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
 
     // 清理内存
     data.pendingMessages = [];
+    interactedUsers.clear();
   };
 
   return {
@@ -135,6 +169,7 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
     addMessage,
     setMeta,
     flush,
+    getStats,
   };
 }
 
