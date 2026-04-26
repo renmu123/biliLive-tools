@@ -71,6 +71,19 @@ const notice = useNotification();
 
 const loginTvDialogVisible = ref(false);
 const login = async () => {
+  const [status] = await confirm.warning({
+    content: [
+      "程序请求与浏览器内正常使用所发送的请求不完全一致，能通过分析请求日志识别出来。",
+      "软件开发者不对账号发生的任何事情负责，包括并不限于被标记为机器人账号、无法参与各种抽奖和活动等。",
+      "如您知晓您的账号会因以上所列出来的部分原因所导致无法使用或权益受损等情况，并愿意承担由此所会带来的一系列后果，请继续以下的操作，软件开发者不会对您账号所发生的任何后果承担责任。",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    positiveText: "继续登录",
+    negativeText: "取消",
+  });
+  if (!status) return;
+
   loginTvDialogVisible.value = true;
 };
 
@@ -170,7 +183,9 @@ const showBiliKeyBlockedNotice = (reason: "missing" | "mismatch" | "error" | "ca
 };
 
 const downloadJSON = async (name: string, data: unknown): Promise<boolean> => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json;charset=utf-8",
+  });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -182,7 +197,7 @@ const downloadJSON = async (name: string, data: unknown): Promise<boolean> => {
   return true;
 };
 
-const readJSONFile = async <T>(file: File): Promise<T> => {
+const readJSONFile = async <T,>(file: File): Promise<T> => {
   const text = await file.text();
   return JSON.parse(text) as T;
 };
@@ -200,11 +215,11 @@ const isBiliUser = (value: unknown): value is BiliUser => {
   };
 
   return (
-    typeof user.mid === "number"
-    && typeof user.accessToken === "string"
-    && typeof user.refreshToken === "string"
-    && !!user.cookie
-    && typeof user.cookie === "object"
+    typeof user.mid === "number" &&
+    typeof user.accessToken === "string" &&
+    typeof user.refreshToken === "string" &&
+    !!user.cookie &&
+    typeof user.cookie === "object"
   );
 };
 
