@@ -3,6 +3,10 @@ import type {
   // RecorderManagerCreateOpts,
   RecordHandle,
 } from "@bililive-tools/manager";
+import type {
+  StreamerDetailQueryArgs,
+  StreamerDetailResult as StreamerDetailResponse,
+} from "@biliLive-tools/shared/db/service/streamerDetailService.js";
 
 import type { Recorder as RecoderConfig } from "@biliLive-tools/types";
 
@@ -261,6 +265,10 @@ export type RecorderAPI = {
   batchStopRecord: {
     Args: BatchStopRecordArgs;
     Resp: BatchStopRecordResp;
+  };
+  queryStreamerDetail: {
+    Args: StreamerDetailQueryArgs;
+    Resp: StreamerDetailResponse;
   };
   // getManager: {
   //   Args: GetManagerArgs;

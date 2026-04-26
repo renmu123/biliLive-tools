@@ -1,7 +1,7 @@
-import { recordHistoryService, streamerService } from "../db/index.js";
+import { recordHistoryService, streamerService } from "../index.js";
 
-import type { LiveHistory } from "../db/model/recordHistory.js";
-import type { Streamer } from "../db/model/streamer.js";
+import type { LiveHistory } from "../model/recordHistory.js";
+import type { Streamer } from "../model/streamer.js";
 
 const UNKNOWN_LIVE_ID = "__unknown_live_id__";
 
@@ -35,6 +35,7 @@ export interface StreamerDetailSessionCard {
   title: string;
   liveStartTime: number | null;
   lastRecordTime: number | null;
+  recordStartTime: number | null;
   clipCount: number;
   totalDuration: number;
   totalDanmaNum: number;
@@ -81,8 +82,14 @@ const toSessionCard = (records: LiveHistory[]): StreamerDetailSessionCard => {
     (left, right) => right.record_start_time - left.record_start_time,
   );
   const latestRecord = sortedRecords[0] || null;
+
   const earliestLiveStart = records
     .map((item) => item.live_start_time)
+    .filter((item): item is number => typeof item === "number" && item > 0)
+    .sort((left, right) => left - right)[0];
+
+  const earliestRecordSTart = records
+    .map((item) => item.record_start_time)
     .filter((item): item is number => typeof item === "number" && item > 0)
     .sort((left, right) => left - right)[0];
 
@@ -92,6 +99,7 @@ const toSessionCard = (records: LiveHistory[]): StreamerDetailSessionCard => {
     displayLiveId: records[0].live_id || "未识别场次",
     title: latestRecord?.title || records[0].title || "未命名场次",
     liveStartTime: earliestLiveStart || null,
+    recordStartTime: earliestRecordSTart || null,
     lastRecordTime: latestRecord?.record_start_time || null,
     clipCount: records.length,
     totalDuration: records.reduce((total, item) => total + getRecordDuration(item), 0),

@@ -1,6 +1,6 @@
 <template>
   <div class="streamer-detail-page">
-    <div class="toolbar">
+    <!-- <div class="toolbar">
       <div class="toolbar-left">
         <n-date-picker
           v-model:value="queryParams.startTime"
@@ -21,7 +21,7 @@
         <n-button type="primary" @click="handleQuery">查询</n-button>
         <n-button @click="router.back()">返回</n-button>
       </div>
-    </div>
+    </div> -->
 
     <div class="hero-grid">
       <n-card class="hero-card hero-card-main" :bordered="false">
@@ -30,8 +30,8 @@
             <h1>{{ displayName }}</h1>
           </div>
           <div class="hero-tags">
-            <n-tag>{{ streamerInfo.platform || "未知平台" }}</n-tag>
-            <n-tag type="success">房间号 {{ streamerInfo.room_id || "-" }}</n-tag>
+            <n-tag>{{ streamerInfo.platform || "未知" }}</n-tag>
+            <n-tag type="success">房间号 {{ streamerInfo.room_id }}</n-tag>
           </div>
         </div>
         <div class="hero-summary">
@@ -78,8 +78,8 @@
                   <div class="session-title">{{ session.title }}</div>
                   <div class="session-meta">
                     <span>live_id: {{ session.displayLiveId }}</span>
-                    <span>开播: {{ formatTime(session.liveStartTime) }}</span>
-                    <span>最近录制: {{ formatTime(session.lastRecordTime) }}</span>
+                    <span>开始: {{ formatTime(session.recordStartTime) }}</span>
+                    <span>结束: {{ formatTime(session.lastRecordTime) }}</span>
                   </div>
                 </div>
                 <div class="session-metrics">
@@ -121,31 +121,30 @@
                     </div>
                   </div>
                   <div class="clip-actions">
-                    <n-button
+                    <n-icon
                       v-if="!isWeb && clip.video_file"
-                      size="small"
-                      tertiary
+                      size="20"
+                      class="clip-action-icon"
+                      title="打开文件夹"
                       @click.stop="openFolder(clip.video_file)"
                     >
-                      打开文件夹
-                    </n-button>
-                    <n-button
+                      <FolderOpenOutline />
+                    </n-icon>
+                    <n-icon
                       v-if="!isWeb && clip.video_file"
-                      size="small"
-                      quaternary
+                      size="20"
+                      class="clip-action-icon"
+                      title="打开文件"
                       @click.stop="openFile(clip.video_file)"
                     >
-                      打开文件
-                    </n-button>
+                      <FileOpenOutlined />
+                    </n-icon>
                   </div>
                 </div>
-                <div class="clip-stat-row">
+                <!-- <div class="clip-stat-row">
                   <n-tag size="small">弹幕 {{ clip.danma_num || 0 }}</n-tag>
                   <n-tag size="small" type="warning">互动 {{ clip.interact_num || 0 }}</n-tag>
-                  <n-tag size="small" type="success">
-                    文件 {{ clip.video_filename || fileNameFromPath(clip.video_file) || "未命名" }}
-                  </n-tag>
-                </div>
+                </div> -->
               </n-card>
             </div>
           </n-collapse-item>
@@ -170,10 +169,12 @@
 </template>
 
 <script setup lang="ts">
-import { streamerDetailApi } from "@renderer/apis";
+import { recoderApi } from "@renderer/apis";
+import { FolderOpenOutline } from "@vicons/ionicons5";
+import { FileOpenOutlined } from "@vicons/material";
 import { useRoute, useRouter } from "vue-router";
 
-import type { StreamerDetailAPI } from "@biliLive-tools/http/types/streamerDetail.js";
+import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 
 defineOptions({
   name: "streamerDetail",
@@ -190,7 +191,7 @@ const streamerInfo = reactive({
   name: (route.query.name as string) || "",
 });
 
-const queryParams = reactive<StreamerDetailAPI["query"]["Args"]>({
+const queryParams = reactive<RecorderAPI["queryStreamerDetail"]["Args"]>({
   room_id: streamerInfo.room_id,
   platform: streamerInfo.platform,
   page: 1,
@@ -201,7 +202,7 @@ const queryParams = reactive<StreamerDetailAPI["query"]["Args"]>({
 
 const loading = ref(false);
 const expandedNames = ref<string[]>([]);
-const result = reactive<StreamerDetailAPI["query"]["Resp"]>({
+const result = reactive<RecorderAPI["queryStreamerDetail"]["Resp"]>({
   streamer: null,
   summary: {
     sessionCount: 0,
@@ -221,7 +222,7 @@ const result = reactive<StreamerDetailAPI["query"]["Resp"]>({
 
 const displayName = computed(() => result.streamer?.name || streamerInfo.name || "未命名主播");
 
-const applyResult = (payload: StreamerDetailAPI["query"]["Resp"]) => {
+const applyResult = (payload: RecorderAPI["queryStreamerDetail"]["Resp"]) => {
   result.streamer = payload.streamer;
   result.summary = payload.summary;
   result.pagination = payload.pagination;
@@ -239,7 +240,7 @@ const handleQuery = async () => {
 
   loading.value = true;
   try {
-    const payload = await streamerDetailApi.query(queryParams);
+    const payload = await recoderApi.queryStreamerDetail(queryParams);
     applyResult(payload);
   } catch (error: any) {
     notice.error({
@@ -287,7 +288,7 @@ const formatDuration = (duration?: number | null) => {
 };
 
 const resolveClipDuration = (
-  clip: StreamerDetailAPI["query"]["Resp"]["data"][number]["clips"][number],
+  clip: RecorderAPI["queryStreamerDetail"]["Resp"]["data"][number]["clips"][number],
 ) => {
   if (clip.video_duration && clip.video_duration > 0) {
     return clip.video_duration;
@@ -298,12 +299,6 @@ const resolveClipDuration = (
   }
 
   return 0;
-};
-
-const fileNameFromPath = (filePath?: string) => {
-  if (!filePath) return "";
-  const segments = filePath.split(/[/\\]/);
-  return segments[segments.length - 1] || "";
 };
 
 const openFolder = (filePath: string) => {
@@ -327,6 +322,10 @@ onMounted(() => {
   //   radial-gradient(circle at top left, rgba(255, 225, 170, 0.28), transparent 30%),
   //   radial-gradient(circle at top right, rgba(145, 214, 255, 0.22), transparent 34%),
   //   linear-gradient(180deg, #fffdf7 0%, #f6f8fb 100%);
+
+  [data-theme="dark"] & {
+    background: transparent;
+  }
 }
 
 .toolbar {
@@ -352,6 +351,11 @@ onMounted(() => {
   border-radius: 20px;
   background: linear-gradient(135deg, rgba(255, 252, 240, 0.98), rgba(245, 249, 255, 0.96));
   box-shadow: 0 14px 40px rgba(79, 92, 120, 0.12);
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, rgba(34, 39, 46, 0.96), rgba(24, 28, 34, 0.96));
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+  }
 }
 
 .hero-title-row {
@@ -364,6 +368,10 @@ onMounted(() => {
     margin: 6px 0 0;
     font-size: 30px;
     line-height: 1.2;
+
+    [data-theme="dark"] & {
+      color: rgba(255, 255, 255, 0.92);
+    }
   }
 }
 
@@ -398,11 +406,23 @@ onMounted(() => {
   .label {
     font-size: 12px;
     color: #7b8190;
+
+    [data-theme="dark"] & {
+      color: rgba(255, 255, 255, 0.58);
+    }
   }
 
   strong {
     font-size: 20px;
     color: #1d2a44;
+
+    [data-theme="dark"] & {
+      color: rgba(255, 255, 255, 0.92);
+    }
+  }
+
+  [data-theme="dark"] & {
+    background: rgba(255, 255, 255, 0.06);
   }
 }
 
@@ -416,6 +436,11 @@ onMounted(() => {
   overflow: hidden;
   background: rgba(255, 255, 255, 0.84);
   box-shadow: 0 18px 44px rgba(63, 78, 104, 0.1);
+
+  [data-theme="dark"] & {
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
+  }
 }
 
 :deep(.session-collapse-item .n-collapse-item__header) {
@@ -424,6 +449,10 @@ onMounted(() => {
 
 :deep(.session-collapse-item .n-collapse-item__content-wrapper) {
   border-top: 1px solid rgba(130, 142, 163, 0.16);
+
+  [data-theme="dark"] & {
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .session-card-header {
@@ -446,6 +475,10 @@ onMounted(() => {
   font-size: 20px;
   font-weight: 700;
   color: #1d2a44;
+
+  [data-theme="dark"] & {
+    color: rgba(255, 255, 255, 0.92);
+  }
 }
 
 .session-meta {
@@ -454,6 +487,10 @@ onMounted(() => {
   gap: 8px 14px;
   color: #687388;
   font-size: 13px;
+
+  [data-theme="dark"] & {
+    color: rgba(255, 255, 255, 0.6);
+  }
 }
 
 .session-metrics {
@@ -475,11 +512,23 @@ onMounted(() => {
   span {
     font-size: 12px;
     color: #7b8190;
+
+    [data-theme="dark"] & {
+      color: rgba(255, 255, 255, 0.58);
+    }
   }
 
   strong {
     font-size: 15px;
     color: #263553;
+
+    [data-theme="dark"] & {
+      color: rgba(255, 255, 255, 0.9);
+    }
+  }
+
+  [data-theme="dark"] & {
+    background: rgba(255, 255, 255, 0.06);
   }
 }
 
@@ -492,6 +541,10 @@ onMounted(() => {
 .clip-card {
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 254, 0.94));
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, rgba(42, 48, 56, 0.96), rgba(29, 33, 39, 0.96));
+  }
 }
 
 .clip-card-top {
@@ -505,6 +558,10 @@ onMounted(() => {
   font-weight: 600;
   color: #23324d;
   margin-bottom: 8px;
+
+  [data-theme="dark"] & {
+    color: rgba(255, 255, 255, 0.9);
+  }
 }
 
 .clip-meta {
@@ -513,6 +570,10 @@ onMounted(() => {
   gap: 8px 12px;
   font-size: 13px;
   color: #6b7380;
+
+  [data-theme="dark"] & {
+    color: rgba(255, 255, 255, 0.58);
+  }
 }
 
 .clip-actions {
@@ -520,6 +581,27 @@ onMounted(() => {
   gap: 8px;
   flex-wrap: wrap;
   align-items: flex-start;
+}
+
+.clip-action-icon {
+  cursor: pointer;
+  color: #5b6983;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    color: #2d6cdf;
+    transform: translateY(-1px);
+  }
+
+  [data-theme="dark"] & {
+    color: rgba(255, 255, 255, 0.64);
+
+    &:hover {
+      color: #78a9ff;
+    }
+  }
 }
 
 .clip-stat-row {
