@@ -38,30 +38,44 @@ router.get("/list", async (ctx) => {
 });
 
 router.get("/detail", async (ctx) => {
-  const roomId = getSingleQueryValue(ctx.request.query.room_id);
-  const platform = getSingleQueryValue(ctx.request.query.platform);
+  const recorderId = getSingleQueryValue(ctx.request.query.recorderId);
   const page = getSingleQueryValue(ctx.request.query.page);
   const pageSize = getSingleQueryValue(ctx.request.query.pageSize);
   const startTime = getSingleQueryValue(ctx.request.query.startTime);
   const endTime = getSingleQueryValue(ctx.request.query.endTime);
 
-  if (!roomId || !platform) {
+  if (!recorderId) {
     ctx.status = 400;
     ctx.body = {
-      message: "room_id 和 platform 不能为空",
+      message: "recorderId 不能为空",
     };
     return;
   }
 
+  const recorder = recorderService.getRecorder({ id: recorderId });
+  const recorderInfo = recorderService.getRecorderInfo({ id: recorderId });
+  if (!recorder) {
+    ctx.status = 404;
+    ctx.body = {
+      message: "录制器不存在",
+    };
+    return;
+  }
+
+  const payload = streamerDetailService.queryStreamerDetail({
+    room_id: recorder.channelId,
+    platform: recorder.providerId,
+    page: page ? Number(page) : undefined,
+    pageSize: pageSize ? Number(pageSize) : undefined,
+    startTime: startTime ? Number(startTime) : undefined,
+    endTime: endTime ? Number(endTime) : undefined,
+  });
+
   ctx.body = {
-    payload: streamerDetailService.queryStreamerDetail({
-      room_id: roomId,
-      platform,
-      page: page ? Number(page) : undefined,
-      pageSize: pageSize ? Number(pageSize) : undefined,
-      startTime: startTime ? Number(startTime) : undefined,
-      endTime: endTime ? Number(endTime) : undefined,
-    }),
+    payload: {
+      ...payload,
+      recorderInfo,
+    },
   };
 });
 

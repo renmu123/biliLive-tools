@@ -256,7 +256,7 @@ const stateMap = {
 
     &.area {
       background: linear-gradient(135deg, #e8fff4 0%, #d7f4ff 100%);
-      border: 1px solid #9adbbd;
+      // border: 1px solid #9adbbd;
       color: #1f7a52;
       font-weight: 500;
     }

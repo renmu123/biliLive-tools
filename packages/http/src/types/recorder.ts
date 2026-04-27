@@ -4,7 +4,7 @@ import type {
   RecordHandle,
 } from "@bililive-tools/manager";
 import type {
-  StreamerDetailQueryArgs,
+  StreamerDetailQueryArgs as SharedStreamerDetailQueryArgs,
   StreamerDetailResult as StreamerDetailResponse,
 } from "@biliLive-tools/shared/db/service/streamerDetailService.js";
 
@@ -202,6 +202,15 @@ export interface GetRecordExtraDataArgs {
   id: string;
 }
 
+export interface QueryStreamerDetailArgs
+  extends Omit<SharedStreamerDetailQueryArgs, "room_id" | "platform"> {
+  recorderId: RecoderConfig["id"];
+}
+
+export interface QueryStreamerDetailResp extends StreamerDetailResponse {
+  recorderInfo: ClientRecorder | null;
+}
+
 export interface BatchStartRecordArgs {
   ids: string[];
 }
@@ -267,8 +276,8 @@ export type RecorderAPI = {
     Resp: BatchStopRecordResp;
   };
   queryStreamerDetail: {
-    Args: StreamerDetailQueryArgs;
-    Resp: StreamerDetailResponse;
+    Args: QueryStreamerDetailArgs;
+    Resp: QueryStreamerDetailResp;
   };
   // getManager: {
   //   Args: GetManagerArgs;

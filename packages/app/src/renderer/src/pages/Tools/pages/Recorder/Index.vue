@@ -105,8 +105,8 @@
             </div>
 
             <div class="section" @click="toWebhook(item.channelId)">Webhook配置</div>
-            <div class="section" @click="viewStreamerDetail(item)">主播详情</div>
-            <div class="section" @click="viewHistory(item)">录制历史</div>
+            <div class="section" @click="viewStreamerDetail(item)">录制详情</div>
+            <div class="section" @click="viewHistory(item)" style="display: none">录制历史</div>
             <div class="section section-danger" @click="remove(item.id)">删除房间</div>
           </div>
         </template>
@@ -685,9 +685,7 @@ const viewStreamerDetail = (item: any) => {
   router.push({
     path: "/streamerDetail",
     query: {
-      id: item.id,
-      channelId: item.channelId,
-      platform: item.providerId,
+      recorderId: item.id,
       name: item.owner,
     },
   });

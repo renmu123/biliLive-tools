@@ -26,12 +26,30 @@
     <div class="hero-grid">
       <n-card class="hero-card hero-card-main" :bordered="false">
         <div class="hero-title-row">
-          <div>
+          <div class="hero-title-block">
             <h1>{{ displayName }}</h1>
           </div>
-          <div class="hero-tags">
-            <n-tag>{{ streamerInfo.platform || "未知" }}</n-tag>
-            <n-tag type="success">房间号 {{ streamerInfo.room_id }}</n-tag>
+          <div class="hero-side">
+            <div class="hero-tags">
+              <n-tag>{{ result.recorderInfo?.providerId || "未知" }}</n-tag>
+
+              <n-tag type="success">
+                <a
+                  :href="channelURL"
+                  target="_blank"
+                  rel="noreferrer"
+                  title="点击访问直播间"
+                  class="hero-room-link"
+                  >房间号 {{ result.recorderInfo?.channelId }}</a
+                >
+              </n-tag>
+              <n-tag :type="monitorTagType">{{ monitorLabel }}</n-tag>
+              <n-tag :type="stateTagType">{{ stateLabel }}</n-tag>
+            </div>
+            <div class="hero-actions">
+              <n-button secondary @click="goBack">返回</n-button>
+              <n-button type="primary" @click="goToHistory">录制历史</n-button>
+            </div>
           </div>
         </div>
         <div class="hero-summary">
@@ -51,15 +69,21 @@
             <span class="label">总弹幕</span>
             <strong>{{ result.summary.totalDanmaNum }}</strong>
           </div>
-          <div class="summary-item">
+          <!-- <div class="summary-item">
             <span class="label">总互动</span>
             <strong>{{ result.summary.totalInteractNum }}</strong>
-          </div>
+          </div> -->
           <div class="summary-item">
             <span class="label">最近录制</span>
             <strong>{{ formatTime(result.summary.lastRecordTime) }}</strong>
           </div>
         </div>
+        <!-- <div v-if="recorderInfoItems.length > 0" class="recorder-info-grid">
+          <div v-for="item in recorderInfoItems" :key="item.label" class="recorder-info-item">
+            <span class="label">{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+          </div>
+        </div> -->
       </n-card>
     </div>
 
@@ -95,10 +119,10 @@
                     <span>弹幕</span>
                     <strong>{{ session.totalDanmaNum }}</strong>
                   </div>
-                  <div class="metric-pill">
+                  <!-- <div class="metric-pill">
                     <span>互动</span>
                     <strong>{{ session.totalInteractNum }}</strong>
-                  </div>
+                  </div> -->
                 </div>
               </div>
             </template>
@@ -186,14 +210,12 @@ const notice = useNotice();
 const isWeb = window.isWeb;
 
 const streamerInfo = reactive({
-  room_id: (route.query.channelId as string) || "",
-  platform: (route.query.platform as string) || "",
+  recorderId: ((route.query.recorderId as string) || (route.query.id as string) || "") as string,
   name: (route.query.name as string) || "",
 });
 
 const queryParams = reactive<RecorderAPI["queryStreamerDetail"]["Args"]>({
-  room_id: streamerInfo.room_id,
-  platform: streamerInfo.platform,
+  recorderId: streamerInfo.recorderId,
   page: 1,
   pageSize: 10,
   startTime: undefined,
@@ -203,6 +225,7 @@ const queryParams = reactive<RecorderAPI["queryStreamerDetail"]["Args"]>({
 const loading = ref(false);
 const expandedNames = ref<string[]>([]);
 const result = reactive<RecorderAPI["queryStreamerDetail"]["Resp"]>({
+  recorderInfo: null,
   streamer: null,
   summary: {
     sessionCount: 0,
@@ -222,7 +245,43 @@ const result = reactive<RecorderAPI["queryStreamerDetail"]["Resp"]>({
 
 const displayName = computed(() => result.streamer?.name || streamerInfo.name || "未命名主播");
 
+const monitorLabel = computed(() =>
+  result.recorderInfo?.disableAutoCheck ? "手动监控" : "自动监控",
+);
+
+const monitorTagType = computed(() =>
+  result.recorderInfo?.disableAutoCheck ? "warning" : "success",
+);
+
+const stateLabel = computed(() =>
+  result.recorderInfo?.state === "recording" ? "录制中" : "未录制",
+);
+
+const stateTagType = computed(() =>
+  result.recorderInfo?.state === "recording" ? "error" : "default",
+);
+
+const channelURL = computed(() => result.recorderInfo?.channelURL || "");
+
+// const recorderInfoItems = computed(() => {
+//   // const recorder = result.recorder;
+//   const recorderInfo = result.recorderInfo;
+//   if (!recorderInfo) return [];
+
+//   return [
+//     // { label: "录制类型", value: recorder?.recorderType || "--" },
+//     // { label: "清晰度", value: recorder?.quality || "--" },
+//     // { label: "线路", value: recorder?.line || "--" },
+//     // { label: "视频格式", value: recorder?.videoFormat || "--" },
+//     // { label: "仅音频", value: recorder?.onlyAudio ? "是" : "否" },
+//     // { label: "当前源", value: recorderInfo?.usedSource || "--" },
+//     // { label: "当前流", value: recorderInfo?.usedStream || "--" },
+//     // { label: "保存封面", value: recorder?.saveCover ? "是" : "否" },
+//   ];
+// });
+
 const applyResult = (payload: RecorderAPI["queryStreamerDetail"]["Resp"]) => {
+  result.recorderInfo = payload.recorderInfo;
   result.streamer = payload.streamer;
   result.summary = payload.summary;
   result.pagination = payload.pagination;
@@ -231,9 +290,9 @@ const applyResult = (payload: RecorderAPI["queryStreamerDetail"]["Resp"]) => {
 };
 
 const handleQuery = async () => {
-  if (!queryParams.room_id || !queryParams.platform) {
+  if (!queryParams.recorderId) {
     notice.error({
-      title: "缺少房间号或平台信息",
+      title: "缺少录制器信息",
     });
     return;
   }
@@ -260,6 +319,22 @@ const handlePageSizeChange = (pageSize: number) => {
   queryParams.page = 1;
   queryParams.pageSize = pageSize;
   handleQuery();
+};
+
+const goBack = () => {
+  router.back();
+};
+
+const goToHistory = () => {
+  router.push({
+    path: "/liveHistory",
+    query: {
+      id: streamerInfo.recorderId,
+      channelId: result?.recorderInfo?.channelId,
+      platform: result?.recorderInfo?.providerId,
+      name: result?.streamer?.name,
+    },
+  });
 };
 
 const formatTime = (timestamp?: number | null) => {
@@ -375,6 +450,31 @@ onMounted(() => {
   }
 }
 
+.hero-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hero-subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  color: #6f7786;
+  font-size: 13px;
+
+  [data-theme="dark"] & {
+    color: rgba(255, 255, 255, 0.62);
+  }
+}
+
+.hero-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
 .eyebrow {
   font-size: 12px;
   letter-spacing: 0.12em;
@@ -388,11 +488,22 @@ onMounted(() => {
   gap: 8px;
 }
 
+.hero-room-link {
+  color: inherit;
+  text-decoration: none;
+}
+
 .hero-summary {
   margin-top: 18px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .summary-item {
@@ -423,6 +534,44 @@ onMounted(() => {
 
   [data-theme="dark"] & {
     background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.recorder-info-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.recorder-info-item {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .label {
+    font-size: 12px;
+    color: #7b8190;
+
+    [data-theme="dark"] & {
+      color: rgba(255, 255, 255, 0.58);
+    }
+  }
+
+  strong {
+    font-size: 15px;
+    color: #1d2a44;
+
+    [data-theme="dark"] & {
+      color: rgba(255, 255, 255, 0.92);
+    }
+  }
+
+  [data-theme="dark"] & {
+    background: rgba(255, 255, 255, 0.05);
   }
 }
 
@@ -627,6 +776,10 @@ onMounted(() => {
 
   .session-metrics {
     justify-content: flex-start;
+  }
+
+  .hero-side {
+    align-items: flex-start;
   }
 }
 </style>
