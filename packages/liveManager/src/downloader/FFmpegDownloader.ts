@@ -109,7 +109,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
     ];
     // 只保留缓冲区参数（针对抖音海外卡顿优化）
     inputOptions.push(
-      "-bufsize", "64M"
+      "-rtbufsize", "64M"
     );
     if (this.isHls) {
       inputOptions.push(
