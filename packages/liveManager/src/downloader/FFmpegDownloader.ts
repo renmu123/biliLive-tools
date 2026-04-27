@@ -107,6 +107,10 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
       "-user_agent",
       this.headers?.["User-Agent"] ?? DEFAULT_USER_AGENT,
     ];
+    // 只保留缓冲区参数（针对抖音海外卡顿优化）
+    inputOptions.push(
+      "-bufsize", "64M"
+    );
     if (this.isHls) {
       inputOptions.push(
         ...["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "3"],
