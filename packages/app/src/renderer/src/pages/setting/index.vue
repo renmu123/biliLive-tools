@@ -345,6 +345,7 @@
                 :global-fields-obj="{}"
                 :syncConfigs="config.sync.syncConfigs"
                 type="global"
+                @navigate="navigate"
               ></CommonSetting>
 
               <h2 style="display: inline-flex; align-items: center">
@@ -402,7 +403,7 @@
       <template #footer>
         <div class="footer">
           <n-button class="btn" @click="close">取消</n-button>
-          <n-button type="primary" class="btn" @click="saveConfig"> 确认 </n-button>
+          <n-button type="primary" class="btn" @click="saveConfig"> 保存 </n-button>
         </div>
       </template>
     </n-card>
@@ -419,6 +420,7 @@
     :syncConfigs="config.sync.syncConfigs"
     @save="saveRoomDetail"
     @delete="deleteRoom"
+    @navigate="navigate"
   ></RoomSettingDialog>
 
   <!-- 检查更新弹框 -->
@@ -862,6 +864,10 @@ const checkForUpdates = async () => {
     await window.api.common.checkUpdate();
   }
 };
+
+const navigate = (tab: string) => {
+  selectTab.value = tab;
+};
 </script>
 
 <style scoped lang="less">
@@ -892,7 +898,7 @@ const checkForUpdates = async () => {
 }
 .setting-tab > :deep(.n-tab-pane) {
   overflow: auto;
-  height: calc(100vh - 150px);
+  height: calc(100vh - 170px);
   scrollbar-gutter: stable;
   padding-right: 6px;
 }
