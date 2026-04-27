@@ -538,6 +538,12 @@ export async function getRoomInfo(
   const streamList: StreamInfo[] = Object.entries(streamData)
     .map(([quality, info]) => {
       const stream = info?.main;
+  // 把 flv/hls 临时替换为 https（如果存在 http)
+      const flvUrl = stream?.flv?.replace(/^http:\/\//, "https://");
+      const hlsUrl = stream?.hls?.replace(/^http:\/\//, "https://");
+ // >>> 最小且推荐：把替换后的值写回 stream，避免 streamData/streamList 不一致
+      if (flvUrl) stream!.flv = flvUrl;
+      if (hlsUrl) stream!.hls = hlsUrl;
       const name = qualityList.find((item) => item.key === quality)?.desc;
       return {
         quality: quality,
