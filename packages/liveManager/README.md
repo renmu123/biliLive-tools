@@ -12,12 +12,13 @@
 
 ## 支持的平台
 
-| 平台 | 包名                                |
-| ---- | ----------------------------------- |
-| B站  | `@bililive-tools/bilibili-recorder` |
-| 斗鱼 | `@bililive-tools/douyu-recorder`    |
-| 虎牙 | `@bililive-tools/huya-recorder`     |
-| 抖音 | `@bililive-tools/douyin-recorder`   |
+| 平台   | 包名                                |
+| ------ | ----------------------------------- |
+| B站    | `@bililive-tools/bilibili-recorder` |
+| 斗鱼   | `@bililive-tools/douyu-recorder`    |
+| 虎牙   | `@bililive-tools/huya-recorder`     |
+| 抖音   | `@bililive-tools/douyin-recorder`   |
+| 小红书 | `@bililive-tools/xhs-recorder`      |
 
 # 使用
 
@@ -32,9 +33,17 @@ const manager = createRecorderManager({
   savePathRule: "D:\\录制\\{platforme}}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}", // 保存路径，占位符见文档，支持 [ejs](https://ejs.co/) 模板引擎
   autoCheckInterval: 1000 * 60, // 自动检查间隔，单位秒
   maxThreadCount: 3, // 检查并发数
-  waitTime: 0, // 检查后等待时间
+  waitTime: 0, // 检查后等待时间，单位毫秒
   autoRemoveSystemReservedChars: true, // 移除系统非法字符串
   biliBatchQuery: false, // B站检查使用批量接口
+  providerCheckConfig: {
+    // Bilibili 配置：高频检查，更多线程
+    Bilibili: {
+      autoCheckInterval: 5000, // 5秒检查一次
+      maxThreadCount: 5, // 最多5个并发线程
+      waitTime: 500, // 每次检查间隔0.5秒
+    },
+  },
 });
 
 // 不同provider支持的参数不尽相同，具体见相关文档

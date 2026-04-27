@@ -158,7 +158,7 @@
 import { useThemeStore } from "@renderer/stores/theme";
 import SearchPopover from "./SearchPopover.vue";
 import { secondsToTimemark } from "@renderer/utils";
-import { useSegmentStore } from "@renderer/stores";
+import { useSegmentStore, useSubtitles } from "@renderer/stores";
 import {
   RadioButtonOffSharp,
   CheckmarkCircleOutline,
@@ -256,6 +256,7 @@ useEventListener(window, "resize", () => {
 const videoInstance = inject("videoInstance") as Ref<InstanceType<typeof VideoPlayer>>;
 
 const { cuts, selectCutId } = storeToRefs(useSegmentStore());
+const subtitleStore = useSubtitles();
 const {
   addSegment,
   removeSegment,
@@ -579,7 +580,8 @@ const songRecognize = async (segment: Segment) => {
       segment.start,
       segment.end!,
     );
-    updateSegment(segment.id, { name: data.name, lyrics: data.lyrics || "" });
+    updateSegment(segment.id, { name: data.name });
+    subtitleStore.setForSegment(segment.id, data.lyrics || "");
 
     resetSubtitle();
     if (data.name) {
@@ -614,27 +616,27 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
   // 获取配置（尝试获取，如果失败则使用默认值）
   let modelId: string | undefined = undefined;
 
-  try {
-    const config = await window.api.config.getAll();
-    const models = config?.ai?.models || [];
-    if (models.length === 0) {
-      notice.error({
-        title: "请先在设置中配置AI模型",
-        duration: 3000,
-      });
-      return;
-    }
-    modelId = config?.ai?.subtitleRecognize?.modelId;
-    if (!modelId) {
-      notice.error({
-        title: "请先在设置中配置字幕识别模型",
-        duration: 3000,
-      });
-      return;
-    }
-  } catch (error) {
+  const config = await window.api.config.getAll();
+  const models = config?.ai?.models || [];
+  if (models.length === 0) {
     notice.error({
-      title: "获取配置失败，请先配置AI模型",
+      title: "请先在设置中配置AI模型",
+      duration: 3000,
+    });
+    return;
+  }
+  modelId = config?.ai?.subtitleRecognize?.modelId;
+  if (!modelId) {
+    notice.error({
+      title: "请先在设置中配置字幕识别模型",
+      duration: 3000,
+    });
+    return;
+  }
+
+  if (modelId === "bcut" && segment.end! - segment.start > 60 * 20) {
+    notice.error({
+      title: "当前模型不适合识别超过20分钟的片段，请先切割片段",
       duration: 3000,
     });
     return;
@@ -660,9 +662,7 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
         offset: segment.start,
       },
     );
-
-    // 更新片段的字幕数据
-    updateSegment(segment.id, { lyrics: data.srt || "" });
+    subtitleStore.setForSegment(segment.id, data.srt || "");
 
     resetSubtitle();
 
@@ -680,7 +680,7 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
   } catch (error: any) {
     notice.error({
       title: "字幕识别失败",
-      content: error.message || "未知错误",
+      content: error.message || error.error || "未知错误",
       duration: 5000,
     });
   } finally {
@@ -772,7 +772,7 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
 
   .view {
     // max-height: calc(100vh - 100px);
-    min-width: 210px;
+    // min-width: 210px;
     overflow: auto;
   }
   .btns {

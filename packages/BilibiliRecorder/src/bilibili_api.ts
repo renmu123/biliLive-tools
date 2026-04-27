@@ -108,6 +108,8 @@ export async function getStatusInfoByUIDs<UID extends number>(userIds: UID[]) {
           online: number;
           room_id: number;
           short_id: number;
+          // 父分区名称
+          area_v2_parent_name: string;
         }
       >
     >

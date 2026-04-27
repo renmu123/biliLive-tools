@@ -19,7 +19,7 @@ import log from "../utils/log.js";
 import { sleep, encrypt, decrypt, getTempPath, trashItem, uuid } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
 import { getBinPath, pasrseMetadata } from "./video.js";
-import { formatTitle, formatPartTitle, buildRoomLink } from "../utils/webhook.js";
+import { formatTitle, formatPartTitle, formatDesc, buildRoomLink } from "../utils/webhook.js";
 
 import type { BiliupConfig, BiliUser, AppConfig as AppConfigType } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
@@ -375,8 +375,10 @@ export async function editMediaApi(
   video: { cid: number; filename: string; title: string; desc?: string }[],
   options: BiliupConfig,
 ) {
-  const mediaOptions = {};
-  console.log("编辑视频", options);
+  const mediaOptions = {
+    sortByCid: options.sortByCid,
+  };
+  // console.log("编辑视频", options);
 
   // const globalConfig = container.resolve("globalConfig");
   // const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
@@ -511,8 +513,9 @@ async function preFormatOptions(
   const needParseForTitle = options.title.includes("{{");
   const needParseForSource = options.copyright === 2 && !options.source;
   const needParseForPartTitle = options.partTitleTemplate && !!options.partTitleTemplate.trim();
+  const needParseForDesc = options.desc && options.desc.includes("{{");
 
-  if (!needParseForTitle && !needParseForSource && !needParseForPartTitle) {
+  if (!needParseForTitle && !needParseForSource && !needParseForPartTitle && !needParseForDesc) {
     // 不需要解析，直接返回
     return {
       options,
@@ -561,6 +564,31 @@ async function preFormatOptions(
         );
       } catch (e) {
         log.error("格式化主标题失败", e);
+      }
+    }
+  }
+
+  // 格式化简介
+  if (needParseForDesc && parseResult) {
+    if (
+      parseResult.title &&
+      parseResult.username &&
+      parseResult.roomId &&
+      parseResult.startTimestamp
+    ) {
+      try {
+        resultOptions.desc = formatDesc(
+          {
+            title: parseResult.title,
+            username: parseResult.username,
+            time: new Date((parseResult.startTimestamp ?? 0) * 1000).toISOString(),
+            roomId: parseResult.roomId,
+            filename: path.basename(firstFilePath),
+          },
+          options.desc!,
+        );
+      } catch (e) {
+        log.error("格式化简介失败", e);
       }
     }
   }
@@ -779,13 +807,15 @@ export async function editMedia(
         path: string;
         title?: string;
       }[],
-  options: BiliupConfig | any,
+  options: BiliupConfig,
   uid: number,
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
     // 强制检查稿件状态
     forceCheck?: boolean;
+    // 用于排序，按照列表顺序排序，cid可能为空，如果cid为空从上传分P件名中提取cid
+    sortParams?: { filePath: string; cid?: number }[];
     checkCallback?: (status: "completed" | "error") => void;
   },
 ) {
@@ -805,6 +835,7 @@ export async function editMedia(
       uid,
       mediaOptions: formattedOptions,
       aid,
+      sortParams: extraOptions?.sortParams,
     },
     {
       onEnd: async () => {
@@ -1233,6 +1264,8 @@ export const biliApi = {
   editVideoPartName,
   queryVideoStatus,
   getPlayUrl,
+  readUser,
+  writeUser,
 };
 
 export default biliApi;

@@ -315,8 +315,11 @@ export async function resolve(url: string) {
     if (channelInfo.uid) {
       config.uid = channelInfo.uid;
     }
+  } else if (channelInfo.providerId === "XHS") {
+    if (channelInfo.uid) {
+      config.uid = channelInfo.uid;
+    }
   }
-
   return config;
 }
 
@@ -392,6 +395,54 @@ export async function getLiveInfo(ids: string[]) {
   return list;
 }
 
+export async function batchStartRecord(ids: string[]) {
+  const recorderManager = container.resolve("recorderManager");
+
+  const requests = ids.map(async (id) => {
+    try {
+      await recorderManager.manager.startRecord(id);
+      return { id, success: true };
+    } catch (error: any) {
+      return { id, success: false, error: error.message || "开始录制失败" };
+    }
+  });
+
+  const results = await Promise.allSettled(requests);
+  const finalResults = results
+    .filter((item) => item.status === "fulfilled")
+    .map((item) => item.value);
+
+  return {
+    results: finalResults,
+    successCount: finalResults.filter((r) => r.success).length,
+    failedCount: finalResults.filter((r) => !r.success).length,
+  };
+}
+
+export async function batchStopRecord(ids: string[]) {
+  const recorderManager = container.resolve("recorderManager");
+
+  const requests = ids.map(async (id) => {
+    try {
+      await recorderManager.manager.stopRecord(id);
+      return { id, success: true };
+    } catch (error: any) {
+      return { id, success: false, error: error.message || "停止录制失败" };
+    }
+  });
+
+  const results = await Promise.allSettled(requests);
+  const finalResults = results
+    .filter((item) => item.status === "fulfilled")
+    .map((item) => item.value);
+
+  return {
+    results: finalResults,
+    successCount: finalResults.filter((r) => r.success).length,
+    failedCount: finalResults.filter((r) => !r.success).length,
+  };
+}
+
 export default {
   getRecorders,
   getRecorderNum,
@@ -403,6 +454,8 @@ export default {
   stopRecord,
   cutRecord,
   getLiveInfo,
+  batchStartRecord,
+  batchStopRecord,
   resolveChannel,
   batchResolveChannel,
   getBiliStream,

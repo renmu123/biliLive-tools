@@ -61,7 +61,6 @@ router.get("/files", async (ctx) => {
 
   if (root == "/" && process.platform === "win32") {
     const drives = await getDriveLetters();
-    root = drives[0];
     ctx.body = {
       list: drives.map((drive) => ({ type: "directory", name: drive, path: `${drive}\\` })),
       parent: "",
@@ -80,6 +79,7 @@ router.get("/files", async (ctx) => {
       type: "directory" | "file";
       name: string;
       path: string;
+      size?: number;
     }[] = [];
     for (const name of paths) {
       const filePath = path.join(root, name);
@@ -94,6 +94,7 @@ router.get("/files", async (ctx) => {
           type: type,
           name: name,
           path: filePath,
+          size: type === "file" ? fileStat.size : undefined,
         });
       } catch (error) {
         continue;
@@ -208,9 +209,9 @@ router.post("/readDanma", async (ctx) => {
     filepath: string;
   };
   // 只允许读取ass或xml文件
-  if (!filepath.endsWith(".ass") && !filepath.endsWith(".xml")) {
+  if (!filepath.endsWith(".ass") && !filepath.endsWith(".xml") && !filepath.endsWith(".srt")) {
     ctx.status = 400;
-    ctx.body = "文件不是ass或xml格式";
+    ctx.body = "文件不是ass、xml或srt格式";
     return;
   }
 

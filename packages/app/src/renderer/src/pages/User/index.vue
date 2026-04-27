@@ -3,6 +3,15 @@
     <div class="user-info">
       <div class="login-btns">
         <n-button type="primary" @click="login">登录账号</n-button>
+        <n-button @click="exportAllAccounts">导出用户</n-button>
+        <n-button @click="triggerImportAll">导入用户</n-button>
+        <input
+          ref="allImportInput"
+          type="file"
+          accept="application/json"
+          style="display: none"
+          @change="onImportAllFileChange"
+        />
       </div>
     </div>
     <div class="container">
@@ -31,6 +40,7 @@
           <div class="section" @click="updateAccountInfo(item.uid)">刷新信息</div>
           <div class="section" @click="updateAuth(item.uid)">更新授权</div>
           <div class="section" @click="getCookie(item.uid)">复制cookie</div>
+          <div class="section" @click="exportCurrentAccount(item.uid)">导出</div>
           <div class="section section-danger" @click="logout(item.uid)">退出账号</div>
         </n-popover>
       </div>
@@ -41,7 +51,9 @@
 
 <script setup lang="ts">
 import { userApi, taskApi } from "@renderer/apis";
+import { verifyBiliKey } from "@renderer/utils";
 import { useClipboard } from "@vueuse/core";
+import type { BiliUser } from "@biliLive-tools/types";
 
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
 import BiliLoginDialog from "./components/BiliLoginDialog.vue";
@@ -59,6 +71,19 @@ const notice = useNotification();
 
 const loginTvDialogVisible = ref(false);
 const login = async () => {
+  const [status] = await confirm.warning({
+    content: [
+      "程序请求与浏览器内正常使用所发送的请求不完全一致，能通过分析请求日志识别出来。",
+      "软件开发者不对账号发生的任何事情负责，包括并不限于被标记为机器人账号、无法参与各种抽奖和活动等。",
+      "如您知晓您的账号会因以上所列出来的部分原因所导致无法使用或权益受损等情况，并愿意承担由此所会带来的一系列后果，请继续以下的操作，软件开发者不会对您账号所发生的任何后果承担责任。",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    positiveText: "继续登录",
+    negativeText: "取消",
+  });
+  if (!status) return;
+
   loginTvDialogVisible.value = true;
 };
 
@@ -127,7 +152,151 @@ const updateAuth = async (uid: number) => {
 };
 
 const { copy } = useClipboard({ legacy: true });
+const allImportInput = ref<HTMLInputElement | null>(null);
+
+const showBiliKeyBlockedNotice = (reason: "missing" | "mismatch" | "error" | "cancelled") => {
+  if (reason === "missing") {
+    notice.error({
+      title: "未配置 BILILIVE_TOOLS_BILIKEY，当前操作已拦截",
+      duration: 1600,
+    });
+    return;
+  }
+  if (reason === "mismatch") {
+    notice.error({
+      title: "密钥错误，当前操作已拦截",
+      duration: 1600,
+    });
+    return;
+  }
+  if (reason === "error") {
+    notice.error({
+      title: "校验服务异常，当前操作已拦截",
+      duration: 1600,
+    });
+    return;
+  }
+  notice.warning({
+    title: "已取消校验，当前操作已拦截",
+    duration: 1200,
+  });
+};
+
+const downloadJSON = async (name: string, data: unknown): Promise<boolean> => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  return true;
+};
+
+const readJSONFile = async <T,>(file: File): Promise<T> => {
+  const text = await file.text();
+  return JSON.parse(text) as T;
+};
+
+const isBiliUser = (value: unknown): value is BiliUser => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const user = value as {
+    mid?: unknown;
+    accessToken?: unknown;
+    refreshToken?: unknown;
+    cookie?: unknown;
+  };
+
+  return (
+    typeof user.mid === "number" &&
+    typeof user.accessToken === "string" &&
+    typeof user.refreshToken === "string" &&
+    !!user.cookie &&
+    typeof user.cookie === "object"
+  );
+};
+
+const exportCurrentAccount = async (uid: number) => {
+  const isVerified = await verifyBiliKey({
+    onBlocked: showBiliKeyBlockedNotice,
+  });
+  if (!isVerified) return;
+
+  const user = await userApi.exportSingle(uid);
+  const isExported = await downloadJSON(`bili-user-${uid}.json`, user);
+  if (!isExported) return;
+  notice.success({
+    title: "导出成功",
+    duration: 1200,
+  });
+};
+
+const exportAllAccounts = async () => {
+  const isVerified = await verifyBiliKey({
+    onBlocked: showBiliKeyBlockedNotice,
+  });
+  if (!isVerified) return;
+
+  const users = await userApi.exportAll();
+  const isExported = await downloadJSON("bili-users-all.json", users);
+  if (!isExported) return;
+  notice.success({
+    title: "导出成功",
+    duration: 1200,
+  });
+};
+
+const triggerImportAll = () => {
+  allImportInput.value?.click();
+};
+
+const onImportAllFileChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  try {
+    const payload = await readJSONFile<unknown>(file);
+
+    if (Array.isArray(payload)) {
+      if (!payload.every(isBiliUser)) {
+        throw new Error("invalid user list payload");
+      }
+      await userApi.importAll(payload);
+    } else if (isBiliUser(payload)) {
+      await userApi.importSingle(payload);
+    } else {
+      throw new Error("invalid user payload");
+    }
+
+    await getUsers();
+    notice.success({
+      title: "导入成功",
+      duration: 1200,
+    });
+  } catch {
+    notice.error({
+      title: "导入失败，文件格式错误",
+      duration: 1600,
+    });
+  } finally {
+    input.value = "";
+  }
+};
+
 const getCookie = async (uid: number) => {
+  const isVerified = await verifyBiliKey({
+    onBlocked: showBiliKeyBlockedNotice,
+  });
+  if (!isVerified) return;
+
   const cookie = await userApi.getCookie(uid);
   await copy(cookie);
 
@@ -183,7 +352,7 @@ onActivated(() => {
       left: 0;
       width: 100%;
       height: 100%;
-      color: var(--text-inverse);
+      color: #ffffff;
       background-color: var(--bg-modal);
       display: flex;
       justify-content: center;

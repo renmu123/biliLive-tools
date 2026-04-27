@@ -63,19 +63,13 @@
                   <template #suffix> 像素 </template></n-input-number
                 >
               </div>
-              <div>
+              <div style="width: 140px">
                 <div>默认颜色</div>
-                <n-color-picker
-                  v-model:value="clientOptions.hotProgressColor"
-                  style="width: 140px"
-                />
+                <n-color-picker v-model:value="clientOptions.hotProgressColor" />
               </div>
-              <div>
+              <div style="width: 140px">
                 <div>覆盖颜色</div>
-                <n-color-picker
-                  v-model:value="clientOptions.hotProgressFillColor"
-                  style="width: 140px"
-                />
+                <n-color-picker v-model:value="clientOptions.hotProgressFillColor" />
               </div>
             </div>
           </div>
@@ -163,7 +157,7 @@ import BiliSetting from "@renderer/components/BiliSetting.vue";
 import ffmpegSetting from "./components/ffmpegSetting.vue";
 import PreviewModal from "./components/previewModal.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
-import { useDanmuPreset, useUserInfoStore, useAppConfig, useQueueStore } from "@renderer/stores";
+import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
 import { danmuPresetApi, taskApi, commonApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 import { deepRaw, uuid } from "@renderer/utils";
@@ -196,7 +190,6 @@ const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmu
 const { getDanmuPresets } = useDanmuPreset();
 const { userInfo } = storeToRefs(useUserInfoStore());
 const { appConfig } = storeToRefs(useAppConfig());
-const quenuStore = useQueueStore();
 
 const { handlePresetOptions, presetOptions } = useBili();
 const isWeb = computed(() => window.isWeb);
@@ -410,20 +403,6 @@ const preview = async () => {
     previewFiles.value.danmu = data.inputDanmuFile.path;
   }
 };
-
-let eventSource: EventSource | null = null;
-async function getRunningTaskNum() {
-  if (eventSource && eventSource?.readyState !== 2) return;
-  eventSource = await commonApi.getRunningTaskNum();
-
-  eventSource.onmessage = function (event) {
-    const data = JSON.parse(event.data || "{}");
-    quenuStore.setRunningTaskNum(data.num);
-  };
-}
-onActivated(() => {
-  getRunningTaskNum();
-});
 
 // 弹幕预设相关
 const { exportPreset, importPreset } = usePresetFile();

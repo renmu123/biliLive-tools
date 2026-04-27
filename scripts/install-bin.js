@@ -53,21 +53,24 @@ async function downloadFile(url, desc, options = {}) {
  */
 async function downloadMesio() {
   // https://github.com/hua0512/rust-srec
-  const platforms = {
-    win32: "windows",
-    darwin: "macos",
+  const version = "mesio-v0.4.0";
+  const mesioAssets = {
+    "win32-x64": "mesio-x86_64-pc-windows-msvc.exe",
+    "darwin-arm64": "mesio-aarch64-apple-darwin",
+    "darwin-x64": "mesio-x86_64-apple-darwin",
+    "linux-arm64": "mesio-aarch64-unknown-linux-gnu",
+    "linux-x64": "mesio-x86_64-unknown-linux-gnu",
   };
-  const archs = {
-    x64: "amd64",
-  };
-  const platform = platforms[process.platform] ?? process.platform;
-  const arch = archs[process.arch] ?? process.arch;
-  let mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/v0.3.6/mesio-${platform}-${arch}`;
-  if (platform === "windows") {
-    mesioUrl += ".exe";
+  const target = `${process.platform}-${process.arch}`;
+  const assetName = mesioAssets[target];
+
+  if (!assetName) {
+    throw new Error(`mesio ${version} 暂不支持平台: ${target}`);
   }
+
+  const mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/${version}/${assetName}`;
   await downloadFile(mesioUrl, "packages/app/resources/bin", {
-    filename: platform === "windows" ? "mesio.exe" : "mesio",
+    filename: process.platform === "win32" ? "mesio.exe" : "mesio",
   });
   // 添加执行权限
   if (process.platform === "linux" || process.platform === "darwin") {
@@ -156,7 +159,7 @@ async function downloadDanmakuFactory() {
   };
   const platform = platforms[process.platform] ?? process.platform;
   const filename = `DanmakuFactory-${platform}-${arch}-CLI.zip`;
-  let url = `https://github.com/renmu123/DanmakuFactory/releases/download/v2.1.0/${filename}`;
+  let url = `https://github.com/renmu123/DanmakuFactory/releases/download/v2.1.2/${filename}`;
 
   await downloadFile(url, ".");
   await unzip(filename, "packages/app/resources/bin");

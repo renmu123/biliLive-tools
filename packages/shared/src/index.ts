@@ -6,7 +6,7 @@ import { default as checkDiskSpace } from "check-disk-space";
 export * from "./presets/index.js";
 import { taskQueue, TaskQueue } from "./task/task.js";
 import { appConfig, AppConfig } from "./config.js";
-import { DanmuPreset, VideoPreset, FFmpegPreset } from "./presets/index.js";
+import { DanmuPreset, VideoPreset, FFmpegPreset, SubtitleStylePreset } from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import logger, { initLogger, setLogLevel } from "./utils/log.js";
 import { migrateBiliUser, checkAccountLoop } from "./task/bili.js";
@@ -31,6 +31,7 @@ export interface GlobalContainer {
   danmuPreset: DanmuPreset;
   videoPreset: VideoPreset;
   ffmpegPreset: FFmpegPreset;
+  subtitleStylePreset: SubtitleStylePreset;
   recorderManager: Awaited<ReturnType<typeof createRecorderManager>>;
 }
 
@@ -63,6 +64,7 @@ const init = async (config: GlobalConfig) => {
     danmuPreset: asClass(DanmuPreset).singleton(),
     videoPreset: asClass(VideoPreset).singleton(),
     ffmpegPreset: asClass(FFmpegPreset).singleton(),
+    subtitleStylePreset: asClass(SubtitleStylePreset).singleton(),
   });
   const recorderManager = await createRecorderManager(appConfig);
   container.register({

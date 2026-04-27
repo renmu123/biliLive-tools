@@ -35,6 +35,7 @@ export interface LiveInfo {
   cover: string;
   channelId: string;
   living: boolean;
+  area?: string;
 }
 export type GetLiveInfoResp = LiveInfo[];
 
@@ -197,6 +198,25 @@ export interface GetRecordExtraDataArgs {
   id: string;
 }
 
+export interface BatchStartRecordArgs {
+  ids: string[];
+}
+export interface BatchOperateResult {
+  id: string;
+  success: boolean;
+  error?: string;
+}
+export type BatchStartRecordResp = {
+  results: BatchOperateResult[];
+};
+
+export interface BatchStopRecordArgs {
+  ids: string[];
+}
+export type BatchStopRecordResp = {
+  results: BatchOperateResult[];
+};
+
 export type RecorderAPI = {
   getLiveInfo: {
     Args: GetLiveInfoArgs;
@@ -233,6 +253,14 @@ export type RecorderAPI = {
   cutRecord: {
     Args: CutRecordArgs;
     Resp: CutRecordResp;
+  };
+  batchStartRecord: {
+    Args: BatchStartRecordArgs;
+    Resp: BatchStartRecordResp;
+  };
+  batchStopRecord: {
+    Args: BatchStopRecordArgs;
+    Resp: BatchStopRecordResp;
   };
   // getManager: {
   //   Args: GetManagerArgs;

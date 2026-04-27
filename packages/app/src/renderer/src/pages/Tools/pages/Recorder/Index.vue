@@ -66,6 +66,8 @@
         :sort-directions="sortDirections"
         :visible-columns="visibleColumns"
         @sort="handleSort"
+        @startRecord="startRecord"
+        @stopRecord="stopRecord"
       >
         <template #action="{ item }">
           <div style="margin-top: 10px" class="section-container">
@@ -78,6 +80,13 @@
             >
               切割
             </div>
+            <div
+              class="section"
+              @click="item.disableAutoCheck ? startMonitor(item.id) : stopMonitor(item.id)"
+            >
+              {{ item.disableAutoCheck ? "开始监控" : "停止监控" }}
+            </div>
+            <div class="divider"></div>
             <div class="section" @click="edit(item.id)">直播间设置</div>
             <div class="section" @click="refresh(item.id)">刷新直播间信息</div>
             <div
@@ -110,14 +119,14 @@
           v-model:page-size="recorderLocalParams.pageSize"
           :item-count="pagination.itemCount"
           show-size-picker
-          :page-sizes="[10, 20, 30, 40, 50, 100]"
+          :page-sizes="[10, 20, 30, 40, 50]"
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
         />
       </div>
     </template>
 
-    <h1 v-else>还木有添加直播捏，添加一个看看吧，支持斗鱼、虎牙、B站、抖音</h1>
+    <h1 v-else>还木有添加直播捏，添加一个看看吧，支持斗鱼、虎牙、B站、抖音、小红书</h1>
 
     <addModal :id="editId" v-model:visible="addModalVisible" @confirm="handleModalClose"></addModal>
     <batchAddModal
@@ -129,6 +138,10 @@
       :results="batchParseResults"
       @completed="handleBatchCompleted"
     ></batchResultModal>
+    <batchOperateModal
+      v-model:visible="batchOperateModalVisible"
+      @completed="handleBatchOperateCompleted"
+    ></batchOperateModal>
     <videoModal :id="editId" v-model:visible="videoModalVisible" :video-url="videoUrl"></videoModal>
   </div>
 </template>
@@ -140,12 +153,14 @@ import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
 import addModal from "./components/addModal.vue";
 import batchAddModal from "./components/batchAddModal.vue";
 import batchResultModal from "./components/batchResultModal.vue";
+import batchOperateModal from "./components/batchOperateModal.vue";
 import videoModal from "./components/videoModal.vue";
 import cardView from "./components/cardView.vue";
 import listView from "./components/listView.vue";
 import { useRouter } from "vue-router";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import ColumnSelector from "@renderer/components/ColumnSelector.vue";
+import { platformOptions } from "./data";
 
 import { useEventListener, useStorage } from "@vueuse/core";
 import eventBus from "@renderer/utils/eventBus";
@@ -158,6 +173,15 @@ defineOptions({
 });
 
 type SortField = "living" | "state" | "monitorStatus";
+type LiveInfoItem = RecorderAPI["getLiveInfo"]["Resp"][number];
+type RecorderItem = RecorderAPI["getRecorders"]["Resp"]["data"][number];
+type LiveInfoCacheEntry = {
+  data: LiveInfoItem;
+  expiresAt: number;
+};
+
+const LIVE_INFO_CACHE_TTL = 20 * 60 * 1000;
+const LIVE_INFO_CACHE_STORAGE_KEY = "recorder-live-info-cache";
 
 // 列配置
 const columnConfig = [
@@ -201,24 +225,6 @@ const params = ref<Parameters<typeof recoderApi.infoList>[0]>({
   page: 1,
 });
 
-const platformOptions = ref([
-  {
-    label: "斗鱼",
-    value: "DouYu",
-  },
-  {
-    label: "B站",
-    value: "Bilibili",
-  },
-  {
-    label: "虎牙",
-    value: "HuYa",
-  },
-  {
-    label: "抖音",
-    value: "DouYin",
-  },
-]);
 const statusOptions = ref([
   {
     label: "录制中",
@@ -300,6 +306,72 @@ const pagination = ref({
   itemCount: 0,
 });
 
+const readLiveInfoCache = (): Record<string, LiveInfoCacheEntry> => {
+  const rawValue = localStorage.getItem(LIVE_INFO_CACHE_STORAGE_KEY);
+  if (!rawValue) return {};
+
+  try {
+    const parsedValue = JSON.parse(rawValue);
+    return parsedValue && typeof parsedValue === "object" ? parsedValue : {};
+  } catch {
+    localStorage.removeItem(LIVE_INFO_CACHE_STORAGE_KEY);
+    return {};
+  }
+};
+
+const writeLiveInfoCache = (cache: Record<string, LiveInfoCacheEntry>) => {
+  localStorage.setItem(LIVE_INFO_CACHE_STORAGE_KEY, JSON.stringify(cache));
+};
+
+const getValidCachedLiveInfo = (recorderId: string) => {
+  const liveInfoCache = readLiveInfoCache();
+  const cacheEntry = liveInfoCache[recorderId];
+  if (!cacheEntry) return undefined;
+  if (cacheEntry.expiresAt > Date.now()) {
+    return cacheEntry.data;
+  }
+
+  const nextCache = { ...liveInfoCache };
+  delete nextCache[recorderId];
+  writeLiveInfoCache(nextCache);
+  return undefined;
+};
+
+const updateLiveInfoCache = (recorders: RecorderItem[], items: LiveInfoItem[]) => {
+  if (recorders.length === 0 || items.length === 0) return;
+
+  const itemsByChannelId = new Map(items.map((item) => [item.channelId, item]));
+  const nextCache = { ...readLiveInfoCache() };
+  const expiresAt = Date.now() + LIVE_INFO_CACHE_TTL;
+  let changed = false;
+
+  recorders.forEach((recorder) => {
+    const liveInfo = itemsByChannelId.get(recorder.channelId);
+    if (!liveInfo) return;
+    nextCache[recorder.id] = {
+      data: liveInfo,
+      expiresAt,
+    };
+    changed = true;
+  });
+
+  if (changed) {
+    writeLiveInfoCache(nextCache);
+  }
+};
+
+const mergeLiveInfos = (recorders: RecorderItem[], ...sources: LiveInfoItem[][]) => {
+  const liveInfoByChannelId = new Map<string, LiveInfoItem>();
+
+  sources.flat().forEach((item) => {
+    liveInfoByChannelId.set(item.channelId, item);
+  });
+
+  return recorders
+    .map((recorder) => liveInfoByChannelId.get(recorder.channelId))
+    .filter((item): item is LiveInfoItem => Boolean(item));
+};
+
 const list = computed(() => {
   // 后端已经处理了排序，前端只需要合并直播信息
   const mappedList = recorderList.value.map((item) => {
@@ -311,6 +383,7 @@ const list = computed(() => {
       avatar: item?.liveInfo?.avatar || liveInfo?.avatar || item?.extra?.avatar,
       roomTitle: item?.liveInfo?.title || liveInfo?.title,
       living: item?.liveInfo?.living ?? liveInfo?.living,
+      area: item?.liveInfo?.area || liveInfo?.area,
     };
   });
 
@@ -353,6 +426,7 @@ const addModalVisible = ref(false);
 const batchAddModalVisible = ref(false);
 const batchResultModalVisible = ref(false);
 const batchParseResults = ref<any[]>([]);
+const batchOperateModalVisible = ref(false);
 
 const add = async () => {
   editId.value = "";
@@ -361,6 +435,10 @@ const add = async () => {
 
 const batchAdd = async () => {
   batchAddModalVisible.value = true;
+};
+
+const batchOperate = async () => {
+  batchOperateModalVisible.value = true;
 };
 
 const confirm = useConfirm();
@@ -390,6 +468,23 @@ const cut = async (id: string) => {
   await recoderApi.cut(id);
 };
 
+const startMonitor = async (id: string) => {
+  await recoderApi.update(id, { id, disableAutoCheck: false } as any);
+  notice.success({
+    title: "已开始监控",
+  });
+  await recoderApi.startRecord(id);
+  getList();
+};
+
+const stopMonitor = async (id: string) => {
+  await recoderApi.update(id, { id, disableAutoCheck: true } as any);
+  notice.success({
+    title: "已停止监控",
+  });
+  getList();
+};
+
 const editId = ref("");
 const edit = async (id: string) => {
   editId.value = id;
@@ -415,20 +510,64 @@ const open = async (id: string, streamUrl: string) => {
 };
 
 const getLiveInfo = async (forceRequest: boolean = false) => {
-  if (recorderList.value.length === 0) return;
-  const ids = recorderList.value.map((item) => item.id);
-  liveInfos.value = await recoderApi.getLiveInfo(ids, forceRequest);
+  if (recorderList.value.length === 0) {
+    liveInfos.value = [];
+    return;
+  }
+
+  const currentRecorders = recorderList.value;
+
+  if (forceRequest) {
+    const fetchedInfos = await recoderApi.getLiveInfo(
+      currentRecorders.map((item) => item.id),
+      true,
+    );
+    updateLiveInfoCache(currentRecorders, fetchedInfos);
+    liveInfos.value = mergeLiveInfos(currentRecorders, fetchedInfos);
+    return;
+  }
+
+  const cachedInfos: LiveInfoItem[] = [];
+  const missingRecorders: RecorderItem[] = [];
+
+  currentRecorders.forEach((recorder) => {
+    const cachedLiveInfo = getValidCachedLiveInfo(recorder.id);
+    if (cachedLiveInfo) {
+      cachedInfos.push(cachedLiveInfo);
+      return;
+    }
+    missingRecorders.push(recorder);
+  });
+
+  let fetchedInfos: LiveInfoItem[] = [];
+  if (missingRecorders.length > 0) {
+    fetchedInfos = await recoderApi.getLiveInfo(
+      missingRecorders.map((item) => item.id),
+      false,
+    );
+    updateLiveInfoCache(missingRecorders, fetchedInfos);
+  }
+
+  liveInfos.value = mergeLiveInfos(currentRecorders, cachedInfos, fetchedInfos);
 };
 
 // 刷新单个直播间信息
 const refresh = async (id: string) => {
+  const recorder = recorderList.value.find((item) => item.id === id);
+  if (!recorder) return;
+
   const data = await recoderApi.getLiveInfo([id], true);
-  liveInfos.value = liveInfos.value.map((item) => {
-    if (item.channelId === id) {
-      return data[0];
-    }
-    return item;
-  });
+  const refreshedLiveInfo = data.find((item) => item.channelId === recorder.channelId) || data[0];
+
+  if (refreshedLiveInfo) {
+    updateLiveInfoCache([recorder], [refreshedLiveInfo]);
+    liveInfos.value = mergeLiveInfos(
+      recorderList.value,
+      liveInfos.value.filter((item) => item.channelId !== recorder.channelId),
+      [refreshedLiveInfo],
+    );
+  }
+
   notice.success({
     title: "刷新成功",
   });
@@ -451,9 +590,14 @@ const handleBatchCompleted = () => {
   init();
 };
 
+const handleBatchOperateCompleted = async () => {
+  // 刷新列表
+  await getList();
+};
+
 const init = async () => {
   await getList();
-  await getLiveInfo();
+  getLiveInfo(false);
 };
 
 init();
@@ -473,20 +617,13 @@ function cleanInterval() {
   intervalId = null;
 }
 
-// 十分钟更新一次直播间信息
-setInterval(
-  () => {
-    getLiveInfo();
-  },
-  10 * 60 * 1000,
-);
-
 onDeactivated(() => {
   cleanInterval();
 });
 
 onActivated(() => {
   createInterval();
+  getLiveInfo(false);
 });
 
 // 在模块失活时清除定时器
@@ -598,11 +735,17 @@ const handleSortDirectionChange = (direction: "asc" | "desc") => {
   getList();
 };
 
-const actionBtns = ref([{ label: "批量添加", key: "batchAdd" }]);
+const actionBtns = ref([
+  { label: "批量添加", key: "batchAdd" },
+  { label: "批量操作", key: "batchOperate" },
+]);
 const handleActionClick = (key?: string | number) => {
   switch (key) {
     case "batchAdd":
       batchAdd();
+      break;
+    case "batchOperate":
+      batchOperate();
       break;
     case undefined:
       add();
@@ -628,6 +771,12 @@ const handleActionClick = (key?: string | number) => {
       color: var(--color-danger-text);
     }
   }
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--bg-hover);
+  margin: 4px 0;
 }
 .sort-buttons {
   display: flex;

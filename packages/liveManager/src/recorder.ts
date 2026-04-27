@@ -5,6 +5,7 @@ import { AnyObject, PickRequired, UnknownObject } from "./utils.js";
 import type { NamespacedCache } from "./cache.js";
 
 import type { DownloaderType } from "./downloader/index.js";
+import type { XmlStreamStats } from "./xml_stream_controller.js";
 
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
@@ -150,6 +151,7 @@ export type GetSavePath = (data: {
   startTime: number;
   liveStartTime: Date;
   recordStartTime: Date;
+  extraMs?: boolean;
 }) => string;
 
 export interface Recorder<E extends AnyObject = UnknownObject>
@@ -157,7 +159,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
       RecordStart: RecordHandle;
       RecordSegment?: RecordHandle;
       videoFileCreated: { filename: string; cover?: string; rawFilename?: string };
-      videoFileCompleted: { filename: string };
+      videoFileCompleted: { filename: string; stats?: XmlStreamStats };
       progress: Progress;
       RecordStop: { recordHandle: RecordHandle; reason?: string };
       Updated: (string | keyof Recorder)[];
@@ -189,6 +191,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     cover: string;
     liveId?: string;
     recordStartTime: Date;
+    area?: string;
   };
   tempStopIntervalCheck?: boolean;
   /** 缓存实例（命名空间） */
@@ -218,6 +221,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     channelId: ChannelId;
     living: boolean;
     liveStartTime: Date;
+    area: string;
   }>;
   getStream: (this: Recorder<E>) => Promise<{
     source: string;

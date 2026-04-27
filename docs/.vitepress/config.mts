@@ -55,6 +55,7 @@ export default defineConfig({
                 { text: "斗鱼", link: "/features/recorder/douyu" },
                 { text: "虎牙", link: "/features/recorder/huya" },
                 { text: "抖音", link: "/features/recorder/douyin" },
+                { text: "小红书", link: "/features/recorder/xhs" },
               ],
             },
             { text: "Webhook", link: "/features/webhook" },

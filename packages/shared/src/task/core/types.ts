@@ -3,7 +3,7 @@
  */
 export interface TaskEvents {
   "task-start": ({ taskId }: { taskId: string }) => void;
-  "task-end": ({ taskId }: { taskId: string }) => void;
+  "task-end": ({ taskId }: { taskId: string; data?: any }) => void;
   "task-error": ({ taskId, error }: { taskId: string; error: string }) => void;
   "task-progress": ({ taskId }: { taskId: string }) => void;
   "task-pause": ({ taskId }: { taskId: string }) => void;

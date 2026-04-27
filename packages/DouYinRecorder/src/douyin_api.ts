@@ -178,6 +178,9 @@ async function getRoomInfoByUserWeb(
   if (res.data.includes("验证码")) {
     throw new Error("需要验证码，请在浏览器中打开链接获取" + url);
   }
+  if (!res.data.includes("抖音号")) {
+    throw new Error("userHTML页面没有正常加载" + String(res.data));
+  }
   if (!res.data.includes("直播中")) {
     return {
       living: false,
@@ -356,7 +359,22 @@ async function getRoomInfoByWeb(
       },
     },
   );
-
+  if (res.data.status_code === 30003) {
+    // 直播已结束
+    return {
+      living: false,
+      nickname: "",
+      sec_uid: "",
+      avatar: "",
+      api: "web",
+      room: {
+        title: "",
+        cover: "",
+        id_str: "",
+        stream_url: null,
+      },
+    };
+  }
   assert(
     res.data.status_code === 0,
     `Unexpected resp, code ${res.data.status_code}, msg ${JSON.stringify(res.data.data)}, id ${webRoomId}, cookies: ${cookies}`,
@@ -382,6 +400,7 @@ async function getRoomInfoByWeb(
 
 async function getRoomInfoByMobile(
   secUserId: string | number,
+  // @ts-nocheck
   opts: {
     auth?: string;
   } = {},
@@ -406,7 +425,7 @@ async function getRoomInfoByMobile(
     {
       params,
       headers: {
-        cookie: opts.auth,
+        // cookie: opts.auth,
       },
     },
   );

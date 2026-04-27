@@ -25,30 +25,11 @@
     <template #label>
       <Tip
         text="转封装为mp4"
-        tip="将视频文件转换为mp4封装格式，开启后，之后的源文件指向的都是转封装的视频"
+        tip="将视频文件转换为mp4封装格式，开启后，之后的源文件指向的都是转封装的视频，如果想删除文件，请使用「处理后操作」中的「删除转封装为mp4的原文件"
       ></Tip>
     </template>
     <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-
-  <n-form-item v-if="data.convert2Mp4">
-    <template #label>
-      <Tip
-        text="封装后删除源文件（废弃）"
-        tip="该选项已废弃，请使用「处理后操作」中的「删除转封装为mp4的原文件」"
-      ></Tip>
-    </template>
-    <n-switch
-      v-model:value="data.removeSourceAferrConvert2Mp4"
-      :disabled="globalFieldsObj.removeSourceAferrConvert2Mp4"
-    />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeSourceAferrConvert2Mp4"
-      class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
@@ -124,6 +105,13 @@
       style="margin-right: 10px; width: 200px"
       clearable
     />
+    <n-button v-if="data.danmuPreset" text style="margin-right: 10px" @click="openSetting">
+      <template #icon>
+        <n-icon>
+          <SettingsOutline />
+        </n-icon>
+      </template>
+    </n-button>
     <n-button
       v-if="data.danmuPreset && !globalFieldsObj.danmuPreset"
       text
@@ -230,6 +218,18 @@
       style="margin-right: 10px; width: 200px"
       clearable
     />
+    <n-button
+      v-if="props.type === 'global'"
+      text
+      style="margin-right: 10px"
+      @click="navigate('sync')"
+    >
+      <template #icon>
+        <n-icon>
+          <SettingsOutline />
+        </n-icon>
+      </template>
+    </n-button>
     <n-button v-if="data.syncId && !globalFieldsObj.syncId" text @click="data.syncId = null"
       >清除</n-button
     >
@@ -501,7 +501,8 @@
 
   <!-- 非弹幕版相关配置 -->
   <template v-if="data.uid">
-    <n-divider />
+    <div class="divider"></div>
+
     <n-form-item>
       <template #label>
         <Tip
@@ -518,7 +519,26 @@
         >全局</n-checkbox
       >
     </n-form-item>
-    <n-form-item v-if="data.uploadNoDanmu" label="非弹幕版上传预设">
+
+    <n-form-item v-if="data.uploadNoDanmu">
+      <template #label>
+        <Tip
+          text="上传到同一稿件"
+          tip="弹幕版和非弹幕版会共用同一个稿件，最后排序优先弹幕版在前，你可以在分P标题中使用{{hasDanmaStr}}占位符区分，使用弹幕版上传预设"
+        ></Tip>
+      </template>
+      <n-switch
+        v-model:value="data.uploadToSameMedia"
+        :disabled="globalFieldsObj.uploadToSameMedia"
+      />
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.uploadToSameMedia"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
+    <n-form-item v-if="!data.uploadToSameMedia && data.uploadNoDanmu" label="非弹幕版上传预设">
       <n-select
         v-model:value="data.noDanmuVideoPreset"
         :options="props.biliupPresetsOptions"
@@ -534,13 +554,17 @@
       >
     </n-form-item>
   </template>
+
+  <DanmuFactorySettingDailog v-model:visible="showDanmuPresetDialog" v-model="danmuPresetModel" />
 </template>
 
 <script setup lang="ts">
+import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
 import { formatWebhookTitle, formatWebhookPartTitle } from "@renderer/apis/bili";
 import { templateRef } from "@vueuse/core";
 import { uploadTitleTemplate } from "@renderer/enums";
+import { SettingsOutline } from "@vicons/ionicons5";
 
 import type { AppRoomConfig, SyncType } from "@biliLive-tools/types";
 
@@ -561,6 +585,9 @@ const props = defineProps<{
     name: string;
     syncSource: SyncType;
   }[];
+}>();
+const emits = defineEmits<{
+  (e: "navigate", value: string): void;
 }>();
 
 const data = defineModel<AppRoomConfig>("data", {
@@ -590,6 +617,13 @@ const globalFieldsObj = defineModel<{
 const notice = useNotification();
 const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
 const { userList } = storeToRefs(useUserInfoStore());
+const showDanmuPresetDialog = ref(false);
+const danmuPresetModel = computed({
+  get: () => data.value.danmuPreset || "default",
+  set: (value: string) => {
+    data.value.danmuPreset = value;
+  },
+});
 
 const uploadAfterActionOptions = [
   { label: "无操作", value: "none" },
@@ -727,6 +761,10 @@ const previewPartTitle = async (template: string) => {
 
 const isRoom = computed(() => props.type === "room");
 
+const openSetting = () => {
+  showDanmuPresetDialog.value = true;
+};
+
 watch(
   () => globalFieldsObj.value,
   () => {
@@ -748,6 +786,10 @@ const previewTitle = async (template: string) => {
     title: data,
     duration: 3000,
   });
+};
+
+const navigate = (routerName: string) => {
+  emits("navigate", routerName);
 };
 </script>
 
@@ -777,5 +819,12 @@ const previewTitle = async (template: string) => {
 h2 {
   margin: 0;
   margin-bottom: 10px;
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--bg-hover);
+  margin-bottom: 14px;
+  margin-top: -10px;
 }
 </style>

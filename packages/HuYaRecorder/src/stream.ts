@@ -18,6 +18,7 @@ export async function getInfo(channelId: string): Promise<{
   liveStartTime: Date;
   liveId: string;
   recordStartTime: Date;
+  area: string;
 }> {
   const info = await getRoomInfoByWeb(channelId);
   const recordStartTime = new Date();
@@ -31,6 +32,7 @@ export async function getInfo(channelId: string): Promise<{
     liveStartTime: info.startTime,
     liveId: info.liveId,
     recordStartTime: recordStartTime,
+    area: info.area,
   };
 }
 

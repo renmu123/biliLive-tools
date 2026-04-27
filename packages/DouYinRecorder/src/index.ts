@@ -18,7 +18,7 @@ import type {
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
-import { ensureFolderExist, singleton } from "./utils.js";
+import { singleton } from "./utils.js";
 import { resolveShortURL, parseUser } from "./douyin_api.js";
 
 import DouYinDanmaClient from "douyin-danma-listener";
@@ -212,6 +212,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           startTime: opts.startTime,
           liveStartTime: liveStartTime,
           recordStartTime,
+          extraMs: opts.extraMs,
         }),
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
@@ -229,21 +230,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       return info;
     },
   );
-
-  const savePath = getSavePath({
-    owner,
-    title,
-    startTime: Date.now(),
-    liveStartTime,
-    recordStartTime,
-  });
-
-  try {
-    ensureFolderExist(savePath);
-  } catch (err) {
-    this.state = "idle";
-    throw err;
-  }
 
   const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
     this.emit("videoFileCreated", { filename, cover, rawFilename });
@@ -265,8 +251,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
   };
   downloader.on("videoFileCreated", handleVideoCreated);
-  downloader.on("videoFileCompleted", ({ filename }) => {
-    this.emit("videoFileCompleted", { filename });
+  downloader.on("videoFileCompleted", (data) => {
+    this.emit("videoFileCompleted", data);
   });
   downloader.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
@@ -296,9 +282,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   client.on("chat", (msg) => {
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
+    let timestamp: number = Date.now();
+    if (this.useServerTimestamp && msg.eventTime) {
+      // 某些消息可能没有 eventTime 字段
+      timestamp = Number(msg.eventTime) * 1000;
+    }
     const comment: Comment = {
       type: "comment",
-      timestamp: this.useServerTimestamp ? Number(msg.eventTime) * 1000 : Date.now(),
+      timestamp: timestamp,
       text: msg.content,
       color: "#ffffff",
       sender: {
@@ -365,7 +356,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       color: "#ffffff",
       sender: {
         uid: msg.user.id,
-        name: msg?.user?.nickName ?? "unknown",
+        name: msg?.user?.nickName || "unknown",
         // avatar: msg.ic,
         // extra: {
         //   level: msg.level,
@@ -493,7 +484,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     recorderType: downloader.type,
     url: stream.url,
     downloaderArgs,
-    savePath: savePath,
+    savePath: downloader.videoFilePath,
     stop,
     cut,
   };

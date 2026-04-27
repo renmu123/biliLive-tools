@@ -3,7 +3,12 @@ import { omit } from "lodash-es";
 
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { TvQrcodeLogin } from "@renmu/bili-api";
-import { formatTitle, formatPartTitle, uuid } from "@biliLive-tools/shared/utils/index.js";
+import {
+  formatTitle,
+  formatPartTitle,
+  formatDesc,
+  uuid,
+} from "@biliLive-tools/shared/utils/index.js";
 import type { BiliupConfig, PartTitleFormatOptions } from "@biliLive-tools/types";
 
 const router = new Router({
@@ -257,6 +262,26 @@ router.post("/formatPartTitle", async (ctx) => {
     template,
   );
   ctx.body = title;
+});
+
+router.post("/formatDesc", async (ctx) => {
+  const data = ctx.request.body as {
+    template: string;
+    options?: any;
+  };
+  const template = (data.template || "") as string;
+
+  const desc = formatDesc(
+    data.options ?? {
+      title: "标题",
+      username: "主播名",
+      time: new Date().toISOString(),
+      roomId: 123456,
+      filename: "文件名",
+    },
+    template,
+  );
+  ctx.body = desc;
 });
 
 export default router;

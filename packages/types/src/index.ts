@@ -149,6 +149,8 @@ export type CommonRoomConfig = {
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
+  // 将处理版和非弹幕版上传到同一稿件
+  uploadToSameMedia?: boolean;
   // 上传非视频版预设
   noDanmuVideoPreset?: string;
 };
@@ -280,6 +282,10 @@ export type ToolConfig = {
     ignoreDanmu: boolean;
     /** 字幕导出 */
     exportSubtitle: boolean;
+    /** 忽略字幕 */
+    ignoreSubtitle: boolean;
+    /** 字幕样式ID */
+    subtitleStyleId?: string;
   };
   /** 文件同步 */
   fileSync: {
@@ -287,6 +293,8 @@ export type ToolConfig = {
     removeOrigin: boolean;
     /** 同步类型 */
     syncType?: AppConfig["sync"]["syncConfigs"][number]["syncSource"];
+    /** 阿里云盘上传位置 */
+    aliyunpanDriveType?: AliyunPanDriveType;
     /** 目标路径 */
     targetPath: string;
   };
@@ -359,7 +367,16 @@ export type Theme = "system" | "light" | "dark";
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
 
-interface BilibiliRecorderConfig {
+interface RecorderCheckConfig {
+  /** 检查间隔 */
+  checkInterval?: number;
+  /** 并发数 */
+  maxThreadCount?: number;
+  /** 等待时间 */
+  waitTime?: number;
+}
+
+interface BilibiliRecorderConfig extends RecorderCheckConfig {
   /** 账号 */
   uid?: number;
   /** 画质 30000：杜比 20000：4K 25000：原画真彩 15000：2K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
@@ -375,13 +392,13 @@ interface BilibiliRecorderConfig {
   /** 自定义host */
   customHost?: string;
 }
-interface DouyuRecorderConfig {
+interface DouyuRecorderConfig extends RecorderCheckConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
   quality: 0 | 2 | 3 | 4 | 8;
   source: string;
 }
 
-interface HuyaRecorderConfig {
+interface HuyaRecorderConfig extends RecorderCheckConfig {
   /** 画质：0:原画 14100: 2khdr 14000: 2k 4200:hdr(10m) 8000:蓝光8m 4000:蓝光4m 2000:超清 500:流畅 */
   quality: 0 | 20000 | 10000 | 14100 | 14000 | 4200 | 8000 | 4000 | 2000 | 500;
   /** 流格式 */
@@ -391,7 +408,7 @@ interface HuyaRecorderConfig {
   api: "auto" | "web" | "wup" | "mp";
 }
 
-interface DouyinRecorderConfig {
+interface DouyinRecorderConfig extends RecorderCheckConfig {
   quality: "origin" | "uhd" | "hd" | "sd" | "ld" | "ao" | "real_origin";
   /** 抖音cookie */
   cookie: string;
@@ -401,6 +418,10 @@ interface DouyinRecorderConfig {
   doubleScreen: boolean;
   /** 接口类型 */
   api: "web" | "webHTML" | "mobile" | "userHTML" | "balance" | "random";
+}
+
+interface XhsRecorderConfig extends RecorderCheckConfig {
+  cookie: string;
 }
 
 // 录制全局配置
@@ -457,10 +478,12 @@ export interface GlobalRecorder {
   huya: HuyaRecorderConfig;
   /** 抖音特有的配置 */
   douyin: DouyinRecorderConfig;
+  /** 小红书特有的配置 */
+  xhs: XhsRecorderConfig;
 }
 
 export interface Recorder {
-  providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin";
+  providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin" | "XHS";
   id: string;
   channelId: string;
   remarks?: string;
@@ -546,12 +569,15 @@ export interface Recorder {
 
 export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "pan123" | "copy";
 
+export type AliyunPanDriveType = "backup" | "resource";
+
 export type SyncConfig = {
   id: string;
   name: string;
   syncSource: SyncType;
   folderStructure: string;
   targetFiles: ("source" | "danmaku" | "xml" | "cover")[];
+  aliyunpanDriveType?: AliyunPanDriveType;
   stringFilters?: "filterFourByteChars"[];
 };
 
@@ -871,6 +897,37 @@ export type VideoCodec =
   | "hevc_videotoolbox"
   | "av1_videotoolbox";
 
+export interface SubtitleOptions {
+  // 字体名称
+  fontName?: string | null;
+  // 字幕字体大小
+  fontSize?: number;
+  // 主颜色 (文字颜色，格式: &HBBGGRR& 或 #RRGGBB)
+  primaryColour?: string;
+  // 边框颜色 (格式: &HBBGGRR& 或 #RRGGBB)
+  outlineColour?: string;
+  // 阴影颜色 (格式: &HBBGGRR& 或 #RRGGBB)
+  backColour?: string;
+  // 粗体 (0=关闭, -1=开启)
+  bold?: number;
+  // 斜体 (0=关闭, -1=开启)
+  italic?: number;
+  // 下划线 (0=关闭, -1=开启)
+  underline?: number;
+  // 边框宽度
+  outline?: number;
+  // 阴影距离
+  shadow?: number;
+  // 对齐方式 (1=左下, 2=居中下, 3=右下, 5=左上, 6=居中上, 7=右上, 9=左中, 10=居中, 11=右中)
+  alignment?: number;
+  // 左边距
+  marginL?: number;
+  // 右边距
+  marginR?: number;
+  // 垂直边距
+  marginV?: number;
+}
+
 export interface FfmpegOptions {
   encoder: VideoCodec;
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
@@ -957,6 +1014,7 @@ export interface FfmpegOptions {
   timestampFollowDanmu?: boolean;
   /** pk优化 */
   pkOptimize?: boolean;
+  subtitleOptions?: SubtitleOptions;
 }
 
 export interface BiliupConfig {
@@ -1012,6 +1070,8 @@ export interface BiliupConfig {
   human_type2?: number;
   /** 定时发布：10位秒级时间戳。必须距离提交时间>7200秒 */
   dtime?: number;
+  // 表示按照cid顺序上传，编辑接口会根据这个参数对pathArray进行排序后上传，如果没有这个参数，则按照pathArray的顺序上传
+  sortByCid?: Array<number>;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

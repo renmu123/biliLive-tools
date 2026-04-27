@@ -164,9 +164,37 @@ router.post("/:id/stop_record", async (ctx) => {
   ctx.body = { payload: await recorderService.stopRecord({ id }) };
 });
 
+/**
+ * 切割录制
+ * @route POST /recorder/:recorderId/cut
+ * @param recorderId 直播间ID
+ * @returns 录制任务信息
+ */
 router.post("/:id/cut", async (ctx) => {
   const { id } = ctx.params;
   ctx.body = { payload: await recorderService.cutRecord({ id }) };
+});
+
+/**
+ * 批量开始录制
+ * @route POST /recorder/manager/batch_start_record
+ * @param ids 直播间ID列表
+ * @returns 批量操作结果
+ */
+router.post("/manager/batch_start_record", async (ctx) => {
+  const { ids } = ctx.request.body;
+  ctx.body = { payload: await recorderService.batchStartRecord(ids as string[]) };
+});
+
+/**
+ * 批量停止录制
+ * @route POST /recorder/manager/batch_stop_record
+ * @param ids 直播间ID列表
+ * @returns 批量操作结果
+ */
+router.post("/manager/batch_stop_record", async (ctx) => {
+  const { ids } = ctx.request.body;
+  ctx.body = { payload: await recorderService.batchStopRecord(ids as string[]) };
 });
 
 /**

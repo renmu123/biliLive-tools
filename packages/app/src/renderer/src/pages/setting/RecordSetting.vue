@@ -50,8 +50,8 @@
           <n-form-item>
             <template #label>
               <Tip
-                tip="每隔设置的时间对所有监听直播间进行状态检查，太快容易被风控~"
-                text="检查间隔"
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
               ></Tip>
             </template>
             <n-input-number
@@ -66,8 +66,8 @@
           <n-form-item>
             <template #label>
               <Tip
-                tip="同时最多运行的检查任务数量，和 检查间隔 共同构成了录制的循环检查周期"
-                text="并发数"
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
               ></Tip>
             </template>
             <n-input-number
@@ -81,7 +81,7 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip tip="检查任务完成后的等待时间" text="等待时间"></Tip>
+              <Tip :tip="textInfo.common.waitTime.tip" :text="textInfo.common.waitTime.text"></Tip>
             </template>
             <n-input-number
               v-model:value="config.recorder.waitTime"
@@ -263,6 +263,55 @@
             </template>
             <n-switch v-model:value="config.recorder.bilibili.useBatchQuery" />
           </n-form-item>
+          <div class="divider"></div>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.bilibili.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+              :placeholder="textInfo.common.checkInterval.placeholder"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.bilibili.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.maxThreadCount.placeholder"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.waitTime.text" :tip="textInfo.common.waitTime.tip"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.bilibili.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.waitTime.placeholder"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="douyu" tab="斗鱼" display-directive="show:lazy">
           <n-form-item>
@@ -280,6 +329,56 @@
             </template>
             <n-select v-model:value="config.recorder.douyu.source" :options="douyuSourceOptions" />
           </n-form-item>
+
+          <div class="divider"></div>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyu.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+              :placeholder="textInfo.common.checkInterval.placeholder"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyu.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.maxThreadCount.placeholder"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.waitTime.text" :tip="textInfo.common.waitTime.tip"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyu.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.waitTime.placeholder"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="huya" tab="虎牙" display-directive="show:lazy">
           <n-form-item>
@@ -290,10 +389,7 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip
-                :text="textInfo.douyin.formatName.text"
-                :tip="textInfo.douyin.formatName.tip"
-              ></Tip>
+              <Tip :text="textInfo.huya.formatName.text" :tip="textInfo.huya.formatName.tip"></Tip>
             </template>
             <n-select
               v-model:value="config.recorder.huya.formatName"
@@ -311,6 +407,56 @@
               <Tip :text="textInfo.huya.api.text" :tip="textInfo.huya.api.tip"></Tip>
             </template>
             <n-select v-model:value="config.recorder.huya.api" :options="huyaApiTypeOptions" />
+          </n-form-item>
+
+          <div class="divider"></div>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.huya.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+              :placeholder="textInfo.common.checkInterval.placeholder"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.huya.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.maxThreadCount.placeholder"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.waitTime.text" :tip="textInfo.common.waitTime.tip"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.huya.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.waitTime.placeholder"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
           </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="douyin" tab="抖音" display-directive="show:lazy">
@@ -346,12 +492,137 @@
               <Tip text="Cookie" tip="用于录制会员直播"></Tip>
             </template>
             <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
+            <n-button
+              v-if="!isWeb"
+              type="primary"
+              style="margin-left: 10px"
+              @click="douyinLogin"
+              title="登录后退出即可获取cookie"
+              >登录</n-button
+            >
           </n-form-item>
           <n-form-item>
             <template #label>
               <Tip text="双屏直播流" tip="开启后如果是双屏直播，那么就使用拼接的流"></Tip>
             </template>
             <n-switch v-model:value="config.recorder.douyin.doubleScreen" />
+          </n-form-item>
+
+          <div class="divider"></div>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyin.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+              :placeholder="textInfo.common.checkInterval.placeholder"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyin.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.maxThreadCount.placeholder"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.waitTime.text" :tip="textInfo.common.waitTime.tip"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.douyin.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.waitTime.placeholder"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
+          </n-form-item>
+        </n-tab-pane>
+        <n-tab-pane class="tab-pane" name="xhs" tab="小红书" display-directive="show:lazy">
+          <h3 style="margin-bottom: 10px">设置Cookie可自动监听，建议使用小号</h3>
+          <n-form-item>
+            <template #label>
+              <Tip text="Cookie" tip="用于自动监听"></Tip>
+            </template>
+            <n-input v-model:value="config.recorder.xhs.cookie" type="password" />
+            <n-button
+              v-if="!isWeb"
+              type="primary"
+              style="margin-left: 10px"
+              @click="xhsLogin"
+              title="登录后退出即可获取cookie，小红书一个帐号只能登录一端"
+              >登录</n-button
+            >
+          </n-form-item>
+
+          <div class="divider"></div>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.xhs.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+              :placeholder="textInfo.common.checkInterval.placeholder"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.xhs.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.maxThreadCount.placeholder"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.waitTime.text" :tip="textInfo.common.waitTime.tip"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.xhs.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.waitTime.placeholder"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
           </n-form-item>
         </n-tab-pane>
       </n-tabs>
@@ -391,6 +662,7 @@ const config = defineModel<AppConfig>("data", {
 });
 
 const { userList } = storeToRefs(useUserInfoStore());
+const isWeb = computed(() => window.isWeb);
 
 const selectFolder = async () => {
   let file: string | undefined = await showDirectoryDialog({
@@ -502,6 +774,42 @@ const handleNameRuleBlur = async () => {
     config.value.recorder.nameRule = config.value.recorder.nameRule.replaceAll(":", " ");
   }
 };
+
+const confirmCookieLoginRisk = async (platform: string, extraRisk?: string) => {
+  const [status] = await confirm.warning({
+    title: `${platform} 登录提示`,
+    content: [
+      "Cookie 会用于相关的 API 请求中。程序请求与浏览器内正常使用所发送的请求不完全一致，能通过分析请求日志识别出来。",
+      "软件开发者不对账号发生的任何事情负责，包括并不限于被标记为机器人账号、无法参与各种抽奖和活动等。建议使用小号。",
+      "如您知晓您的账号会因以上所列出来的部分原因所导致无法使用或权益受损等情况，并愿意承担由此所会带来的一系列后果，请继续以下的操作，软件开发者不会对您账号所发生的任何后果承担责任。",
+      extraRisk,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    positiveText: "继续登录",
+    negativeText: "取消",
+  });
+  return status;
+};
+
+const xhsLogin = async () => {
+  const status = await confirmCookieLoginRisk(
+    "小红书",
+    "小红书一个帐号通常只能保持一端登录，继续后可能会影响你当前设备上的登录状态",
+  );
+  if (!status) return;
+
+  const cookie = await window.api.cookie.xhsLogin();
+  config.value.recorder.xhs.cookie = cookie;
+};
+
+const douyinLogin = async () => {
+  const status = await confirmCookieLoginRisk("抖音");
+  if (!status) return;
+
+  const cookie = await window.api.cookie.douyinLogin();
+  config.value.recorder.douyin.cookie = cookie;
+};
 </script>
 
 <style scoped lang="less">
@@ -541,5 +849,12 @@ h3 {
   :deep(.n-tabs-tab) {
     padding: 6px 0;
   }
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--bg-hover);
+  margin-bottom: 14px;
+  margin-top: -10px;
 }
 </style>

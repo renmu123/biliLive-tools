@@ -83,7 +83,7 @@
         <td v-if="isColumnVisible('recordParams')" :title="item?.recordHandle?.url">
           {{
             item.state === "recording"
-              ? `${item.usedSource}/${item.usedStream}/${item?.recordHandle?.recorderType}`
+              ? `${item.area}/${item.usedSource}/${item.usedStream}/${item?.recordHandle?.recorderType}`
               : ""
           }}
         </td>
@@ -94,13 +94,26 @@
           {{
             item.disableAutoCheck
               ? "手动"
-              : `自动${item.tempStopIntervalCheck && !item.disableAutoCheck ? "(跳过本场直播)" : ""}`
+              : `自动${item.tempStopIntervalCheck && !item.disableAutoCheck ? "(跳过本场)" : ""}`
           }}
         </td>
         <td v-if="isColumnVisible('actions')">
+          <span
+            style="cursor: pointer; color: var(--color-error); margin-right: 4px"
+            v-if="item.state === 'recording'"
+            @click="emit('stopRecord', item.id)"
+            >停止</span
+          >
+          <span
+            style="cursor: pointer; color: var(--color-primary); margin-right: 4px"
+            @click="emit('startRecord', item.id)"
+            v-else
+            >开始</span
+          >
+
           <n-popover placement="right-start" trigger="hover">
             <template #trigger>
-              <span style="cursor: pointer; color: skyblue">编辑</span>
+              <span style="cursor: pointer; color: skyblue">操作</span>
             </template>
             <slot name="action" :item="item"></slot>
           </n-popover>
@@ -146,6 +159,8 @@ const isColumnVisible = (columnKey: string) => {
 
 const emit = defineEmits<{
   (e: "sort", field: string): void;
+  (e: "startRecord", channelId: string): void;
+  (e: "stopRecord", channelId: string): void;
 }>();
 
 const handleSort = (field: string) => {
@@ -192,7 +207,7 @@ const stateMap = {
 
 tr:hover {
   > td {
-    background-color: #f5f5f5;
+    background-color: var(--n-th-color);
   }
 }
 </style>
