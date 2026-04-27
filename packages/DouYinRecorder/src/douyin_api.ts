@@ -400,6 +400,7 @@ async function getRoomInfoByWeb(
 
 async function getRoomInfoByMobile(
   secUserId: string | number,
+  // @ts-nocheck
   opts: {
     auth?: string;
   } = {},
@@ -424,7 +425,7 @@ async function getRoomInfoByMobile(
     {
       params,
       headers: {
-        cookie: opts.auth,
+        // cookie: opts.auth,
       },
     },
   );

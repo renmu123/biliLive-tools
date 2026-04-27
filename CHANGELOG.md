@@ -4,6 +4,7 @@
 
 - 录制：抖音用户页请求增加额外的错误判断 [#425](https://github.com/renmu123/biliLive-tools/pull/425)
 - 录制：弹幕统计重构 [#415](https://github.com/renmu123/biliLive-tools/pull/415)
+- 录制：抖音`mobile`接口不再应用Cookie
 
 # 3.13.0(2026.04.26)
 
