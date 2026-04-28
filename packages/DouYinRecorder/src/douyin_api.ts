@@ -400,12 +400,12 @@ async function getRoomInfoByWeb(
 
 async function getRoomInfoByMobile(
   secUserId: string | number,
-  // @ts-nocheck
   opts: {
     auth?: string;
   } = {},
 ): Promise<RoomInfo> {
   if (!secUserId) {
+    console.error(opts);
     throw new Error("Mobile API need secUserId, please set uid field");
   }
   if (typeof secUserId === "number") {
