@@ -89,7 +89,7 @@ export const getFiles = async (params: {
 };
 
 const fileJoin = async (dir: string, name: string): Promise<string> => {
-  const res = await request.post(`/common/fileJoin`, {
+  const res = await request.post(`/files/join`, {
     dir,
     name,
   });
@@ -135,7 +135,7 @@ export async function uploadCover(file: File): Promise<{
 }> {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await request.post("/common/cover/upload", formData, {
+  const res = await request.post("/files/cover/upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -267,7 +267,7 @@ export const checkUpdate = async (): Promise<{
  * 获取缓存文件夹路径
  */
 export const getTempPath = async (): Promise<string> => {
-  const res = await request.get("/common/tempPath");
+  const res = await request.get("/files/temp");
   return res.data;
 };
 
@@ -275,7 +275,7 @@ export const getTempPath = async (): Promise<string> => {
  * 文件是否存在
  */
 export const fileExists = async (filepath: string): Promise<boolean> => {
-  const res = await request.post("/common/fileExists", {
+  const res = await request.post("/files/exists", {
     filepath,
   });
   return res.data;

@@ -75,6 +75,7 @@ import { NIcon } from "naive-ui";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
   BuildOutline as BuildIcon,
+  FolderOpenOutline as FolderIcon,
   HomeOutline as HomeIcon,
   InformationCircleOutline as InfoIcon,
   GitPullRequestOutline as QueueIcon,
@@ -415,6 +416,20 @@ const menuOptions = computed<MenuOption[]>(() => {
         ),
       key: "Queue",
       icon: renderQueueIcon(QueueIcon),
+    },
+    {
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "FileBrowser",
+            },
+          },
+          { default: () => "文件浏览器" },
+        ),
+      key: "FileBrowser",
+      icon: renderIcon(FolderIcon),
     },
     {
       label: () =>

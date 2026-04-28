@@ -30,6 +30,26 @@ export async function init() {
   }
 }
 
+export async function getAuthorizedDownloadUrl(downloadPath: string) {
+  const normalizedPath = downloadPath.startsWith("/") ? downloadPath : `/${downloadPath}`;
+  let auth = "";
+
+  if (window.isWeb) {
+    auth = window.localStorage.getItem("key") || "";
+  } else {
+    const appConfig = await window.api.config.getAll();
+    auth = appConfig.passKey;
+  }
+
+  const query = new URLSearchParams();
+  if (auth) {
+    query.set("auth", auth);
+  }
+
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  return `${api.defaults.baseURL}${normalizedPath}${suffix}`;
+}
+
 api.interceptors.request.use(
   (config) => {
     // header authorization
