@@ -951,6 +951,36 @@ describe("RecorderManager", () => {
         expect(callCountAfter).toBe(callCountBefore);
         expect(biliCallCountAfter).toBe(biliCallCountBefore);
       });
+
+      it("先启动检查循环再新增 recorder 时，后续也应该自动检查", async () => {
+        const manager = createRecorderManager({
+          providers: [testProvider],
+          providerCheckConfig: {
+            test: {
+              autoCheckInterval: 100,
+              maxThreadCount: 1,
+            },
+          },
+        });
+
+        manager.startCheckLoop();
+        await new Promise((resolve) => setTimeout(resolve, 30));
+
+        const recorder = manager.addRecorder({
+          id: "late-recorder",
+          providerId: "test",
+          channelId: "late-channel",
+          quality: "highest",
+          streamPriorities: [],
+          sourcePriorities: [],
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 150));
+
+        expect(recorder.checkLiveStatusAndRecord).toHaveBeenCalled();
+
+        manager.stopCheckLoop();
+      });
     });
 
     describe("向后兼容性", () => {

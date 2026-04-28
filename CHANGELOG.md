@@ -6,6 +6,10 @@
 - 录制：弹幕统计重构 [#415](https://github.com/renmu123/biliLive-tools/pull/415)
 - 录制：抖音`mobile`接口不再应用Cookie
 
+## Bug修复
+
+- 录制：修复某些情况下不会进行自动检查的bug
+
 # 3.13.0(2026.04.26)
 
 ## 功能

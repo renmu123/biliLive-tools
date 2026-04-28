@@ -467,17 +467,9 @@ export function createRecorderManager<
                 checkLoopTimers.delete(providerId);
               }
             } else {
-              // 检查该 provider 是否还有 recorder
-              const hasRecorders = this.recorders.some((r) => r.providerId === providerId);
-              if (hasRecorders) {
-                // 继续循环
-                const timer = setTimeout(checkLoop, providerConfig.autoCheckInterval);
-                checkLoopTimers.set(providerId, timer);
-              } else {
-                // 没有 recorder 了，停止该 provider 的检查循环
-                // TODO: 也许不需要删除定时器
-                checkLoopTimers.delete(providerId);
-              }
+              // 即使当前 provider 暂时没有 recorder，也保留轮询，避免后续新增 recorder 时漏掉自动检查。
+              const timer = setTimeout(checkLoop, providerConfig.autoCheckInterval);
+              checkLoopTimers.set(providerId, timer);
             }
           }
         };
