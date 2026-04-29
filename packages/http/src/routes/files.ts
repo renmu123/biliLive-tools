@@ -77,8 +77,6 @@ function getFileKind(filePath: string): "video" | "danmaku" | null {
 }
 
 function canDeleteFile(filePath: string) {
-  // TODO:测试用
-  return true;
   const fileKind = getFileKind(filePath);
   if (!fileKind) {
     return false;

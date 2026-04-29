@@ -423,20 +423,6 @@ const menuOptions = computed<MenuOption[]>(() => {
           RouterLink,
           {
             to: {
-              name: "FileBrowser",
-            },
-          },
-          { default: () => "文件浏览器" },
-        ),
-      key: "FileBrowser",
-      icon: renderIcon(FolderIcon),
-    },
-    {
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
               name: "User",
             },
           },
@@ -446,6 +432,22 @@ const menuOptions = computed<MenuOption[]>(() => {
       icon: renderImg(userInfo.value?.profile?.face || defaultUserAvatar),
     },
   ];
+  if (isWeb.value) {
+    menus.push({
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "FileBrowser",
+            },
+          },
+          { default: () => "文件浏览器" },
+        ),
+      key: "FileBrowser",
+      icon: renderIcon(FolderIcon),
+    });
+  }
   return menus;
 });
 
