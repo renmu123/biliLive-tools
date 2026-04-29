@@ -169,14 +169,8 @@ const refreshCurrent = async () => {
 };
 
 const downloadFile = async (row: FileBrowserItem) => {
-  try {
-    const url = await fileBrowserApi.createDownloadUrl(row.path);
-    triggerBrowserDownload(url);
-  } catch (error: any) {
-    notice.error({
-      title: error?.message || error || "下载失败",
-    });
-  }
+  const url = await fileBrowserApi.createDownloadUrl(row.path);
+  triggerBrowserDownload(url);
 };
 
 const removeFile = async (row: FileBrowserItem) => {

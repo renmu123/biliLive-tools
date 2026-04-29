@@ -1,4 +1,4 @@
-import request, { getAuthorizedDownloadUrl } from "./request";
+import request from "./request";
 
 export interface FileBrowserItem {
   name: string;
@@ -29,7 +29,7 @@ export async function createDownloadUrl(filePath: string): Promise<string> {
   const res = await request.post("/files/download", {
     path: filePath,
   });
-  return getAuthorizedDownloadUrl(`/assets/download/${res.data.fileId}`);
+  return `${request.defaults.baseURL}/assets/download/${res.data.fileId}`;
 }
 
 export async function removeFile(filePath: string): Promise<{ message: string; path: string }> {

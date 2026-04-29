@@ -1,4 +1,4 @@
-import request, { getAuthorizedDownloadUrl } from "./request";
+import request from "./request";
 
 /**
  * 查询直播记录列表
@@ -76,7 +76,7 @@ export async function getFileInfo(id: number): Promise<{
  */
 export async function downloadFile(id: number): Promise<string> {
   const { videoFileId } = await getFileInfo(id);
-  return getAuthorizedDownloadUrl(`/assets/download/${videoFileId}`);
+  return `${request.defaults.baseURL}/assets/download/${videoFileId}`;
 }
 
 export default {
