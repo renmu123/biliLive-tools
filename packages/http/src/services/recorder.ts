@@ -137,6 +137,13 @@ function getRecorder(
   return data;
 }
 
+function getRecorderInfo(args: RecorderAPI["getRecorder"]["Args"]): ClientRecorder | undefined {
+  const recorderManager = container.resolve("recorderManager");
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
+  if (recorder == null) throw new Error("404");
+  return recorderToClient(recorder);
+}
+
 async function addRecorder(
   args: RecorderAPI["addRecorder"]["Args"],
 ): Promise<RecorderAPI["addRecorder"]["Resp"]> {
@@ -447,6 +454,7 @@ export default {
   getRecorders,
   getRecorderNum,
   getRecorder,
+  getRecorderInfo,
   addRecorder,
   updateRecorder,
   removeRecorder,

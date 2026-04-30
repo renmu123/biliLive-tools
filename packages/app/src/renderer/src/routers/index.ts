@@ -102,6 +102,12 @@ const router = createRouter({
           component: () => import("../pages/LiveHistory/index.vue"),
           meta: { keepAlive: false },
         },
+        {
+          path: "/streamerDetail",
+          name: "streamerDetail",
+          component: () => import("../pages/streamerDetail/index.vue"),
+          meta: { keepAlive: false },
+        },
       ],
     },
   ],
