@@ -1,8 +1,5 @@
 <template>
   <div class="file-player-page">
-    <div class="header">
-      <n-button @click="goBack">返回</n-button>
-    </div>
     <!-- <n-card size="small">
       {{ videoUrl }}
       <n-space vertical :size="8">
@@ -29,7 +26,7 @@
 import { commonApi } from "@renderer/apis";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import { useNotice } from "@renderer/hooks/useNotice";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 
 import type ArtplayerType from "artplayer";
 
@@ -38,7 +35,6 @@ defineOptions({
 });
 
 const route = useRoute();
-const router = useRouter();
 const notice = useNotice();
 
 const loading = ref(false);
@@ -85,10 +81,6 @@ const loadVideo = async () => {
 const handlePlayerReady = async (_instance: ArtplayerType) => {
   playerReady.value = true;
   await syncPlayerSource();
-};
-
-const goBack = () => {
-  router.back();
 };
 
 // watch(videoUrl, () => {

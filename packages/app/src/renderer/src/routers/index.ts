@@ -109,7 +109,7 @@ const router = createRouter({
           meta: { keepAlive: false },
         },
         {
-          path: "/filePlayer",
+          path: "/videoPlayer",
           name: "VideoPlayer",
           component: () => import("../pages/VideoPlayer/index.vue"),
           meta: { keepAlive: false },

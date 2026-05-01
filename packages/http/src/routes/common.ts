@@ -225,7 +225,7 @@ router.post("/genTimeData", async (ctx) => {
 });
 
 // 申请视频ID接口
-router.post("/apply-video-id", async (ctx) => {
+router.post("/applyVideoId", async (ctx) => {
   const { videoPath } = ctx.request.body as { videoPath: string };
 
   if (!(await fs.pathExists(videoPath))) {
@@ -276,7 +276,7 @@ router.post("/apply-video-id", async (ctx) => {
   // 存储ID和视频路径的映射关系
   fileCache.set(videoId, { path: videoPath, expireAt });
 
-  let type = "";
+  let type = "mp4";
   switch (extname) {
     case ".flv":
       type = "flv";

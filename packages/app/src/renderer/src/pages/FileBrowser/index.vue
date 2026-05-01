@@ -39,10 +39,11 @@
 
 <script setup lang="ts">
 import { NButton, NTag, NText } from "naive-ui";
-import { commonApi, fileBrowserApi } from "@renderer/apis";
+import { fileBrowserApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
 import { useNotice } from "@renderer/hooks/useNotice";
 import { useRouter } from "vue-router";
+import { toVideoPlayerPage } from "@renderer/utils/pages";
 
 import type { DataTableColumns } from "naive-ui";
 import type { FileBrowserItem } from "@renderer/apis/fileBrowser";
@@ -184,20 +185,9 @@ const openPlayer = async (row: FileBrowserItem) => {
   if (!isPlayableVideo(row)) {
     return;
   }
-  try {
-    const { videoId, type } = await commonApi.applyVideoId(row.path);
-    await router.push({
-      name: "VideoPlayer",
-      query: {
-        videoId,
-        type,
-      },
-    });
-  } catch (error: any) {
-    notice.error({
-      title: error?.message || error || "创建播放地址失败",
-    });
-  }
+  toVideoPlayerPage({
+    videoFilePath: row.path,
+  });
 };
 
 const removeFile = async (row: FileBrowserItem) => {

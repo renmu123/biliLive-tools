@@ -193,7 +193,7 @@ export const applyVideoId = async (
   expireAt: number;
   type: string;
 }> => {
-  const res = await request.post(`/common/apply-video-id`, {
+  const res = await request.post(`/common/applyVideoId`, {
     videoPath,
   });
   return res.data;

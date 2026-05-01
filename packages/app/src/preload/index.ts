@@ -65,8 +65,13 @@ export const api = {
     execFile: (file: string, args: string[]) => {
       return ipcRenderer.invoke("common:execFile", file, args);
     },
-    createSubWindow: () => {
-      return ipcRenderer.invoke("common:createSubWindow", {});
+    createSubWindow: (opts: {
+      routeName: string;
+      hideAside?: boolean;
+      maximized?: boolean;
+      query?: Record<string, string>;
+    }) => {
+      return ipcRenderer.invoke("common:createSubWindow", opts);
     },
   },
   config: {

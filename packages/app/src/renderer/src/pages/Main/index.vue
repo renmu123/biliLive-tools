@@ -294,7 +294,11 @@ const menuOptions = computed<MenuOption[]>(() => {
             "a",
             {
               onClick: async () => {
-                await window.api.common.createSubWindow();
+                await window.api.common.createSubWindow({
+                  routeName: "videoCut",
+                  hideAside: true,
+                  maximized: true,
+                });
               },
             },
             { default: () => "切片" },
