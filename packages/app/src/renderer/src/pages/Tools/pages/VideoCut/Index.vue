@@ -198,6 +198,7 @@ const openSubWindow = async () => {
     routeName: "videoCut",
     hideAside: true,
     maximized: true,
+    hideMenuBar: appConfig.value.menuBarVisible ? false : true,
   });
 };
 

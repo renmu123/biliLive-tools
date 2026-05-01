@@ -125,19 +125,22 @@ onMounted(() => {
 });
 </script>
 
+<style lang="less">
+.main-container.VideoPlayer {
+  margin: 0 !important;
+}
+</style>
+
 <style scoped lang="less">
 .file-player-page {
-  /* padding: 20px; */
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: calc(100vh - 40px);
+  height: 100vh;
 }
 
 .header {
   padding: 6px 0;
-  // text-align: right;
-  // flex-;
 }
 
 .toolbar {
@@ -148,10 +151,6 @@ onMounted(() => {
 .player {
   flex: 1;
   display: block;
-  // width: 100%;
-  // height: calc(100vh - 40px);
-  /* height: 100vh; */
-  /* height: 300px; */
   background: #000;
 }
 

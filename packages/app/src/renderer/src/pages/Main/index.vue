@@ -298,6 +298,7 @@ const menuOptions = computed<MenuOption[]>(() => {
                   routeName: "videoCut",
                   hideAside: true,
                   maximized: true,
+                  hideMenuBar: appConfig.appConfig.menuBarVisible ? false : true,
                 });
               },
             },

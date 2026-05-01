@@ -68,6 +68,7 @@ export const api = {
     createSubWindow: (opts: {
       routeName: string;
       hideAside?: boolean;
+      hideMenuBar?: boolean;
       maximized?: boolean;
       query?: Record<string, string>;
     }) => {

@@ -4,17 +4,17 @@ import { recordHistoryApi } from "@renderer/apis";
 
 export async function toVideoPlayerPage(opts: {
   videoFilePath: string;
-  danmaId?: string;
+  danmaId?: string | null;
 }): Promise<void>;
 export async function toVideoPlayerPage(opts: {
   videoFilePath?: string;
-  danmaId?: string;
+  danmaId?: string | null;
   videoId: string;
   videoType: string;
 }): Promise<void>;
 export async function toVideoPlayerPage(opts: {
   videoFilePath?: string;
-  danmaId?: string;
+  danmaId?: string | null;
   videoId?: string;
   videoType?: string;
 }) {
@@ -64,6 +64,7 @@ export async function toVideoPlayerPage(opts: {
       window.api.common.createSubWindow({
         routeName: "videoPlayer",
         hideAside: true,
+        hideMenuBar: true,
         query,
       });
     }

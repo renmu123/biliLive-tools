@@ -104,6 +104,7 @@ function createSubWindow(
   options: {
     routeName: string;
     hideAside?: boolean;
+    hideMenuBar?: boolean;
     maximized?: boolean;
     query?: Record<string, string>;
   },
@@ -111,9 +112,12 @@ function createSubWindow(
   const css = `
   .layout>div>aside {
     display: none;
-  }`;
-  const appConfig = container.resolve("appConfig");
-  const menuBarVisible = appConfig.get("menuBarVisible");
+  }
+  .main-container{
+    margin: 0 !important;
+  }  
+  `;
+  const hideMenuBar = !!options.hideMenuBar;
 
   const subWindow = new BrowserWindow({
     webPreferences: {
@@ -121,7 +125,7 @@ function createSubWindow(
       sandbox: false,
       webSecurity: false,
     },
-    autoHideMenuBar: !menuBarVisible,
+    autoHideMenuBar: hideMenuBar,
   });
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
