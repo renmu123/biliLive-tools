@@ -142,7 +142,11 @@ function renderQueueIcon(icon: Component) {
 
 function renderImg(src: string) {
   return () =>
-    h("img", { src, style: { height: "30px", width: "30px" }, referrerpolicy: "no-referrer" });
+    h("img", {
+      src,
+      style: { height: "25px", width: "25px", "border-radius": "50%" },
+      referrerpolicy: "no-referrer",
+    });
 }
 
 const router = useRouter();

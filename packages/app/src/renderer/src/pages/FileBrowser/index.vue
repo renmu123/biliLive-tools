@@ -39,9 +39,10 @@
 
 <script setup lang="ts">
 import { NButton, NTag, NText } from "naive-ui";
-import { fileBrowserApi } from "@renderer/apis";
+import { commonApi, fileBrowserApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
 import { useNotice } from "@renderer/hooks/useNotice";
+import { useRouter } from "vue-router";
 
 import type { DataTableColumns } from "naive-ui";
 import type { FileBrowserItem } from "@renderer/apis/fileBrowser";
@@ -64,6 +65,7 @@ const deleteEnabled = ref(false);
 
 const confirm = useConfirm();
 const notice = useNotice();
+const router = useRouter();
 
 const pathSeparator = computed(() => (rootPath.value.includes("\\") ? "\\" : "/"));
 
@@ -173,6 +175,31 @@ const downloadFile = async (row: FileBrowserItem) => {
   triggerBrowserDownload(url);
 };
 
+const isTsFile = (row: FileBrowserItem) => row.name.toLowerCase().endsWith(".ts");
+
+const isPlayableVideo = (row: FileBrowserItem) =>
+  row.type === "file" && row.fileKind === "video" && !isTsFile(row);
+
+const openPlayer = async (row: FileBrowserItem) => {
+  if (!isPlayableVideo(row)) {
+    return;
+  }
+  try {
+    const { videoId, type } = await commonApi.applyVideoId(row.path);
+    await router.push({
+      name: "VideoPlayer",
+      query: {
+        videoId,
+        type,
+      },
+    });
+  } catch (error: any) {
+    notice.error({
+      title: error?.message || error || "创建播放地址失败",
+    });
+  }
+};
+
 const removeFile = async (row: FileBrowserItem) => {
   const [confirmed] = await confirm.warning({
     content: `确定删除文件 ${row.name} 吗？此操作不可撤销。`,
@@ -276,6 +303,20 @@ const columns = computed<DataTableColumns<FileBrowserItem>>(() => [
           { default: () => "下载" },
         ),
       ];
+      if (row.fileKind === "video") {
+        actions.unshift(
+          h(
+            NButton,
+            {
+              text: true,
+              type: "primary",
+              disabled: isTsFile(row),
+              onClick: () => openPlayer(row),
+            },
+            { default: () => (isTsFile(row) ? "TS 不支持播放" : "播放") },
+          ),
+        );
+      }
       if (row.canDelete) {
         actions.push(
           h(
