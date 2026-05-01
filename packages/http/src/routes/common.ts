@@ -276,7 +276,8 @@ router.post("/applyVideoId", async (ctx) => {
   // 存储ID和视频路径的映射关系
   fileCache.set(videoId, { path: videoPath, expireAt });
 
-  let type = "mp4";
+  // 这玩意不能轻易改，空就是默认值
+  let type = "";
   switch (extname) {
     case ".flv":
       type = "flv";

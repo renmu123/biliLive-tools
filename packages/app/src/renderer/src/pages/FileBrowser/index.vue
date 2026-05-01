@@ -42,7 +42,6 @@ import { NButton, NTag, NText } from "naive-ui";
 import { fileBrowserApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
 import { useNotice } from "@renderer/hooks/useNotice";
-import { useRouter } from "vue-router";
 import { toVideoPlayerPage } from "@renderer/utils/pages";
 
 import type { DataTableColumns } from "naive-ui";
@@ -66,7 +65,6 @@ const deleteEnabled = ref(false);
 
 const confirm = useConfirm();
 const notice = useNotice();
-const router = useRouter();
 
 const pathSeparator = computed(() => (rootPath.value.includes("\\") ? "\\" : "/"));
 

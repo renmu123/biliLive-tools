@@ -16,7 +16,12 @@
     <!-- <n-empty v-if="!videoId" description="未收到视频 ID，请从文件浏览器重新进入" /> -->
 
     <div class="player">
-      <Artplayer ref="playerRef" :option="playerOptions" @ready="handlePlayerReady" />
+      <Artplayer
+        ref="playerRef"
+        :option="playerOptions"
+        :plugins="['ass', 'danmuku']"
+        @ready="handlePlayerReady"
+      />
     </div>
     <!-- <n-empty v-else description="暂时无法生成播放地址" class="player-empty" /> -->
   </div>
@@ -24,6 +29,7 @@
 
 <script setup lang="ts">
 import { commonApi } from "@renderer/apis";
+import { danmaApi } from "@renderer/apis";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import { useNotice } from "@renderer/hooks/useNotice";
 import { useRoute } from "vue-router";
@@ -46,6 +52,9 @@ const videoId = computed(() =>
   typeof route.query.videoId === "string" ? route.query.videoId : "",
 );
 const fileType = computed(() => (typeof route.query.type === "string" ? route.query.type : ""));
+const danmaId = computed(() =>
+  typeof route.query.danmaId === "string" ? route.query.danmaId : "",
+);
 
 const playerOptions = computed(() => ({
   fullscreen: true,
@@ -58,6 +67,33 @@ const syncPlayerSource = async () => {
   await playerRef.value?.switchUrl(videoUrl.value, fileType.value);
 };
 
+const syncDanmaSource = async () => {
+  if (!playerReady.value) {
+    return;
+  }
+
+  if (!danmaId.value) {
+    return;
+  }
+
+  const data = await danmaApi.getParsedContentById(danmaId.value);
+  if (data.danmaType === "ass") {
+    const content = typeof data.content === "string" ? data.content : "";
+    await playerRef.value?.switchAss(content);
+    return;
+  }
+
+  if (data.danmaType === "xml") {
+    const danmuku = Array.isArray(data.content) ? data.content : [];
+    await playerRef.value?.switchDanmuku(danmuku);
+    return;
+  }
+
+  notice.warning({
+    title: `暂不支持加载 ${data.danmaType} 格式的弹幕`,
+  });
+};
+
 const loadVideo = async () => {
   if (!videoId.value) {
     videoUrl.value = "";
@@ -67,7 +103,7 @@ const loadVideo = async () => {
   loading.value = true;
   try {
     videoUrl.value = await commonApi.getVideo(videoId.value);
-    await syncPlayerSource();
+    // await syncPlayerSource();
   } catch (error: any) {
     videoUrl.value = "";
     notice.error({
@@ -81,11 +117,8 @@ const loadVideo = async () => {
 const handlePlayerReady = async (_instance: ArtplayerType) => {
   playerReady.value = true;
   await syncPlayerSource();
+  await syncDanmaSource();
 };
-
-// watch(videoUrl, () => {
-//   void syncPlayerSource();
-// });
 
 onMounted(() => {
   loadVideo();
