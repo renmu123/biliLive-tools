@@ -194,7 +194,12 @@ const openSubWindow = async () => {
     });
     return;
   }
-  await window.api.common.createSubWindow();
+  await window.api.common.createSubWindow({
+    routeName: "videoCut",
+    hideAside: true,
+    maximized: true,
+    hideMenuBar: appConfig.value.menuBarVisible ? false : true,
+  });
 };
 
 const {
