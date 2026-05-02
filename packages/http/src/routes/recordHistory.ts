@@ -154,8 +154,22 @@ const getDanmaFile = async (
   return null;
 };
 
+const createDanmaFileResponse = async (videoFile: string) => {
+  const danmaFile = await getDanmaFile(videoFile);
+  let danmaFileId: string | null = null;
+  if (danmaFile) {
+    danmaFileId = fileCache.setFile(danmaFile.file);
+  }
+
+  return {
+    danmaFilePath: danmaFile?.file || null,
+    danmaFileId,
+    danmaFileExt: danmaFile?.ext || null,
+  };
+};
+
 /**
- * 获取记录文件信息
+ * 获取历史记录文件信息
  * @route GET /record-history/file/:id
  * @param {number} id - 记录ID
  */
@@ -185,21 +199,40 @@ router.get("/file/:id", async (ctx) => {
       videoFileExt = "ts";
       break;
   }
-
-  const danmaFile = await getDanmaFile(videoFile);
-  let danmaFileId: string | null = null;
-  if (danmaFile) {
-    danmaFileId = fileCache.setFile(danmaFile.file);
-  }
+  const danmaInfo = await createDanmaFileResponse(videoFile);
 
   ctx.body = {
     videoFilePath: videoFile,
     videoFileId,
     videoFileExt,
-    danmaFilePath: danmaFile?.file || null,
-    danmaFileId,
-    danmaFileExt: danmaFile?.ext || null,
+    ...danmaInfo,
   };
+});
+
+router.post("/danma-file", async (ctx) => {
+  const { videoFilePath } = ctx.request.body as {
+    videoFilePath?: string;
+  };
+
+  if (!videoFilePath) {
+    ctx.status = 400;
+    ctx.body = {
+      code: 400,
+      message: "videoFilePath不能为空",
+    };
+    return;
+  }
+
+  if (!(await fs.pathExists(videoFilePath))) {
+    ctx.status = 404;
+    ctx.body = {
+      code: 404,
+      message: "视频文件不存在",
+    };
+    return;
+  }
+
+  ctx.body = await createDanmaFileResponse(videoFilePath);
 });
 
 export default router;
