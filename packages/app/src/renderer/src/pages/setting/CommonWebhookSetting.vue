@@ -766,6 +766,20 @@ const openSetting = () => {
 };
 
 watch(
+  () => data.value.danmu,
+  (value) => {
+    if (!value) {
+      if (!globalFieldsObj.value.ffmpegPreset) {
+        data.value.ffmpegPreset = null;
+      }
+      if (!globalFieldsObj.value.danmuPreset) {
+        data.value.danmuPreset = null;
+      }
+    }
+  },
+);
+
+watch(
   () => globalFieldsObj.value,
   () => {
     for (const key in globalFieldsObj.value) {
