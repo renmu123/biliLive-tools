@@ -117,4 +117,25 @@ describe("preFormatOptions", () => {
       { path: "C:/videos/part-2.mp4", title: "P2-第二段标题-part-2.mp4" },
     ]);
   });
+
+  it("存在 meta.index 时优先使用该索引格式化分P标题", async () => {
+    const result = await preFormatOptions(createConfig({ title: "固定标题" }), [
+      {
+        path: "C:/videos/part-1.mp4",
+        meta: {
+          index: 5,
+          title: "第一段标题",
+          username: "主播A",
+          roomId: "1000",
+          startTimestamp: 1710000000,
+          platform: "bilibili",
+        },
+      },
+    ]);
+
+    expect(pasrseMetadata).not.toHaveBeenCalled();
+    expect(result.videos).toEqual([
+      { path: "C:/videos/part-1.mp4", title: "P5-第一段标题-part-1.mp4" },
+    ]);
+  });
 });

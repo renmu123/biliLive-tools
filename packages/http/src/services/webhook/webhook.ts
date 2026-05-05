@@ -13,7 +13,6 @@ import {
   uuid,
   trashItem,
   formatTitle,
-  formatPartTitle,
   buildRoomLink,
 } from "@biliLive-tools/shared/utils/index.js";
 
@@ -45,7 +44,24 @@ type UploadFileItem = {
   part: Part;
   path: string;
   title: string;
+  meta?: {
+    index?: number;
+    startTimestamp: number | null;
+    roomId: string | null;
+    title: string | null;
+    username: string | null;
+    platform?: string | null;
+  };
   type: "raw" | "handled";
+};
+
+type UploadFilePayload = Pick<UploadFileItem, "path" | "title" | "meta">;
+
+type PreparedUploadItem = {
+  part: Part;
+  path: string;
+  title: string;
+  meta?: UploadFileItem["meta"];
 };
 
 type RuntimePart = Part & {
@@ -932,15 +948,31 @@ export class WebhookHandler {
     return type === "handled" ? runtimePart.handledCid : runtimePart.rawCid;
   }
 
-  private toPathArray(items: UploadFileItem[]): { path: string; title: string }[] {
+  private createUploadFileMeta(
+    live: Live,
+    part: Part,
+    index?: number,
+  ): NonNullable<UploadFileItem["meta"]> {
+    return {
+      index,
+      title: part.title,
+      username: live.username,
+      roomId: live.roomId,
+      startTimestamp: part.startTime ? Math.floor(part.startTime / 1000) : null,
+      platform: live.platform,
+    };
+  }
+
+  private toPathArray(items: UploadFileItem[]): UploadFilePayload[] {
     return items.map((item) => ({
       path: item.path,
       title: item.title,
+      meta: item.meta,
     }));
   }
 
   private createUploadItems(
-    filePaths: { part: Part; path: string; title: string }[],
+    filePaths: PreparedUploadItem[],
     type: "raw" | "handled",
   ): UploadFileItem[] {
     return filePaths.map((item) => ({
@@ -1014,7 +1046,7 @@ export class WebhookHandler {
    * @private
    */
   private setupDeleteAfterCheckLock(
-    pathArray: { path: string; title: string }[],
+    pathArray: UploadFilePayload[],
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) {
     // 返回 checkCallback
@@ -1085,40 +1117,25 @@ export class WebhookHandler {
     uploadableParts: Part[],
     type: "raw" | "handled",
     config: RoomConfig,
-  ): { filePaths: { part: Part; path: string; title: string }[]; cover?: string } {
+  ): { filePaths: PreparedUploadItem[]; cover?: string } {
     const updateStatusField = type === "handled" ? "uploadStatus" : "rawUploadStatus";
     const filePathField = type === "handled" ? "filePath" : "rawFilePath";
 
     let cover: string | undefined;
-    const filePaths: {
-      part: Part;
-      path: string;
-      title: string;
-    }[] = [];
-
-    // 计算已上传分段的数量，用于生成正确的索引
+    const filePaths: PreparedUploadItem[] = [];
     const uploadedCount = live
       .getNonErrorParts(type)
       .filter((part) => part[updateStatusField] === "uploaded").length;
-
     let currentIndex = uploadedCount + 1;
 
     // 构建上传文件列表
     for (const part of uploadableParts) {
-      const filename = path.parse(part[filePathField]).name;
-      const title = formatPartTitle(
-        {
-          title: part.title,
-          username: live.username,
-          roomId: live.roomId,
-          time: part?.startTime ? new Date(part.startTime).toISOString() : new Date().toISOString(),
-          filename,
-          index: currentIndex,
-        },
-        config.partTitleTemplate ?? "{{filename}}",
-      );
-
-      filePaths.push({ path: part[filePathField], title, part });
+      filePaths.push({
+        path: part[filePathField],
+        title: part.title ?? path.parse(part[filePathField]).name,
+        meta: this.createUploadFileMeta(live, part, currentIndex),
+        part,
+      });
 
       if (!cover) cover = part.cover;
       currentIndex++;
@@ -1214,32 +1231,17 @@ export class WebhookHandler {
         if (item.status === "uploaded" || item.status === "error") continue;
         if (!item.canUpload) continue;
 
-        const filename = path.parse(item.path).name;
-        const baseTitle = formatPartTitle(
-          {
-            title: part.title,
-            username: live.username,
-            roomId: live.roomId,
-            time: part?.startTime
-              ? new Date(part.startTime).toISOString()
-              : new Date().toISOString(),
-            filename,
-            index: currentIndex,
-          },
-          config.partTitleTemplate ?? "{{filename}}",
-        );
-
         filePaths.push({
           part,
           path: item.path,
-          title: baseTitle,
+          title: part.title ?? path.parse(item.path).name,
+          meta: this.createUploadFileMeta(live, part, currentIndex),
           type: item.type,
         });
 
         if (!cover) {
           cover = part.cover;
         }
-
         currentIndex++;
       }
     }
@@ -1263,7 +1265,7 @@ export class WebhookHandler {
    */
   private validateUploadConfig(
     live: Live,
-    filePaths: { part: Part; path: string; title: string }[],
+    filePaths: PreparedUploadItem[],
     type: "raw" | "handled",
     config: RoomConfig,
   ): boolean {
@@ -1309,6 +1311,9 @@ export class WebhookHandler {
     if (config.useLiveCover && cover) {
       uploadPreset.cover = cover;
     }
+
+    uploadPreset.partTitleTemplate =
+      config.partTitleTemplate?.trim() || uploadPreset.partTitleTemplate?.trim() || "";
 
     // 处理转载来源：当设置为转载类型且转载来源为空时，自动生成直播间链接
     // TODO: 考虑迁移到上传预设配置实现，需要将metadata参数传递到上传函数中
@@ -1392,7 +1397,7 @@ export class WebhookHandler {
   private async performContinueUpload(
     live: Live,
     aid: number,
-    filePaths: { part: Part; path: string; title: string }[],
+    filePaths: PreparedUploadItem[],
     type: "raw" | "handled",
     config: RoomConfig,
     uploadPreset: BiliupConfig,
@@ -1430,7 +1435,7 @@ export class WebhookHandler {
    */
   private async performNewUpload(
     live: Live,
-    filePaths: { part: Part; path: string; title: string }[],
+    filePaths: PreparedUploadItem[],
     type: "raw" | "handled",
     config: RoomConfig,
     uploadPreset: BiliupConfig,

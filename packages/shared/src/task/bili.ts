@@ -26,7 +26,10 @@ import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
 import type { Item as MediaItem } from "./BiliCheckQueue.js";
 
 type ClientInstance = InstanceType<typeof Client>;
-type UploadFileMeta = Awaited<ReturnType<typeof pasrseMetadata>>;
+type ParsedUploadFileMeta = Awaited<ReturnType<typeof pasrseMetadata>>;
+type UploadFileMeta = ParsedUploadFileMeta & {
+  index?: number;
+};
 type UploadFileItem = {
   path: string;
   title?: string;
@@ -580,7 +583,10 @@ export async function preFormatOptions(
   // 判断是否需要解析元数据
   const needParseForTitle = options.title.includes("{{");
   const needParseForSource = options.copyright === 2 && !options.source;
-  const needParseForPartTitle = options.partTitleTemplate && !!options.partTitleTemplate.trim();
+  const needParseForPartTitle =
+    options.partTitleTemplate &&
+    !!options.partTitleTemplate.trim() &&
+    options.partTitleTemplate.includes("{{");
   const needParseForDesc = options.desc && options.desc.includes("{{");
 
   if (!needParseForTitle && !needParseForSource && !needParseForPartTitle && !needParseForDesc) {
@@ -641,7 +647,7 @@ export async function preFormatOptions(
         const formattedTitle = formatPartTitle(
           {
             ...itemFormatContext,
-            index: i + 1,
+            index: itemMeta?.index ?? i + 1,
           },
           options.partTitleTemplate!,
         );
