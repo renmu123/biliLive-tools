@@ -43,7 +43,7 @@ export const enum EventType {
 type UploadFileItem = {
   part: Part;
   path: string;
-  title: string;
+  title?: string;
   meta?: {
     index?: number;
     startTimestamp: number | null;
@@ -60,7 +60,7 @@ type UploadFilePayload = Pick<UploadFileItem, "path" | "title" | "meta">;
 type PreparedUploadItem = {
   part: Part;
   path: string;
-  title: string;
+  title?: string;
   meta?: UploadFileItem["meta"];
 };
 
@@ -1116,7 +1116,6 @@ export class WebhookHandler {
     live: Live,
     uploadableParts: Part[],
     type: "raw" | "handled",
-    config: RoomConfig,
   ): { filePaths: PreparedUploadItem[]; cover?: string } {
     const updateStatusField = type === "handled" ? "uploadStatus" : "rawUploadStatus";
     const filePathField = type === "handled" ? "filePath" : "rawFilePath";
@@ -1132,7 +1131,6 @@ export class WebhookHandler {
     for (const part of uploadableParts) {
       filePaths.push({
         path: part[filePathField],
-        title: part.title ?? path.parse(part[filePathField]).name,
         meta: this.createUploadFileMeta(live, part, currentIndex),
         part,
       });
@@ -1234,7 +1232,6 @@ export class WebhookHandler {
         filePaths.push({
           part,
           path: item.path,
-          title: part.title ?? path.parse(item.path).name,
           meta: this.createUploadFileMeta(live, part, currentIndex),
           type: item.type,
         });
@@ -1592,7 +1589,7 @@ export class WebhookHandler {
     const config = this.configManager.getConfig(live.roomId);
 
     // 4. 构建上传文件列表
-    const { filePaths, cover } = this.buildUploadFileList(live, uploadableParts, type, config);
+    const { filePaths, cover } = this.buildUploadFileList(live, uploadableParts, type);
 
     // 5. 验证上传配置
     if (!this.validateUploadConfig(live, filePaths, type, config)) {

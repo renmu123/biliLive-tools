@@ -551,12 +551,13 @@ function getUploadFormatContext(
     return null;
   }
 
+  const filename = path.parse(filePath).name;
   return {
     title: meta.title,
     username: meta.username,
     time: new Date(meta.startTimestamp * 1000).toISOString(),
     roomId: meta.roomId,
-    filename: path.basename(filePath),
+    filename: filename,
   };
 }
 

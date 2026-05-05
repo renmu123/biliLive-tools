@@ -419,7 +419,7 @@
       <n-input
         ref="partTitleInput"
         v-model:value="data.partTitleTemplate"
-        placeholder="请输入分P标题"
+        placeholder="请输入分P标题模板，置空使用上传预设配置相关参数"
         clearable
         :disabled="globalFieldsObj.partTitleTemplate"
         style="margin-right: 10px"
@@ -726,7 +726,7 @@ const partTitleList = ref([
   },
 ]);
 const partTitleTip = computed(() => {
-  const base = `更多模板引擎等高级用法见文档<br/>`;
+  const base = `置空使用上传预设配置相关参数，更多模板引擎等高级用法见文档<br/>`;
   return partTitleList.value
     .map((item) => {
       return `${item.label}：${item.value}<br/>`;

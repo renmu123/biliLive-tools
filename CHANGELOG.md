@@ -7,6 +7,7 @@
 ## 优化
 
 - 录制：重构录制历史的播放功能，与文件浏览器的实现统一 [#430](https://github.com/renmu123/biliLive-tools/pull/430)
+- Webhook：重构分p标题的占位符模板渲染逻辑，**可能某些场景下存在破坏性更改**
 
 ## Bug修复
 
