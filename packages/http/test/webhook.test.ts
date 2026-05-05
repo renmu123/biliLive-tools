@@ -1004,7 +1004,9 @@ describe("WebhookHandler", () => {
               roomId: "123",
             }),
           ],
-          uploadPresetMatcher({ partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}" }),
+          uploadPresetMatcher({
+            partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
+          }),
           [],
           "delete",
         );
@@ -1091,7 +1093,9 @@ describe("WebhookHandler", () => {
               roomId: "123",
             }),
           ],
-          uploadPresetMatcher({ partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}" }),
+          uploadPresetMatcher({
+            partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
+          }),
           [],
           "delete",
         );
@@ -1627,7 +1631,9 @@ describe("WebhookHandler", () => {
               roomId: "123",
             }),
           ],
-          uploadPresetMatcher({ partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}" }),
+          uploadPresetMatcher({
+            partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
+          }),
           [],
           "delete",
         );
@@ -1718,7 +1724,9 @@ describe("WebhookHandler", () => {
               roomId: "123",
             }),
           ],
-          uploadPresetMatcher({ partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}" }),
+          uploadPresetMatcher({
+            partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
+          }),
           [],
           "delete",
         );
