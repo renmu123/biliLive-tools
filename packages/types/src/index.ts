@@ -933,7 +933,7 @@ export interface FfmpegOptions {
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
   crf?: number;
   bitrate?: number;
-  audioCodec?: audioCodec;
+  audioCodec?: audioCodec | null;
   preset?:
     | "ultrafast"
     | "superfast"
