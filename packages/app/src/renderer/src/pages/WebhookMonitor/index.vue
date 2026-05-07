@@ -21,38 +21,33 @@
       <!-- </div> -->
     </div>
 
-    <n-grid cols="1 s:2 m:3 l:6" responsive="screen" x-gap="12" y-gap="12" class="summary-grid">
-      <n-gi>
+    <div class="summary-grid">
+      <div class="summary-card">
         <n-card size="small">
           <n-statistic label="直播会话" :value="monitorData.summary.totalLives" />
         </n-card>
-      </n-gi>
-      <n-gi>
+      </div>
+      <div class="summary-card">
         <n-card size="small">
           <n-statistic label="活跃会话" :value="monitorData.summary.activeLives" />
         </n-card>
-      </n-gi>
-      <n-gi>
+      </div>
+      <div class="summary-card">
         <n-card size="small">
           <n-statistic label="录制中分段" :value="monitorData.summary.recordingParts" />
         </n-card>
-      </n-gi>
-      <n-gi>
+      </div>
+      <div class="summary-card">
         <n-card size="small">
           <n-statistic label="处理中分段" :value="monitorData.summary.processingParts" />
         </n-card>
-      </n-gi>
-      <n-gi>
-        <n-card size="small">
-          <n-statistic label="待上传分段" :value="monitorData.summary.pendingUploadParts" />
-        </n-card>
-      </n-gi>
-      <n-gi>
+      </div>
+      <div class="summary-card">
         <n-card size="small">
           <n-statistic label="异常分段" :value="monitorData.summary.errorParts" />
         </n-card>
-      </n-gi>
-    </n-grid>
+      </div>
+    </div>
 
     <div v-if="monitorData.lives.length" class="live-list">
       <n-card v-for="live in monitorData.lives" :key="live.eventId" size="small" class="live-card">
@@ -84,18 +79,13 @@
           <div class="stat-chip">
             处理中 {{ live.stats.recordedParts + live.stats.prehandledParts }}
           </div>
-          <div class="stat-chip">待上传 {{ live.stats.pendingUploadParts }}</div>
           <div class="stat-chip">上传中 {{ live.stats.uploadingParts }}</div>
         </div>
 
         <n-collapse>
           <n-collapse-item :title="`分段列表 (${live.parts.length})`" :name="live.eventId">
             <div class="part-list">
-              <div
-                v-for="part in live.parts"
-                :key="part.partId"
-                :class="['part-row', { abnormal: part.isAbnormal }]"
-              >
+              <div v-for="part in live.parts" :key="part.partId" :class="['part-row']">
                 <div class="cover-box" v-if="!isWeb">
                   <img v-if="part.cover" :src="part.cover" alt="cover" />
                   <div v-else class="cover-placeholder">无封面</div>
@@ -120,7 +110,7 @@
                     <!-- <span v-if="part.pendingUpload || part.pendingRawUpload">等待上传</span> -->
                   </div>
                 </div>
-                <div class="part-actions">
+                <!-- <div class="part-actions">
                   <n-button
                     v-if="part.isAbnormal"
                     size="small"
@@ -130,7 +120,7 @@
                   >
                     详情
                   </n-button>
-                </div>
+                </div> -->
               </div>
             </div>
           </n-collapse-item>
@@ -146,76 +136,41 @@
       title="录制详情"
     >
       <template v-if="selectedLive">
-        <n-tabs type="line" animated>
-          <n-tab-pane name="overview" tab="概览">
-            <n-descriptions :column="2" bordered label-placement="left" size="small">
-              <n-descriptions-item label="标题">{{ selectedLive.title }}</n-descriptions-item>
-              <n-descriptions-item label="主播">{{ selectedLive.username }}</n-descriptions-item>
-              <n-descriptions-item label="平台">{{ selectedLive.platform }}</n-descriptions-item>
-              <n-descriptions-item label="软件">{{ selectedLive.software }}</n-descriptions-item>
-              <n-descriptions-item label="房间号">{{ selectedLive.roomId }}</n-descriptions-item>
-              <n-descriptions-item label="开始时间">{{
-                formatTime(selectedLive.startTime)
-              }}</n-descriptions-item>
-              <n-descriptions-item label="结束时间">{{
-                formatTime(selectedLive.endTime)
-              }}</n-descriptions-item>
-              <!-- <n-descriptions-item label="会话状态">
-                <n-tag size="small" :type="getLiveTagType(selectedLive.status)">
-                  {{ liveStatusLabelMap[selectedLive.status] }}
-                </n-tag>
-              </n-descriptions-item> -->
-            </n-descriptions>
-          </n-tab-pane>
-          <n-tab-pane name="part" tab="分段详情">
-            <template v-if="selectedPart">
-              <n-descriptions :column="1" bordered label-placement="left" size="small">
-                <n-descriptions-item label="分段标题">{{
-                  selectedPartRaw?.title || selectedPart.title
-                }}</n-descriptions-item>
-                <n-descriptions-item label="录制状态">
-                  {{
-                    recordStatusLabelMap[selectedPartRaw?.recordStatus || selectedPart.recordStatus]
-                  }}
-                </n-descriptions-item>
-                <n-descriptions-item label="弹幕版上传">
-                  {{
-                    uploadStatusLabelMap[selectedPartRaw?.uploadStatus || selectedPart.uploadStatus]
-                  }}
-                </n-descriptions-item>
-                <n-descriptions-item label="原片上传">
-                  {{
-                    uploadStatusLabelMap[
-                      selectedPartRaw?.rawUploadStatus || selectedPart.rawUploadStatus
-                    ]
-                  }}
-                </n-descriptions-item>
-                <n-descriptions-item label="开始时间">{{
-                  formatTime(selectedPartRaw?.startTime ?? selectedPart.startTime)
-                }}</n-descriptions-item>
-                <n-descriptions-item label="结束时间">{{
-                  formatTime(selectedPartRaw?.endTime ?? selectedPart.endTime)
-                }}</n-descriptions-item>
-                <n-descriptions-item label="处理后文件">{{
-                  selectedPartRaw?.filePath || selectedPart.filePath || "-"
-                }}</n-descriptions-item>
-                <n-descriptions-item label="原始文件">{{
-                  selectedPartRaw?.rawFilePath || selectedPart.rawFilePath || "-"
-                }}</n-descriptions-item>
-                <n-descriptions-item label="原始数据">
-                  <pre class="raw-json">{{ formattedSelectedPartRaw }}</pre>
-                </n-descriptions-item>
-              </n-descriptions>
-            </template>
-            <n-empty v-else description="请选择一个分段" />
-          </n-tab-pane>
-          <!-- <n-tab-pane name="diagnosis" tab="诊断">
-            <n-alert v-if="diagnosis" :type="diagnosis.hasError ? 'error' : 'success'" show-icon>
-              {{ diagnosis.errorInfo }}
-            </n-alert>
-            <n-empty v-else description="没啥东西" />
-          </n-tab-pane> -->
-        </n-tabs>
+        <template v-if="selectedPart">
+          <n-descriptions :column="1" bordered label-placement="left" size="small">
+            <n-descriptions-item label="分段标题">{{
+              selectedPartRaw?.title || selectedPart.title
+            }}</n-descriptions-item>
+            <n-descriptions-item label="录制状态">
+              {{ recordStatusLabelMap[selectedPartRaw?.recordStatus || selectedPart.recordStatus] }}
+            </n-descriptions-item>
+            <n-descriptions-item label="弹幕版上传">
+              {{ uploadStatusLabelMap[selectedPartRaw?.uploadStatus || selectedPart.uploadStatus] }}
+            </n-descriptions-item>
+            <n-descriptions-item label="原片上传">
+              {{
+                uploadStatusLabelMap[
+                  selectedPartRaw?.rawUploadStatus || selectedPart.rawUploadStatus
+                ]
+              }}
+            </n-descriptions-item>
+            <n-descriptions-item label="开始时间">{{
+              formatTime(selectedPartRaw?.startTime ?? selectedPart.startTime)
+            }}</n-descriptions-item>
+            <n-descriptions-item label="结束时间">{{
+              formatTime(selectedPartRaw?.endTime ?? selectedPart.endTime)
+            }}</n-descriptions-item>
+            <n-descriptions-item label="处理后文件">{{
+              selectedPartRaw?.filePath || selectedPart.filePath || "-"
+            }}</n-descriptions-item>
+            <n-descriptions-item label="原始文件">{{
+              selectedPartRaw?.rawFilePath || selectedPart.rawFilePath || "-"
+            }}</n-descriptions-item>
+            <n-descriptions-item label="原始数据">
+              <pre class="raw-json">{{ formattedSelectedPartRaw }}</pre>
+            </n-descriptions-item>
+          </n-descriptions>
+        </template>
       </template>
     </n-modal>
   </div>
@@ -251,7 +206,6 @@ const emptyMonitorData = (): WebhookMonitorResponse => ({
     abnormalLives: 0,
     recordingParts: 0,
     processingParts: 0,
-    pendingUploadParts: 0,
     uploadingParts: 0,
     errorParts: 0,
   },
@@ -279,14 +233,14 @@ const filters = reactive<{
   abnormalOnly: false,
 });
 
-const liveStatusLabelMap: Record<WebhookLiveStatus, string> = {
-  recording: "录制中",
-  processing: "处理中",
-  pendingUpload: "待上传",
-  uploading: "上传中",
-  completed: "已完成",
-  error: "异常",
-};
+// const liveStatusLabelMap: Record<WebhookLiveStatus, string> = {
+//   recording: "录制中",
+//   processing: "处理中",
+//   pendingUpload: "待上传",
+//   uploading: "上传中",
+//   completed: "已完成",
+//   error: "异常",
+// };
 
 const recordStatusLabelMap: Record<WebhookMonitorPart["recordStatus"], string> = {
   recording: "录制中",
@@ -390,35 +344,35 @@ const formattedSelectedPartRaw = computed(() => {
   return JSON.stringify(selectedPartRaw.value, null, 2);
 });
 
-const openUploadReason = async (live: WebhookMonitorLive) => {
-  try {
-    diagnosis.value = await commonApi.whyUploadFailed(live.roomId);
-    selectedLive.value = live;
-    if (!selectedPart.value) {
-      selectedPart.value = live.parts[0] ?? null;
-    }
-    detailVisible.value = true;
-  } catch (error) {
-    message.error(String(error));
-  }
-};
+// const openUploadReason = async (live: WebhookMonitorLive) => {
+//   try {
+//     diagnosis.value = await commonApi.whyUploadFailed(live.roomId);
+//     selectedLive.value = live;
+//     if (!selectedPart.value) {
+//       selectedPart.value = live.parts[0] ?? null;
+//     }
+//     detailVisible.value = true;
+//   } catch (error) {
+//     message.error(String(error));
+//   }
+// };
 
-const markAbnormalPartHandled = async (partId: string) => {
-  try {
-    await commonApi.handleWebhook([{ id: partId }]);
-    message.success("已标记异常分段");
-    await fetchMonitorData();
-  } catch (error) {
-    message.error(String(error));
-  }
-};
+// const markAbnormalPartHandled = async (partId: string) => {
+//   try {
+//     await commonApi.handleWebhook([{ id: partId }]);
+//     message.success("已标记异常分段");
+//     await fetchMonitorData();
+//   } catch (error) {
+//     message.error(String(error));
+//   }
+// };
 
-const getLiveTagType = (status: WebhookLiveStatus) => {
-  if (status === "error") return "error";
-  if (status === "recording" || status === "uploading") return "success";
-  if (status === "pendingUpload") return "warning";
-  return "default";
-};
+// const getLiveTagType = (status: WebhookLiveStatus) => {
+//   if (status === "error") return "error";
+//   if (status === "recording" || status === "uploading") return "success";
+//   if (status === "pendingUpload") return "warning";
+//   return "default";
+// };
 
 const getRecordTagType = (status: WebhookMonitorPart["recordStatus"]) => {
   if (status === "error") return "error";
@@ -538,7 +492,14 @@ fetchMonitorData();
 }
 
 .summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
   margin-bottom: 4px;
+}
+
+.summary-card {
+  min-width: 0;
 }
 
 .live-list {

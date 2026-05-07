@@ -41,7 +41,6 @@ interface WebhookMonitorPart {
   cover: string | null;
   filePath: string;
   rawFilePath: string;
-  isAbnormal: boolean;
   pendingUpload: boolean;
   pendingRawUpload: boolean;
   raw: WebhookPart;
@@ -59,18 +58,13 @@ interface WebhookMonitorLive {
   durationMs: number | null;
   status: MonitorLiveStatus;
   isActive: boolean;
-  isAbnormal: boolean;
-  abnormalPartIds: string[];
   aid?: number;
   rawAid?: number;
   stats: {
     totalParts: number;
-    recordingParts: number;
     recordedParts: number;
     prehandledParts: number;
     handledParts: number;
-    errorParts: number;
-    pendingUploadParts: number;
     uploadingParts: number;
     uploadedParts: number;
     pendingRawUploadParts: number;
@@ -80,28 +74,10 @@ interface WebhookMonitorLive {
   parts: WebhookMonitorPart[];
 }
 
-interface WebhookMonitorResponse {
-  summary: {
-    totalLives: number;
-    activeLives: number;
-    abnormalLives: number;
-    recordingParts: number;
-    processingParts: number;
-    pendingUploadParts: number;
-    uploadingParts: number;
-    errorParts: number;
-  };
-  lives: WebhookMonitorLive[];
-}
-
 function computeDurationMs(startTime?: number, endTime?: number): number | null {
   if (!startTime) return null;
   const end = endTime ?? Date.now();
   return Math.max(0, end - startTime);
-}
-
-function isAbnormalPart(part: WebhookPart, parts: WebhookPart[], index: number): boolean {
-  return part.recordStatus === "recording" && index < parts.length - 1;
 }
 
 function getLiveStatus(parts: WebhookMonitorPart[]): MonitorLiveStatus {
@@ -110,8 +86,7 @@ function getLiveStatus(parts: WebhookMonitorPart[]): MonitorLiveStatus {
       (part) =>
         part.recordStatus === "error" ||
         part.uploadStatus === "error" ||
-        part.rawUploadStatus === "error" ||
-        part.isAbnormal,
+        part.rawUploadStatus === "error",
     )
   ) {
     return "error";
@@ -157,7 +132,6 @@ function mapWebhookLive(live: WebhookLive): WebhookMonitorLive {
       cover: part.cover ?? null,
       filePath: part.filePath,
       rawFilePath: part.rawFilePath,
-      isAbnormal: isAbnormalPart(part, live.parts, index),
       pendingUpload,
       pendingRawUpload,
       raw: part,
@@ -166,12 +140,9 @@ function mapWebhookLive(live: WebhookLive): WebhookMonitorLive {
 
   const stats = {
     totalParts: parts.length,
-    recordingParts: parts.filter((part) => part.recordStatus === "recording").length,
     recordedParts: parts.filter((part) => part.recordStatus === "recorded").length,
     prehandledParts: parts.filter((part) => part.recordStatus === "prehandled").length,
     handledParts: parts.filter((part) => part.recordStatus === "handled").length,
-    errorParts: parts.filter((part) => part.recordStatus === "error" || part.isAbnormal).length,
-    pendingUploadParts: parts.filter((part) => part.pendingUpload || part.pendingRawUpload).length,
     uploadingParts: parts.filter(
       (part) => part.uploadStatus === "uploading" || part.rawUploadStatus === "uploading",
     ).length,
@@ -180,7 +151,6 @@ function mapWebhookLive(live: WebhookLive): WebhookMonitorLive {
     rawUploadingParts: parts.filter((part) => part.rawUploadStatus === "uploading").length,
     rawUploadedParts: parts.filter((part) => part.rawUploadStatus === "uploaded").length,
   };
-  const abnormalPartIds = parts.filter((part) => part.isAbnormal).map((part) => part.partId);
   const endTime = live.parts.length > 0 ? (live.getMaxEndTime() ?? null) : null;
   const status = getLiveStatus(parts);
 
@@ -196,8 +166,6 @@ function mapWebhookLive(live: WebhookLive): WebhookMonitorLive {
     durationMs: computeDurationMs(live.startTime, endTime ?? undefined),
     status,
     isActive: status !== "completed",
-    isAbnormal: abnormalPartIds.length > 0 || stats.errorParts > 0,
-    abnormalPartIds,
     aid: live.aid,
     rawAid: live.rawAid,
     stats,
@@ -205,26 +173,10 @@ function mapWebhookLive(live: WebhookLive): WebhookMonitorLive {
   };
 }
 
-function buildWebhookMonitorResponse(lives: WebhookLive[]): WebhookMonitorResponse {
+function buildWebhookMonitorResponse(lives: WebhookLive[]) {
   const monitorLives = lives.map(mapWebhookLive);
 
   return {
-    summary: {
-      totalLives: monitorLives.length,
-      activeLives: monitorLives.filter((live) => live.isActive).length,
-      abnormalLives: monitorLives.filter((live) => live.isAbnormal).length,
-      recordingParts: monitorLives.reduce((sum, live) => sum + live.stats.recordingParts, 0),
-      processingParts: monitorLives.reduce(
-        (sum, live) => sum + live.stats.recordedParts + live.stats.prehandledParts,
-        0,
-      ),
-      pendingUploadParts: monitorLives.reduce(
-        (sum, live) => sum + live.stats.pendingUploadParts,
-        0,
-      ),
-      uploadingParts: monitorLives.reduce((sum, live) => sum + live.stats.uploadingParts, 0),
-      errorParts: monitorLives.reduce((sum, live) => sum + live.stats.errorParts, 0),
-    },
     lives: monitorLives,
   };
 }
@@ -370,6 +322,11 @@ router.get("/exportLogs", async (ctx) => {
 });
 
 router.get("/exportWebhookRaw", async (ctx) => {
+  if (handler.liveData.length === 0) {
+    ctx.status = 400;
+    ctx.body = "没有可导出的数据";
+    return;
+  }
   const payload = JSON.stringify(handler.liveData, null, 2);
   const fileName = `webhook-raw-${Date.now()}.json`;
 
@@ -657,13 +614,12 @@ router.get("/webhook/monitor", async (ctx) => {
   const normalizedKeyword = keyword?.trim().toLowerCase();
   const response = buildWebhookMonitorResponse(handler.liveData as unknown as WebhookLive[]);
 
-  response.lives = response.lives
+  const lives = response.lives
     .filter((live) => {
       if (roomId && live.roomId !== roomId) return false;
       if (platform && platform !== "all" && live.platform !== platform) return false;
       if (status && status !== "all" && live.status !== status) return false;
       if (activeOnly === "true" && !live.isActive) return false;
-      if (abnormalOnly === "true" && !live.isAbnormal) return false;
       if (
         normalizedKeyword &&
         ![live.title, live.username, live.roomId, live.platform, live.software]
@@ -675,29 +631,28 @@ router.get("/webhook/monitor", async (ctx) => {
       return true;
     })
     .sort((left, right) => {
-      if (left.isAbnormal !== right.isAbnormal) return left.isAbnormal ? -1 : 1;
       if (left.isActive !== right.isActive) return left.isActive ? -1 : 1;
       return right.startTime - left.startTime;
     });
 
-  response.summary = {
-    totalLives: response.lives.length,
-    activeLives: response.lives.filter((live) => live.isActive).length,
-    abnormalLives: response.lives.filter((live) => live.isAbnormal).length,
-    recordingParts: response.lives.reduce((sum, live) => sum + live.stats.recordingParts, 0),
-    processingParts: response.lives.reduce(
+  const eventStats = handler.eventBufferManager.getEventStats();
+
+  const summary = {
+    totalLives: lives.length,
+    activeLives: lives.filter((live) => live.isActive).length,
+    processingParts: lives.reduce(
       (sum, live) => sum + live.stats.recordedParts + live.stats.prehandledParts,
       0,
     ),
-    pendingUploadParts: response.lives.reduce(
-      (sum, live) => sum + live.stats.pendingUploadParts,
-      0,
-    ),
-    uploadingParts: response.lives.reduce((sum, live) => sum + live.stats.uploadingParts, 0),
-    errorParts: response.lives.reduce((sum, live) => sum + live.stats.errorParts, 0),
+    uploadingParts: lives.reduce((sum, live) => sum + live.stats.uploadingParts, 0),
+    recordingParts: eventStats.recordingParts,
+    errorParts: eventStats.errorParts,
   };
 
-  ctx.body = response;
+  ctx.body = {
+    lives,
+    summary,
+  };
 });
 
 /**

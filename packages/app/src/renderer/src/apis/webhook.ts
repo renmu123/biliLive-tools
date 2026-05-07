@@ -55,7 +55,6 @@ export interface WebhookMonitorLive {
   status: WebhookLiveStatus;
   isActive: boolean;
   isAbnormal: boolean;
-  abnormalPartIds: string[];
   aid?: number;
   rawAid?: number;
   stats: {
@@ -65,7 +64,6 @@ export interface WebhookMonitorLive {
     prehandledParts: number;
     handledParts: number;
     errorParts: number;
-    pendingUploadParts: number;
     uploadingParts: number;
     uploadedParts: number;
     pendingRawUploadParts: number;
@@ -82,7 +80,6 @@ export interface WebhookMonitorResponse {
     abnormalLives: number;
     recordingParts: number;
     processingParts: number;
-    pendingUploadParts: number;
     uploadingParts: number;
     errorParts: number;
   };

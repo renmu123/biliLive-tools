@@ -324,6 +324,7 @@ import { commonApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
 import { useRouter } from "vue-router";
 import { useQueueStore } from "@renderer/stores";
+import { toWebhookMonitorPage } from "@renderer/utils/pages";
 
 defineOptions({
   name: "Dashboard",
@@ -477,7 +478,7 @@ const navigateToQueue = () => {
 };
 
 const navigateToWebhookMonitor = () => {
-  router.push({ name: "WebhookMonitor" });
+  toWebhookMonitorPage();
 };
 </script>
 

@@ -72,3 +72,16 @@ export async function toVideoPlayerPage(opts: {
     throw new Error("无法播放");
   }
 }
+
+export function toWebhookMonitorPage() {
+  if (window.isWeb) {
+    router.push({ name: "WebhookMonitor" });
+  } else {
+    window.api.common.createSubWindow({
+      routeName: "webhookMonitor",
+      hideAside: true,
+      hideMenuBar: true,
+      withMargin: true,
+    });
+  }
+}
