@@ -22,7 +22,7 @@
         v-model:value="options.danmuPresetId"
         :options="danmuPresetsOptions"
         placeholder="选择弹幕预设"
-        style="width: 140px"
+        style="width: 140px; text-align: left"
       />
       <n-checkbox v-model:checked="options.hotProgress" title="使用首页的数据">
         高能进度条
@@ -155,7 +155,7 @@ const convert = async () => {
     }
   }
 
-  if (ffmpegOptions.encoder !== "copy" || ffmpegOptions.audioCodec !== "copy") {
+  if (ffmpegOptions.encoder !== "copy") {
     const [status] = await confirm.warning({
       content:
         "你可能正在对视频进行重编码，将耗费大量时间，是否继续？（如果你只是想转封装，可以选择预设中的 copy 选项）",

@@ -2,13 +2,58 @@
 
 ## 功能
 
+- web支持文件浏览器页面 [#430](https://github.com/renmu123/biliLive-tools/pull/430)
+
+## 优化
+
+- 录制：重构录制历史的播放功能，与文件浏览器的实现统一 [#430](https://github.com/renmu123/biliLive-tools/pull/430)
+- 录制：B站录制不开启“弹幕录制”选项时也可以使用“禁止标题关键词”功能
+- ffmpeg：音频编码器支持为空
+
+## Bug修复
+
+- 虚拟录制：修复某些情况下birthtime为空时使用备用方案 [#390](https://github.com/renmu123/biliLive-tools/issues/390)
+
+# 3.13.1(2026.04.30)
+
+## 优化
+
+- 录制：抖音用户页请求增加额外的错误判断 [#425](https://github.com/renmu123/biliLive-tools/pull/425)
+- 录制：弹幕统计重构 [#415](https://github.com/renmu123/biliLive-tools/pull/415)
+- 录制：抖音`mobile`接口不再应用Cookie
+
+## Bug修复
+
+- 录制：修复某些情况下不会进行自动检查的bug
+
+# 3.13.0(2026.04.26)
+
+## 功能
+
+- Webhook：上传非弹幕时支持上传到同一稿件 [#413](https://github.com/renmu123/biliLive-tools/pull/413)
 - 用户：支持用户账号导入导出 [#409](https://github.com/renmu123/biliLive-tools/pull/409)
+- 录制：优化重复文件的生成逻辑，避免覆盖 [#414](https://github.com/renmu123/biliLive-tools/pull/414)
+- 弹幕：自定义函数增加了`transform`来动态修改弹幕内容 [#424](https://github.com/renmu123/biliLive-tools/issues/424)
 
 ## 优化
 
 - 同步：测试上传文件添加随机字符串避免撞到秒传
 - 录制：优化UI的一些行为，增加缓存，减少对源站的访问
-- Webhook：正式废弃“封装后删除源文件”选项，请使用「处理后操作」中的「删除转封装为mp4的原文件
+- 录制：优化某些情况下获取不到标题时使用第一个标题参数
+- 录制：录播姬引擎支持显示录制的文件大小
+- Webhook：正式废弃“封装后删除源文件”选项，请使用「处理后操作」中的「删除转封装为mp4的原文件」
+- UI：web文件浏览器增加大小显示 [#416](https://github.com/renmu123/biliLive-tools/pull/416)
+- 弹幕：优化docker下渲染emoji的表现
+
+## Bug修复
+
+- 视频下载：修复B站视频下载多分P弹幕错误的bug
+- 视频下载：修复B站视频下载为ts格式的bug
+
+## 其他
+
+- mesio二进制依赖升级到 [0.4.0](https://github.com/hua0512/rust-srec/releases/tag/mesio-v0.4.0)
+- DanmakuFactory升级至[2.1.2](https://github.com/renmu123/DanmakuFactory/releases/tag/v2.1.2)处理MacOS下的动态编译问题
 
 # 3.12.1(2026.04.12)
 

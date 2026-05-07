@@ -10,7 +10,6 @@ import {
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
-import { ensureFolderExist } from "./utils.js";
 import DanmaClient from "./danma.js";
 
 import type {
@@ -228,6 +227,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           startTime: opts.startTime,
           liveStartTime: liveStartTime,
           recordStartTime,
+          extraMs: opts.extraMs,
         }),
       formatName: streamOptions.format_name as "flv" | "ts" | "fmp4",
       disableDanma: this.disableProvideCommentsWhenRecording,
@@ -243,21 +243,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       return info;
     },
   );
-
-  const savePath = getSavePath({
-    owner,
-    title,
-    startTime: Date.now(),
-    liveStartTime: liveStartTime,
-    recordStartTime,
-  });
-
-  try {
-    ensureFolderExist(savePath);
-  } catch (err) {
-    this.state = "idle";
-    throw err;
-  }
 
   const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
     this.emit("videoFileCreated", { filename, cover, rawFilename });
@@ -279,8 +264,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
   };
   downloader.on("videoFileCreated", handleVideoCreated);
-  downloader.on("videoFileCompleted", ({ filename }) => {
-    this.emit("videoFileCompleted", { filename });
+  downloader.on("videoFileCompleted", (data) => {
+    this.emit("videoFileCompleted", data);
   });
   downloader.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
@@ -297,36 +282,48 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     uid: Number(this.uid) as number,
     useServerTimestamp: this.useServerTimestamp,
   });
-  if (!this.disableProvideCommentsWhenRecording) {
-    danmaClient.on("Message", (msg) => {
-      const extraDataController = downloader.getExtraDataController();
-      if (!extraDataController) return;
+  // 开启了禁止提供弹幕功能，并且也没有设置标题关键词，才完全禁止连接弹幕服务器，否则都连接弹幕服务器，前者不处理弹幕消息，后者根据标题关键词来判断是否停止录制
+  const enableDanmaListen =
+    !this.disableProvideCommentsWhenRecording ||
+    utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords);
+  danmaClient.on("Message", (msg) => {
+    if (this.disableProvideCommentsWhenRecording) return;
+    const extraDataController = downloader.getExtraDataController();
+    if (!extraDataController) return;
 
-      if (msg.type === "super_chat" && this.saveSCDanma === false) return;
-      if ((msg.type === "give_gift" || msg.type === "guard") && this.saveGiftDanma === false)
-        return;
+    if (msg.type === "super_chat" && this.saveSCDanma === false) return;
+    if ((msg.type === "give_gift" || msg.type === "guard") && this.saveGiftDanma === false) return;
 
-      this.emit("Message", msg);
-      extraDataController.addMessage(msg);
-    });
-    danmaClient.on("onRoomInfoChange", (msg) => {
-      if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
-        const title = msg?.body?.title ?? "";
-        const hasTitleKeyword = utils.hasBlockedTitleKeywords(title, this.titleKeywords);
+    this.emit("Message", msg);
+    extraDataController.addMessage(msg);
+  });
+  danmaClient.on("onRoomInfoChange", (msg) => {
+    if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
+      const title = msg?.body?.title ?? "";
+      const hasTitleKeyword = utils.hasBlockedTitleKeywords(title, this.titleKeywords);
 
-        if (hasTitleKeyword) {
-          this.state = "title-blocked";
-          this.emit("DebugLog", {
-            type: "common",
-            text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
-          });
+      if (hasTitleKeyword) {
+        this.state = "title-blocked";
+        this.emit("DebugLog", {
+          type: "common",
+          text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
+        });
 
-          // 停止录制
-          this.recordHandle && this.recordHandle.stop("直播间标题包含关键词");
-        }
+        // 停止录制
+        this.recordHandle && this.recordHandle.stop("直播间标题包含关键词");
       }
-    });
-    danmaClient.start();
+    }
+  });
+
+  if (enableDanmaListen) {
+    try {
+      danmaClient.start();
+    } catch (err) {
+      this.emit("DebugLog", {
+        type: "error",
+        text: `弹幕连接失败，错误信息: ${String(err)}`,
+      });
+    }
   }
 
   const downloaderArgs = downloader.getArguments();
@@ -369,7 +366,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     recorderType: downloader.type,
     url: stream.url,
     downloaderArgs,
-    savePath: savePath,
+    savePath: downloader.videoFilePath,
     stop,
     cut,
   };

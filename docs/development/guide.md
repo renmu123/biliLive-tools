@@ -67,11 +67,11 @@ pnpm run install:bin
 
 创建 `packages\app\resources\bin` 目录，放入以下文件：
 
-- **DanmukuFactory**：[2.1.1](https://github.com/renmu123/DanmakuFactory)
+- **DanmukuFactory**：[v2.1.2](https://github.com/renmu123/DanmakuFactory)
 - **FFmpeg**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
 - **FFprobe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
 - **录播姬cli**：[3.3.3](https://github.com/renmu123/BililiveRecorder)
-- **mesio**：[0.3.6](https://github.com/hua0512/rust-srec)
+- **mesio**：[0.4.0](https://github.com/hua0512/rust-srec/releases/tag/mesio-v0.4.0)
 - **audiowaveform**：[1.10.2](https://github.com/bbc/audiowaveform)
 
 同时需要在应用设置中配置可执行文件路径。

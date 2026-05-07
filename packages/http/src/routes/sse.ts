@@ -20,7 +20,7 @@ router.get(
   "/streamLogs",
   sse({
     maxClients: 5000,
-    pingInterval: 30000,
+    pingInterval: 60 * 60 * 1000,
   }),
   async (ctx) => {
     const logFilePath = config.logPath;

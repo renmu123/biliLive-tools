@@ -178,7 +178,7 @@
                 <template #label>
                   <Tip
                     text="mesio路径"
-                    tip="最新测试过的版本为0.3.5，请先去项目查看文档：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md"
+                    tip="最新测试过的版本为0.4.0，请先去项目查看文档：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md"
                   ></Tip>
                 </template>
                 <n-input v-model:value="config.mesioPath" placeholder="请输入mesio可执行文件路径" />
@@ -345,6 +345,7 @@
                 :global-fields-obj="{}"
                 :syncConfigs="config.sync.syncConfigs"
                 type="global"
+                @navigate="navigate"
               ></CommonSetting>
 
               <h2 style="display: inline-flex; align-items: center">
@@ -402,7 +403,7 @@
       <template #footer>
         <div class="footer">
           <n-button class="btn" @click="close">取消</n-button>
-          <n-button type="primary" class="btn" @click="saveConfig"> 确认 </n-button>
+          <n-button type="primary" class="btn" @click="saveConfig"> 保存 </n-button>
         </div>
       </template>
     </n-card>
@@ -419,6 +420,7 @@
     :syncConfigs="config.sync.syncConfigs"
     @save="saveRoomDetail"
     @delete="deleteRoom"
+    @navigate="navigate"
   ></RoomSettingDialog>
 
   <!-- 检查更新弹框 -->
@@ -674,6 +676,7 @@ const globalFields = ref([
   "uploadHandleTime",
   "limitUploadTime",
   "uploadNoDanmu",
+  "uploadToSameMedia",
   "noDanmuVideoPreset",
   "limitVideoConvertTime",
   "videoHandleTime",
@@ -741,6 +744,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   uploadHandleTime: ["00:00:00", "23:59:59"],
   limitUploadTime: false,
   uploadNoDanmu: false,
+  uploadToSameMedia: false,
   noDanmuVideoPreset: undefined,
   limitVideoConvertTime: false,
   videoHandleTime: ["00:00:00", "23:59:59"],
@@ -860,6 +864,10 @@ const checkForUpdates = async () => {
     await window.api.common.checkUpdate();
   }
 };
+
+const navigate = (tab: string) => {
+  selectTab.value = tab;
+};
 </script>
 
 <style scoped lang="less">
@@ -890,7 +898,7 @@ const checkForUpdates = async () => {
 }
 .setting-tab > :deep(.n-tab-pane) {
   overflow: auto;
-  height: calc(100vh - 150px);
+  height: calc(100vh - 170px);
   scrollbar-gutter: stable;
   padding-right: 6px;
 }

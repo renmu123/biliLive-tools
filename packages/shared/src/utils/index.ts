@@ -158,8 +158,6 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
   }
   if (options.audioCodec) {
     result.push(`-c:a ${options.audioCodec}`);
-  } else {
-    result.push(`-c:a copy`);
   }
   if (options.extraOptions) {
     options.extraOptions.split(" ").forEach((option) => {

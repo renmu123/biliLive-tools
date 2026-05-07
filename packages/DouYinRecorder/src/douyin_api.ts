@@ -178,6 +178,9 @@ async function getRoomInfoByUserWeb(
   if (res.data.includes("验证码")) {
     throw new Error("需要验证码，请在浏览器中打开链接获取" + url);
   }
+  if (!res.data.includes("抖音号")) {
+    throw new Error("userHTML页面没有正常加载" + String(res.data));
+  }
   if (!res.data.includes("直播中")) {
     return {
       living: false,
@@ -402,6 +405,7 @@ async function getRoomInfoByMobile(
   } = {},
 ): Promise<RoomInfo> {
   if (!secUserId) {
+    console.error(opts);
     throw new Error("Mobile API need secUserId, please set uid field");
   }
   if (typeof secUserId === "number") {
@@ -421,7 +425,7 @@ async function getRoomInfoByMobile(
     {
       params,
       headers: {
-        cookie: opts.auth,
+        // cookie: opts.auth,
       },
     },
   );

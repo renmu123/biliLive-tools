@@ -237,16 +237,16 @@
                 >全局</n-checkbox
               >
             </n-form-item>
-            <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+            <n-form-item>
               <template #label>
                 <Tip
-                  :text="textInfo.common.titleKeywords.text"
-                  :tip="textInfo.common.titleKeywords.tip"
+                  :text="textInfo.bili.titleKeywords.text"
+                  :tip="textInfo.bili.titleKeywords.tip"
                 ></Tip>
               </template>
               <n-input
                 v-model:value="config.titleKeywords"
-                :placeholder="textInfo.common.titleKeywords.placeholder"
+                :placeholder="textInfo.bili.titleKeywords.placeholder"
                 clearable
               />
             </n-form-item>
@@ -491,7 +491,7 @@
               >全局</n-checkbox
             >
           </n-form-item>
-          <n-form-item>
+          <n-form-item v-if="!config.disableAutoCheck">
             <template #label>
               <Tip
                 text="监控时间段"

@@ -71,13 +71,23 @@ export async function getFileInfo(id: number): Promise<{
   return res.data;
 }
 
+export async function getDanmaFileInfo(videoFilePath: string): Promise<{
+  danmaFileId: string | null;
+  danmaFileExt: string | null;
+  danmaFilePath: string | null;
+}> {
+  const res = await request.post(`/record-history/danma-file`, {
+    videoFilePath,
+  });
+  return res.data;
+}
+
 /**
  * 下载视频文件
  */
 export async function downloadFile(id: number): Promise<string> {
   const { videoFileId } = await getFileInfo(id);
-  const fileUrl = `${request.defaults.baseURL}/assets/download/${videoFileId}`;
-  return fileUrl;
+  return `${request.defaults.baseURL}/assets/download/${videoFileId}`;
 }
 
 export default {
@@ -85,4 +95,5 @@ export default {
   removeRecord,
   downloadFile,
   getFileInfo,
+  getDanmaFileInfo,
 };

@@ -18,7 +18,7 @@ import type {
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
-import { ensureFolderExist, singleton } from "./utils.js";
+import { singleton } from "./utils.js";
 import { resolveShortURL, parseUser } from "./douyin_api.js";
 
 import DouYinDanmaClient from "douyin-danma-listener";
@@ -212,6 +212,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           startTime: opts.startTime,
           liveStartTime: liveStartTime,
           recordStartTime,
+          extraMs: opts.extraMs,
         }),
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
@@ -229,21 +230,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       return info;
     },
   );
-
-  const savePath = getSavePath({
-    owner,
-    title,
-    startTime: Date.now(),
-    liveStartTime,
-    recordStartTime,
-  });
-
-  try {
-    ensureFolderExist(savePath);
-  } catch (err) {
-    this.state = "idle";
-    throw err;
-  }
 
   const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
     this.emit("videoFileCreated", { filename, cover, rawFilename });
@@ -265,8 +251,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
   };
   downloader.on("videoFileCreated", handleVideoCreated);
-  downloader.on("videoFileCompleted", ({ filename }) => {
-    this.emit("videoFileCompleted", { filename });
+  downloader.on("videoFileCompleted", (data) => {
+    this.emit("videoFileCompleted", data);
   });
   downloader.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
@@ -498,7 +484,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     recorderType: downloader.type,
     url: stream.url,
     downloaderArgs,
-    savePath: savePath,
+    savePath: downloader.videoFilePath,
     stop,
     cut,
   };

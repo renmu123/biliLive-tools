@@ -90,8 +90,8 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
     this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename, title }) => {
       this.emit("videoFileCreated", { filename, cover, rawFilename, title });
     });
-    this.streamManager.on("videoFileCompleted", ({ filename }) => {
-      this.emit("videoFileCompleted", { filename });
+    this.streamManager.on("videoFileCompleted", (data) => {
+      this.emit("videoFileCompleted", data);
     });
     this.streamManager.on("DebugLog", (data) => {
       this.emit("DebugLog", data);
@@ -192,7 +192,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
 
     const timeMatch = line.match(/time=([0-9:.]+)/);
     if (timeMatch) {
-      time = timeMatch[1];
+      time = timeMatch[1].split(".")[0];
     }
 
     return {

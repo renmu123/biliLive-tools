@@ -30,7 +30,8 @@ RUN pnpm run build:base && pnpm run --filter bililive-cli build && cd packages/C
 RUN pnpm run install:bin
 
 # 下载字体文件
-RUN curl -L -o /usr/local/share/fonts/NotoSansSC-Regular.ttf https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/NotoSansSC-Regular.ttf 
+RUN curl -L -o /usr/local/share/fonts/NotoSansSC-Regular.ttf https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/NotoSansSC-Regular.ttf && \
+    curl -L -o /usr/local/share/fonts/NotoEmoji-Regular.ttf https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/NotoEmoji-Regular.ttf
 
 # 下载 https://github.com/qjfoidnh/BaiduPCS-Go 二进制文件
 RUN mkdir -p /app/baidu-temp && \
@@ -95,6 +96,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=backend-build /app/docker/config.json ./
 COPY --from=backend-build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
+COPY --from=backend-build /usr/local/share/fonts/NotoEmoji-Regular.ttf /usr/share/fonts/NotoEmoji-Regular.ttf
+RUN fc-cache -f
 
 ENV NODE_ENV=production
 ENV IS_DOCKER=true
@@ -135,6 +138,8 @@ RUN apt-get update && \
     apt-get install -y caddy && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=backend-build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
+COPY --from=backend-build /usr/local/share/fonts/NotoEmoji-Regular.ttf /usr/share/fonts/NotoEmoji-Regular.ttf
+RUN fc-cache -f
 
 # 复制前端 (使用全栈模式构建的前端)
 COPY --from=frontend-build /app/packages/app/out/renderer /app/public

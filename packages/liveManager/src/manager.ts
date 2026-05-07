@@ -14,6 +14,7 @@ import {
   DebugLog,
   Progress,
 } from "./recorder.js";
+import type { XmlStreamStats } from "./xml_stream_controller.js";
 import {
   AnyObject,
   UnknownObject,
@@ -97,7 +98,11 @@ export interface RecorderManager<
       cover?: string;
       rawFilename?: string;
     };
-    videoFileCompleted: { recorder: SerializedRecorder<E>; filename: string };
+    videoFileCompleted: {
+      recorder: SerializedRecorder<E>;
+      filename: string;
+      stats?: XmlStreamStats;
+    };
     RecorderProgress: { recorder: SerializedRecorder<E>; progress: Progress };
     RecoderLiveStart: { recorder: Recorder<E> };
 
@@ -311,8 +316,8 @@ export function createRecorderManager<
         }
         this.emit("videoFileCreated", { recorder: recorder.toJSON(), filename, rawFilename });
       });
-      recorder.on("videoFileCompleted", ({ filename }) =>
-        this.emit("videoFileCompleted", { recorder: recorder.toJSON(), filename }),
+      recorder.on("videoFileCompleted", ({ filename, stats }) =>
+        this.emit("videoFileCompleted", { recorder: recorder.toJSON(), filename, stats }),
       );
       recorder.on("Message", (message) =>
         this.emit("Message", { recorder: recorder.toJSON(), message }),
@@ -462,17 +467,9 @@ export function createRecorderManager<
                 checkLoopTimers.delete(providerId);
               }
             } else {
-              // 检查该 provider 是否还有 recorder
-              const hasRecorders = this.recorders.some((r) => r.providerId === providerId);
-              if (hasRecorders) {
-                // 继续循环
-                const timer = setTimeout(checkLoop, providerConfig.autoCheckInterval);
-                checkLoopTimers.set(providerId, timer);
-              } else {
-                // 没有 recorder 了，停止该 provider 的检查循环
-                // TODO: 也许不需要删除定时器
-                checkLoopTimers.delete(providerId);
-              }
+              // 即使当前 provider 暂时没有 recorder，也保留轮询，避免后续新增 recorder 时漏掉自动检查。
+              const timer = setTimeout(checkLoop, providerConfig.autoCheckInterval);
+              checkLoopTimers.set(providerId, timer);
             }
           }
         };
@@ -572,6 +569,8 @@ export function genSavePathFromRule<
     startTime: number;
     liveStartTime: Date;
     recordStartTime: Date;
+    // 如果存在这个参数，那么会在生成路径时补充毫秒时间戳，避免生成重复文件名造成覆盖
+    extraMs?: boolean;
   },
 ): string {
   // TODO: 这里随便写的，后面再优化
@@ -600,6 +599,9 @@ export function genSavePathFromRule<
   };
 
   let savePathRule = manager.savePathRule;
+  if (extData?.extraMs) {
+    savePathRule += "_{ms}";
+  }
   try {
     savePathRule = ejs.render(savePathRule, params);
   } catch (error) {

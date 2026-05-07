@@ -775,12 +775,38 @@ const handleNameRuleBlur = async () => {
   }
 };
 
+const confirmCookieLoginRisk = async (platform: string, extraRisk?: string) => {
+  const [status] = await confirm.warning({
+    title: `${platform} 登录提示`,
+    content: [
+      "Cookie 会用于相关的 API 请求中。程序请求与浏览器内正常使用所发送的请求不完全一致，能通过分析请求日志识别出来。",
+      "软件开发者不对账号发生的任何事情负责，包括并不限于被标记为机器人账号、无法参与各种抽奖和活动等。建议使用小号。",
+      "如您知晓您的账号会因以上所列出来的部分原因所导致无法使用或权益受损等情况，并愿意承担由此所会带来的一系列后果，请继续以下的操作，软件开发者不会对您账号所发生的任何后果承担责任。",
+      extraRisk,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    positiveText: "继续登录",
+    negativeText: "取消",
+  });
+  return status;
+};
+
 const xhsLogin = async () => {
+  const status = await confirmCookieLoginRisk(
+    "小红书",
+    "小红书一个帐号通常只能保持一端登录，继续后可能会影响你当前设备上的登录状态",
+  );
+  if (!status) return;
+
   const cookie = await window.api.cookie.xhsLogin();
   config.value.recorder.xhs.cookie = cookie;
 };
 
 const douyinLogin = async () => {
+  const status = await confirmCookieLoginRisk("抖音");
+  if (!status) return;
+
   const cookie = await window.api.cookie.douyinLogin();
   config.value.recorder.douyin.cookie = cookie;
 };
@@ -829,5 +855,6 @@ h3 {
   height: 1px;
   background-color: var(--bg-hover);
   margin-bottom: 14px;
+  margin-top: -10px;
 }
 </style>

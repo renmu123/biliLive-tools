@@ -4,6 +4,7 @@ import recoderApi from "./recoder";
 import configApi from "./config";
 import taskApi from "./task";
 import commonApi from "./common";
+import fileBrowserApi from "./fileBrowser";
 import biliApi from "./bili";
 import api from "./request";
 import videoApi from "./video";
@@ -20,6 +21,7 @@ export {
   configApi,
   taskApi,
   commonApi,
+  fileBrowserApi,
   biliApi,
   api,
   videoApi,

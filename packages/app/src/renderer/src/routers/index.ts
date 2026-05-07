@@ -107,6 +107,18 @@ const router = createRouter({
           component: () => import("../pages/LiveHistory/index.vue"),
           meta: { keepAlive: false },
         },
+        {
+          path: "/fileBrowser",
+          name: "FileBrowser",
+          component: () => import("../pages/FileBrowser/index.vue"),
+          meta: { keepAlive: false },
+        },
+        {
+          path: "/videoPlayer",
+          name: "VideoPlayer",
+          component: () => import("../pages/VideoPlayer/index.vue"),
+          meta: { keepAlive: false },
+        },
       ],
     },
   ],

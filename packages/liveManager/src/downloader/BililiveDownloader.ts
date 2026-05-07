@@ -180,8 +180,8 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
     this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename, title }) => {
       this.emit("videoFileCreated", { filename, cover, rawFilename, title });
     });
-    this.streamManager.on("videoFileCompleted", ({ filename }) => {
-      this.emit("videoFileCompleted", { filename });
+    this.streamManager.on("videoFileCompleted", (data) => {
+      this.emit("videoFileCompleted", data);
     });
     this.streamManager.on("DebugLog", (data) => {
       this.emit("DebugLog", data);
@@ -237,6 +237,12 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
     const timeMatch = line.match(/录制时长:\s*([0-9:]+)\s/);
     if (timeMatch) {
       time = timeMatch[1];
+    }
+
+    const spaceMath = line.match(/下载进度:\s*([\d.]+\s*MB)\s*/);
+    if (spaceMath) {
+      const space = spaceMath[1];
+      time = time ? `${time} ${space}` : space;
     }
 
     return {

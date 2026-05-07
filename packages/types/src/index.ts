@@ -149,6 +149,8 @@ export type CommonRoomConfig = {
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
+  // 将处理版和非弹幕版上传到同一稿件
+  uploadToSameMedia?: boolean;
   // 上传非视频版预设
   noDanmuVideoPreset?: string;
 };
@@ -931,7 +933,7 @@ export interface FfmpegOptions {
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
   crf?: number;
   bitrate?: number;
-  audioCodec?: audioCodec;
+  audioCodec?: audioCodec | null;
   preset?:
     | "ultrafast"
     | "superfast"
@@ -1068,6 +1070,8 @@ export interface BiliupConfig {
   human_type2?: number;
   /** 定时发布：10位秒级时间戳。必须距离提交时间>7200秒 */
   dtime?: number;
+  // 表示按照cid顺序上传，编辑接口会根据这个参数对pathArray进行排序后上传，如果没有这个参数，则按照pathArray的顺序上传
+  sortByCid?: Array<number>;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {
