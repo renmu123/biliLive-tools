@@ -6,6 +6,7 @@ import type { BaseStreamer } from "../db/model/streamer.js";
 export interface QueryRecordsOptions {
   room_id: string;
   platform: string;
+  liveId?: string;
   page?: number;
   pageSize?: number;
   startTime?: number;
@@ -73,7 +74,7 @@ export function upadteLive(
 }
 
 export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): QueryRecordsResult {
-  const { room_id, platform, page = 1, pageSize = 100, startTime, endTime } = options;
+  const { room_id, platform, liveId, page = 1, pageSize = 100, startTime, endTime } = options;
 
   // 先查询streamer
   const streamer = streamerService.query({ room_id, platform });
@@ -90,7 +91,10 @@ export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): Que
 
   // 使用数据库分页而不是内存分页
   const result = recordHistoryService.paginate({
-    where: { streamer_id: streamer.id },
+    where: {
+      streamer_id: streamer.id,
+      ...(liveId ? { live_id: liveId } : {}),
+    },
     page,
     pageSize,
     startTime,

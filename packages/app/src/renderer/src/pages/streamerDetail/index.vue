@@ -21,7 +21,7 @@
                     <div class="profile-meta">
                       <span>{{ platformLabel }}</span>
                       <span class="room-meta">
-                        <span>房间号 {{ roomLabel }}</span>
+                        <span>房间号：{{ roomLabel }}</span>
                         <n-button
                           text
                           class="copy-room-button"
@@ -98,9 +98,10 @@
                 <thead class="table-header">
                   <tr>
                     <th>直播标题</th>
+                    <th>直播开始时间</th>
                     <th>开始时间</th>
                     <th>结束时间</th>
-                    <th>直播时长</th>
+                    <th>录制时长</th>
                     <th>片段数</th>
                     <th>弹幕数</th>
                     <th>状态</th>
@@ -113,6 +114,7 @@
                       <div class="session-name">{{ session.title || "-" }}</div>
                     </td>
                     <td>{{ formatTime(session.recordStartTime) }}</td>
+                    <td>{{ formatTime(session.liveStartTime) }}</td>
                     <td>{{ formatTime(session.lastRecordTime) }}</td>
                     <td>{{ formatDuration(session.totalDuration, "00:00:00") }}</td>
                     <td>{{ session.clipCount }}</td>
@@ -155,7 +157,7 @@
 <script setup lang="ts">
 import { Copy16Regular, LinkSquare20Regular } from "@vicons/fluent";
 import { recoderApi } from "@renderer/apis";
-import { formatRecentRecordTime, formatTime } from "@renderer/utils";
+import { formatRecentRecordTime, formatTime, formatDuration } from "@renderer/utils";
 import { useRoute, useRouter } from "vue-router";
 
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
@@ -391,23 +393,26 @@ const resolveSessionStatus = (index: number) => {
 const showSessionDetailPlaceholder = (
   session: RecorderAPI["queryStreamerDetail"]["Resp"]["data"][number],
 ) => {
-  notice.info({
-    title: `场次详情开发中：${session.title || session.displayLiveId}`,
+  if (!result.recorderInfo?.channelId || !result.recorderInfo?.providerId) {
+    notice.warning({
+      title: "当前缺少房间号或平台信息，无法跳转历史记录",
+    });
+    return;
+  }
+  router.push({
+    path: "/liveHistory",
+    query: {
+      id: streamerInfo.recorderId,
+      channelId: result.recorderInfo.channelId,
+      platform: result.recorderInfo.providerId,
+      name: result.streamer?.name || streamerInfo.name,
+      liveId: session.liveId,
+    },
   });
 };
 
-const formatDuration = (duration?: number | null, zeroText: string = "--") => {
-  if (!duration || duration <= 0) return zeroText;
-
-  const hours = Math.floor(duration / 3600);
-  const minutes = Math.floor((duration % 3600) / 60);
-  const seconds = Math.floor(duration % 60);
-
-  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-};
-
 const formatNumber = (value?: number | null) => {
-  return Number(value || 0).toLocaleString("zh-CN");
+  return Number(value || 0);
 };
 
 onMounted(() => {
@@ -540,13 +545,8 @@ onMounted(() => {
 }
 
 .stat-card-content {
-  background: rgba(255, 255, 255, 0.92);
   display: grid;
   gap: 8px;
-
-  [data-theme="dark"] & {
-    background: rgba(255, 255, 255, 0.04);
-  }
 }
 
 .stat-label {
@@ -600,18 +600,21 @@ onMounted(() => {
 
   .table-header {
     background-color: #f8f9fa;
+    [data-theme="dark"] & {
+      color: rgba(38, 38, 42, 1);
+    }
   }
 
   th,
   td {
-    padding: 16px 14px;
     text-align: left;
     font-size: 14px;
   }
-
+  td {
+    padding: 12px 14px;
+  }
   th {
     padding: 8px 14px;
-    font-size: 13px;
     font-weight: normal;
   }
 
@@ -621,12 +624,11 @@ onMounted(() => {
 }
 
 .title-cell {
-  min-width: 220px;
+  // min-width: 220px;
 }
 
 .session-name {
   font-weight: normal;
-  margin-bottom: 4px;
 }
 
 .operation-cell {

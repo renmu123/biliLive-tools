@@ -15,6 +15,7 @@ const router = new Router({
  * @route GET /record-history/list
  * @param {string} room_id - 房间号
  * @param {string} platform - 平台
+ * @param {string} [liveId] - 直播ID
  * @param {number} [page=1] - 页码
  * @param {number} [pageSize=100] - 每页条数
  * @param {number} [startTime] - 开始时间（时间戳）
@@ -22,7 +23,7 @@ const router = new Router({
  * @returns
  */
 router.get("/list", async (ctx) => {
-  const { room_id, platform, page, pageSize, startTime, endTime } = ctx.query;
+  const { room_id, platform, liveId, page, pageSize, startTime, endTime } = ctx.query;
 
   if (!room_id || !platform) {
     ctx.status = 400;
@@ -37,6 +38,7 @@ router.get("/list", async (ctx) => {
     const result = recordHistory.queryRecordsByRoomAndPlatform({
       room_id: room_id as string,
       platform: platform as string,
+      liveId: liveId ? String(liveId) : undefined,
       page: page ? parseInt(page as string) : undefined,
       pageSize: pageSize ? parseInt(pageSize as string) : undefined,
       startTime: startTime ? parseInt(startTime as string) : undefined,

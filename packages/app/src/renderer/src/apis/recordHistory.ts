@@ -8,6 +8,7 @@ import request from "./request";
 export interface QueryRecordsParams {
   room_id: string;
   platform: string;
+  liveId?: string;
   page?: number;
   pageSize?: number;
   startTime?: number;
