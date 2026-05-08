@@ -382,6 +382,10 @@ export class ComplexFilter {
     return this.addFilter("overlay", "W-w-0:H-h-0", inputs);
   }
 
+  addFpsFilter(fps: number) {
+    return this.addFilter("fps", `${fps}`);
+  }
+
   addDrawtextFilter({
     startTimestamp,
     fontColor,
@@ -823,6 +827,10 @@ export const genMergeAssMp4Command = async (
         useHardware: ffmpegOptions.hardwareScaleFilter ? uesHardwareScale : false,
         forceOriginalAspectRatio: ffmpegOptions.forceOriginalAspectRatio ?? "auto",
       });
+    }
+
+    if (ffmpegOptions.fps) {
+      complexFilter.addFpsFilter(ffmpegOptions.fps);
     }
 
     // 弹幕文件

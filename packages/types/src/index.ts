@@ -974,6 +974,8 @@ export interface FfmpegOptions {
   decode?: boolean;
   /** 是否重缩放分辨率 */
   resetResolution?: boolean;
+  /** 输出帧率，使用 fps 滤镜实现 */
+  fps?: number;
   /** 重缩放的分辨率 */
   resolutionWidth?: number;
   resolutionHeight?: number;

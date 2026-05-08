@@ -136,6 +136,22 @@
           placeholder="请选择预设"
         />
       </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip text="帧率">
+            使用 fps 滤镜控制输出帧率，留空时不生效。<br />
+            一般用于电台等帧率极低的视频，来避免滚动弹幕时出现卡顿
+          </Tip>
+        </template>
+        <n-input-number
+          v-model:value.number="ffmpegOptions.config.fps"
+          class="input-number"
+          :min="0.01"
+          :step="1"
+          placeholder="留空则不生效"
+          style="width: 120px; flex: none"
+        />
+      </n-form-item>
       <n-form-item v-if="['libsvtav1'].includes(ffmpegOptions.config.encoder)">
         <template #label>
           <Tip text="10bit">
