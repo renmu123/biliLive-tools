@@ -54,7 +54,9 @@ export function secondsToTimemark(seconds: number, showMilliseconds = true) {
   }
 }
 
-export const formatTime = (date: number) => {
+export const formatTime = (date: number | null) => {
+  if (!date) return "--";
+
   const d = new Date(date);
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -64,6 +66,51 @@ export const formatTime = (date: number) => {
   const seconds = String(d.getSeconds()).padStart(2, "0");
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
+
+const normalizeTimestamp = (timestamp?: number | null) => {
+  if (!timestamp) return null;
+  return timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp;
+};
+
+export function formatRecentRecordTime(
+  timestamp?: number | null,
+  options?: {
+    now?: number;
+    fallback?: (normalizedTimestamp: number) => string;
+  },
+) {
+  const normalizedTimestamp = normalizeTimestamp(timestamp);
+  if (!normalizedTimestamp) return "--";
+
+  const now = options?.now ?? Date.now();
+  const diff = now - normalizedTimestamp;
+  if (diff < 0) {
+    return "--";
+  }
+
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const fiveDays = 5 * day;
+
+  if (diff < minute) {
+    return "刚刚";
+  }
+
+  if (diff < hour) {
+    return `${Math.floor(diff / minute)} 分钟前`;
+  }
+
+  if (diff < day) {
+    return `${Math.floor(diff / hour)} 小时前`;
+  }
+
+  if (diff <= fiveDays) {
+    return `${Math.floor(diff / day)} 天前`;
+  }
+
+  return formatTime(normalizedTimestamp);
+}
 
 export const supportedVideoExtensions = [
   "mp4",
