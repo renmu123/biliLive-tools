@@ -367,20 +367,14 @@
 
     <n-form-item>
       <template #label>
-        <n-popover trigger="hover">
-          <template #trigger>
-            <span
-              class="flex align-center"
-              :style="{
-                'justify-content': 'flex-end',
-              }"
-            >
-              音频编码器</span
-            >
-          </template>
-        </n-popover>
+        <Tip text="音频编码器"> 你也可以不选，在输出参数中完全自定义 </Tip>
       </template>
-      <n-select v-model:value="ffmpegOptions.config.audioCodec" :options="audioEncoders" />
+      <n-select
+        v-model:value="ffmpegOptions.config.audioCodec"
+        :options="audioEncoders"
+        clearable
+        placeholder="请选择音频编码器"
+      />
     </n-form-item>
 
     <n-form-item v-if="ffmpegOptions.config.encoder !== 'copy'">

@@ -855,5 +855,6 @@ h3 {
   height: 1px;
   background-color: var(--bg-hover);
   margin-bottom: 14px;
+  margin-top: -10px;
 }
 </style>

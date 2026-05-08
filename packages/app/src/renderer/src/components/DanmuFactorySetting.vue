@@ -310,7 +310,7 @@
 
     <div class="card">
       <h2>其他</h2>
-      <n-form-item style="width: 100%">
+      <n-form-item style="width: 100%" label-placement="top" label-align="left">
         <template #label>
           <Tip
             text="屏蔽规则"
@@ -346,7 +346,7 @@
         />
       </n-form-item>
 
-      <n-form-item style="width: 100%">
+      <n-form-item style="width: 100%" label-placement="top" label-align="left">
         <template #label>
           <Tip
             text="自定义函数"

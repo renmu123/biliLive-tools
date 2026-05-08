@@ -1,9 +1,30 @@
 # Next
 
+## 功能
+
+- web支持文件浏览器页面 [#430](https://github.com/renmu123/biliLive-tools/pull/430)
+
+## 优化
+
+- 录制：重构录制历史的播放功能，与文件浏览器的实现统一 [#430](https://github.com/renmu123/biliLive-tools/pull/430)
+- 录制：B站录制不开启“弹幕录制”选项时也可以使用“禁止标题关键词”功能
+- ffmpeg：音频编码器支持为空
+
+## Bug修复
+
+- 虚拟录制：修复某些情况下birthtime为空时使用备用方案 [#390](https://github.com/renmu123/biliLive-tools/issues/390)
+
+# 3.13.1(2026.04.30)
+
 ## 优化
 
 - 录制：抖音用户页请求增加额外的错误判断 [#425](https://github.com/renmu123/biliLive-tools/pull/425)
 - 录制：弹幕统计重构 [#415](https://github.com/renmu123/biliLive-tools/pull/415)
+- 录制：抖音`mobile`接口不再应用Cookie
+
+## Bug修复
+
+- 录制：修复某些情况下不会进行自动检查的bug
 
 # 3.13.0(2026.04.26)
 

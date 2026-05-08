@@ -441,6 +441,11 @@ export const textInfo = {
       text: "流编码",
       tip: "默认优先avc模式",
     },
+    titleKeywords: {
+      text: "禁止标题关键词",
+      tip: "如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，或者使用正则表达式（如：/回放|录播/i），手动录制的不会被影响",
+      placeholder: "例如：回放,录播,重播 或 /回放|录播/i",
+    },
   },
   douyu: {
     qualityRetry: qualityRetry,

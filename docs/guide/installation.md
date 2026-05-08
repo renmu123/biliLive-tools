@@ -86,6 +86,8 @@ services:
       - BILILIVE_TOOLS_PASSKEY=your_passkey
       # 账户加密密钥
       - BILILIVE_TOOLS_BILIKEY=your_bilikey
+      # 文件管理器可删除的目录
+      - DELETE_DIRS_ENV=/app/video
       # 中国时区
       - TZ=Asia/Shanghai
 ```
@@ -129,6 +131,8 @@ services:
       - BILILIVE_TOOLS_PASSKEY=your_passkey
       # 账户加密密钥
       - BILILIVE_TOOLS_BILIKEY=your_bilikey
+      # 文件管理器可删除的目录
+      - DELETE_DIRS_ENV=/app/video
       # 中国时区
       - TZ=Asia/Shanghai
 ```

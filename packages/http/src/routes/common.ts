@@ -1,13 +1,11 @@
 import { exec } from "node:child_process";
 import path from "node:path";
-import os from "node:os";
 import fs from "fs-extra";
-import multer from "../middleware/multer.js";
 import { default as checkDiskSpace } from "check-disk-space";
 
 import Router from "@koa/router";
 import semver from "semver";
-import { uuid, getTempPath } from "@biliLive-tools/shared/utils/index.js";
+import { uuid } from "@biliLive-tools/shared/utils/index.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
@@ -20,7 +18,6 @@ import { container } from "../index.js";
 const router = new Router({
   prefix: "/common",
 });
-const upload = multer({ dest: os.tmpdir() });
 
 router.get("/version", (ctx) => {
   ctx.body = config.version;
@@ -114,20 +111,6 @@ router.get("/files", async (ctx) => {
   }
 });
 
-router.post("/fileJoin", async (ctx) => {
-  const { dir, name } = ctx.request.body as {
-    dir: string;
-    name: string;
-  };
-  if (!fs.existsSync(dir)) {
-    ctx.status = 400;
-    ctx.body = "文件夹不存在";
-    return;
-  }
-  const filePath = path.join(dir, name);
-  ctx.body = filePath;
-});
-
 router.post("/danma/timestamp", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;
@@ -151,28 +134,6 @@ router.post("/parseVideoMetadata", async (ctx) => {
 router.get("/fonts", async (ctx) => {
   const { getFontsList } = await import("@biliLive-tools/shared/utils/fonts.js");
   ctx.body = await getFontsList();
-});
-
-router.post("/cover/upload", upload.single("file"), async (ctx) => {
-  const file = ctx.request?.file?.path as string;
-  if (!file) {
-    ctx.status = 400;
-    ctx.body = "No file selected";
-    return;
-  }
-  const originalname = ctx.request?.file?.originalname as string;
-  const ext = path.extname(originalname);
-
-  const coverPath = path.join(config.userDataPath, "cover");
-  const outputName = `${uuid()}${ext}`;
-  // 将图片复制到指定目录
-  await fs.ensureDir(coverPath);
-  await fs.copyFile(file, path.join(coverPath, outputName));
-  await fs.remove(file).catch(() => {});
-  ctx.body = {
-    name: outputName,
-    path: `/assets/cover/${outputName}`,
-  };
 });
 
 router.get("/appStartTime", async (ctx) => {
@@ -255,14 +216,6 @@ router.post("/writeLLC", async (ctx) => {
   ctx.body = "success";
 });
 
-router.post("/fileExists", async (ctx) => {
-  const { filepath } = ctx.request.body as {
-    filepath: string;
-  };
-  const exists = await fs.pathExists(filepath);
-  ctx.body = exists;
-});
-
 router.post("/genTimeData", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;
@@ -272,7 +225,7 @@ router.post("/genTimeData", async (ctx) => {
 });
 
 // 申请视频ID接口
-router.post("/apply-video-id", async (ctx) => {
+router.post("/applyVideoId", async (ctx) => {
   const { videoPath } = ctx.request.body as { videoPath: string };
 
   if (!(await fs.pathExists(videoPath))) {
@@ -323,6 +276,7 @@ router.post("/apply-video-id", async (ctx) => {
   // 存储ID和视频路径的映射关系
   fileCache.set(videoId, { path: videoPath, expireAt });
 
+  // 这玩意不能轻易改，空就是默认值
   let type = "";
   switch (extname) {
     case ".flv":
@@ -681,24 +635,8 @@ router.get("/checkUpdate", async (ctx) => {
 });
 
 /**
- * @api {get} /common/tempPath 获取缓存文件夹路径
- * @apiDescription 获取当前配置的缓存文件夹路径
- * @apiSuccess {string} path 缓存文件夹路径
- */
-router.get("/tempPath", async (ctx) => {
-  try {
-    const tempPath = getTempPath();
-    ctx.body = tempPath;
-  } catch (error) {
-    console.error("获取缓存路径失败:", error);
-    ctx.status = 500;
-    ctx.body = "获取缓存路径失败";
-  }
-});
-
-/**
  * @api {get} /common/diskSpace 获取磁盘空间信息
- * @apiDescription 获取录播姬文件夹所在磁盘的空间信息
+ * @apiDescription 获取录制文件夹所在磁盘的空间信息
  * @apiSuccess {number} total 总空间（GB）
  * @apiSuccess {number} free 可用空间（GB）
  * @apiSuccess {number} used 已用空间（GB）

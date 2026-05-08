@@ -255,7 +255,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
         `${recorder.recordHandle.savePath}_${recorder.id}`,
         ".recorder.log",
       );
-      fs.appendFileSync(logFilePath, log.text + "\n");
+      fs.appendFile(logFilePath, log.text + "\n").catch(() => {});
       return;
     } else {
       logger.info(`recorder: ${log.text}`);
