@@ -146,6 +146,14 @@
                   </div>
                   <div class="clip-actions">
                     <n-icon
+                      size="20"
+                      class="clip-action-icon"
+                      title="播放视频"
+                      @click.stop="previewVideo(clip.id)"
+                    >
+                      <PlayCircle24Regular />
+                    </n-icon>
+                    <n-icon
                       v-if="!isWeb && clip.video_file"
                       size="20"
                       class="clip-action-icon"
@@ -193,10 +201,12 @@
 </template>
 
 <script setup lang="ts">
-import { recoderApi } from "@renderer/apis";
+import { recoderApi, recordHistoryApi } from "@renderer/apis";
 import { FolderOpenOutline } from "@vicons/ionicons5";
+import { PlayCircle24Regular } from "@vicons/fluent";
 import { FileOpenOutlined } from "@vicons/material";
 import { useRoute, useRouter } from "vue-router";
+import { toVideoPlayerPage } from "@renderer/utils/pages";
 
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 
@@ -384,6 +394,15 @@ const openFile = (filePath: string) => {
   window.api.openPath(filePath);
 };
 
+const previewVideo = async (id: number) => {
+  const { videoFileId, videoFileExt, danmaFileId } = await recordHistoryApi.getFileInfo(id);
+  toVideoPlayerPage({
+    videoId: videoFileId,
+    videoType: videoFileExt,
+    danmaId: danmaFileId,
+  });
+};
+
 onMounted(() => {
   handleQuery();
 });
@@ -391,7 +410,7 @@ onMounted(() => {
 
 <style scoped lang="less">
 .streamer-detail-page {
-  padding: 20px;
+  padding: 0 20px;
   min-height: 100%;
   // background:
   //   radial-gradient(circle at top left, rgba(255, 225, 170, 0.28), transparent 30%),
@@ -741,7 +760,6 @@ onMounted(() => {
 
   &:hover {
     color: #2d6cdf;
-    transform: translateY(-1px);
   }
 
   [data-theme="dark"] & {
