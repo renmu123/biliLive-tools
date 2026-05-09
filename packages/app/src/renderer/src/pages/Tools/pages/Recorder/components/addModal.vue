@@ -9,8 +9,6 @@
       class="card"
     >
       <n-form label-placement="left" :label-width="150">
-        <h4>支持斗鱼、虎牙、B站、抖音、小红书，请做好踩坑的准备</h4>
-
         <n-form-item v-if="!isEdit">
           <template #label>
             <Tip
@@ -961,7 +959,7 @@ watch(
 
 .card {
   :deep(.n-form-item-feedback-wrapper) {
-    --n-feedback-height: 20px;
+    --n-feedback-height: 15px;
   }
 }
 h2 {
