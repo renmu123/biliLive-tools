@@ -18,7 +18,7 @@
 
 ## 其他
 
-- mesio二进制依赖升级到 0.4.1
+- mesio二进制依赖升级到 0.4.1 [#440](https://github.com/renmu123/biliLive-tools/pull/440)
 
 # 3.13.1(2026.04.30)
 
