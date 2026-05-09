@@ -12,6 +12,10 @@
 
 ## Bug修复
 
+- 修复某些情况下播放flv会自动播放的bug
+
+## Bug修复
+
 - 虚拟录制：修复某些情况下birthtime为空时使用备用方案 [#390](https://github.com/renmu123/biliLive-tools/issues/390)
 
 # 3.13.1(2026.04.30)
