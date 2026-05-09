@@ -1,3 +1,7 @@
+# 1.16.2
+
+- mesio二进制依赖升级到 0.4.1
+
 # 1.16.1
 
 - 弹幕统计重构 [#415](https://github.com/renmu123/biliLive-tools/pull/415)
