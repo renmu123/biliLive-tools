@@ -14,6 +14,7 @@
 ## Bug修复
 
 - 虚拟录制：修复某些情况下birthtime为空时使用备用方案 [#390](https://github.com/renmu123/biliLive-tools/issues/390)
+- 录制：linux下默认的mesio使用musl
 
 # 3.13.1(2026.04.30)
 

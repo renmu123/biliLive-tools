@@ -58,8 +58,8 @@ async function downloadMesio() {
     "win32-x64": "mesio-x86_64-pc-windows-msvc.exe",
     "darwin-arm64": "mesio-aarch64-apple-darwin",
     "darwin-x64": "mesio-x86_64-apple-darwin",
-    "linux-arm64": "mesio-aarch64-unknown-linux-gnu",
-    "linux-x64": "mesio-x86_64-unknown-linux-gnu",
+    "linux-arm64": "mesio-aarch64-unknown-linux-musl",
+    "linux-x64": "mesio-x86_64-unknown-linux-musl",
   };
   const target = `${process.platform}-${process.arch}`;
   const assetName = mesioAssets[target];
