@@ -110,6 +110,15 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip
+                :text="textInfo.common.convert2Mp4.text"
+                :tip="textInfo.common.convert2Mp4.tip"
+              ></Tip>
+            </template>
+            <n-switch v-model:value="config.recorder.convert2Mp4" />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
               <Tip :text="textInfo.common.format.text" :tip="textInfo.common.format.tip"></Tip>
             </template>
             <n-select

@@ -3,6 +3,7 @@
 ## 功能
 
 - web支持文件浏览器页面 [#430](https://github.com/renmu123/biliLive-tools/pull/430)
+- 录制："转封装为mp4"选项又双被加回来了
 
 ## 优化
 

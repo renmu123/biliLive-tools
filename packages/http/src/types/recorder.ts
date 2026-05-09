@@ -99,6 +99,7 @@ export type UpdateRecorderArgs = Pick<
   | "sendToWebhook"
   | "uid"
   | "saveCover"
+  | "convert2Mp4"
   | "qualityRetry"
   | "formatName"
   | "useM3U8Proxy"

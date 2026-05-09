@@ -288,6 +288,11 @@ export class WebhookHandler {
    * 验证文件大小
    */
   private async validateFileSize(config: RoomConfig, options: Options): Promise<boolean> {
+    if (!config.minSize) return true;
+    if (!(await fs.pathExists(options.filePath))) {
+      log.warn(`文件不存在: ${options.filePath}`);
+      return true;
+    }
     const fileSize = await getFileSize(options.filePath);
     const fileSizeMB = fileSize / 1024 / 1024;
 

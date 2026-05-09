@@ -62,6 +62,7 @@ export const recorderNoGlobalFollowFields: Array<
   "segment",
   "uid",
   "saveCover",
+  "convert2Mp4",
   "qualityRetry",
   "formatName",
   "useM3U8Proxy",
@@ -462,6 +463,8 @@ export interface GlobalRecorder {
   uid?: number;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 转封装为 mp4 */
+  convert2Mp4?: boolean;
   /** 画质匹配重试次数 */
   qualityRetry: number;
   /** 视频格式 */
@@ -527,6 +530,8 @@ export interface Recorder {
   uid?: number | string;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 转封装为 mp4 */
+  convert2Mp4?: boolean;
   /** 视频格式 */
   videoFormat: GlobalRecorder["videoFormat"];
   /** 录制器类型 */

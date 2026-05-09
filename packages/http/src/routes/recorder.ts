@@ -49,6 +49,7 @@ router.post("/add", async (ctx) => {
     "sendToWebhook",
     "uid",
     "saveCover",
+    "convert2Mp4",
     "qualityRetry",
     "formatName",
     "useM3U8Proxy",
@@ -121,6 +122,7 @@ router.put("/:id", (ctx) => {
     "useServerTimestamp",
     "handleTime",
     "debugLevel",
+    "convert2Mp4",
     "api",
   );
 

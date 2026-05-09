@@ -849,6 +849,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   sendToWebhook: false,
   noGlobalFollowFields: [],
   saveCover: false,
+  convert2Mp4: false,
   extra: {},
   qualityRetry: 0,
   formatName: "auto",

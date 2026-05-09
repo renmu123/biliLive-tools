@@ -179,6 +179,7 @@ export default class RecorderConfig {
       saveGiftDanma: getValue("saveGiftDanma") ?? false,
       saveSCDanma: getValue("saveSCDanma") ?? true,
       saveCover: getValue("saveCover") ?? false,
+      convert2Mp4: getValue("convert2Mp4") ?? false,
       segment: getValue("segment") ?? 90,
       uid: uid,
       qualityRetry: getValue("qualityRetry") ?? 0,

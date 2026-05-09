@@ -40,6 +40,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   saveSCDanma?: boolean;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 转封装为 mp4 */
+  convert2Mp4?: boolean;
   /** 身份验证 */
   auth?: string;
   /** cookie所有者uid,B站弹幕录制 */
@@ -107,6 +109,7 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     | "segment"
     | "saveSCDanma"
     | "saveCover"
+    | "convert2Mp4"
     | "saveGiftDanma"
     | "disableProvideCommentsWhenRecording"
     | "liveInfo"

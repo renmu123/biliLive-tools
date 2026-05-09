@@ -389,6 +389,10 @@ const quality = {
 
 export const textInfo = {
   common: {
+    convert2Mp4: {
+      text: "转封装为MP4",
+      tip: "录制完成后将视频转封装为MP4格式，并删除原始文件，如果你需要使用webhook，那么请使用webhook的转封装功能",
+    },
     format: {
       text: "视频格式",
       tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为fmp4<br/>FLV存在分辨率变化或参数变化会花屏，请尝试修复<br/>mesio和录播姬引擎不支持指定",

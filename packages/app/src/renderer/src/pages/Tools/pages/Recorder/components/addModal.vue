@@ -121,6 +121,22 @@
                 >全局</n-checkbox
               >
             </n-form-item>
+
+            <n-form-item>
+              <template #label>
+                <Tip
+                  :text="textInfo.common.convert2Mp4.text"
+                  :tip="textInfo.common.convert2Mp4.tip"
+                ></Tip>
+              </template>
+              <n-switch
+                v-model:value="config.convert2Mp4"
+                :disabled="globalFieldsObj.convert2Mp4"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
           </template>
 
           <h2>直播流</h2>
@@ -686,6 +702,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     segment: true,
     uid: true,
     saveCover: true,
+    convert2Mp4: true,
     qualityRetry: true,
     formatName: true,
     useM3U8Proxy: true,
@@ -783,6 +800,7 @@ const initGlobalFields = () => {
     segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
     uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
     saveCover: !(config.value?.noGlobalFollowFields ?? []).includes("saveCover"),
+    convert2Mp4: !(config.value?.noGlobalFollowFields ?? []).includes("convert2Mp4"),
     qualityRetry: !(config.value?.noGlobalFollowFields ?? []).includes("qualityRetry"),
     formatName: !(config.value?.noGlobalFollowFields ?? []).includes("formatName"),
     useM3U8Proxy: !(config.value?.noGlobalFollowFields ?? []).includes("useM3U8Proxy"),
@@ -858,6 +876,9 @@ watch(
     }
     if (val.saveCover) {
       config.value.saveCover = appConfig.value.recorder.saveCover;
+    }
+    if (val.convert2Mp4) {
+      config.value.convert2Mp4 = appConfig.value.recorder.convert2Mp4;
     }
     if (val.qualityRetry) {
       config.value.qualityRetry = appConfig.value.recorder.qualityRetry;
