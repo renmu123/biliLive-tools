@@ -53,7 +53,7 @@ async function downloadFile(url, desc, options = {}) {
  */
 async function downloadMesio() {
   // https://github.com/hua0512/rust-srec
-  const version = "mesio-v0.4.0";
+  const version = "mesio-v0.4.1";
   const mesioAssets = {
     "win32-x64": "mesio-x86_64-pc-windows-msvc.exe",
     "darwin-arm64": "mesio-aarch64-apple-darwin",

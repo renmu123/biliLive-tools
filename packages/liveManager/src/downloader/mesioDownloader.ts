@@ -181,7 +181,7 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
   }
 
   createCommand() {
-    const inputOptions = [...this.inputOptions, "--fix", "--no-proxy"];
+    const inputOptions = [...this.inputOptions, "--fix", "--no-proxy", "--disable-log-file"];
     if (this.debugLevel === "verbose") {
       inputOptions.push("-v");
     }
