@@ -21,7 +21,7 @@
             v-if="item?.extra?.lastRecordTime && isColumnVisible('lastRecordTime')"
             class="recording-container"
           >
-            <span>上次录制时间：{{ formatRecentRecordTime(item.extra.lastRecordTime) }}</span>
+            <span>上次录制：{{ formatRecentRecordTime(item.extra.lastRecordTime) }}</span>
           </div>
         </template>
       </div>

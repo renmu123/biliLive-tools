@@ -193,7 +193,7 @@ const columnConfig = [
   { value: "living", label: "直播状态" },
   { value: "state", label: "录制状态" },
   { value: "recordParams", label: "录制参数" },
-  { value: "lastRecordTime", label: "最近录制时间" },
+  { value: "lastRecordTime", label: "上次录制" },
   { value: "monitorStatus", label: "监听状态" },
   { value: "actions", label: "操作" },
 ];
