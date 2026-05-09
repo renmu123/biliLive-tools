@@ -362,12 +362,18 @@ router.get("/video/:videoId", async (ctx) => {
     ctx.res.writeHead(206, head);
     ctx.body = file;
   } else {
+    const MAX_CHUNK_SIZE = 1024 * 1024 * 1; // 1MB
     const head = {
       "Content-Length": fileSize,
       "Content-Type": contentType,
+      "Content-Range": `bytes 0-${Math.min(MAX_CHUNK_SIZE - 1, fileSize - 1)}/${fileSize}`,
+      "Accept-Ranges": "bytes",
     };
-    ctx.res.writeHead(200, head);
-    ctx.body = fs.createReadStream(videoPath);
+    ctx.res.writeHead(206, head);
+    const start = 0;
+    const end = Math.min(MAX_CHUNK_SIZE - 1, fileSize - 1);
+    const file = fs.createReadStream(videoPath, { start, end });
+    ctx.body = file;
   }
 });
 
