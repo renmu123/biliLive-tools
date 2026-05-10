@@ -33,6 +33,7 @@
       v-model="fileList"
       :sort="false"
       :extensions="[...supportedVideoExtensions, 'xml', 'ass']"
+      inputPlaceholder="输入内容将会被用为文件名"
     ></FileSelect>
 
     <div class="flex align-center column" style="margin-top: 10px">

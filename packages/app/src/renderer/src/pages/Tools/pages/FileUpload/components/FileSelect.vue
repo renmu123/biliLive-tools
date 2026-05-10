@@ -37,6 +37,7 @@ interface File {
   title: string;
   path: string;
   visible: boolean;
+  ext?: string;
 }
 
 const fileList = defineModel<File[]>({ required: true });
@@ -97,6 +98,7 @@ const select = async () => {
       title: window.path.parse(file).name,
       path: file,
       visible: false,
+      ext: window.path.parse(file).ext,
     }));
   fileList.value = fileList.value.concat(newFiles);
 };
@@ -128,6 +130,7 @@ function onDrop(files: globalThis.File[] | null) {
         title: window.path.parse(file).name,
         path: file,
         visible: false,
+        ext: window.path.parse(file).ext,
       }));
     fileList.value = fileList.value.concat(newFiles);
   }

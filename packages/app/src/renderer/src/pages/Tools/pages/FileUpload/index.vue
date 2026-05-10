@@ -12,7 +12,12 @@
         审核通过后移除源文件
       </n-checkbox>
     </div>
-    <FileSelect ref="fileSelect" v-model="fileList" @change="fileChange"></FileSelect>
+    <FileSelect
+      ref="fileSelect"
+      v-model="fileList"
+      @change="fileChange"
+      inputPlaceholder="输入内容将会被用为分P标题"
+    ></FileSelect>
 
     <n-divider />
     <div class="" style="margin-top: 30px">
@@ -71,6 +76,7 @@ const fileList = ref<
     title: string;
     path: string;
     visible: boolean;
+    ext?: string;
   }[]
 >([]);
 

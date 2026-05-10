@@ -58,8 +58,9 @@
             :validate="validate"
             :update="update"
             :title="element.videoPath"
+            :disabled="props.disableEdit"
           ></editableText>
-
+          <span style="margin-left: 8px" v-if="element.ext">{{ element.ext }}</span>
           <n-icon style="margin-left: auto" size="20" class="remove" @click="remove(index)">
             <CloseIcon />
           </n-icon>
@@ -81,6 +82,7 @@ const fileList = defineModel<
     id: string;
     title: string;
     videoPath: string;
+    ext?: string;
     danmakuPath?: string;
   }[]
 >({ required: true });
@@ -89,10 +91,12 @@ const props = withDefaults(
   defineProps<{
     sort?: boolean;
     placeholder?: string;
+    disableEdit?: boolean;
   }>(),
   {
     sort: true,
     placeholder: "请输入文件名",
+    disableEdit: false,
   },
 );
 const emits = defineEmits<{

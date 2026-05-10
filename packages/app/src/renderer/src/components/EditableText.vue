@@ -4,8 +4,10 @@
     v-model="modelValue"
     v-on-click-outside="enterOut"
     class="input"
+    :class="{ disabled: props.disabled }"
     :placeholder="props.placeholder"
     @focus="enterIn"
+    :disabled="props.disabled"
   />
 </template>
 
@@ -14,6 +16,7 @@ import { vOnClickOutside } from "@vueuse/components";
 
 interface Props {
   placeholder?: string;
+  disabled?: boolean;
   validate?: (value: string) => boolean;
   update?: (value: string) => string;
 }
@@ -24,8 +27,6 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: "请输入",
   validate: () => true,
 });
-
-const input = ref<HTMLInputElement | null>(null);
 
 const tempText = ref("");
 
