@@ -1204,14 +1204,15 @@ export const checkMergeVideos = async (
   const videoMetas = await Promise.all(inputFiles.map((file) => readVideoMeta(file)));
   const errors: string[] = [];
   const warnings: string[] = [];
+
+  const videoStream0 = videoMetas[0].streams.find((stream) => stream.codec_type === "video");
+  const audioStream0 = videoMetas[0].streams.find((stream) => stream.codec_type === "audio");
   for (const meta of videoMetas) {
     if (meta.format.format_name !== videoMetas[0].format.format_name) {
       errors.push("输入视频容器不一致");
     }
     const videoStream = meta.streams.find((stream) => stream.codec_type === "video");
-    const videoStream0 = videoMetas[0].streams.find((stream) => stream.codec_type === "video");
     const audioStream = meta.streams.find((stream) => stream.codec_type === "audio");
-    const audioStream0 = videoMetas[0].streams.find((stream) => stream.codec_type === "audio");
 
     if (videoStream?.codec_name !== videoStream0?.codec_name) {
       errors.push("输入视频编码器不一致");
@@ -1219,12 +1220,17 @@ export const checkMergeVideos = async (
     if (audioStream?.codec_name !== audioStream0?.codec_name) {
       errors.push("输入视频音频编码器不一致");
     }
-    // 分辨率不一致警告
     if (videoStream?.width !== videoStream0?.width) {
-      warnings.push("输入视频分辨率宽不一致");
+      errors.push("输入视频分辨率宽不一致");
     }
     if (videoStream?.height !== videoStream0?.height) {
-      warnings.push("输入视频分辨率高不一致");
+      errors.push("输入视频分辨率高不一致");
+    }
+    if (audioStream?.sample_rate !== audioStream0?.sample_rate) {
+      errors.push("输入视频音频采样率不一致");
+    }
+    if (videoStream?.r_frame_rate !== videoStream0?.r_frame_rate) {
+      warnings.push("输入视频帧率不一致");
     }
   }
 
