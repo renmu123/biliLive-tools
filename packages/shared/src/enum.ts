@@ -48,6 +48,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     open: false,
     recoderFolder: "",
     minSize: 20,
+    autoVideoMergeMinute: undefined,
     title: "【{{user}}】{{title}}-{{now}}",
     uploadPresetId: undefined,
     blacklist: "",
