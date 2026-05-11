@@ -143,24 +143,22 @@ export class WebhookHandler {
       return;
     }
 
-    // 先处理 open 事件
-    this.handleOpenEvent(pair.open, config.partMergeMinute);
-    // 处理 close 事件
-    const partId = this.handleCloseEvent(pair.close);
+    const partId = await this.handlePairEvent(pair, { partMergeMinute: config.partMergeMinute });
     const context = this.liveManager.findBy({ partId });
     if (!context) {
       log.error(`未找到对应的直播分段，无法处理事件对: ${pair.close.filePath}`);
       return;
     }
 
-    await this.processEvent(context, pair.close, config);
+    await this.processEvent(context, config);
   }
 
   collectTasks(
-    filePath: string,
+    filePath: string | undefined,
     fileType: "originVideo" | "xml" | "ass" | "cover" | "handledVideo",
     config: RoomConfig,
   ) {
+    if (!filePath) return;
     const syncConfig = this.configManager.getSyncConfig(config.roomId);
     if (fileType === "originVideo") {
       // 原始视频，可能被转码、同步、上传非弹幕版
@@ -244,11 +242,7 @@ export class WebhookHandler {
   /**
    * 处理单个事件（从原 handle 方法提取）
    */
-  private async processEvent(
-    context: { live: Live; part: Part },
-    options: Options,
-    config: RoomConfig,
-  ) {
+  private async processEvent(context: { live: Live; part: Part }, config: RoomConfig) {
     log.debug(context.live);
 
     // 3. 转封装处理
@@ -259,7 +253,7 @@ export class WebhookHandler {
     context.part.recordStatus = "prehandled";
 
     // 收集需要执行的操作并添加计数
-    const xmlFilePath = PathResolver.getDanmuPath(filePath, options.danmuPath);
+    const xmlFilePath = context.part.danmuPath;
     this.collectTasks(filePath, "originVideo", config);
     this.collectTasks(xmlFilePath, "xml", config);
     if (context.part.cover) {
@@ -351,10 +345,10 @@ export class WebhookHandler {
   private async processMediaFiles(
     context: { live: Live; part: Part },
     config: RoomConfig,
-    xmlFilePath: string,
+    xmlFilePath: string | undefined,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
     if (config.danmu) {
-      return this.processDanmuVideo(context, config, xmlFilePath);
+      return this.processDanmuVideo(context, config, xmlFilePath!);
     } else {
       return this.processRegularVideo(context, config, xmlFilePath);
     }
@@ -432,7 +426,7 @@ export class WebhookHandler {
   private async processRegularVideo(
     context: { live: Live; part: Part },
     config: RoomConfig,
-    xmlFilePath: string,
+    xmlFilePath: string | undefined,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
     let conversionSuccessful = false;
     let danmuConversionSuccessful = false;
@@ -461,7 +455,7 @@ export class WebhookHandler {
     context.part.recordStatus = "handled";
 
     // 处理弹幕转换
-    if (config.danmuPresetId) {
+    if (config.danmuPresetId && xmlFilePath) {
       try {
         const preset = await this.danmuPreset.get(config.danmuPresetId);
         if (!preset) {
@@ -598,6 +592,58 @@ export class WebhookHandler {
   async handleCoverSync(roomId: string, coverPath: string, partId: string) {
     return this.handleFileSync(roomId, coverPath, "cover", partId);
   }
+
+  /**
+   * 处理匹配的事件对，创建或更新直播和分段信息
+   * @param pair
+   * @param config
+   * @returns
+   */
+  handlePairEvent = async (pair: MatchedEventPair, config: { partMergeMinute?: number }) => {
+    const startTimestamp = new Date(pair.open.time).getTime();
+    const endTimestamp = new Date(pair.close.time).getTime();
+    const openEvent = pair.open;
+
+    // 检查文件是否存在,尝试替换扩展名
+    const filePath = PathResolver.tryMp4Fallback(openEvent.filePath);
+    const cover = PathResolver.getCoverPath(openEvent.filePath, openEvent.coverPath);
+    const xmlFilePath = PathResolver.getDanmuPath(filePath, pair.close.danmuPath);
+
+    // 找到上一个文件结束时间与当前时间差小于一段时间的直播，认为是同一个直播
+    let live = this.liveManager.findRecentLive(
+      openEvent.roomId,
+      openEvent.software,
+      config.partMergeMinute || 10,
+      startTimestamp,
+    );
+
+    if (!live) {
+      // 新建Live数据
+      live = new Live({
+        platform: openEvent.platform,
+        software: openEvent.software,
+        roomId: openEvent.roomId,
+        startTime: startTimestamp,
+        title: openEvent.title,
+        username: openEvent.username,
+      });
+      this.liveManager.addLive(live);
+    }
+
+    const part = live.addPart({
+      startTime: startTimestamp,
+      endTime: endTimestamp,
+      filePath: filePath,
+      recordStatus: "recorded",
+      uploadStatus: "pending",
+      rawFilePath: filePath,
+      rawUploadStatus: "pending",
+      title: openEvent.title,
+      cover: cover,
+      danmuPath: xmlFilePath,
+    });
+    return part.partId;
+  };
 
   /**
    * 处理open事件
