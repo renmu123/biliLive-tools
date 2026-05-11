@@ -19,6 +19,12 @@ vi.mock("../../src/xml_stream_controller", () => ({
       uniqMember: 2,
       scNum: 1,
       guardNum: 0,
+      danmaStats: {
+        danmaTimeline: {
+          interval: 5,
+          data: [2, 1],
+        },
+      },
     }),
   }),
 }));
@@ -65,6 +71,12 @@ describe("StreamManager", () => {
         uniqMember: 2,
         scNum: 1,
         guardNum: 0,
+        danmaStats: {
+          danmaTimeline: {
+            interval: 5,
+            data: [2, 1],
+          },
+        },
       },
     });
   });
@@ -117,6 +129,12 @@ describe("Segment", () => {
         uniqMember: 2,
         scNum: 1,
         guardNum: 0,
+        danmaStats: {
+          danmaTimeline: {
+            interval: 5,
+            data: [2, 1],
+          },
+        },
       },
     });
   });
@@ -131,6 +149,12 @@ describe("Segment", () => {
         uniqMember: 2,
         scNum: 1,
         guardNum: 0,
+        danmaStats: {
+          danmaTimeline: {
+            interval: 5,
+            data: [2, 1],
+          },
+        },
       },
     });
   });

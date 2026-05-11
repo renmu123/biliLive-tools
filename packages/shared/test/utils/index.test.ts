@@ -129,6 +129,19 @@ describe("buildRoomLink", () => {
   });
 });
 
+describe("countByIntervalInSeconds", () => {
+  it("should group by 5 seconds and keep empty buckets on boundaries", () => {
+    const result = countByIntervalInSeconds([0, 4.999, 5, 12.3], 5, 15);
+
+    expect(result).toEqual([
+      { start: 0, count: 2 },
+      { start: 5, count: 1 },
+      { start: 10, count: 1 },
+      { start: 15, count: 0 },
+    ]);
+  });
+});
+
 // describe("parseSavePath", () => {
 //   it("should return the absolute path if the input path is already absolute", async () => {
 //     const input = "C:\\videos\\video.mp4";
