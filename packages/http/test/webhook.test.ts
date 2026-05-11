@@ -2653,26 +2653,6 @@ describe("Live", () => {
       webhookHandler = new WebhookHandler(appConfig);
     });
 
-    describe("shouldSkipProcessing", () => {
-      it("应在事件为FileOpening时返回true", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldSkipProcessing("FileOpening");
-        expect(result).toBe(true);
-      });
-
-      it("应在事件为FileError时返回true", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldSkipProcessing("FileError");
-        expect(result).toBe(true);
-      });
-
-      it("应在事件为FileClosed时返回false", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldSkipProcessing("FileClosed");
-        expect(result).toBe(false);
-      });
-    });
-
     describe("validateFileSize", () => {
       it("应在文件大小足够时返回true", async () => {
         const live = new Live({
@@ -2738,15 +2718,7 @@ describe("Live", () => {
             title: "Part 1",
           },
         };
-        const options = {
-          event: "FileClosed" as const,
-          roomId: "123",
-          platform: "blrec" as const,
-          filePath: "/path/to/file.mp4",
-          time: new Date().toISOString(),
-          title: "Test",
-          username: "user",
-        };
+
         const config = { danmu: true };
 
         const processDanmuVideoSpy = vi
@@ -2756,7 +2728,7 @@ describe("Live", () => {
           .mockResolvedValue({ conversionSuccessful: true, danmuConversionSuccessful: true });
 
         // @ts-ignore
-        await webhookHandler.processMediaFiles(context, options, config);
+        await webhookHandler.processMediaFiles(context, config, context.part.filePath);
 
         expect(processDanmuVideoSpy).toHaveBeenCalled();
       });
@@ -2778,15 +2750,6 @@ describe("Live", () => {
             title: "Part 1",
           },
         };
-        const options = {
-          event: "FileClosed" as const,
-          roomId: "123",
-          platform: "blrec" as const,
-          filePath: "/path/to/file.mp4",
-          time: new Date().toISOString(),
-          title: "Test",
-          username: "user",
-        };
         const config = { danmu: false };
 
         const processRegularVideoSpy = vi
@@ -2796,7 +2759,7 @@ describe("Live", () => {
           .mockResolvedValue({ conversionSuccessful: true, danmuConversionSuccessful: true });
 
         // @ts-ignore
-        await webhookHandler.processMediaFiles(context, options, config);
+        await webhookHandler.processMediaFiles(context, config, context.part.filePath);
 
         expect(processRegularVideoSpy).toHaveBeenCalled();
       });
