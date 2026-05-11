@@ -146,8 +146,13 @@ export class WebhookHandler {
     this.handleOpenEvent(pair.open, config.partMergeMinute);
     // 处理 close 事件
     const partId = this.handleCloseEvent(pair.close);
+    const context = this.liveManager.findBy({ partId });
+    if (!context) {
+      log.error(`未找到对应的直播分段，无法处理事件对: ${pair.close.filePath}`);
+      return;
+    }
 
-    await this.processEvent(partId, pair.close, config);
+    await this.processEvent(context, pair.close, config);
   }
 
   collectTasks(
@@ -238,50 +243,41 @@ export class WebhookHandler {
   /**
    * 处理单个事件（从原 handle 方法提取）
    */
-  private async processEvent(partId: string, options: Options, config: RoomConfig) {
-    // 1. 如果是开始或错误事件,直接返回
-    if (this.shouldSkipProcessing(options.event)) return;
-
-    // 2. 获取当前直播和分段
-    const context = this.liveManager.findBy({ partId });
-    if (!context) return;
-
+  private async processEvent(
+    context: { live: Live; part: Part },
+    options: Options,
+    config: RoomConfig,
+  ) {
     log.debug(context.live);
 
     // 3. 转封装处理
-    await this.processConversion(context, options, config);
+    await this.processConversion(context, config);
+    let filePath = context.part.filePath;
 
     // 4. 设置预处理状态
     context.part.recordStatus = "prehandled";
 
     // 收集需要执行的操作并添加计数
-    const xmlFilePath = PathResolver.getDanmuPath(options.filePath, options.danmuPath);
-    this.collectTasks(options.filePath, "originVideo", config);
+    const xmlFilePath = PathResolver.getDanmuPath(filePath, options.danmuPath);
+    this.collectTasks(filePath, "originVideo", config);
     this.collectTasks(xmlFilePath, "xml", config);
     if (context.part.cover) {
       this.collectTasks(context.part.cover, "cover", config);
     }
 
     // 5. 处理弹幕和视频压制
-    const processingResult = await this.processMediaFiles(context, options, config, xmlFilePath);
-    log.debug("processingResult", processingResult, options.filePath, context.part.filePath);
+    const processingResult = await this.processMediaFiles(context, config, xmlFilePath);
+    log.debug("processingResult", processingResult, filePath, context.part.filePath);
     this.collectTasks(context.part.filePath, "handledVideo", config);
     if (processingResult.conversionSuccessful) {
-      this.fileRefManager.releaseRef(options.filePath);
+      this.fileRefManager.releaseRef(filePath);
     }
     if (xmlFilePath && processingResult.danmuConversionSuccessful) {
       this.fileRefManager.releaseRef(xmlFilePath);
     }
 
     // 6. 处理文件同步和锁定
-    await this.handlePostProcessing(context, options);
-  }
-
-  /**
-   * 判断是否应该跳过后续处理
-   */
-  private shouldSkipProcessing(event: string): boolean {
-    return event === EventType.OpenEvent || event === EventType.ErrorEvent;
+    await this.handlePostProcessing(context, xmlFilePath);
   }
 
   /**
@@ -326,16 +322,12 @@ export class WebhookHandler {
   /**
    * 转封装处理
    */
-  private async processConversion(
-    context: { live: Live; part: Part },
-    options: Options,
-    config: RoomConfig,
-  ) {
+  private async processConversion(context: { live: Live; part: Part }, config: RoomConfig) {
     if (!config.convert2Mp4Option) return;
 
     try {
       const file = await this.transcode(
-        options.filePath,
+        context.part.filePath,
         {
           encoder: "copy",
           audioCodec: "copy",
@@ -345,7 +337,6 @@ export class WebhookHandler {
         },
       );
 
-      options.filePath = file;
       context.part.filePath = file;
       context.part.rawFilePath = file;
     } catch (error) {
@@ -358,14 +349,13 @@ export class WebhookHandler {
    */
   private async processMediaFiles(
     context: { live: Live; part: Part },
-    options: Options,
     config: RoomConfig,
     xmlFilePath: string,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
     if (config.danmu) {
-      return this.processDanmuVideo(context, options, config, xmlFilePath);
+      return this.processDanmuVideo(context, config, xmlFilePath);
     } else {
-      return this.processRegularVideo(context, options, config, xmlFilePath);
+      return this.processRegularVideo(context, config, xmlFilePath);
     }
   }
 
@@ -374,7 +364,6 @@ export class WebhookHandler {
    */
   private async processDanmuVideo(
     context: { live: Live; part: Part },
-    options: Options,
     config: RoomConfig,
     xmlFilePath: string,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
@@ -386,6 +375,8 @@ export class WebhookHandler {
         log.warn(`弹幕文件不存在或为空，跳过弹幕压制: ${xmlFilePath}`);
         return { conversionSuccessful: false, danmuConversionSuccessful: false };
       }
+
+      const filePath = context.part.filePath;
 
       // 验证预设
       if (!config.danmuPresetId || !config.videoPresetId) {
@@ -404,7 +395,7 @@ export class WebhookHandler {
       // 压制视频
       const output = await this.burn(
         {
-          videoFilePath: options.filePath,
+          videoFilePath: filePath,
           subtitleFilePath: xmlFilePath,
         },
         {
@@ -439,7 +430,6 @@ export class WebhookHandler {
    */
   private async processRegularVideo(
     context: { live: Live; part: Part },
-    options: Options,
     config: RoomConfig,
     xmlFilePath: string,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
@@ -453,7 +443,7 @@ export class WebhookHandler {
         if (!preset) {
           throw new Error(`ffmpegPreset not found ${config.videoPresetId}`);
         }
-        const output = await this.transcode(options.filePath, preset.config, {
+        const output = await this.transcode(context.part.filePath, preset.config, {
           removeVideo: false,
           suffix: "-后处理",
           limitTime: config.videoHandleTime,
@@ -490,39 +480,35 @@ export class WebhookHandler {
   /**
    * 处理后续操作(同步、锁定等)
    */
-  private async handlePostProcessing(context: { live: Live; part: Part }, options: Options) {
-    const { part } = context;
+  private async handlePostProcessing(context: { live: Live; part: Part }, xmlFilePath?: string) {
+    const { part, live } = context;
+    const roomId = live.roomId;
 
     // 处理封面同步
     if (part.cover) {
-      await this.handleFileSync(options.roomId, part.cover, "cover", part.partId).catch((error) => {
+      await this.handleFileSync(roomId, part.cover, "cover", part.partId).catch((error) => {
         log.error("handleCoverSync", error);
       });
     }
 
     // 处理弹幕同步
-    const xmlFilePath = PathResolver.getDanmuPath(options.filePath, options.danmuPath);
     if (xmlFilePath) {
-      await this.handleFileSync(options.roomId, xmlFilePath, "xml", part.partId).catch((error) => {
+      await this.handleFileSync(roomId, xmlFilePath, "xml", part.partId).catch((error) => {
         log.error("handleFileSync", error);
       });
     }
 
     // 处理视频同步1
     const fileType = PathResolver.getFileType(part.rawFilePath);
-    await this.handleFileSync(options.roomId, part.rawFilePath, fileType, part.partId).catch(
-      (error) => {
-        log.error("handleFileSync", error);
-      },
-    );
+    await this.handleFileSync(roomId, part.rawFilePath, fileType, part.partId).catch((error) => {
+      log.error("handleFileSync", error);
+    });
 
     // 处理视频同步2
     const fileType2 = PathResolver.getFileType(part.filePath);
-    await this.handleFileSync(options.roomId, part.filePath, fileType2, part.partId).catch(
-      (error) => {
-        log.error("handleFileSync", error);
-      },
-    );
+    await this.handleFileSync(roomId, part.filePath, fileType2, part.partId).catch((error) => {
+      log.error("handleFileSync", error);
+    });
   }
 
   /**
