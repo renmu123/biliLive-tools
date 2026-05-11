@@ -134,11 +134,12 @@ export class WebhookHandler {
 
     const config = this.configManager.getConfig(pair.open.roomId);
     if (!config.open) {
-      log.info(`${pair.open.roomId} is not open`);
+      log.warn(`${pair.open.roomId} is not open`);
       return;
     }
     // 检查文件大小
     if (!(await this.validateFileSize(config, pair.close))) {
+      log.warn("文件大小不符合要求，跳过处理", pair.close.filePath);
       return;
     }
 
