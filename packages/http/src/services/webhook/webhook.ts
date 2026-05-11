@@ -5,7 +5,12 @@ import { FFmpegPreset, VideoPreset, DanmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import { biliApi } from "@biliLive-tools/shared/task/bili.js";
 import { isEmptyDanmu, convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
-import { transcode, burn, analyzeResolutionChanges } from "@biliLive-tools/shared/task/video.js";
+import {
+  transcode,
+  burn,
+  analyzeResolutionChanges,
+  readVideoMeta,
+} from "@biliLive-tools/shared/task/video.js";
 import { flvRepair } from "@biliLive-tools/shared/task/flvRepair.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import {
@@ -630,6 +635,14 @@ export class WebhookHandler {
       this.liveManager.addLive(live);
     }
 
+    let duration = 0;
+    try {
+      const videoMeta = await readVideoMeta(filePath);
+      duration = Number(videoMeta.format.duration || 0);
+    } catch (error) {
+      log.error("读取视频元信息失败，无法获取时长", error);
+    }
+
     const part = live.addPart({
       startTime: startTimestamp,
       endTime: endTimestamp,
@@ -641,6 +654,7 @@ export class WebhookHandler {
       title: openEvent.title,
       cover: cover,
       danmuPath: xmlFilePath,
+      duration,
     });
     return part.partId;
   };

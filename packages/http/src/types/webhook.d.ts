@@ -23,6 +23,8 @@ export interface Part {
   rawUploadStatus: UploadStatus;
   // xml文件路径
   danmuPath?: string;
+  // 视频文件时长
+  duration?: number;
 }
 
 export interface Options {
