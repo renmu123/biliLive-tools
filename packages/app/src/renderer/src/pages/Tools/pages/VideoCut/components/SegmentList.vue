@@ -643,7 +643,7 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
   }
 
   const [status] = await confirm.warning({
-    content: `此功能使用AI对片段进行字幕识别，将生成SRT格式字幕。\n\n识别范围：${segment.start.toFixed(2)}s - ${segment.end?.toFixed(2)}s`,
+    content: `此功能使用AI对片段进行字幕识别。\n\n识别范围：${segment.start.toFixed(2)}s - ${segment.end?.toFixed(2)}s`,
     showCheckbox: true,
     showAgainKey: "videoSubtitleRecognizeWarning",
   });

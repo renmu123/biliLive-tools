@@ -327,8 +327,10 @@ export async function subtitleRecognize(
       }
     }
     if (!asrResult) {
-      // 调用 ASR 识别（使用新的统一接口）
-      asrResult = await recognize(file, modelId);
+      // 调用 ASR 识别
+      asrResult = await recognize(file, modelId, {
+        filterMusic: true, // 启用音乐过滤
+      });
 
       // 保存到缓存（如果未禁用缓存）
       if (!disableCache) {
