@@ -4,7 +4,6 @@ import { isEmpty } from "lodash-es";
 import { assert, get__ac_signature } from "./utils.js";
 import { ABogus } from "./sign.js";
 import type { APIType, RoomInfo, RealAPIType } from "./types.js";
-import { APIResponseError } from "@bililive-tools/manager/Error.js";
 
 const requester = axios.create({
   timeout: 10e3,
@@ -16,27 +15,6 @@ const requester = axios.create({
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
   },
 });
-
-requester.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    const response = error.response;
-
-    const error2 = new APIResponseError(
-      `douyin request failed with status code ${response.status}`,
-      {
-        statusCode: response.status,
-        code: response?.data?.code,
-        path: error.url,
-        method: error.method,
-        rawResponse: response,
-      },
-    );
-    return Promise.reject(error2);
-  },
-);
 
 /**
  * 从抖音短链接解析得到直播间ID
