@@ -278,7 +278,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       },
     ],
     songRecognizeAsr: {
-      modelId: "",
+      modelId: "bcut",
     },
     songRecognizeLlm: {
       modelId: "",

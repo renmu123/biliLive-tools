@@ -290,6 +290,7 @@ export async function subtitleRecognize(
     timeGapThreshold?: number; // 时间间隔阈值（毫秒）
     fillGap?: number; // 补齐字幕间隔的最大阈值（毫秒）
     disableCache?: boolean; // 禁用缓存
+    song?: boolean; // 是否为音乐识别
   },
 ): Promise<string> {
   const offset = (options?.offset ?? 0) * 1000; // 转换为毫秒
@@ -305,13 +306,14 @@ export async function subtitleRecognize(
     timeGapThreshold,
     fillGap,
     disableCache,
+    song: options?.song,
   });
 
   try {
     // 生成缓存路径
     const cachePath = getTempPath();
     const fileHash = await calculateFileQuickHash(file);
-    // TODO:缓存有bug，第一个是多模型切换、第二个是不同参数热词参数不同
+    // TODO:缓存有bug，第二个是不同参数热词参数不同
     const cacheFileName = `asr_subtitle_cache_${fileHash}_${modelId}.json`;
     const cacheFilePath = path.join(cachePath, cacheFileName);
 
@@ -329,7 +331,7 @@ export async function subtitleRecognize(
     if (!asrResult) {
       // 调用 ASR 识别
       asrResult = await recognize(file, modelId, {
-        filterMusic: true, // 启用音乐过滤
+        filterMusic: options?.song ? false : true, // 启用音乐过滤
       });
 
       // 保存到缓存（如果未禁用缓存）
