@@ -1,4 +1,8 @@
-# Next
+# 1.16.2
+
+- api错误结构统一
+
+# 1.16.1
 
 - 抖音用户页请求增加额外的错误判断 [#425](https://github.com/renmu123/biliLive-tools/pull/425)
 - `mobile`接口不再应用Cookie
