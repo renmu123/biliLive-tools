@@ -381,8 +381,14 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
     try {
       const xmlFile = replaceExtName(filename, ".xml");
-      const videoMeta = await readVideoMeta(filename);
-      const duration = videoMeta?.format?.duration ?? 0;
+
+      let duration = 0;
+      try {
+        const videoMeta = await readVideoMeta(filename);
+        duration = videoMeta?.format?.duration ?? 0;
+      } catch (error) {
+        logger.error("读取视频元信息失败", { filename, error });
+      }
 
       // 提取文件名（不含后缀）
       const videoFilename = path.basename(filename, path.extname(filename));
