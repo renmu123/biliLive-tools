@@ -107,6 +107,7 @@ export class Segment extends EventEmitter {
     } = { title: "", cover: "" };
     if (callBack?.onUpdateLiveInfo) {
       try {
+        // TODO:这里存在bug，当调用onUpdateLiveInfo并在等待时，handleSegmentEnd被调用，那么会造成竞态导致数据错误，后续需要优化，需要保存segment状态
         liveInfo = await callBack.onUpdateLiveInfo();
       } catch (err) {
         this.emit("DebugLog", {
