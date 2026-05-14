@@ -481,15 +481,17 @@ const canQuit = async () => {
   if (isRunningTask || isRecordingTask) {
     const confirm = await dialog.showMessageBox(mainWin, {
       message: "检测到有未完成的任务或录制，是否退出？",
-      buttons: ["取消", "退出"],
+      buttons: ["取消", "强制退出", "退出"],
     });
-    if (confirm.response === 1) {
+    if (confirm.response === 2) {
       // 手动停止正在录制的直播
       for (const recorder of recorderManager.manager.recorders) {
         if (recorder.state === "recording") {
           await recorderManager.manager.stopRecord(recorder.id);
         }
       }
+      return true;
+    } else if (confirm.response === 1) {
       return true;
     } else {
       return false;
