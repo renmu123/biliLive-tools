@@ -39,6 +39,7 @@
   "dependencies": {
     "cookie": "^1.1.1",
     "lodash-es": "catalog:",
+    "safe-eval": "^0.4.1",
     "undici": "^7.24.0",
     "xhshow-js": "^1.0.0"
   },

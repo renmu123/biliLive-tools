@@ -137,7 +137,6 @@ export class DouyuParser extends PlatformParser<number> {
               quality: liveInfo.currentStream.rate,
               qualityDesc: liveInfo.currentStream.name,
               format: "flv",
-              onlyAudio: liveInfo.currentStream.onlyAudio,
             },
           ],
           cdn: liveInfo.currentStream.source,
