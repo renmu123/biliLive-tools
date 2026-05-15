@@ -103,6 +103,11 @@ const router = createRouter({
           meta: { keepAlive: false },
         },
         {
+          path: "/streamerDetail",
+          name: "streamerDetail",
+          component: () => import("../pages/streamerDetail/index.vue"),
+        },
+        {
           path: "/fileBrowser",
           name: "FileBrowser",
           component: () => import("../pages/FileBrowser/index.vue"),

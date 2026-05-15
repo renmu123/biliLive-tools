@@ -199,7 +199,7 @@ export const applyVideoId = async (
   return res.data;
 };
 
-export const getVideo = async (videoId: string): Promise<string> => {
+export const getVideo = (videoId: string): string => {
   return `${request.defaults.baseURL}/common/video/${videoId}`;
 };
 

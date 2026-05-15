@@ -6,6 +6,7 @@ import type { BaseStreamer } from "../db/model/streamer.js";
 export interface QueryRecordsOptions {
   room_id: string;
   platform: string;
+  liveId?: string;
   page?: number;
   pageSize?: number;
   startTime?: number;
@@ -19,6 +20,14 @@ export interface QueryRecordsResult {
     page: number;
     pageSize: number;
   };
+}
+
+export interface QueryRecentClipsOptions {
+  room_id: string;
+  platform: string;
+  liveId?: string;
+  limit?: number;
+  candidateLimit?: number;
 }
 
 export function addWithStreamer(data: Omit<BaseLiveHistory, "streamer_id"> & BaseStreamer) {
@@ -73,7 +82,7 @@ export function upadteLive(
 }
 
 export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): QueryRecordsResult {
-  const { room_id, platform, page = 1, pageSize = 100, startTime, endTime } = options;
+  const { room_id, platform, liveId, page = 1, pageSize = 100, startTime, endTime } = options;
 
   // 先查询streamer
   const streamer = streamerService.query({ room_id, platform });
@@ -90,7 +99,10 @@ export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): Que
 
   // 使用数据库分页而不是内存分页
   const result = recordHistoryService.paginate({
-    where: { streamer_id: streamer.id },
+    where: {
+      streamer_id: streamer.id,
+      ...(liveId ? { live_id: liveId } : {}),
+    },
     page,
     pageSize,
     startTime,
@@ -107,6 +119,28 @@ export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): Que
       pageSize,
     },
   };
+}
+
+export function queryRecentClipsByRoomAndPlatform(options: QueryRecentClipsOptions): LiveHistory[] {
+  const { room_id, platform, liveId, candidateLimit = 15 } = options;
+
+  const streamer = streamerService.query({ room_id, platform });
+  if (!streamer) {
+    return [];
+  }
+
+  const result = recordHistoryService.paginate({
+    where: {
+      streamer_id: streamer.id,
+      ...(liveId ? { live_id: liveId } : {}),
+    },
+    page: 1,
+    pageSize: candidateLimit,
+    orderBy: "record_start_time",
+    orderDirection: "DESC",
+  });
+
+  return result.data;
 }
 
 export async function removeRecords(channelId: string, providerId: string) {
@@ -190,6 +224,7 @@ export default {
   addWithStreamer,
   upadteLive,
   queryRecordsByRoomAndPlatform,
+  queryRecentClipsByRoomAndPlatform,
   removeRecords,
   removeRecord,
   getRecord,
