@@ -16,10 +16,9 @@ import type {
   RecorderProvider,
   RecordHandle,
 } from "@bililive-tools/manager";
-import { live } from "douyu-api";
+import { DouyuParser } from "@bililive-tools/stream-get";
 
 import { getInfo, getStream } from "./stream.js";
-import { getRoomInfo } from "./dy_api.js";
 import { createDYClient } from "./dy_client/index.js";
 import { giftMap, colorTab } from "./danma.js";
 
@@ -103,6 +102,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   try {
     const liveInfo = await getInfo(this.channelId);
     this.liveInfo = liveInfo;
+    console.log("直播间信息", JSON.stringify(liveInfo, null, 2));
     this.state = "idle";
   } catch (error) {
     this.state = "check-error";
@@ -425,16 +425,16 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
   async resolveChannelInfoFromURL(channelURL) {
     if (!this.matchURL(channelURL)) return null;
 
-    const roomId = await live.parseRoomId(channelURL);
+    const parser = new DouyuParser();
+    const roomId = await parser.extractRoomId(channelURL);
     if (!roomId) return null;
-
-    const roomInfo = await getRoomInfo(Number(roomId));
+    const roomInfo = await parser.getRoomInfo(roomId);
 
     return {
       id: roomId,
-      title: roomInfo.room.room_name,
-      owner: roomInfo.room.nickname,
-      avatar: roomInfo.room.avatar?.big,
+      title: roomInfo.title,
+      owner: roomInfo.owner,
+      avatar: roomInfo.avatar,
     };
   },
 

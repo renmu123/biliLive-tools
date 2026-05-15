@@ -22,7 +22,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "vitest run"
+    "manual-test": "vitest run"
   },
   "files": [
     "lib"

@@ -96,6 +96,7 @@ export default class XhsParser extends PlatformParser<string> {
         owner: streamInfo.anchor_name || "",
         avatar: streamInfo.avatar || "",
         cover: streamInfo.cover || "",
+        area: "",
         liveStartTime: undefined,
         raw: mergedOpts.raw ? streamInfo : undefined,
       };

@@ -26,11 +26,12 @@ export interface LiveInfo {
   living: boolean;
   title: string;
   owner: string;
-  avatar?: string;
-  cover?: string;
+  avatar: string;
+  cover: string;
   liveStartTime?: Date;
+  area?: string;
   raw?: any; // 原始数据，供平台特定字段使用
-  [key: string]: any; // 平台特定字段
+  // [key: string]: any; // 平台特定字段
 }
 
 // 流信息（泛型，保留平台原生质量）

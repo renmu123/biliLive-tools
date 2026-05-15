@@ -41,7 +41,10 @@ export async function getLiveInfo(
       throw new ParseError("Unexpected error code: " + json.error, "douyu");
     }
 
-    const streamUrl = `${json.data.rtmp_url}/${json.data.rtmp_live}`;
+    let streamUrl = `${json.data.rtmp_url}/${json.data.rtmp_live}`;
+    if (opts.hevc && json.data.player_1) {
+      streamUrl = json.data.player_1;
+    }
     let cdn = json.data.rtmp_cdn;
     let onlyAudio = false;
 
@@ -85,9 +88,29 @@ export async function getLiveInfo(
  */
 export async function getRoomInfo(http: HttpClient, roomId: number): Promise<RoomInfo> {
   try {
-    const response = await http.get<RoomInfo>(`https://www.douyu.com/betard/${roomId}`);
-    return response;
+    const response = await http.request(`https://www.douyu.com/betard/${roomId}`);
+    const text = await response.body.text();
+    try {
+      const json = JSON.parse(text);
+      return json as RoomInfo;
+    } catch (error) {
+      if (text.includes("该房间目前没有开放")) {
+        throw new ParseError("该房间目前没有开放", "douyu");
+      }
+      if (text.includes("您观看的房间已被关闭")) {
+        throw new ParseError("您观看的房间已被关闭", "douyu");
+      }
+
+      if (error instanceof SyntaxError) {
+        throw new ParseError(`解析房间信息失败: ${error.message}`, "douyu");
+      }
+
+      throw new NetworkError(`解析房间信息失败: ${(error as Error).message}`, "douyu");
+    }
   } catch (error) {
+    if (error instanceof ParseError) {
+      throw error;
+    }
     throw new NetworkError(`获取房间信息失败: ${(error as Error).message}`, "douyu");
   }
 }

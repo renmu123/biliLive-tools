@@ -55,10 +55,11 @@ export class BilibiliParser extends PlatformParser<number> {
           avatar: status.face,
           cover: status.cover_from_user,
           liveStartTime,
+          area: "",
           // 平台特定字段
-          uid: roomInit.uid,
-          shortId: roomInit.short_id,
-          online: status.online,
+          // uid: roomInit.uid,
+          // shortId: roomInit.short_id,
+          // online: status.online,
         };
       } else {
         // 如果获取不到状态信息，尝试使用 getRoomBaseInfo
@@ -75,11 +76,12 @@ export class BilibiliParser extends PlatformParser<number> {
           avatar: "",
           cover: roomData.cover || roomData.keyframe,
           liveStartTime,
+          area: "",
           // 平台特定字段
-          uid: roomInit.uid,
-          shortId: roomInit.short_id,
-          areaName: roomData.area_name,
-          areaId: roomData.area_id,
+          // uid: roomInit.uid,
+          // shortId: roomInit.short_id,
+          // areaName: roomData.area_name,
+          // areaId: roomData.area_id,
         };
       }
     } catch (error) {

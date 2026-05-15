@@ -39,13 +39,10 @@
   "license": "LGPL",
   "dependencies": {
     "@bililive-tools/manager": "workspace:^",
+    "@bililive-tools/stream-get": "workspace:*",
     "mitt": "catalog:",
-    "query-string": "^9.1.1",
-    "safe-eval": "^0.4.1",
     "ws": "^8.18.0",
-    "lodash-es": "catalog:",
-    "axios": "catalog:",
-    "douyu-api": "^0.2.1"
+    "lodash-es": "catalog:"
   },
   "devDependencies": {
     "@types/ws": "^8.5.13"
