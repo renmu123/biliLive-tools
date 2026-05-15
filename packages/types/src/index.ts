@@ -397,6 +397,8 @@ interface DouyuRecorderConfig extends RecorderCheckConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
   quality: 0 | 2 | 3 | 4 | 8;
   source: string;
+  /** 流编码 */
+  codecName: CodecName;
 }
 
 interface HuyaRecorderConfig extends RecorderCheckConfig {

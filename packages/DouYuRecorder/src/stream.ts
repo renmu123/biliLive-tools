@@ -43,6 +43,7 @@ export async function getStream(
     source?: string;
     onlyAudio?: boolean;
     avoidEdgeCDN?: boolean;
+    codecName?: string;
   },
 ) {
   const qn = (
@@ -54,11 +55,12 @@ export async function getStream(
     cdn = "hw-h5";
   }
   const parser = new DouyuParser();
+  const shouldHevc = opts.codecName === "hevc";
   let liveInfo = await parser.getLiveInfo(opts.channelId, {
     rate: qn,
     cdn,
     onlyAudio: opts.onlyAudio,
-    // hevc: true,
+    hevc: shouldHevc,
   });
   if (!liveInfo.living) throw new Error("It must be called getStream when living");
 
@@ -70,6 +72,7 @@ export async function getStream(
         rate: qn,
         cdn: nonScdnSource?.cdn,
         onlyAudio: opts.onlyAudio,
+        hevc: shouldHevc,
       });
     }
   }
@@ -92,6 +95,7 @@ export async function getStream(
       liveInfo = await parser.getLiveInfo(opts.channelId, {
         rate: liveInfo.streams[0].rate,
         onlyAudio: opts.onlyAudio,
+        hevc: shouldHevc,
       });
       if (!liveInfo.living) throw new Error("It must be called getStream when living");
     }

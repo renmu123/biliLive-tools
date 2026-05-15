@@ -282,6 +282,22 @@ export const streamCodecOptions = [
   },
 ];
 
+// 斗鱼流编码
+export const douyuStreamCodecOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    label: "优先avc",
+    value: "avc",
+  },
+  {
+    label: "优先hevc",
+    value: "hevc",
+  },
+];
+
 // 视频格式选择
 export const videoFormatOptions = [
   {
@@ -454,6 +470,10 @@ export const textInfo = {
   douyu: {
     qualityRetry: qualityRetry,
     quality: quality,
+    codecName: {
+      text: "流编码",
+      tip: "默认优先avc模式",
+    },
   },
   huya: {
     qualityRetry: qualityRetry,

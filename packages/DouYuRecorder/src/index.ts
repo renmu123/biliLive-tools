@@ -38,6 +38,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     qualityRetry: opts.qualityRetry ?? 0,
     useServerTimestamp: opts.useServerTimestamp ?? true,
     state: "idle",
+    codecName: opts.codecName ?? "auto",
 
     getChannelURL() {
       return `https://www.douyu.com/${this.channelId}`;
@@ -60,6 +61,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       const res = await getStream({
         channelId: this.channelId,
         quality: this.quality,
+        codecName: this.codecName,
       });
       return res.currentStream;
     },
@@ -102,7 +104,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   try {
     const liveInfo = await getInfo(this.channelId);
     this.liveInfo = liveInfo;
-    console.log("直播间信息", JSON.stringify(liveInfo, null, 2));
     this.state = "idle";
   } catch (error) {
     this.state = "check-error";
@@ -137,6 +138,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       strictQuality,
       onlyAudio: this.onlyAudio,
       avoidEdgeCDN: true,
+      codecName: this.codecName,
     });
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);

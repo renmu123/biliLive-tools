@@ -338,6 +338,15 @@
             </template>
             <n-select v-model:value="config.recorder.douyu.source" :options="douyuSourceOptions" />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.douyu.codecName.text" :tip="textInfo.douyu.codecName.tip"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.douyu.codecName"
+              :options="douyuStreamCodecOptions"
+            />
+          </n-form-item>
 
           <div class="divider"></div>
           <n-form-item>
@@ -662,6 +671,7 @@ import {
   recorderDebugLevelOptions,
   douyinApiTypeOptions,
   huyaApiTypeOptions,
+  douyuStreamCodecOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";
