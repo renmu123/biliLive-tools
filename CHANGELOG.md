@@ -1,3 +1,13 @@
+# Next
+
+## 功能
+
+- 录制：新增主播详情页用于数据展示 [#426](https://github.com/renmu123/biliLive-tools/pull/426)
+
+## 优化
+
+- 【重构】暗黑模式优化 [#445](https://github.com/renmu123/biliLive-tools/pull/445)
+
 # 3.14.0(2026.05.14)
 
 ## 功能
