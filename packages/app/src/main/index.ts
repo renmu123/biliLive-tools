@@ -106,18 +106,25 @@ function createSubWindow(
     hideAside?: boolean;
     hideMenuBar?: boolean;
     maximized?: boolean;
+    withMargin?: boolean;
     query?: Record<string, string>;
   },
 ) {
-  const css = `
+  let css = `
   .layout>div>aside {
     display: none;
   }
-  .main-container{
-    margin: 0 !important;
-  }  
+
   `;
   const hideMenuBar = !!options.hideMenuBar;
+  const withMargin = !!options.withMargin;
+  if (!withMargin) {
+    css += `
+    .main-container{
+      margin: 0 !important;
+    }  
+  `;
+  }
 
   const subWindow = new BrowserWindow({
     webPreferences: {

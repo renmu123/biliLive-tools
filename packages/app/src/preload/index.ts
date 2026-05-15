@@ -70,6 +70,7 @@ export const api = {
       hideAside?: boolean;
       hideMenuBar?: boolean;
       maximized?: boolean;
+      withMargin?: boolean;
       query?: Record<string, string>;
     }) => {
       return ipcRenderer.invoke("common:createSubWindow", opts);
