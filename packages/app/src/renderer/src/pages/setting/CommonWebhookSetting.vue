@@ -20,6 +20,29 @@
     >
   </n-form-item>
 
+  <n-form-item>
+    <template #label>
+      <Tip
+        text="测试：碎片合并"
+        tip="这是一个非常复杂的选项，并非所有视频都支持合并，也无法完全保证合并后视频正常播放，<b>使用前请确保了解你在干什么。</b><br/>由于某些原因导致视频碎片过多时，自动将视频时长小于设定值的碎片<b>无损合并</b>为一个视频文件，弹幕文件也会被合并，单位分钟，0表示不合并"
+      ></Tip>
+    </template>
+    <n-input-number
+      v-model:value="data.autoVideoMergeMinute"
+      placeholder="使用前请先仔细查看说明，单位分钟"
+      min="0"
+      :disabled="globalFieldsObj.autoVideoMergeMinute"
+    >
+      <template #suffix> 分钟 </template></n-input-number
+    >
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.autoVideoMergeMinute"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+
   <!-- 转封装为mp4 -->
   <n-form-item>
     <template #label>
@@ -595,6 +618,7 @@ const data = defineModel<AppRoomConfig>("data", {
     syncId: "",
     open: true,
     minSize: 0,
+    autoVideoMergeMinute: 0,
     title: "",
     danmu: false,
     autoPartMerge: false,

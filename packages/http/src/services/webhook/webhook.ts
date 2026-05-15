@@ -5,7 +5,14 @@ import { FFmpegPreset, VideoPreset, DanmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import { biliApi } from "@biliLive-tools/shared/task/bili.js";
 import { isEmptyDanmu, convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
-import { transcode, burn, analyzeResolutionChanges } from "@biliLive-tools/shared/task/video.js";
+import {
+  checkMergeVideos,
+  mergeVideos,
+  transcode,
+  burn,
+  analyzeResolutionChanges,
+  readVideoMeta,
+} from "@biliLive-tools/shared/task/video.js";
 import { flvRepair } from "@biliLive-tools/shared/task/flvRepair.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import {
@@ -58,7 +65,28 @@ type SortParamItem = {
   cid?: number;
 };
 
+type BufferedEventPair = {
+  pair: MatchedEventPair;
+  filePath: string;
+  cover?: string;
+  danmuPath?: string;
+  duration: number;
+  startTimestamp: number;
+  endTimestamp: number;
+  bufferedAt: number;
+};
+
+type FragmentBufferGroup = {
+  key: string;
+  roomId: string;
+  software: string;
+  items: BufferedEventPair[];
+  totalDuration: number;
+  lastEndTimestamp: number;
+};
+
 const SAME_MEDIA_UPLOAD_ORDER: Array<"handled" | "raw"> = ["handled", "raw"];
+const FRAGMENT_WAIT_TIMEOUT_MS = 2 * 60 * 1000;
 
 export class WebhookHandler {
   liveManager: LiveManager = new LiveManager();
@@ -69,6 +97,7 @@ export class WebhookHandler {
   configManager: ConfigManager;
   private processedFiles: Set<string> = new Set();
   private fileRefManager: FileRefManager = new FileRefManager();
+  private fragmentBufferGroups: Map<string, FragmentBufferGroup> = new Map();
   eventBufferManager: EventBufferManager = new EventBufferManager();
 
   /**
@@ -143,19 +172,259 @@ export class WebhookHandler {
       return;
     }
 
-    // 先处理 open 事件
-    this.handleOpenEvent(pair.open, config.partMergeMinute);
-    // 处理 close 事件
-    const partId = this.handleCloseEvent(pair.close);
+    if (!this.isFragmentMergeEnabled(config)) {
+      // 不需要进行合并，直接处理事件对
+      await this.processPairImmediately(pair, config);
+      return;
+    }
 
-    await this.processEvent(partId, pair.close, config);
+    const item = await this.createBufferedEventPair(pair);
+    const key = this.getFragmentBufferKey(item.pair.open.roomId, item.pair.open.software);
+    const group = this.fragmentBufferGroups.get(key);
+    // 如果视频时长大于 autoVideoMergeSecond，且不存在缓冲组，说明可以直接被处理，直接处理事件对
+    if ((!group || group?.items.length === 0) && item.duration >= config.autoVideoMergeSecond) {
+      await this.processPairImmediately(pair, config);
+      return;
+    }
+
+    await this.enqueueBufferedEventPair(item, config);
+  }
+
+  private isFragmentMergeEnabled(config: RoomConfig): boolean {
+    return Boolean(config.autoVideoMergeMinute && config.autoVideoMergeMinute > 0);
+  }
+
+  private getFragmentBufferKey(roomId: string, software: string): string {
+    return `${roomId}::${software}`;
+  }
+
+  private async createBufferedEventPair(pair: MatchedEventPair): Promise<BufferedEventPair> {
+    const filePath = PathResolver.tryMp4Fallback(pair.open.filePath);
+    const cover = PathResolver.getCoverPath(pair.open.filePath, pair.open.coverPath);
+    const danmuPath = PathResolver.getDanmuPath(filePath, pair.close.danmuPath);
+    const startTimestamp = new Date(pair.open.time).getTime();
+    const endTimestamp = new Date(pair.close.time).getTime();
+
+    let duration = 0;
+    try {
+      const videoMeta = await readVideoMeta(filePath);
+      duration = Number(videoMeta.format.duration || 0);
+    } catch (error) {
+      log.error("读取视频元信息失败，无法获取时长", error);
+    }
+
+    return {
+      pair,
+      filePath,
+      cover,
+      danmuPath,
+      duration,
+      startTimestamp,
+      endTimestamp,
+      bufferedAt: Date.now(),
+    };
+  }
+
+  /**
+   * 只要缓冲区里还有能接到当前分组后面的 open event，就继续等待，不触发超时放行。
+   */
+  private hasPendingOpenEventForGroup(
+    group: FragmentBufferGroup,
+    partMergeMinute: number,
+  ): boolean {
+    if (partMergeMinute <= 0) {
+      return false;
+    }
+
+    return this.eventBufferManager.getPendingOpenEvents().some((event) => {
+      if (event.roomId !== group.roomId || event.software !== group.software) {
+        return false;
+      }
+
+      const openTimestamp = new Date(event.time).getTime();
+      const diffMinutes = (openTimestamp - group.lastEndTimestamp) / (1000 * 60);
+      return diffMinutes >= 0 && diffMinutes < partMergeMinute;
+    });
+  }
+
+  /**
+   * 定期扫一遍缓冲组；超过 2 分钟且后面没有可衔接的 open event 时，按单文件降级处理。
+   */
+  private async flushExpiredFragmentGroups() {
+    for (const [key, group] of this.fragmentBufferGroups.entries()) {
+      const config = this.configManager.getConfig(group.roomId);
+
+      const isTimedOut = Date.now() - group.lastEndTimestamp >= 0;
+      if (!isTimedOut) {
+        continue;
+      }
+
+      if (this.hasPendingOpenEventForGroup(group, config.partMergeMinute)) {
+        log.debug(`碎片缓冲组 ${key} 已超时，但存在后续事件，继续等待`);
+        continue;
+      }
+      log.debug(
+        `碎片缓冲组 ${key} 已超时且没有后续事件，开始处理，包含 ${group.items.length} 个分段，总时长 ${group.totalDuration}s`,
+      );
+      await this.processBufferedGroupIndividually(group, config);
+      this.fragmentBufferGroups.delete(key);
+    }
+  }
+
+  /**
+   * 把短分段放入同一直播的软件级缓冲中；累计时长达标后再进入合并判定。
+   */
+  private async enqueueBufferedEventPair(item: BufferedEventPair, config: RoomConfig) {
+    const key = this.getFragmentBufferKey(item.pair.open.roomId, item.pair.open.software);
+
+    const currentGroup = this.fragmentBufferGroups.get(key) ?? {
+      key,
+      roomId: item.pair.open.roomId,
+      software: item.pair.open.software,
+      items: [],
+      totalDuration: 0,
+      lastEndTimestamp: item.endTimestamp,
+    };
+
+    currentGroup.items.push(item);
+    currentGroup.totalDuration += item.duration;
+    currentGroup.lastEndTimestamp = item.endTimestamp;
+    this.fragmentBufferGroups.set(key, currentGroup);
+
+    if (currentGroup.totalDuration < config.autoVideoMergeSecond) {
+      log.info(
+        `分段 ${item.filePath} 已加入缓冲组 ${key}，当前组内总时长 ${currentGroup.totalDuration}s，等待更多碎片或超时处理`,
+      );
+      setTimeout(() => {
+        this.flushExpiredFragmentGroups();
+      }, FRAGMENT_WAIT_TIMEOUT_MS);
+      return;
+    }
+
+    this.fragmentBufferGroups.delete(key);
+    await this.processBufferedGroup(currentGroup, config);
+  }
+
+  /**
+   * 合并前先做兼容性检查；只要存在 warning/error，就直接回退到逐个处理。
+   */
+  private async processBufferedGroup(group: FragmentBufferGroup, config: RoomConfig) {
+    const videoPaths = group.items.map((item) => item.filePath);
+    const mergeCheckResult = await checkMergeVideos(videoPaths);
+    if (mergeCheckResult.errors.length > 0 || mergeCheckResult.warnings.length > 0) {
+      log.warn("碎片合并检查未通过，跳过合并", mergeCheckResult);
+      await this.processBufferedGroupIndividually(group, config);
+      return;
+    }
+
+    try {
+      const mergedVideoPath = await this.mergeBufferedGroupVideos(group.items);
+      // const mergedXmlPath = await this.mergeBufferedGroupXml(group.items);
+      const mergedXmlPath = "";
+      await this.processMergedBufferedGroup(group, mergedVideoPath, mergedXmlPath, config);
+    } catch (error) {
+      log.error("碎片合并失败，降级为单文件处理", error);
+      await this.processBufferedGroupIndividually(group, config);
+    }
+  }
+
+  /**
+   * mergeVideos 只返回 taskId，这里需要额外等待任务完成并取回最终输出路径。
+   */
+  private async mergeBufferedGroupVideos(items: BufferedEventPair[]): Promise<string> {
+    const { dir, name } = path.parse(items[0].filePath);
+    const output = path.join(dir, `${name}-合并.mp4`);
+    const task = await mergeVideos(
+      items.map((item) => item.filePath),
+      {
+        output,
+        removeOrigin: false,
+        saveOriginPath: false,
+        keepFirstVideoMeta: false,
+      },
+    );
+
+    return new Promise((resolve, reject) => {
+      task.on("task-end", () => {
+        resolve(task.output as string);
+      });
+      task.on("task-error", () => {
+        reject(new Error("Transcode task failed"));
+      });
+    });
+  }
+
+  /**
+   * XML 合并暂时只保留落点，后续会替换成真实实现。
+   */
+  private async mergeBufferedGroupXml(items: BufferedEventPair[]): Promise<string | undefined> {
+    const xmlItems = items.filter((item) => item.danmuPath);
+    if (xmlItems.length !== items.length || xmlItems.length === 0) {
+      return undefined;
+    }
+
+    log.info("碎片合并 XML 占位逻辑已触发，后续将重写真实实现");
+    return undefined;
+  }
+
+  /**
+   * 合并失败、超时或检查未通过时，沿用旧逻辑逐个处理缓冲中的事件对。
+   */
+  private async processBufferedGroupIndividually(group: FragmentBufferGroup, config: RoomConfig) {
+    for (const item of group.items) {
+      await this.processPairImmediately(item.pair, config);
+    }
+  }
+
+  /**
+   * 直接处理单个事件对，不进入碎片缓冲。
+   */
+  private async processPairImmediately(pair: MatchedEventPair, config: RoomConfig) {
+    const partId = await this.handlePairEvent(pair, { partMergeMinute: config.partMergeMinute });
+    const context = this.liveManager.findBy({ partId });
+    if (!context) {
+      log.error(`未找到对应的直播分段，无法处理事件对: ${pair.close.filePath}`);
+      return;
+    }
+    await this.processEvent(context, config);
+  }
+
+  /**
+   * 用合并后的产物重新构造一个 pair，并复用现有后处理链，避免再开一套处理流程。
+   */
+  private async processMergedBufferedGroup(
+    group: FragmentBufferGroup,
+    mergedVideoPath: string,
+    mergedXmlPath: string | undefined,
+    config: RoomConfig,
+  ) {
+    const firstItem = group.items[0];
+    const lastItem = group.items[group.items.length - 1];
+
+    const cover = firstItem.cover || lastItem.cover;
+    const mergedPair: MatchedEventPair = {
+      open: {
+        ...firstItem.pair.open,
+        filePath: mergedVideoPath,
+        coverPath: cover,
+      },
+      close: {
+        ...lastItem.pair.close,
+        filePath: mergedVideoPath,
+        danmuPath: mergedXmlPath,
+        coverPath: cover,
+      },
+    };
+
+    this.processPairImmediately(mergedPair, config);
   }
 
   collectTasks(
-    filePath: string,
+    filePath: string | undefined,
     fileType: "originVideo" | "xml" | "ass" | "cover" | "handledVideo",
     config: RoomConfig,
   ) {
+    if (!filePath) return;
     const syncConfig = this.configManager.getSyncConfig(config.roomId);
     if (fileType === "originVideo") {
       // 原始视频，可能被转码、同步、上传非弹幕版
@@ -239,50 +508,37 @@ export class WebhookHandler {
   /**
    * 处理单个事件（从原 handle 方法提取）
    */
-  private async processEvent(partId: string, options: Options, config: RoomConfig) {
-    // 1. 如果是开始或错误事件,直接返回
-    if (this.shouldSkipProcessing(options.event)) return;
-
-    // 2. 获取当前直播和分段
-    const context = this.liveManager.findBy({ partId });
-    if (!context) return;
-
+  private async processEvent(context: { live: Live; part: Part }, config: RoomConfig) {
     log.debug(context.live);
 
     // 3. 转封装处理
-    await this.processConversion(context, options, config);
+    await this.processConversion(context, config);
+    let filePath = context.part.filePath;
 
     // 4. 设置预处理状态
     context.part.recordStatus = "prehandled";
 
     // 收集需要执行的操作并添加计数
-    const xmlFilePath = PathResolver.getDanmuPath(options.filePath, options.danmuPath);
-    this.collectTasks(options.filePath, "originVideo", config);
+    const xmlFilePath = context.part.danmuPath;
+    this.collectTasks(filePath, "originVideo", config);
     this.collectTasks(xmlFilePath, "xml", config);
     if (context.part.cover) {
       this.collectTasks(context.part.cover, "cover", config);
     }
 
     // 5. 处理弹幕和视频压制
-    const processingResult = await this.processMediaFiles(context, options, config, xmlFilePath);
-    log.debug("processingResult", processingResult, options.filePath, context.part.filePath);
+    const processingResult = await this.processMediaFiles(context, config, xmlFilePath);
+    log.debug("processingResult", processingResult, filePath, context.part.filePath);
     this.collectTasks(context.part.filePath, "handledVideo", config);
     if (processingResult.conversionSuccessful) {
-      this.fileRefManager.releaseRef(options.filePath);
+      this.fileRefManager.releaseRef(filePath);
     }
     if (xmlFilePath && processingResult.danmuConversionSuccessful) {
       this.fileRefManager.releaseRef(xmlFilePath);
     }
 
     // 6. 处理文件同步和锁定
-    await this.handlePostProcessing(context, options);
-  }
-
-  /**
-   * 判断是否应该跳过后续处理
-   */
-  private shouldSkipProcessing(event: string): boolean {
-    return event === EventType.OpenEvent || event === EventType.ErrorEvent;
+    await this.handlePostProcessing(context, xmlFilePath);
   }
 
   /**
@@ -327,16 +583,12 @@ export class WebhookHandler {
   /**
    * 转封装处理
    */
-  private async processConversion(
-    context: { live: Live; part: Part },
-    options: Options,
-    config: RoomConfig,
-  ) {
+  private async processConversion(context: { live: Live; part: Part }, config: RoomConfig) {
     if (!config.convert2Mp4Option) return;
 
     try {
       const file = await this.transcode(
-        options.filePath,
+        context.part.filePath,
         {
           encoder: "copy",
           audioCodec: "copy",
@@ -346,7 +598,6 @@ export class WebhookHandler {
         },
       );
 
-      options.filePath = file;
       context.part.filePath = file;
       context.part.rawFilePath = file;
     } catch (error) {
@@ -359,14 +610,13 @@ export class WebhookHandler {
    */
   private async processMediaFiles(
     context: { live: Live; part: Part },
-    options: Options,
     config: RoomConfig,
-    xmlFilePath: string,
+    xmlFilePath: string | undefined,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
     if (config.danmu) {
-      return this.processDanmuVideo(context, options, config, xmlFilePath);
+      return this.processDanmuVideo(context, config, xmlFilePath!);
     } else {
-      return this.processRegularVideo(context, options, config, xmlFilePath);
+      return this.processRegularVideo(context, config, xmlFilePath);
     }
   }
 
@@ -375,7 +625,6 @@ export class WebhookHandler {
    */
   private async processDanmuVideo(
     context: { live: Live; part: Part },
-    options: Options,
     config: RoomConfig,
     xmlFilePath: string,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
@@ -387,6 +636,8 @@ export class WebhookHandler {
         log.warn(`弹幕文件不存在或为空，跳过弹幕压制: ${xmlFilePath}`);
         return { conversionSuccessful: false, danmuConversionSuccessful: false };
       }
+
+      const filePath = context.part.filePath;
 
       // 验证预设
       if (!config.danmuPresetId || !config.videoPresetId) {
@@ -405,7 +656,7 @@ export class WebhookHandler {
       // 压制视频
       const output = await this.burn(
         {
-          videoFilePath: options.filePath,
+          videoFilePath: filePath,
           subtitleFilePath: xmlFilePath,
         },
         {
@@ -440,9 +691,8 @@ export class WebhookHandler {
    */
   private async processRegularVideo(
     context: { live: Live; part: Part },
-    options: Options,
     config: RoomConfig,
-    xmlFilePath: string,
+    xmlFilePath: string | undefined,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
     let conversionSuccessful = false;
     let danmuConversionSuccessful = false;
@@ -454,7 +704,7 @@ export class WebhookHandler {
         if (!preset) {
           throw new Error(`ffmpegPreset not found ${config.videoPresetId}`);
         }
-        const output = await this.transcode(options.filePath, preset.config, {
+        const output = await this.transcode(context.part.filePath, preset.config, {
           removeVideo: false,
           suffix: "-后处理",
           limitTime: config.videoHandleTime,
@@ -471,7 +721,7 @@ export class WebhookHandler {
     context.part.recordStatus = "handled";
 
     // 处理弹幕转换
-    if (config.danmuPresetId) {
+    if (config.danmuPresetId && xmlFilePath) {
       try {
         const preset = await this.danmuPreset.get(config.danmuPresetId);
         if (!preset) {
@@ -491,39 +741,35 @@ export class WebhookHandler {
   /**
    * 处理后续操作(同步、锁定等)
    */
-  private async handlePostProcessing(context: { live: Live; part: Part }, options: Options) {
-    const { part } = context;
+  private async handlePostProcessing(context: { live: Live; part: Part }, xmlFilePath?: string) {
+    const { part, live } = context;
+    const roomId = live.roomId;
 
     // 处理封面同步
     if (part.cover) {
-      await this.handleFileSync(options.roomId, part.cover, "cover", part.partId).catch((error) => {
+      await this.handleFileSync(roomId, part.cover, "cover", part.partId).catch((error) => {
         log.error("handleCoverSync", error);
       });
     }
 
     // 处理弹幕同步
-    const xmlFilePath = PathResolver.getDanmuPath(options.filePath, options.danmuPath);
     if (xmlFilePath) {
-      await this.handleFileSync(options.roomId, xmlFilePath, "xml", part.partId).catch((error) => {
+      await this.handleFileSync(roomId, xmlFilePath, "xml", part.partId).catch((error) => {
         log.error("handleFileSync", error);
       });
     }
 
     // 处理视频同步1
     const fileType = PathResolver.getFileType(part.rawFilePath);
-    await this.handleFileSync(options.roomId, part.rawFilePath, fileType, part.partId).catch(
-      (error) => {
-        log.error("handleFileSync", error);
-      },
-    );
+    await this.handleFileSync(roomId, part.rawFilePath, fileType, part.partId).catch((error) => {
+      log.error("handleFileSync", error);
+    });
 
     // 处理视频同步2
     const fileType2 = PathResolver.getFileType(part.filePath);
-    await this.handleFileSync(options.roomId, part.filePath, fileType2, part.partId).catch(
-      (error) => {
-        log.error("handleFileSync", error);
-      },
-    );
+    await this.handleFileSync(roomId, part.filePath, fileType2, part.partId).catch((error) => {
+      log.error("handleFileSync", error);
+    });
   }
 
   /**
@@ -612,6 +858,68 @@ export class WebhookHandler {
   async handleCoverSync(roomId: string, coverPath: string, partId: string) {
     return this.handleFileSync(roomId, coverPath, "cover", partId);
   }
+
+  /**
+   * 处理匹配的事件对，创建或更新直播和分段信息
+   * @param pair
+   * @param config
+   * @returns
+   */
+  handlePairEvent = async (
+    pair: MatchedEventPair,
+    config: { partMergeMinute?: number },
+    resolvedData?: {
+      filePath?: string;
+      cover?: string;
+      danmuPath?: string;
+    },
+  ) => {
+    const startTimestamp = new Date(pair.open.time).getTime();
+    const endTimestamp = new Date(pair.close.time).getTime();
+    const openEvent = pair.open;
+
+    // 检查文件是否存在,尝试替换扩展名
+    const filePath = resolvedData?.filePath ?? PathResolver.tryMp4Fallback(openEvent.filePath);
+    const cover =
+      resolvedData?.cover ?? PathResolver.getCoverPath(openEvent.filePath, openEvent.coverPath);
+    const xmlFilePath =
+      resolvedData?.danmuPath ?? PathResolver.getDanmuPath(filePath, pair.close.danmuPath);
+
+    // 找到上一个文件结束时间与当前时间差小于一段时间的直播，认为是同一个直播
+    let live = this.liveManager.findRecentLive(
+      openEvent.roomId,
+      openEvent.software,
+      config.partMergeMinute || 10,
+      startTimestamp,
+    );
+
+    if (!live) {
+      // 新建Live数据
+      live = new Live({
+        platform: openEvent.platform,
+        software: openEvent.software,
+        roomId: openEvent.roomId,
+        startTime: startTimestamp,
+        title: openEvent.title,
+        username: openEvent.username,
+      });
+      this.liveManager.addLive(live);
+    }
+
+    const part = live.addPart({
+      startTime: startTimestamp,
+      endTime: endTimestamp,
+      filePath: filePath,
+      recordStatus: "recorded",
+      uploadStatus: "pending",
+      rawFilePath: filePath,
+      rawUploadStatus: "pending",
+      title: openEvent.title,
+      cover: cover,
+      danmuPath: xmlFilePath,
+    });
+    return part.partId;
+  };
 
   /**
    * 处理open事件

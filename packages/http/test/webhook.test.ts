@@ -1,12 +1,14 @@
 import fs from "fs-extra";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
 import { WebhookHandler } from "../src/services/webhook/webhook.js";
 import { Live, Part } from "../src/services/webhook/Live.js";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import * as utils from "@biliLive-tools/shared/utils/index.js";
+import * as videoTask from "@biliLive-tools/shared/task/video.js";
 import * as syncTask from "@biliLive-tools/shared/task/sync.js";
 
 import type { Options } from "../src/types/webhook.js";
+import type { MatchedEventPair } from "../src/services/webhook/EventBufferManager.js";
 
 vi.mock("../src/index.js", async (importOriginal) => {
   const mod = await importOriginal<typeof import("../src/index.js")>();
@@ -178,11 +180,136 @@ describe("WebhookHandler", () => {
         },
       );
 
-      await utils.sleep(500); // 等待异步处理完成
+      await new Promise((resolve) => setImmediate(resolve));
       const liveData2 = webhookHandler.liveData;
-      await utils.sleep(500); // 等待异步处理完成
+      await new Promise((resolve) => setImmediate(resolve));
       expect(liveData2.length).toBe(1);
-      expect(liveData2[0].parts[0].recordStatus).toBe("recorded");
+      expect(liveData2[0].parts[0].recordStatus).toBe("handled");
+    });
+  });
+
+  describe("fragment merge", () => {
+    const createPair = (overrides: Partial<Options> = {}): MatchedEventPair => ({
+      open: {
+        event: "FileOpening",
+        roomId: "123",
+        platform: "blrec",
+        software: "bili-recorder",
+        filePath: "/path/to/file.mp4",
+        time: "2022-01-01T00:00:00Z",
+        title: "Test Video",
+        username: "tester",
+        ...overrides,
+      } as Options,
+      close: {
+        event: "FileClosed",
+        roomId: "123",
+        platform: "blrec",
+        software: "bili-recorder",
+        filePath: "/path/to/file.mp4",
+        time: "2022-01-01T00:01:00Z",
+        title: "Test Video",
+        username: "tester",
+        ...overrides,
+      } as Options,
+    });
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2022-01-01T00:01:30Z"));
+      // @ts-ignore
+      vi.spyOn(fs, "pathExists").mockResolvedValue(true);
+      vi.spyOn(utils, "getFileSize").mockResolvedValue(20 * 1024 * 1024);
+      vi.spyOn(videoTask, "readVideoMeta").mockResolvedValue({
+        format: { duration: 60 },
+        streams: [],
+      } as any);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("应优先执行 validateFileSize，再决定是否进入碎片合并", async () => {
+      const pair = createPair();
+      const createBufferedEventPairSpy = vi
+        // @ts-ignore
+        .spyOn(webhookHandler, "createBufferedEventPair");
+
+      // @ts-ignore
+      vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
+        open: true,
+        minSize: 10,
+        autoVideoMergeMinute: 5,
+        partMergeMinute: 10,
+      });
+      // @ts-ignore
+      vi.spyOn(webhookHandler, "validateFileSize").mockResolvedValue(false);
+
+      // @ts-ignore
+      await webhookHandler.handleMatchedPair(pair);
+
+      expect(createBufferedEventPairSpy).not.toHaveBeenCalled();
+      // @ts-ignore
+      expect(webhookHandler.fragmentBufferGroups.size).toBe(0);
+    });
+
+    it("checkMergeVideos 返回 warning 或 error 时应跳过合并", async () => {
+      const group = {
+        key: "123::bili-recorder",
+        roomId: "123",
+        software: "bili-recorder",
+        totalDuration: 180,
+        lastEndTimestamp: new Date("2022-01-01T00:03:00Z").getTime(),
+        items: [
+          {
+            pair: createPair(),
+            filePath: "/path/to/file1.mp4",
+            duration: 90,
+            startTimestamp: new Date("2022-01-01T00:00:00Z").getTime(),
+            endTimestamp: new Date("2022-01-01T00:01:30Z").getTime(),
+            bufferedAt: Date.now(),
+          },
+          {
+            pair: createPair({
+              filePath: "/path/to/file2.mp4",
+              time: "2022-01-01T00:02:00Z",
+            }),
+            filePath: "/path/to/file2.mp4",
+            duration: 90,
+            startTimestamp: new Date("2022-01-01T00:02:00Z").getTime(),
+            endTimestamp: new Date("2022-01-01T00:03:30Z").getTime(),
+            bufferedAt: Date.now(),
+          },
+        ],
+      };
+      const processBufferedGroupIndividuallySpy = vi
+        // @ts-ignore
+        .spyOn(webhookHandler, "processBufferedGroupIndividually")
+        // @ts-ignore
+        .mockResolvedValue(undefined);
+      const mergeBufferedGroupVideosSpy = vi
+        // @ts-ignore
+        .spyOn(webhookHandler, "mergeBufferedGroupVideos");
+
+      vi.spyOn(videoTask, "checkMergeVideos").mockResolvedValue({
+        warnings: ["输入视频帧率不一致"],
+        errors: [],
+      });
+
+      // @ts-ignore
+      await webhookHandler.processBufferedGroup(group, {
+        open: true,
+        roomId: "123",
+        autoVideoMergeMinute: 2,
+        partMergeMinute: 10,
+      });
+
+      expect(processBufferedGroupIndividuallySpy).toHaveBeenCalledWith(
+        group,
+        expect.objectContaining({ roomId: "123" }),
+      );
+      expect(mergeBufferedGroupVideosSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -2653,26 +2780,6 @@ describe("Live", () => {
       webhookHandler = new WebhookHandler(appConfig);
     });
 
-    describe("shouldSkipProcessing", () => {
-      it("应在事件为FileOpening时返回true", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldSkipProcessing("FileOpening");
-        expect(result).toBe(true);
-      });
-
-      it("应在事件为FileError时返回true", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldSkipProcessing("FileError");
-        expect(result).toBe(true);
-      });
-
-      it("应在事件为FileClosed时返回false", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldSkipProcessing("FileClosed");
-        expect(result).toBe(false);
-      });
-    });
-
     describe("validateFileSize", () => {
       it("应在文件大小足够时返回true", async () => {
         const live = new Live({
@@ -2738,15 +2845,7 @@ describe("Live", () => {
             title: "Part 1",
           },
         };
-        const options = {
-          event: "FileClosed" as const,
-          roomId: "123",
-          platform: "blrec" as const,
-          filePath: "/path/to/file.mp4",
-          time: new Date().toISOString(),
-          title: "Test",
-          username: "user",
-        };
+
         const config = { danmu: true };
 
         const processDanmuVideoSpy = vi
@@ -2756,7 +2855,7 @@ describe("Live", () => {
           .mockResolvedValue({ conversionSuccessful: true, danmuConversionSuccessful: true });
 
         // @ts-ignore
-        await webhookHandler.processMediaFiles(context, options, config);
+        await webhookHandler.processMediaFiles(context, config, context.part.filePath);
 
         expect(processDanmuVideoSpy).toHaveBeenCalled();
       });
@@ -2778,15 +2877,6 @@ describe("Live", () => {
             title: "Part 1",
           },
         };
-        const options = {
-          event: "FileClosed" as const,
-          roomId: "123",
-          platform: "blrec" as const,
-          filePath: "/path/to/file.mp4",
-          time: new Date().toISOString(),
-          title: "Test",
-          username: "user",
-        };
         const config = { danmu: false };
 
         const processRegularVideoSpy = vi
@@ -2796,7 +2886,7 @@ describe("Live", () => {
           .mockResolvedValue({ conversionSuccessful: true, danmuConversionSuccessful: true });
 
         // @ts-ignore
-        await webhookHandler.processMediaFiles(context, options, config);
+        await webhookHandler.processMediaFiles(context, config, context.part.filePath);
 
         expect(processRegularVideoSpy).toHaveBeenCalled();
       });
