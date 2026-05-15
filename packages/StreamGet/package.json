@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/stream-get",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "parse live stream url",
   "main": "./lib/index.js",
   "type": "module",

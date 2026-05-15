@@ -88,6 +88,7 @@ export interface GetH5PlayOptions {
   rate?: number;
   rejectSignFnCache?: boolean;
   onlyAudio?: boolean;
+  hevc?: boolean;
 }
 
 export interface GetH5PlayResponse {

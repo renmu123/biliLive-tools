@@ -37,12 +37,12 @@ export class StreamParser {
   /**
    * 获取直播信息（需要先指定平台）
    */
-  async getLiveInfo(platform: string, roomId: string, opts?: RequestOptions): Promise<LiveInfo> {
+  async getRoomInfo(platform: string, roomId: string, opts?: RequestOptions): Promise<LiveInfo> {
     const parser = registry.create(platform, { ...this.options, ...opts });
     if (!parser) {
       throw new UnsupportedPlatformError(platform);
     }
-    return parser.getLiveInfo(roomId, opts);
+    return parser.getRoomInfo(roomId, opts);
   }
 
   /**

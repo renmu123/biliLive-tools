@@ -21,12 +21,7 @@ interface EncryptionCacheEntry {
 
 const encryptionCache = new Map<string, EncryptionCacheEntry>();
 
-function buildAuth(
-  roomId: string,
-  did: string,
-  timestamp: number,
-  encryptionData: EncryptionData,
-): string {
+function buildAuth(roomId: string, timestamp: number, encryptionData: EncryptionData): string {
   const input = encryptionData.is_special === 1 ? "" : `${roomId}${timestamp}`;
   let seed = encryptionData.rand_str;
 
@@ -51,7 +46,7 @@ function buildBody(
     auth,
     cdn: opts.cdn ?? "",
     rate: String(opts.rate ?? 0),
-    hevc: "1",
+    hevc: opts.hevc ? "1" : "0",
     fa: opts.onlyAudio ? "1" : "0",
     ive: "0",
   }).toString();
@@ -101,7 +96,7 @@ export async function getH5PlayV1(
   const did = DEFAULT_DID;
   const timestamp = Math.round(Date.now() / 1000);
   const encryptionData = await getEncryption(http, did);
-  const auth = buildAuth(opts.channelId, did, timestamp, encryptionData);
+  const auth = buildAuth(opts.channelId, timestamp, encryptionData);
 
   try {
     const response = await http.post<GetH5PlayResponse>(

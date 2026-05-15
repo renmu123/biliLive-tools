@@ -74,7 +74,7 @@ export default class XhsParser extends PlatformParser<string> {
     return getUserInfo(this.httpClient, uid);
   }
 
-  async getLiveInfo(
+  async getRoomInfo(
     roomId: string,
     opts: {
       raw?: boolean;

@@ -23,12 +23,14 @@ export async function getLiveInfo(
     channelId: string;
     cdn?: string;
     rate?: number;
-    rejectSignFnCache?: boolean;
     onlyAudio?: boolean;
+    oldApi?: boolean;
+    hevc?: boolean;
   },
 ): Promise<LiveInfoResult> {
   try {
-    const json = await getH5PlayV1(http, opts);
+    const func = opts.oldApi ? getH5Play : getH5PlayV1;
+    const json = await func(http, opts);
 
     // 不存在的房间、已被封禁、未开播
     if ([-3, -4, -5].includes(json.error)) {

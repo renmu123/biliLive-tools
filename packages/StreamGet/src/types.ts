@@ -70,7 +70,7 @@ export abstract class PlatformParser<Q = any> {
 
   abstract matchURL(url: string): boolean;
   abstract extractRoomId(url: string): Promise<string>;
-  abstract getLiveInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo>;
+  abstract getRoomInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo>;
   abstract getStreams(roomId: string, opts?: RequestOptions): Promise<SourceInfo<Q>[]>;
 
   async parse(urlOrRoomId: string, opts?: RequestOptions): Promise<ParseResult<Q>> {
@@ -79,7 +79,7 @@ export abstract class PlatformParser<Q = any> {
     const mergedOpts = this.mergeOptions(opts);
 
     const [liveInfo, sources] = await Promise.all([
-      this.getLiveInfo(roomId, mergedOpts),
+      this.getRoomInfo(roomId, mergedOpts),
       this.getStreams(roomId, mergedOpts),
     ]);
 

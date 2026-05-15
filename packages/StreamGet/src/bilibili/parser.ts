@@ -31,7 +31,7 @@ export class BilibiliParser extends PlatformParser<number> {
     return String(data.room_id);
   }
 
-  async getLiveInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo> {
+  async getRoomInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo> {
     const mergedOpts = this.mergeOptions(opts);
     console.log(`BilibiliParser.getLiveInfo: roomId=${roomId}, options=`, mergedOpts);
     const roomIdNum = Number(roomId);

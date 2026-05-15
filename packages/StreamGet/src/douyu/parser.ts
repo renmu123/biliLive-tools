@@ -67,7 +67,7 @@ export class DouyuParser extends PlatformParser<number> {
     throw new ParseError(`无法从 URL 提取房间 ID: ${url}`, this.platform);
   }
 
-  async getLiveInfo(
+  async getRoomInfo(
     roomId: string,
     opts: {
       raw?: boolean;
@@ -99,16 +99,53 @@ export class DouyuParser extends PlatformParser<number> {
       throw new ParseError(`获取直播间信息失败: ${(error as Error).message}`, this.platform);
     }
   }
+  async getLiveInfo(
+    roomId: string,
+    opts: {
+      raw?: boolean;
+      onlyAudio?: boolean;
+      cdn?: string;
+      rate?: number;
+      oldApi?: boolean;
+      hevc?: boolean;
+    } = {},
+  ) {
+    const mergedOpts = {
+      raw: false,
+      onlyAudio: false,
+      cdn: undefined,
+      rate: 0,
+      oldApi: false,
+      hevc: false,
+      ...opts,
+    };
+    const liveInfo = await getLiveInfo(this.httpClient, {
+      channelId: roomId,
+      cdn: mergedOpts.cdn,
+      rate: mergedOpts.rate ?? 0,
+      onlyAudio: mergedOpts.onlyAudio,
+      oldApi: mergedOpts.oldApi,
+      hevc: mergedOpts.hevc,
+    });
+    return liveInfo;
+  }
 
   async getStreams(
     roomId: string,
-    opts: { raw?: boolean; onlyAudio?: boolean; cdn?: string; rate?: number } = {},
+    opts: {
+      raw?: boolean;
+      onlyAudio?: boolean;
+      cdn?: string;
+      rate?: number;
+      oldApi?: boolean;
+    } = {},
   ): Promise<SourceInfo<number>[]> {
     const mergedOpts = {
       raw: false,
       onlyAudio: false,
       cdn: undefined,
       rate: 0,
+      oldApi: false,
       ...opts,
     };
 
@@ -119,11 +156,13 @@ export class DouyuParser extends PlatformParser<number> {
         cdn: mergedOpts.cdn,
         rate: mergedOpts.rate ?? 0,
         onlyAudio: mergedOpts.onlyAudio,
+        oldApi: mergedOpts.oldApi,
       });
 
       if (!liveInfo.living) {
         return [];
       }
+      console.log("直播信息", JSON.stringify(liveInfo, null, 2));
 
       const sources: SourceInfo<number>[] = [];
 
