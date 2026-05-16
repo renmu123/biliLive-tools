@@ -37,13 +37,12 @@ export async function getInfo(channelId: string): Promise<{
 }
 
 export async function getStream(
-  opts: Pick<Recorder, "channelId" | "quality"> & {
+  opts: Pick<Recorder, "channelId" | "quality" | "api" | "codecName"> & {
     rejectCache?: boolean;
     strictQuality?: boolean;
     source?: string;
     onlyAudio?: boolean;
     avoidEdgeCDN?: boolean;
-    codecName?: string;
   },
 ) {
   const qn = (
@@ -56,11 +55,13 @@ export async function getStream(
   }
   const parser = new DouyuParser();
   const shouldHevc = opts.codecName === "hevc";
+  const isOldApi = opts.api === "old";
   let liveInfo = await parser.getLiveInfo(opts.channelId, {
     rate: qn,
     cdn,
     onlyAudio: opts.onlyAudio,
     hevc: shouldHevc,
+    oldApi: isOldApi,
   });
   if (!liveInfo.living) throw new Error("It must be called getStream when living");
 

@@ -394,6 +394,12 @@ export const huyaApiTypeOptions = [
   { label: "wup", value: "wup" },
 ];
 
+export const douyuApiTypeOptions = [
+  { label: "自动", value: "auto" },
+  { label: "新接口", value: "newAPI" },
+  { label: "旧接口", value: "oldAPI" },
+];
+
 const qualityRetry = {
   text: "流匹配重试次数",
   tip: "根据次数强制查询匹配画质及其他强制参数，在未选择原画的情况下，可能会导致开头漏录。匹配次数结束后如果无法匹配对应画质时会自动选择其他画质，-1为强制匹配",
@@ -473,6 +479,10 @@ export const textInfo = {
     codecName: {
       text: "流编码",
       tip: "默认优先avc模式",
+    },
+    api: {
+      text: "请求接口",
+      tip: `自动使用新接口，除了新接口额外支持hevc之外，我也不知道有啥区别，但还是保留了此选项`,
     },
   },
   huya: {

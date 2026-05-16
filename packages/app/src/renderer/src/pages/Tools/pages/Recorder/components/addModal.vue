@@ -294,6 +294,19 @@
             </n-form-item>
             <n-form-item>
               <template #label>
+                <Tip :text="textInfo.douyu.api.text" :tip="textInfo.douyu.api.tip"></Tip>
+              </template>
+              <n-select
+                v-model:value="config.api"
+                :options="douyuApiTypeOptions"
+                :disabled="globalFieldsObj.api"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.api" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item v-if="config.api !== 'oldAPI'">
+              <template #label>
                 <Tip
                   :text="textInfo.douyu.codecName.text"
                   :tip="textInfo.douyu.codecName.tip"
@@ -688,6 +701,7 @@ import {
   douyinApiTypeOptions,
   huyaApiTypeOptions,
   douyuStreamCodecOptions,
+  douyuApiTypeOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
@@ -945,6 +959,8 @@ watch(
         config.value.api = appConfig.value.recorder.douyin.api;
       } else if (config.value.providerId === "HuYa") {
         config.value.api = appConfig.value.recorder.huya.api;
+      } else if (config.value.providerId === "DouYu") {
+        config.value.api = appConfig.value.recorder.douyu.api;
       }
     }
     if (val.customHost) {

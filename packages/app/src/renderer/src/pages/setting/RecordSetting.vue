@@ -340,6 +340,12 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip :text="textInfo.douyu.api.text" :tip="textInfo.douyu.api.tip"></Tip>
+            </template>
+            <n-select v-model:value="config.recorder.douyu.api" :options="douyuApiTypeOptions" />
+          </n-form-item>
+          <n-form-item v-if="config.recorder.douyu.api !== 'oldAPI'">
+            <template #label>
               <Tip :text="textInfo.douyu.codecName.text" :tip="textInfo.douyu.codecName.tip"></Tip>
             </template>
             <n-select
@@ -507,7 +513,7 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip text="Cookie" tip="用于录制会员直播"></Tip>
+              <Tip text="Cookie" tip="~"></Tip>
             </template>
             <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
             <n-button
@@ -672,6 +678,7 @@ import {
   douyinApiTypeOptions,
   huyaApiTypeOptions,
   douyuStreamCodecOptions,
+  douyuApiTypeOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";

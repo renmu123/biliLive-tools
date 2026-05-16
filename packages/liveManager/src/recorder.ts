@@ -71,6 +71,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
     | "userHTML"
     | "balance"
     | "random"
+    | "newAPI"
+    | "oldAPI"
     | string;
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制，支持两种格式：
    * 1. 逗号分隔的关键词：'回放,录播,重播'

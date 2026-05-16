@@ -94,6 +94,8 @@ export default class RecorderConfig {
             return get(globalConfig, "douyin.api");
           } else if (setting.providerId === "HuYa") {
             return get(globalConfig, "huya.api");
+          } else if (setting.providerId === "DouYu") {
+            return get(globalConfig, "douyu.api");
           } else {
             return "auto";
           }

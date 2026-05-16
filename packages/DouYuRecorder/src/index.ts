@@ -139,6 +139,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       onlyAudio: this.onlyAudio,
       avoidEdgeCDN: true,
       codecName: this.codecName,
+      api: this.api,
     });
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
