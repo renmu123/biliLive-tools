@@ -31,6 +31,12 @@ export function sanitizeFileName(fileName: string) {
   return filenamify(fileName, { replacement: "_" });
 }
 
+/**
+ * 将秒数转换为时间标记，格式为 HH:mm:ss 或 HH:mm:ss.SSS
+ * @param seconds 秒数
+ * @param showMilliseconds 是否显示毫秒，默认显示
+ * @returns 时间标记字符串
+ */
 export function secondsToTimemark(seconds: number, showMilliseconds = true) {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
@@ -54,7 +60,14 @@ export function secondsToTimemark(seconds: number, showMilliseconds = true) {
   }
 }
 
-export const formatTime = (date: number) => {
+/**
+ * 格式化时间戳为 YYYY-MM-DD HH:mm:ss 格式
+ * @param date 时间戳，单位毫秒
+ * @returns
+ */
+export const formatTime = (date: number | null) => {
+  if (!date) return "--";
+
   const d = new Date(date);
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -64,6 +77,63 @@ export const formatTime = (date: number) => {
   const seconds = String(d.getSeconds()).padStart(2, "0");
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
+
+/**
+ * 格式化持续时间，返回 HH:mm:ss 格式
+ * @param duration
+ * @param zeroText
+ * @returns
+ */
+export const formatDuration = (duration?: number | null, zeroText: string = "--") => {
+  if (!duration || duration <= 0) return zeroText;
+
+  return secondsToTimemark(duration);
+};
+
+const normalizeTimestamp = (timestamp?: number | null) => {
+  if (!timestamp) return null;
+  return timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp;
+};
+
+export function formatRecentRecordTime(
+  timestamp?: number | null,
+  options?: {
+    now?: number;
+    fallback?: (normalizedTimestamp: number) => string;
+  },
+) {
+  const normalizedTimestamp = normalizeTimestamp(timestamp);
+  if (!normalizedTimestamp) return "--";
+
+  const now = options?.now ?? Date.now();
+  const diff = now - normalizedTimestamp;
+  if (diff < 0) {
+    return "--";
+  }
+
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const fiveDays = 5 * day;
+
+  if (diff < minute) {
+    return "刚刚";
+  }
+
+  if (diff < hour) {
+    return `${Math.floor(diff / minute)} 分钟前`;
+  }
+
+  if (diff < day) {
+    return `${Math.floor(diff / hour)} 小时前`;
+  }
+
+  if (diff <= fiveDays) {
+    return `${Math.floor(diff / day)} 天前`;
+  }
+
+  return formatTime(normalizedTimestamp);
+}
 
 export const supportedVideoExtensions = [
   "mp4",
