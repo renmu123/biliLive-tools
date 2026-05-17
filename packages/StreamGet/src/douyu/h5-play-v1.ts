@@ -4,7 +4,7 @@ import { md5 } from "../utils.js";
 import type { GetH5PlayOptions, GetH5PlayResponse } from "./h5-play.js";
 
 const DEFAULT_DID = "10000000000000000000000000001501";
-const ENCRYPTION_CACHE_TTL = 6 * 60 * 60 * 1000;
+const ENCRYPTION_CACHE_TTL = 5 * 60 * 1000;
 
 interface EncryptionData {
   key: string;
