@@ -7,7 +7,8 @@
 
 ## 优化
 
-- 【重构】暗黑模式优化 [#445](https://github.com/renmu123/biliLive-tools/pull/445)
+- 重构：暗黑模式优化 [#445](https://github.com/renmu123/biliLive-tools/pull/445)
+- ffmpeg：支持帧率参数 [#438](https://github.com/renmu123/biliLive-tools/pull/438)
 
 ## Bug修复
 
