@@ -141,7 +141,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       codecName: this.codecName,
       api: this.api,
     });
-    throw new Error(`Failed to get stream URL: ${res.currentStream.url}`);
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
 
