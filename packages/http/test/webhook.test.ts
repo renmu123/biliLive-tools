@@ -134,6 +134,9 @@ describe("WebhookHandler", () => {
       webhookHandler.liveData = [];
 
       vi.spyOn(utils, "getFileSize").mockResolvedValue(20 * 1024 * 1024); // 10MB
+      // @ts-ignore
+      vi.spyOn(fs, "pathExists").mockResolvedValue(true);
+
       const options: Options = {
         event: "FileOpening",
         roomId: "123",
@@ -174,8 +177,10 @@ describe("WebhookHandler", () => {
           partMergeMinute: 10,
         },
       );
+
+      await utils.sleep(500); // 等待异步处理完成
       const liveData2 = webhookHandler.liveData;
-      await utils.sleep(100); // 等待异步处理完成
+      await utils.sleep(500); // 等待异步处理完成
       expect(liveData2.length).toBe(1);
       expect(liveData2[0].parts[0].recordStatus).toBe("recorded");
     });

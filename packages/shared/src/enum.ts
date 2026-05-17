@@ -278,7 +278,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       },
     ],
     songRecognizeAsr: {
-      modelId: "",
+      modelId: "bcut",
     },
     songRecognizeLlm: {
       modelId: "",
@@ -384,6 +384,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       checkInterval: undefined,
       maxThreadCount: undefined,
       waitTime: undefined,
+      codecName: "auto",
+      api: "auto",
     },
     huya: {
       quality: 0,
@@ -849,6 +851,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   sendToWebhook: false,
   noGlobalFollowFields: [],
   saveCover: false,
+  convert2Mp4: false,
   extra: {},
   qualityRetry: 0,
   formatName: "auto",

@@ -108,6 +108,13 @@ const getLiveInfo = async (
   return res.data.payload;
 };
 
+const queryStreamerDetail = async (
+  params: RecorderAPI["queryStreamerDetail"]["Args"],
+): Promise<RecorderAPI["queryStreamerDetail"]["Resp"]> => {
+  const res = await request.get(`/recorder/detail`, { params });
+  return res.data.payload;
+};
+
 const recoder = {
   infoList,
   get,
@@ -123,6 +130,7 @@ const recoder = {
   batchResolveChannel,
   getLiveInfo,
   cut,
+  queryStreamerDetail,
 };
 
 export default recoder;

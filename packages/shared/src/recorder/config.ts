@@ -53,7 +53,12 @@ export default class RecorderConfig {
             return get(globalConfig, "quality");
           }
         } else if (key === "codecName") {
-          return get(globalConfig, "bilibili.codecName");
+          if (setting.providerId === "Bilibili") {
+            return get(globalConfig, "bilibili.codecName");
+          } else if (setting.providerId === "DouYu") {
+            return get(globalConfig, "douyu.codecName");
+          }
+          return "auto";
         } else if (key === "qualityRetry") {
           return get(globalConfig, "bilibili.qualityRetry");
         } else if (key === "source") {
@@ -89,6 +94,8 @@ export default class RecorderConfig {
             return get(globalConfig, "douyin.api");
           } else if (setting.providerId === "HuYa") {
             return get(globalConfig, "huya.api");
+          } else if (setting.providerId === "DouYu") {
+            return get(globalConfig, "douyu.api");
           } else {
             return "auto";
           }
@@ -179,6 +186,7 @@ export default class RecorderConfig {
       saveGiftDanma: getValue("saveGiftDanma") ?? false,
       saveSCDanma: getValue("saveSCDanma") ?? true,
       saveCover: getValue("saveCover") ?? false,
+      convert2Mp4: getValue("convert2Mp4") ?? false,
       segment: getValue("segment") ?? 90,
       uid: uid,
       qualityRetry: getValue("qualityRetry") ?? 0,

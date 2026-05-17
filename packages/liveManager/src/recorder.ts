@@ -40,6 +40,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   saveSCDanma?: boolean;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 转封装为 mp4 */
+  convert2Mp4?: boolean;
   /** 身份验证 */
   auth?: string;
   /** cookie所有者uid,B站弹幕录制 */
@@ -69,6 +71,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
     | "userHTML"
     | "balance"
     | "random"
+    | "newAPI"
+    | "oldAPI"
     | string;
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制，支持两种格式：
    * 1. 逗号分隔的关键词：'回放,录播,重播'
@@ -107,6 +111,7 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     | "segment"
     | "saveSCDanma"
     | "saveCover"
+    | "convert2Mp4"
     | "saveGiftDanma"
     | "disableProvideCommentsWhenRecording"
     | "liveInfo"

@@ -2,17 +2,49 @@
 
 ## 功能
 
+- 录制：斗鱼获取流迁移到新接口，支持流编码选项 [#449](https://github.com/renmu123/biliLive-tools/pull/449)
+- 录制：新增主播详情页用于数据展示 [#426](https://github.com/renmu123/biliLive-tools/pull/426)
+
+## 优化
+
+- 【重构】暗黑模式优化 [#445](https://github.com/renmu123/biliLive-tools/pull/445)
+
+## Bug修复
+
+- 录制：修复某些情况下等待时间参数不会被遵守的bug
+- 录制：修复并发参数无法热加载的bug
+- 切片：修复web环境下无法识别字幕的bug [#447](https://github.com/renmu123/biliLive-tools/issues/447)
+
+# 3.14.0(2026.05.14)
+
+## 功能
+
 - web支持文件浏览器页面 [#430](https://github.com/renmu123/biliLive-tools/pull/430)
+- 录制："转封装为mp4"选项又双被加回来了
+- 切片：新增单独的歌词识别，B接口同样也支持了歌词识别，优化了B接口字幕识别效果
 
 ## 优化
 
 - 录制：重构录制历史的播放功能，与文件浏览器的实现统一 [#430](https://github.com/renmu123/biliLive-tools/pull/430)
 - 录制：B站录制不开启“弹幕录制”选项时也可以使用“禁止标题关键词”功能
+- 录制：单个录制中首个视频初始文件名时间与弹幕对齐
 - ffmpeg：音频编码器支持为空
+- 合并：增加更多合并的错误判断，并将判断修改为非阻断式
+- UI：文件选择栏支持显示文件后缀
+- 客户端退出时新增“强制退出”选项来进行强制退出
+
+## Bug修复
+
+- 修复某些情况下播放flv会自动播放的bug
 
 ## Bug修复
 
 - 虚拟录制：修复某些情况下birthtime为空时使用备用方案 [#390](https://github.com/renmu123/biliLive-tools/issues/390)
+- 录制：linux下默认的mesio使用musl [#439](https://github.com/renmu123/biliLive-tools/pull/439)
+
+## 其他
+
+- mesio二进制依赖升级到 0.4.1 [#440](https://github.com/renmu123/biliLive-tools/pull/440)
 
 # 3.13.1(2026.04.30)
 

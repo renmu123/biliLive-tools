@@ -74,7 +74,7 @@ export default class XhsParser extends PlatformParser<string> {
     return getUserInfo(this.httpClient, uid);
   }
 
-  async getLiveInfo(
+  async getRoomInfo(
     roomId: string,
     opts: {
       raw?: boolean;
@@ -96,6 +96,7 @@ export default class XhsParser extends PlatformParser<string> {
         owner: streamInfo.anchor_name || "",
         avatar: streamInfo.avatar || "",
         cover: streamInfo.cover || "",
+        area: "",
         liveStartTime: undefined,
         raw: mergedOpts.raw ? streamInfo : undefined,
       };

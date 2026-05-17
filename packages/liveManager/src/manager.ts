@@ -186,7 +186,11 @@ export function createRecorderManager<
   // 存储每个 provider 的 timer，key 为 providerId
   const checkLoopTimers = new Map<string, NodeJS.Timeout>();
 
-  const multiThreadCheck = async (manager: RecorderManager<ME, P, PE, E>, providerId: string) => {
+  const multiThreadCheck = async (
+    manager: RecorderManager<ME, P, PE, E>,
+    providerId: string,
+    providerConfig: Required<ProviderCheckConfig>,
+  ) => {
     const handleBatchQuery = async (obj: Record<string, boolean>) => {
       for (const recorder of recorders
         .filter((r) => !r.disableAutoCheck)
@@ -210,8 +214,6 @@ export function createRecorderManager<
       .filter((r) => !r.disableAutoCheck)
       .filter((r) => isBetweenTimeRange(r.handleTime))
       .filter((r) => r.providerId === providerId);
-
-    const providerConfig = manager.getProviderCheckConfig(providerId);
     const threads: Promise<void>[] = [];
 
     // Bilibili 批量查询特殊处理
@@ -255,11 +257,12 @@ export function createRecorderManager<
         while (needCheckRecorders.length > 0) {
           try {
             await checkOnce();
+          } catch (err) {
+            manager.emit("error", { source: "checkOnceInThread", err });
+          } finally {
             if (providerConfig.waitTime > 0) {
               await sleep(providerConfig.waitTime);
             }
-          } catch (err) {
-            manager.emit("error", { source: "checkOnceInThread", err });
           }
         }
       }),
@@ -450,12 +453,12 @@ export function createRecorderManager<
 
       // 为每个 provider 创建独立的检查循环
       const startProviderCheckLoop = (providerId: string) => {
-        const providerConfig = this.getProviderCheckConfig(providerId);
-
         const checkLoop = async () => {
+          const providerConfig = this.getProviderCheckConfig(providerId);
+
           try {
             // 只检查当前 provider 的 recorders
-            await multiThreadCheck(this, providerId);
+            await multiThreadCheck(this, providerId, providerConfig);
           } catch (err) {
             this.emit("error", { source: "multiThreadCheck", err });
           } finally {

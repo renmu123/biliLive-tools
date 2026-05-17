@@ -20,7 +20,7 @@ import {
 import recordHistory from "./recordHistory.js";
 import { danmuService } from "../db/index.js";
 // import DanmuService from "../db/service/danmuService.js";
-import { getBinPath, readVideoMeta } from "../task/video.js";
+import { getBinPath, readVideoMeta, transcode } from "../task/video.js";
 import logger from "../utils/log.js";
 import { replaceExtName, calculateFileQuickHash } from "../utils/index.js";
 import RecorderConfig from "./config.js";
@@ -99,6 +99,36 @@ async function sendEndLiveNotification(
 
   // 更新最后通知时间
   endLiveNotificationCache.set(cacheKey, now);
+}
+
+async function convert2Mp4(videoFile: string): Promise<string> {
+  const output = replaceExtName(videoFile, ".mp4");
+  if (await fs.pathExists(output)) return output;
+
+  const name = path.basename(output);
+  return new Promise((resolve, reject) => {
+    transcode(
+      videoFile,
+      name,
+      {
+        encoder: "copy",
+        audioCodec: "copy",
+      },
+      {
+        saveType: 1,
+        savePath: ".",
+        override: false,
+        removeOrigin: false,
+      },
+    ).then((task) => {
+      task.on("task-end", () => {
+        resolve(output);
+      });
+      task.on("task-error", () => {
+        reject();
+      });
+    });
+  });
 }
 
 export async function createRecorderManager(appConfig: AppConfig) {
@@ -351,8 +381,14 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
     try {
       const xmlFile = replaceExtName(filename, ".xml");
-      const videoMeta = await readVideoMeta(filename);
-      const duration = videoMeta?.format?.duration ?? 0;
+
+      let duration = 0;
+      try {
+        const videoMeta = await readVideoMeta(filename);
+        duration = videoMeta?.format?.duration ?? 0;
+      } catch (error) {
+        logger.error("读取视频元信息失败", { filename, error });
+      }
 
       // 提取文件名（不含后缀）
       const videoFilename = path.basename(filename, path.extname(filename));
@@ -401,6 +437,16 @@ export async function createRecorderManager(appConfig: AppConfig) {
             interact_num: uniqMember,
           },
         );
+      }
+
+      if (data?.convert2Mp4) {
+        try {
+          await convert2Mp4(filename);
+          await fs.unlink(filename);
+          logger.info("转换 mp4 成功，已删除原文件", { filename });
+        } catch (error) {
+          logger.error("convert2Mp4 error", error);
+        }
       }
     } catch (error) {
       logger.error("Update live error", { recorder, filename, error });

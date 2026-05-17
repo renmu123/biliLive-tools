@@ -39,12 +39,19 @@ export class Segment extends EventEmitter {
   outputVideoFilePath!: string;
   disableDanma: boolean;
   videoExt: TrueVideoFormat;
+  options?: { firstStartTime: number };
 
-  constructor(getSavePath: GetSavePath, disableDanma: boolean, videoExt: TrueVideoFormat) {
+  constructor(
+    getSavePath: GetSavePath,
+    disableDanma: boolean,
+    videoExt: TrueVideoFormat,
+    options?: { firstStartTime: number },
+  ) {
     super();
     this.getSavePath = getSavePath;
     this.disableDanma = disableDanma;
     this.videoExt = videoExt;
+    this.options = options;
   }
 
   private getVideoFileCompletedPayload(): VideoFileCompletedPayload {
@@ -91,14 +98,16 @@ export class Segment extends EventEmitter {
     if (!this.init) {
       await this.handleSegmentEnd();
     }
+    // 首次创建使用上次的时间戳，后续创建使用当前时间戳
+    const startTime = this.init ? (this.options?.firstStartTime ?? Date.now()) : Date.now();
     this.init = false;
-    const startTime = Date.now();
     let liveInfo: {
       title?: string;
       cover?: string;
     } = { title: "", cover: "" };
     if (callBack?.onUpdateLiveInfo) {
       try {
+        // TODO:这里存在bug，当调用onUpdateLiveInfo并在等待时，handleSegmentEnd被调用，那么会造成竞态导致数据错误，后续需要优化，需要保存segment状态
         liveInfo = await callBack.onUpdateLiveInfo();
       } catch (err) {
         this.emit("DebugLog", {
@@ -198,7 +207,9 @@ export class StreamManager extends EventEmitter {
     this.recordSavePath = recordSavePath;
 
     if (hasSegment) {
-      this.segment = new Segment(getSavePath, disableDanma, this.videoExt);
+      this.segment = new Segment(getSavePath, disableDanma, this.videoExt, {
+        firstStartTime: startTime,
+      });
       this.segment.on("DebugLog", (data) => {
         this.emit("DebugLog", data);
       });

@@ -24,7 +24,12 @@ export interface ASRProvider {
    * @param filePath 本地文件路径
    * @returns 标准格式的识别结果
    */
-  recognizeLocalFile(filePath: string): Promise<StandardASRResult>;
+  recognizeLocalFile(
+    filePath: string,
+    opts?: {
+      filterMusic?: boolean; // 是否过滤音乐段落，默认为 false
+    },
+  ): Promise<StandardASRResult>;
 }
 
 /**
@@ -106,20 +111,31 @@ export class BCutASRAdapter implements ASRProvider {
   async recognize(): Promise<StandardASRResult> {
     throw new Error("B接口 ASR 不支持识别 URL，请使用 recognizeLocalFile");
   }
-  async recognizeLocalFile(filePath: string): Promise<StandardASRResult> {
+  async recognizeLocalFile(
+    filePath: string,
+    opts?: { filterMusic?: boolean },
+  ): Promise<StandardASRResult> {
     // 这里直接返回一个模拟结果，实际使用时需要替换为调用 B接口 ASR 的代码
     const asr = new BcutASR(filePath);
     const result = await asr.recognize();
     const data = result.getRawData();
-    return this.transformBCutResult(data);
+    return this.transformBCutResult(data, opts);
   }
 
   /**
    * 转换 B接口 ASR 格式为标准格式
    */
-  private transformBCutResult(data: BCutASRDataResult): StandardASRResult {
-    // 这里需要根据 B接口 ASR 的实际返回格式进行转换，以下是一个示例结构
-    const segments: StandardASRSegment[] = data.utterances.map((utterance, index: number) => ({
+  private transformBCutResult(
+    data: BCutASRDataResult,
+    opts?: { filterMusic?: boolean },
+  ): StandardASRResult {
+    let list = data.utterances;
+    if (opts?.filterMusic) {
+      // @ts-expect-error
+      list = list.filter((s) => s.music <= 0.9); // 过滤掉标记为音乐的段落
+    }
+
+    let segments: StandardASRSegment[] = list.map((utterance, index: number) => ({
       id: index,
       start: utterance.start_time / 1000,
       end: utterance.end_time / 1000,
@@ -299,7 +315,13 @@ export function createASRProvider(modelId: string): ASRProvider {
  * @param modelId 模型id
  * @returns
  */
-export function recognize(file: string, modelId: string): Promise<StandardASRResult> {
+export function recognize(
+  file: string,
+  modelId: string,
+  opts?: {
+    filterMusic?: boolean;
+  },
+): Promise<StandardASRResult> {
   const asrProvider = createASRProvider(modelId);
-  return asrProvider.recognizeLocalFile(file);
+  return asrProvider.recognizeLocalFile(file, opts);
 }

@@ -352,7 +352,7 @@ const getModelOptionsByTag = (tag: "llm" | "asr") => {
 
   if (tag === "asr") {
     items.push({
-      label: "B接口（仅供测试，不支持歌词）",
+      label: "B接口（仅供测试）",
       value: "bcut",
     });
   }

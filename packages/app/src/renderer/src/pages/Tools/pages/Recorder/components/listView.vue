@@ -33,7 +33,7 @@
           </n-icon>
         </th>
         <td v-if="isColumnVisible('recordParams')">录制参数</td>
-        <th v-if="isColumnVisible('lastRecordTime')">最近录制时间</th>
+        <th v-if="isColumnVisible('lastRecordTime')">上次录制</th>
         <th
           v-if="isColumnVisible('monitorStatus')"
           @click="handleSort('monitorStatus')"

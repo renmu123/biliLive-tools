@@ -62,6 +62,7 @@ export const recorderNoGlobalFollowFields: Array<
   "segment",
   "uid",
   "saveCover",
+  "convert2Mp4",
   "qualityRetry",
   "formatName",
   "useM3U8Proxy",
@@ -396,6 +397,9 @@ interface DouyuRecorderConfig extends RecorderCheckConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
   quality: 0 | 2 | 3 | 4 | 8;
   source: string;
+  /** 流编码 */
+  codecName: CodecName;
+  api: "auto" | "newAPI" | "oldAPI";
 }
 
 interface HuyaRecorderConfig extends RecorderCheckConfig {
@@ -462,6 +466,8 @@ export interface GlobalRecorder {
   uid?: number;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 转封装为 mp4 */
+  convert2Mp4?: boolean;
   /** 画质匹配重试次数 */
   qualityRetry: number;
   /** 视频格式 */
@@ -527,6 +533,8 @@ export interface Recorder {
   uid?: number | string;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 转封装为 mp4 */
+  convert2Mp4?: boolean;
   /** 视频格式 */
   videoFormat: GlobalRecorder["videoFormat"];
   /** 录制器类型 */
@@ -560,7 +568,7 @@ export interface Recorder {
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
   /** API类型，仅抖音 */
-  api: HuyaRecorderConfig["api"] | DouyinRecorderConfig["api"];
+  api: HuyaRecorderConfig["api"] | DouyinRecorderConfig["api"] | DouyuRecorderConfig["api"];
   /** 自定义host */
   customHost?: string;
   // 不跟随全局配置字段

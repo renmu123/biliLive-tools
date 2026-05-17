@@ -142,6 +142,9 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
       // 清理内存
       data.pendingMessages = [];
       interactedUsers.clear();
+      danmaNum = 0;
+      scNum = 0;
+      guardNum = 0;
     }
   };
 

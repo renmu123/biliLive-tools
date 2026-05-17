@@ -321,7 +321,7 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     if (!uid) {
       throw new Error(`无法从 URL 提取用户 ID: ${channelURL}`);
     }
-    const info = await parser.getLiveInfo(roomId);
+    const info = await parser.getRoomInfo(roomId);
 
     // 小红书ID用于基于cookie的自动监听
     const data = await parser.getUserInfo(uid);

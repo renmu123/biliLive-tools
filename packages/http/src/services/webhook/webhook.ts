@@ -134,11 +134,12 @@ export class WebhookHandler {
 
     const config = this.configManager.getConfig(pair.open.roomId);
     if (!config.open) {
-      log.info(`${pair.open.roomId} is not open`);
+      log.warn(`${pair.open.roomId} is not open`);
       return;
     }
     // 检查文件大小
     if (!(await this.validateFileSize(config, pair.close))) {
+      log.warn("文件大小不符合要求，跳过处理", pair.close.filePath);
       return;
     }
 
@@ -288,6 +289,11 @@ export class WebhookHandler {
    * 验证文件大小
    */
   private async validateFileSize(config: RoomConfig, options: Options): Promise<boolean> {
+    if (!config.minSize) return true;
+    if (!(await fs.pathExists(options.filePath))) {
+      log.warn(`文件不存在: ${options.filePath}`);
+      return true;
+    }
     const fileSize = await getFileSize(options.filePath);
     const fileSizeMB = fileSize / 1024 / 1024;
 

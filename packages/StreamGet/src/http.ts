@@ -141,8 +141,7 @@ export class HttpClient {
         dispatcher: agent,
         headersTimeout: mergedOpts?.timeout || 10000,
       });
-
-      return await response.body.text();
+      return response.body.text();
     } catch (error) {
       throw new NetworkError(`请求失败: ${(error as Error).message}`, undefined);
     }

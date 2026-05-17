@@ -21,7 +21,7 @@
             v-if="item?.extra?.lastRecordTime && isColumnVisible('lastRecordTime')"
             class="recording-container"
           >
-            <span>最近录制时间：{{ formatTime(item.extra.lastRecordTime) }}</span>
+            <span>上次录制：{{ formatRecentRecordTime(item.extra.lastRecordTime) }}</span>
           </div>
         </template>
       </div>
@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatTime } from "@renderer/utils";
+import { formatRecentRecordTime } from "@renderer/utils";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 import { Live24Regular, AccessTime24Regular } from "@vicons/fluent";
 import { AudiotrackRound } from "@vicons/material";
@@ -256,7 +256,7 @@ const stateMap = {
 
     &.area {
       background: linear-gradient(135deg, #e8fff4 0%, #d7f4ff 100%);
-      border: 1px solid #9adbbd;
+      // border: 1px solid #9adbbd;
       color: #1f7a52;
       font-weight: 500;
     }

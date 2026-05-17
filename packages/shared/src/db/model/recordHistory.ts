@@ -269,6 +269,10 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
       whereConditions.push("video_file = ?");
       params.push(where.video_file);
     }
+    if (where.live_id) {
+      whereConditions.push("live_id = ?");
+      params.push(where.live_id);
+    }
 
     // 处理时间范围过滤
     if (startTime) {

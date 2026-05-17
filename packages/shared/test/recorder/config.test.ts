@@ -127,6 +127,7 @@ describe("RecorderConfig", () => {
         sourcePriorities: [],
         api: "auto",
         useServerTimestamp: true,
+        convert2Mp4: false,
       });
     });
 
@@ -160,6 +161,7 @@ describe("RecorderConfig", () => {
         sourcePriorities: [],
         api: "auto",
         useServerTimestamp: true,
+        convert2Mp4: false,
       });
     });
 
@@ -194,6 +196,7 @@ describe("RecorderConfig", () => {
           sourcePriorities: [],
           api: "auto",
           useServerTimestamp: true,
+          convert2Mp4: false,
         });
       });
       it("正确处理HuYa source全局参数", () => {
@@ -283,6 +286,7 @@ describe("RecorderConfig", () => {
         sourcePriorities: [],
         api: "auto",
         useServerTimestamp: true,
+        convert2Mp4: false,
       });
     });
 
@@ -388,6 +392,7 @@ describe("RecorderConfig", () => {
         sourcePriorities: [],
         api: "auto",
         useServerTimestamp: true,
+        convert2Mp4: false,
       });
     });
   });

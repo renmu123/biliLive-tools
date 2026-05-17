@@ -16,10 +16,9 @@ import type {
   RecorderProvider,
   RecordHandle,
 } from "@bililive-tools/manager";
-import { live } from "douyu-api";
+import { DouyuParser } from "@bililive-tools/stream-get";
 
 import { getInfo, getStream } from "./stream.js";
-import { getRoomInfo } from "./dy_api.js";
 import { createDYClient } from "./dy_client/index.js";
 import { giftMap, colorTab } from "./danma.js";
 
@@ -39,6 +38,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     qualityRetry: opts.qualityRetry ?? 0,
     useServerTimestamp: opts.useServerTimestamp ?? true,
     state: "idle",
+    codecName: opts.codecName ?? "auto",
 
     getChannelURL() {
       return `https://www.douyu.com/${this.channelId}`;
@@ -61,6 +61,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       const res = await getStream({
         channelId: this.channelId,
         quality: this.quality,
+        codecName: this.codecName,
       });
       return res.currentStream;
     },
@@ -137,6 +138,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       strictQuality,
       onlyAudio: this.onlyAudio,
       avoidEdgeCDN: true,
+      codecName: this.codecName,
+      api: this.api,
     });
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
@@ -425,16 +428,16 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
   async resolveChannelInfoFromURL(channelURL) {
     if (!this.matchURL(channelURL)) return null;
 
-    const roomId = await live.parseRoomId(channelURL);
+    const parser = new DouyuParser();
+    const roomId = await parser.extractRoomId(channelURL);
     if (!roomId) return null;
-
-    const roomInfo = await getRoomInfo(Number(roomId));
+    const roomInfo = await parser.getRoomInfo(roomId);
 
     return {
       id: roomId,
-      title: roomInfo.room.room_name,
-      owner: roomInfo.room.nickname,
-      avatar: roomInfo.room.avatar?.big,
+      title: roomInfo.title,
+      owner: roomInfo.owner,
+      avatar: roomInfo.avatar,
     };
   },
 

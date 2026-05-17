@@ -1,3 +1,13 @@
+# Next
+
+- 修复某些情况下`waitTime`不会被遵守的bug
+- 修复`multiThreadCheck`并发次数无法热加载的bug
+
+# 1.16.2
+
+- mesio二进制依赖升级到 0.4.1
+- 单个录制中首个视频初始文件名时间与弹幕对齐
+
 # 1.16.1
 
 - 弹幕统计重构 [#415](https://github.com/renmu123/biliLive-tools/pull/415)

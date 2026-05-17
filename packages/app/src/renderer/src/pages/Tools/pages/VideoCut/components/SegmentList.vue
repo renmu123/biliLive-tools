@@ -158,7 +158,7 @@
 import { useThemeStore } from "@renderer/stores/theme";
 import SearchPopover from "./SearchPopover.vue";
 import { secondsToTimemark } from "@renderer/utils";
-import { useSegmentStore, useSubtitles } from "@renderer/stores";
+import { useSegmentStore, useSubtitles, useAppConfig } from "@renderer/stores";
 import {
   RadioButtonOffSharp,
   CheckmarkCircleOutline,
@@ -254,6 +254,7 @@ useEventListener(window, "resize", () => {
 });
 
 const videoInstance = inject("videoInstance") as Ref<InstanceType<typeof VideoPlayer>>;
+const { appConfig } = storeToRefs(useAppConfig());
 
 const { cuts, selectCutId } = storeToRefs(useSegmentStore());
 const subtitleStore = useSubtitles();
@@ -616,7 +617,7 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
   // 获取配置（尝试获取，如果失败则使用默认值）
   let modelId: string | undefined = undefined;
 
-  const config = await window.api.config.getAll();
+  const config = appConfig.value;
   const models = config?.ai?.models || [];
   if (models.length === 0) {
     notice.error({
@@ -643,7 +644,7 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
   }
 
   const [status] = await confirm.warning({
-    content: `此功能使用AI对片段进行字幕识别，将生成SRT格式字幕。\n\n识别范围：${segment.start.toFixed(2)}s - ${segment.end?.toFixed(2)}s`,
+    content: `此功能使用AI对片段进行字幕识别。\n\n识别范围：${segment.start.toFixed(2)}s - ${segment.end?.toFixed(2)}s`,
     showCheckbox: true,
     showAgainKey: "videoSubtitleRecognizeWarning",
   });
@@ -680,6 +681,95 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
   } catch (error: any) {
     notice.error({
       title: "字幕识别失败",
+      content: error.message || error.error || "未知错误",
+      duration: 5000,
+    });
+  } finally {
+    updateSegment(segment.id, { loading: false }, true);
+  }
+};
+
+/**
+ * 歌词识别
+ * @param segment 要识别的片段
+ */
+const lyricRecognizeHandler = async (segment: Segment) => {
+  if (!props.files.originVideoPath) {
+    notice.error({
+      title: "请先加载视频文件",
+      duration: 1000,
+    });
+    return;
+  }
+
+  // 获取配置（尝试获取，如果失败则使用默认值）
+  let modelId: string | undefined = undefined;
+
+  const config = appConfig.value;
+  const models = config?.ai?.models || [];
+  if (models.length === 0) {
+    notice.error({
+      title: "请先在设置中配置AI模型",
+      duration: 3000,
+    });
+    return;
+  }
+  modelId = config?.ai?.songRecognizeAsr?.modelId;
+  if (!modelId) {
+    notice.error({
+      title: "请先在设置中配置歌词识别模型",
+      duration: 3000,
+    });
+    return;
+  }
+
+  if (modelId === "bcut" && segment.end! - segment.start > 60 * 20) {
+    notice.error({
+      title: "当前模型不适合识别超过20分钟的片段，请先切割片段",
+      duration: 3000,
+    });
+    return;
+  }
+
+  const [status] = await confirm.warning({
+    content: `正在使用配置的AI模型对片段进行歌词识别。\n\n识别范围：${segment.start.toFixed(2)}s - ${segment.end?.toFixed(2)}s`,
+    showCheckbox: true,
+    showAgainKey: "videoLyricRecognizeWarning",
+  });
+  if (!status) return;
+
+  try {
+    updateSegment(segment.id, { loading: true }, true);
+
+    // 调用歌词识别 API
+    const data = await aiApi.subtitleRecognize(
+      props.files.originVideoPath!,
+      segment.start,
+      segment.end!,
+      modelId,
+      {
+        offset: segment.start,
+        song: true,
+      },
+    );
+    subtitleStore.setForSegment(segment.id, data.srt || "");
+
+    resetSubtitle();
+
+    if (data.srt) {
+      notice.success({
+        title: "歌词识别成功",
+        duration: 3000,
+      });
+    } else {
+      notice.warning({
+        title: "未能识别出歌词",
+        duration: 3000,
+      });
+    }
+  } catch (error: any) {
+    notice.error({
+      title: "歌词识别失败",
       content: error.message || error.error || "未知错误",
       duration: 5000,
     });
@@ -748,18 +838,30 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
         },
       },
       {
-        label: "歌曲识别",
-        icon: renderIcon(MusicNote220Regular),
-        onClick: async () => {
-          songRecognize(segment);
-        },
-      },
-      {
-        label: "字幕识别",
+        label: "字幕",
         icon: renderIcon(SubtitlesOutlined),
-        onClick: async () => {
-          subtitleRecognizeHandler(segment);
-        },
+        children: [
+          {
+            label: "歌曲识别",
+            icon: renderIcon(MusicNote220Regular),
+            onClick: async () => {
+              songRecognize(segment);
+            },
+          },
+          {
+            label: "歌词识别",
+            onClick: async () => {
+              lyricRecognizeHandler(segment);
+            },
+          },
+          {
+            label: "字幕识别",
+            icon: renderIcon(SubtitlesOutlined),
+            onClick: async () => {
+              subtitleRecognizeHandler(segment);
+            },
+          },
+        ],
       },
     ],
   });
