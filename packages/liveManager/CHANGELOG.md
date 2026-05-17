@@ -1,3 +1,8 @@
+# Next
+
+- 修复某些情况下`waitTime`不会被遵守的bug
+- 修复`multiThreadCheck`并发次数无法热加载的bug
+
 # 1.16.2
 
 - mesio二进制依赖升级到 0.4.1
