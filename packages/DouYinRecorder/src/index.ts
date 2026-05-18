@@ -388,24 +388,26 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     giftMessageCache.set(groupId, { gift, timer });
   });
   client.on("reconnect", (attempts: number) => {
+    this.appendTimeline({ text: `弹幕连接断开，正在重试: ${attempts}` });
     this.emit("DebugLog", {
       type: "common",
-      text: `douyin ${this.channelId}  danma has reconnect ${attempts}`,
+      text: `douyin ${this.channelId} danma has reconnect ${attempts}`,
     });
   });
   client.on("error", (err) => {
     this.emit("DebugLog", {
       type: "common",
-      text: `douyin ${this.channelId}  danma error: ${String(err)}`,
+      text: `douyin ${this.channelId} danma error: ${String(err)}`,
     });
   });
   client.on("init", (url) => {
     this.emit("DebugLog", {
       type: "common",
-      text: `douyin ${this.channelId}  danma init ${url}`,
+      text: `douyin ${this.channelId} danma init ${url}`,
     });
   });
   client.on("open", () => {
+    this.appendTimeline({ text: `弹幕连接已建立` });
     this.emit("DebugLog", {
       type: "common",
       text: `douyin ${this.channelId} danma open`,
