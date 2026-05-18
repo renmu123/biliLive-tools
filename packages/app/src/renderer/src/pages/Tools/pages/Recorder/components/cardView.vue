@@ -15,6 +15,10 @@
           <span class="source">{{ item.usedSource }}</span>
           <span class="line">{{ item.usedStream }}</span>
           <span>{{ formatProgress(item?.recordHandle?.progress?.time) }}</span>
+
+          <div class="card-corner-action" style="margin-left: auto" title="点击查看录制详情">
+            <slot name="cornerAction" :item="item"></slot>
+          </div>
         </div>
         <template v-else>
           <div
@@ -22,6 +26,15 @@
             class="recording-container"
           >
             <span>上次录制：{{ formatRecentRecordTime(item.extra.lastRecordTime) }}</span>
+
+            <div class="card-corner-action" style="margin-left: auto" title="点击查看录制详情">
+              <slot name="cornerAction" :item="item"></slot>
+            </div>
+          </div>
+          <div v-else>
+            <div class="simple-recorder-detail" style="margin-left: auto" title="点击查看录制详情">
+              <slot name="cornerAction" :item="item"></slot>
+            </div>
           </div>
         </template>
       </div>
@@ -151,6 +164,7 @@ const stateMap = {
     height: 162px;
     border-radius: 5px 5px 0px 0px;
     border-color: white;
+    overflow: hidden;
 
     .cover {
       width: 100%;
@@ -168,6 +182,7 @@ const stateMap = {
       padding: 0 5px;
       border-radius: 5px;
       position: relative;
+      z-index: 2;
       top: 5px;
       left: 5px;
       // 超过忽略
@@ -175,6 +190,7 @@ const stateMap = {
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 95%;
+      backdrop-filter: blur(8px);
     }
     .recording-container {
       display: flex;
@@ -188,6 +204,7 @@ const stateMap = {
       width: 100%;
       bottom: 0px;
       left: 0px;
+      backdrop-filter: blur(8px);
 
       .recording {
         display: inline-block;
@@ -295,6 +312,51 @@ const stateMap = {
         }
       }
     }
+  }
+}
+
+.card-corner-action {
+  padding-right: 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.simple-recorder-detail {
+  position: absolute;
+
+  right: 10px;
+  bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(19, 30, 49, 0.24) 0%, rgba(19, 30, 49, 0.44) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  [data-theme="dark"] & {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.5) 100%);
+    border-color: rgba(255, 255, 255, 0.16);
   }
 }
 

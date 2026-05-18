@@ -128,7 +128,11 @@
               <div v-for="clip in recentClips" :key="clip.id" class="clip-card">
                 <Artplayer
                   style="height: 160px"
-                  :option="{ url: commonApi.getVideo(clip.videoFileId), type: clip.videoFileExt }"
+                  :option="{
+                    url: commonApi.getVideo(clip.videoFileId),
+                    type: clip.videoFileExt,
+                  }"
+                  “:isLive="false"
                 ></Artplayer>
 
                 <div class="clip-info">

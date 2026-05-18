@@ -165,6 +165,7 @@ onMounted(async () => {
           const flv = mpegts.createPlayer({
             type: "flv",
             url: url,
+            isLive: props.isLive,
           });
           flv.attachMediaElement(video);
           flv.load();
