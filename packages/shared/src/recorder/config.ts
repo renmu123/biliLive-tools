@@ -60,7 +60,7 @@ export default class RecorderConfig {
           }
           return "auto";
         } else if (key === "qualityRetry") {
-          return get(globalConfig, "bilibili.qualityRetry");
+          return get(globalConfig, "qualityRetry");
         } else if (key === "source") {
           return get(globalConfig, "douyu.source");
         } else if (key === "cookie") {
