@@ -362,7 +362,21 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
   });
   client.on("error", (err) => {
+    this.appendTimeline({ text: `弹幕连接发生错误: ${String(err)}` });
     this.emit("DebugLog", { type: "common", text: String(err) });
+  });
+  client.on("start", () => {
+    this.appendTimeline({ text: "弹幕连接已建立" });
+    this.emit("DebugLog", { type: "common", text: "弹幕连接已建立" });
+  });
+  client.on("reconnect", ({ retryCount, maxRetry }) => {
+    this.appendTimeline({
+      text: `弹幕连接已断开，正在尝试重连... (重试次数: ${retryCount}/${maxRetry})`,
+    });
+    this.emit("DebugLog", {
+      type: "common",
+      text: `弹幕连接已断开，正在尝试重连... (重试次数: ${retryCount}/${maxRetry})`,
+    });
   });
   if (!this.disableProvideCommentsWhenRecording) {
     client.start();

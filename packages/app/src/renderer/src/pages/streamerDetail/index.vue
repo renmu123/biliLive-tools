@@ -684,7 +684,7 @@ onMounted(() => {
 
 .timeline-list {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .timeline-item {
@@ -719,8 +719,8 @@ onMounted(() => {
 }
 
 .timeline-content {
-  padding: 14px 16px;
-  border-radius: 18px;
+  padding: 8px 12px;
+  border-radius: 12px;
   background: rgba(250, 251, 255, 0.88);
   border: 1px solid rgba(215, 223, 235, 0.8);
 
