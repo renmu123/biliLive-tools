@@ -117,7 +117,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     };
     this.emit("stateChange", { state: "idle" });
   } catch (error) {
-    this.emit("stateChange", { state: "check-error" });
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: `检查失败，` + (error instanceof Error ? error.message : String(error)),
+    });
     throw error;
   }
 
@@ -159,7 +162,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
     this.emit("stateChange", {
       state: "check-error",
-      msg: err instanceof Error ? err.message : String(err),
+      msg: `检查失败，` + (err instanceof Error ? err.message : String(err)),
     });
     throw err;
   }
