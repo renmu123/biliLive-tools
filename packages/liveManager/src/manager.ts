@@ -365,7 +365,7 @@ export function createRecorderManager<
       recorder.on("RecordStart", (recordHandle) => {
         recorder.appendTimeline?.({
           startTime: recorder.liveInfo?.recordStartTime?.getTime() ?? Date.now(),
-          text: "开始录制",
+          text: `开始录制：${recordHandle.stream}/${recordHandle.source}/${recordHandle.recorderType}/${recordHandle.url}`,
         });
         this.emit("RecordStart", { recorder: recorder.toJSON(), recordHandle });
       });

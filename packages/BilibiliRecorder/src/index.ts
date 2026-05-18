@@ -305,7 +305,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       if (hasTitleKeyword) {
         this.emit("stateChange", {
           state: "title-blocked",
-          msg: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
+          msg: `停止录制，直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
         });
         this.emit("DebugLog", {
           type: "common",
@@ -316,6 +316,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         this.recordHandle && this.recordHandle.stop("直播间标题包含关键词");
       }
     }
+  });
+  danmaClient.on("open", () => {
+    this.appendTimeline({
+      text: "弹幕连接已建立",
+    });
+  });
+  danmaClient.on("close", () => {
+    this.appendTimeline({
+      text: "弹幕连接已关闭",
+    });
   });
 
   if (enableDanmaListen) {

@@ -41,6 +41,7 @@
                               target="_blank"
                               rel="noreferrer"
                               class="channel-link"
+                              title="访问直播间"
                             >
                               <n-icon>
                                 <LinkSquare20Regular />

@@ -105,8 +105,8 @@ importers:
         specifier: 'catalog:'
         version: 1.15.0
       blive-message-listener:
-        specifier: ^0.5.2
-        version: 0.5.2(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+        specifier: ^0.5.5
+        version: 0.5.5(bufferutil@4.0.8)(utf-8-validate@6.0.5)
       lodash-es:
         specifier: 'catalog:'
         version: 4.17.21
@@ -2655,8 +2655,8 @@ packages:
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
 
-  blive-message-listener@0.5.2:
-    resolution: {integrity: sha512-bOyEE+mL5ZIj9Z1nLLt58bzLij0Uuyh9fHplCJyCSk09UE2te5U2SxdXaODeIg/YFi2R5dU1RCxemmadri+D6Q==}
+  blive-message-listener@0.5.5:
+    resolution: {integrity: sha512-T2UGPG/QZ+PGhP+1Btko7AIBpJgWwC5guCgVpISIwgb/x9B9nXJWUlwD8nl2w7CX5/LtozH8eTUReB/FwDj7sA==}
 
   bluebird-lst@1.0.9:
     resolution: {integrity: sha512-7B1Rtx82hjnSD4PGLAjVWeYH3tHAcVUmChh85a3lltKQm6FresXh9ErQo6oAv6CqxttczC3/kEg8SY5NluPuUw==}
@@ -5023,6 +5023,10 @@ packages:
     resolution: {integrity: sha512-mRUWCc3KUU4w1jU8sGxICXH/gNS94DvI1gxqDvBzhj1JpcsimQkYiOJfwsPUykUI5ZaspFbSgmBLER8IrQ3tqw==}
     engines: {node: '>=12.0.0'}
 
+  protobufjs@8.3.0:
+    resolution: {integrity: sha512-JpJpFaR7yKNb6WqKvJJ1MLbiuIQWQnbUUb06nDtf2/i8YWYYLEfP6xf9BwSJoJQg1wAy61EQB8dssQg64oX4aA==}
+    engines: {node: '>=12.0.0'}
+
   proxy-from-env@2.1.0:
     resolution: {integrity: sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==}
     engines: {node: '>=10'}
@@ -5980,8 +5984,8 @@ packages:
   webworkify-webpack@2.1.5:
     resolution: {integrity: sha512-2akF8FIyUvbiBBdD+RoHpoTbHMQF2HwjcxfDvgztAX5YwbZNyrtfUMgvfgFVsgDhDPVTlkbb5vyasqDHfIDPQw==}
 
-  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
-    resolution: {tarball: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef}
+  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
+    resolution: {commit: 24d1e719b4a6cac37a518b2bb10fe124527ef4ef, repo: git@github.com:xqq/webworkify-webpack.git, type: git}
     version: 2.1.5
 
   whatwg-fetch@3.6.20:
@@ -8060,8 +8064,9 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  blive-message-listener@0.5.2(bufferutil@4.0.8)(utf-8-validate@6.0.5):
+  blive-message-listener@0.5.5(bufferutil@4.0.8)(utf-8-validate@6.0.5):
     dependencies:
+      protobufjs: 8.3.0
       tiny-bilibili-ws: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.5)
     transitivePeerDependencies:
       - bufferutil
@@ -10212,7 +10217,7 @@ snapshots:
   mpegts.js@1.8.0:
     dependencies:
       es6-promise: 4.2.8
-      webworkify-webpack: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef
+      webworkify-webpack: git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef
 
   ms@2.0.0: {}
 
@@ -10685,6 +10690,10 @@ snapshots:
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
       '@types/node': 20.17.6
+      long: 5.2.3
+
+  protobufjs@8.3.0:
+    dependencies:
       long: 5.2.3
 
   proxy-from-env@2.1.0: {}
@@ -11745,7 +11754,7 @@ snapshots:
 
   webworkify-webpack@2.1.5: {}
 
-  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
+  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
 
   whatwg-fetch@3.6.20: {}
 
