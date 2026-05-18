@@ -1,4 +1,9 @@
+import type { IncomingMessage } from "node:http";
+import type { Duplex } from "node:stream";
+
 import Router from "@koa/router";
+import { WebSocketServer } from "ws";
+import logger from "@biliLive-tools/shared/utils/log.js";
 
 import { pick } from "lodash-es";
 import recorderService from "../services/recorder.js";
@@ -9,6 +14,153 @@ import type { RecorderAPI } from "../types/recorder.js";
 
 const router = new Router({
   prefix: "/recorder",
+});
+
+const DANMA_TEST_WS_PATH = "/recorder/ws/danma-test";
+const danmaTestWSS = new WebSocketServer({ noServer: true });
+
+const parsePositiveNumber = (value: string | null) => {
+  if (value === null) return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return null;
+  }
+  return parsed;
+};
+
+const getRawDataSize = (
+  data: Parameters<typeof danmaTestWSS.on>[1] extends never ? never : unknown,
+) => {
+  if (typeof data === "string") {
+    return Buffer.byteLength(data);
+  }
+
+  if (Array.isArray(data)) {
+    return data.reduce((total, chunk) => total + chunk.byteLength, 0);
+  }
+
+  if (data instanceof ArrayBuffer) {
+    return data.byteLength;
+  }
+
+  if (ArrayBuffer.isView(data)) {
+    return data.byteLength;
+  }
+
+  return 0;
+};
+
+const closeWebSocket = (socket: import("ws").WebSocket, code = 1011, reason = "test close") => {
+  if (socket.readyState === socket.OPEN || socket.readyState === socket.CLOSING) {
+    socket.close(code, reason);
+  }
+};
+
+danmaTestWSS.on("connection", (socket, request) => {
+  const url = new URL(request.url ?? DANMA_TEST_WS_PATH, "http://127.0.0.1");
+  const mode = url.searchParams.get("mode") ?? "hold";
+  const sendTextAfterMs = parsePositiveNumber(url.searchParams.get("sendTextAfterMs"));
+  const closeAfterMs = parsePositiveNumber(url.searchParams.get("closeAfterMs"));
+  const destroyAfterMs = parsePositiveNumber(url.searchParams.get("destroyAfterMs"));
+  const closeOnMessageCount = parsePositiveNumber(url.searchParams.get("closeOnMessageCount"));
+  const destroyOnMessageCount = parsePositiveNumber(url.searchParams.get("destroyOnMessageCount"));
+
+  logger.info("[danma-test-ws] connected", {
+    path: url.pathname,
+    search: url.search,
+    mode,
+    closeAfterMs,
+    destroyAfterMs,
+    closeOnMessageCount,
+    destroyOnMessageCount,
+    sendTextAfterMs,
+    remoteAddress: request.socket.remoteAddress,
+    remotePort: request.socket.remotePort,
+  });
+
+  let messageCount = 0;
+  let closeTimer: NodeJS.Timeout | null = null;
+  let destroyTimer: NodeJS.Timeout | null = null;
+  let sendTextTimer: NodeJS.Timeout | null = null;
+
+  const cleanup = () => {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+    if (destroyTimer) {
+      clearTimeout(destroyTimer);
+      destroyTimer = null;
+    }
+    if (sendTextTimer) {
+      clearTimeout(sendTextTimer);
+      sendTextTimer = null;
+    }
+  };
+
+  socket.on("message", (data, isBinary) => {
+    messageCount += 1;
+    logger.info("[danma-test-ws] message", {
+      messageCount,
+      isBinary,
+      size: getRawDataSize(data),
+    });
+
+    if (closeOnMessageCount != null && messageCount >= closeOnMessageCount) {
+      logger.info("[danma-test-ws] close on message count", { messageCount });
+      closeWebSocket(socket, 1011, "close on message count");
+      return;
+    }
+
+    if (destroyOnMessageCount != null && messageCount >= destroyOnMessageCount) {
+      logger.info("[danma-test-ws] destroy on message count", { messageCount });
+      socket.terminate();
+    }
+  });
+
+  socket.on("close", (code, reason) => {
+    logger.info("[danma-test-ws] closed", {
+      code,
+      reason: reason.toString(),
+      messageCount,
+    });
+    cleanup();
+  });
+  socket.on("error", (error) => {
+    logger.error("[danma-test-ws] socket error", error);
+    cleanup();
+  });
+
+  if (mode === "close-immediately") {
+    logger.info("[danma-test-ws] close immediately");
+    closeTimer = setTimeout(() => closeWebSocket(socket, 1011, "close immediately"), 0);
+    return;
+  }
+
+  if (mode === "destroy-immediately") {
+    logger.info("[danma-test-ws] destroy immediately");
+    destroyTimer = setTimeout(() => socket.terminate(), 0);
+    return;
+  }
+
+  if (closeAfterMs != null) {
+    logger.info("[danma-test-ws] close after delay", { closeAfterMs });
+    closeTimer = setTimeout(() => closeWebSocket(socket, 1011, "close after delay"), closeAfterMs);
+  }
+
+  if (destroyAfterMs != null) {
+    logger.info("[danma-test-ws] destroy after delay", { destroyAfterMs });
+    destroyTimer = setTimeout(() => socket.terminate(), destroyAfterMs);
+  }
+
+  if (sendTextAfterMs != null) {
+    logger.info("[danma-test-ws] send text after delay", { sendTextAfterMs });
+    sendTextTimer = setTimeout(() => {
+      if (socket.readyState === socket.OPEN) {
+        socket.send(`Hello! This is a test WebSocket connection. Mode: ${mode}`);
+      }
+    }, sendTextAfterMs);
+  }
 });
 
 const getSingleQueryValue = (value: string | string[] | undefined) => {
@@ -75,6 +227,22 @@ router.get("/detail", async (ctx) => {
     payload: {
       ...payload,
       recorderInfo,
+    },
+  };
+});
+
+router.get("/ws/danma-test", async (ctx) => {
+  ctx.status = 426;
+  ctx.body = {
+    message: "请使用 WebSocket 连接此地址",
+    wsPath: DANMA_TEST_WS_PATH,
+    usage: {
+      mode: ["hold", "close-immediately", "destroy-immediately", "reject-upgrade"],
+      closeAfterMs: "连接建立后延迟关闭",
+      destroyAfterMs: "连接建立后延迟强制断开",
+      closeOnMessageCount: "收到指定数量消息后关闭",
+      destroyOnMessageCount: "收到指定数量消息后强制断开",
+      sendTextAfterMs: "连接建立后延迟发送一条文本消息，默认不发送",
     },
   };
 });
@@ -314,3 +482,32 @@ router.post("/manager/liveInfo", async (ctx) => {
 });
 
 export default router;
+
+export function handleRecorderUpgrade(
+  request: IncomingMessage,
+  socket: Duplex,
+  head: Buffer,
+): boolean {
+  const url = new URL(request.url ?? "/", "http://127.0.0.1");
+  logger.info("[danma-test-ws] upgrade request", {
+    path: url.pathname,
+    search: url.search,
+    remoteAddress: request.socket.remoteAddress,
+    remotePort: request.socket.remotePort,
+  });
+  if (url.pathname !== DANMA_TEST_WS_PATH) {
+    return false;
+  }
+
+  if (url.searchParams.get("mode") === "reject-upgrade") {
+    logger.info("[danma-test-ws] reject upgrade", { path: url.pathname, search: url.search });
+    socket.write("HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n");
+    socket.destroy();
+    return true;
+  }
+
+  danmaTestWSS.handleUpgrade(request, socket, head, (ws) => {
+    danmaTestWSS.emit("connection", ws, request);
+  });
+  return true;
+}

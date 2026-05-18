@@ -552,6 +552,9 @@ importers:
       subtitle:
         specifier: ^4.2.1
         version: 4.2.1
+      ws:
+        specifier: ^8.18.0
+        version: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.5)
       zod:
         specifier: ^3.23.8
         version: 3.23.8
