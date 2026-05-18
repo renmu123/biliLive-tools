@@ -86,6 +86,35 @@
           </n-card>
         </div>
 
+        <n-card class="timeline-panel" :bordered="false">
+          <div class="section-header">
+            <div>
+              <h2>时间线</h2>
+            </div>
+          </div>
+
+          <div v-if="recorderTimeline.length > 0" class="timeline-list">
+            <div
+              v-for="(item, index) in recorderTimeline"
+              :key="`${item.startTime}-${index}`"
+              class="timeline-item"
+            >
+              <div class="timeline-track">
+                <span class="timeline-dot"></span>
+                <span v-if="index !== recorderTimeline.length - 1" class="timeline-line"></span>
+              </div>
+              <div class="timeline-content">
+                <span class="timeline-time">
+                  {{ formatTimelineRange(item.startTime, item.endTime) }}
+                </span>
+                <span class="timeline-text">{{ item.text }}</span>
+              </div>
+            </div>
+          </div>
+
+          <n-empty v-else description="暂无录制时间线" />
+        </n-card>
+
         <n-card class="clips-panel" :bordered="false">
           <div class="section-header clips-header">
             <div>
@@ -186,10 +215,9 @@
 </template>
 
 <script setup lang="ts">
-import { Copy16Regular, LinkSquare20Regular, PlayCircle24Regular } from "@vicons/fluent";
+import { Copy16Regular, LinkSquare20Regular } from "@vicons/fluent";
 import { recoderApi, recordHistoryApi, commonApi } from "@renderer/apis";
 import { formatRecentRecordTime, formatTime, formatDuration } from "@renderer/utils";
-import { toVideoPlayerPage } from "@renderer/utils/pages";
 import { useRoute, useRouter } from "vue-router";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 
@@ -259,6 +287,7 @@ const isRecording = computed(() => result.recorderInfo?.state === "recording");
 const stateLabel = computed(() => (isRecording.value ? "录制中" : ""));
 const stateTagType = computed(() => (isRecording.value ? "error" : "default"));
 const channelURL = computed(() => result.recorderInfo?.channelURL || "");
+const recorderTimeline = computed(() => [...(result.recorderInfo?.timeline || [])].reverse());
 
 const overviewCards = computed(() => [
   {
@@ -469,21 +498,18 @@ const showSessionDetailPlaceholder = (
   });
 };
 
-const playRecentClip = async (clip: RecentRecordClipItem) => {
-  try {
-    await toVideoPlayerPage({
-      videoId: clip.videoFileId,
-      videoType: clip.videoFileExt,
-    });
-  } catch (error: any) {
-    notice.error({
-      title: error?.message || "打开播放器失败",
-    });
-  }
-};
-
 const formatNumber = (value?: number | null) => {
   return Number(value || 0);
+};
+
+const formatTimelineRange = (startTime?: number, endTime?: number) => {
+  const normalizedStartTime = startTime ?? null;
+  const startLabel = formatTime(normalizedStartTime);
+  if (!endTime || normalizedStartTime == null || endTime <= normalizedStartTime) {
+    return `${startLabel}`;
+  }
+
+  return `${startLabel} - ${formatTime(endTime)}`;
 };
 
 const formatFileSize = (fileSize?: number) => {
@@ -514,6 +540,7 @@ onMounted(() => {
 
 .hero-card,
 .stat-card,
+.timeline-panel,
 .clips-panel,
 .session-panel {
   border-radius: 24px;
@@ -645,6 +672,7 @@ onMounted(() => {
   line-height: 1.15;
 }
 
+.timeline-panel,
 .clips-panel,
 .session-panel {
   background: rgba(255, 255, 255, 0.94);
@@ -652,6 +680,71 @@ onMounted(() => {
   [data-theme="dark"] & {
     background: rgba(255, 255, 255, 0.03);
   }
+}
+
+.timeline-list {
+  display: grid;
+  gap: 14px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.timeline-track {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 6px;
+  background: linear-gradient(135deg, #ff7a59, #ffb347);
+  box-shadow: 0 0 0 4px rgba(255, 122, 89, 0.12);
+}
+
+.timeline-line {
+  position: absolute;
+  top: 22px;
+  bottom: -14px;
+  width: 2px;
+  background: rgba(255, 122, 89, 0.2);
+}
+
+.timeline-content {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(250, 251, 255, 0.88);
+  border: 1px solid rgba(215, 223, 235, 0.8);
+
+  [data-theme="dark"] & {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.timeline-text {
+  font-size: 15px;
+  color: #1b2437;
+  word-break: break-word;
+  margin-left: 20px;
+
+  [data-theme="dark"] & {
+    color: rgba(255, 255, 255, 0.92);
+  }
+}
+
+.timeline-time {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #667085;
 }
 
 .clips-header {
