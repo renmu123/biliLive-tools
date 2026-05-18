@@ -25,13 +25,13 @@ describe("RecorderConfig", () => {
     mockAppConfig.get.mockImplementation((key: string) => {
       if (key === "recorder") {
         return {
+          qualityRetry: 3,
           bilibili: {
             uid: "123456",
             useM3U8Proxy: true,
             formatName: "bilibili_format",
             quality: "highest",
             codecName: "h264",
-            qualityRetry: 3,
           },
           douyu: {
             quality: "high",
@@ -326,6 +326,7 @@ describe("RecorderConfig", () => {
       mockAppConfig.get.mockImplementation((key: string) => {
         if (key === "recorder") {
           return {
+            qualityRetry: 3,
             bilibili: {
               uid: undefined,
               useM3U8Proxy: true,
@@ -333,7 +334,6 @@ describe("RecorderConfig", () => {
               quality: "highest",
               codecName: "h264",
               debugLevel: "none",
-              qualityRetry: 3,
               saveGiftDanma: true,
               saveSCDanma: false,
               saveCover: true,
