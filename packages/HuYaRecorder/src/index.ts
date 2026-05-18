@@ -288,7 +288,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     client.on("error", (e: unknown) => {
       this.emit("DebugLog", { type: "common", text: String(e) });
     });
+    client.on("connect", () => {
+      this.appendTimeline({ text: `弹幕连接已建立` });
+    });
     client.on("retry", (e: { count: number; max: number }) => {
+      this.appendTimeline({ text: `弹幕连接断开，正在重试: ${e.count}/${e.max}` });
       this.emit("DebugLog", {
         type: "common",
         text: `${this?.liveInfo?.owner}:${this.channelId} huya danmu retry: ${e.count}/${e.max}`,
