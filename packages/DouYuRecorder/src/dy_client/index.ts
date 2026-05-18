@@ -139,12 +139,18 @@ export type Message =
 export interface DYClient
   extends Emitter<{
     message: Message;
+    start: undefined;
+    // reconnect 事件在尝试重连时触发，已重试次数/总次数
+    reconnect: { retryCount: number; maxRetry: number };
     error: unknown;
   }> {
   start: () => void;
   stop: () => void;
   send: (message: Record<string, unknown>) => void;
 }
+
+// 最大重试次数，超过这个次数后将不再尝试重连
+const MAX_RETRY = 10;
 
 export function createDYClient(
   channelId: number,
@@ -153,14 +159,19 @@ export function createDYClient(
   } = {},
 ): DYClient {
   let ws: WebSocket | null = null;
-  let maxRetry = 10;
+  let maxRetry = MAX_RETRY;
   let coder = new BufferCoder();
-  let heartbeatTimer: NodeJS.Timer | null = null;
+  let heartbeatTimer: NodeJS.Timeout | null = null;
+  let reconnectTimer: NodeJS.Timeout | null = null;
+
+  const sendWithSocket = (socket: WebSocket | null, message: Record<string, unknown>) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(coder.encode(STT.serialize(message)));
+    }
+  };
 
   const send = (message: Record<string, unknown>) => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws?.send(coder.encode(STT.serialize(message)));
-    }
+    sendWithSocket(ws, message);
   };
 
   const sendLogin = () => send({ type: "loginreq", roomid: channelId });
@@ -171,34 +182,103 @@ export function createDYClient(
     }
     send({ type: "mrkl" });
   };
-  const sendLogout = () => send({ type: "logout" });
+  const sendLogout = (socket: WebSocket | null = ws) => sendWithSocket(socket, { type: "logout" });
 
-  const onOpen = () => {
-    sendLogin();
-    sendJoinGroup();
-    heartbeatTimer = setInterval(sendHeartbeat, 45e3);
-  };
-
-  const onClose = () => {
-    sendLogout();
+  const clearHeartbeat = () => {
     if (heartbeatTimer) {
-      // @ts-ignore
       clearInterval(heartbeatTimer);
       heartbeatTimer = null;
     }
   };
 
-  const onError = (err: unknown) => {
+  const clearReconnect = () => {
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+  };
+
+  const scheduleReconnect = (err: unknown) => {
+    if (reconnectTimer) {
+      return;
+    }
+
     if (maxRetry > 0) {
       maxRetry -= 1;
-      stop();
-      setTimeout(() => {
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
         start();
+        client.emit("reconnect", { retryCount: MAX_RETRY - maxRetry, maxRetry: MAX_RETRY });
       }, 3e3);
-    } else {
-      client.emit("error", err);
-      client.emit("error", new Error("重连次数过多，停止重连"));
+      return;
     }
+
+    client.emit("error", new Error("重连次数过多，停止重连"));
+  };
+
+  const cleanupSocket = (socket: WebSocket | null = ws) => {
+    clearHeartbeat();
+    if (socket === ws) {
+      ws = null;
+    }
+  };
+
+  const disconnect = (
+    err: unknown,
+    opts: {
+      shouldReconnect: boolean;
+      shouldCloseSocket: boolean;
+      shouldSendLogout: boolean;
+    },
+  ) => {
+    const currentWs = ws;
+    if (!currentWs) {
+      return;
+    }
+
+    cleanupSocket(currentWs);
+    currentWs.off("open", onOpen);
+    currentWs.off("error", onError);
+    currentWs.off("close", onClose);
+
+    if (opts.shouldSendLogout) {
+      sendLogout(currentWs);
+    }
+
+    if (
+      opts.shouldCloseSocket &&
+      (currentWs.readyState === WebSocket.OPEN || currentWs.readyState === WebSocket.CONNECTING)
+    ) {
+      currentWs.close();
+    }
+
+    if (opts.shouldReconnect) {
+      scheduleReconnect(err);
+    }
+  };
+
+  const onOpen = () => {
+    sendLogin();
+    sendJoinGroup();
+    clearReconnect();
+    heartbeatTimer = setInterval(sendHeartbeat, 45e3);
+    client.emit("start");
+  };
+
+  const onClose = () => {
+    disconnect(new Error("斗鱼弹幕连接已关闭"), {
+      shouldReconnect: true,
+      shouldCloseSocket: false,
+      shouldSendLogout: false,
+    });
+  };
+
+  const onError = (err: unknown) => {
+    disconnect(err, {
+      shouldReconnect: true,
+      shouldCloseSocket: true,
+      shouldSendLogout: false,
+    });
   };
 
   const onMessage = (message: unknown) => {
@@ -207,11 +287,7 @@ export function createDYClient(
       return;
     }
 
-    client.emit(
-      "message",
-      // TODO: 不太好验证 schema，先强制转了
-      message as Message,
-    );
+    client.emit("message", message as Message);
   };
 
   const start = () => {
@@ -246,10 +322,14 @@ export function createDYClient(
   };
 
   const stop = () => {
+    clearReconnect();
     if (ws == null) return;
 
-    onClose();
-    ws = null;
+    disconnect(new Error("手动停止斗鱼弹幕连接"), {
+      shouldReconnect: false,
+      shouldCloseSocket: true,
+      shouldSendLogout: true,
+    });
   };
 
   if (!opts.notAutoStart) {
