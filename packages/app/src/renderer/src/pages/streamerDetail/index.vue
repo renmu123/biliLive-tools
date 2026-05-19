@@ -68,7 +68,7 @@
                 {{ isRecording ? "停止录制" : "开始录制" }}
               </n-button>
               <n-button type="warning" @click="goToHistory">录制历史</n-button>
-              <!-- <n-button>设置</n-button> -->
+              <n-button @click="openRecorderSetting">直播间设置</n-button>
               <n-button @click="goBack">返回</n-button>
             </div>
           </div>
@@ -209,6 +209,12 @@
         </n-card>
       </div>
     </n-spin>
+
+    <AddRecorderModal
+      :id="streamerInfo.recorderId"
+      v-model:visible="recorderSettingVisible"
+      @confirm="handleRecorderSettingConfirm"
+    />
   </div>
 </template>
 
@@ -218,6 +224,7 @@ import { recoderApi, recordHistoryApi, commonApi } from "@renderer/apis";
 import { formatRecentRecordTime, formatTime, formatDuration } from "@renderer/utils";
 import { useRoute, useRouter } from "vue-router";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
+import AddRecorderModal from "@renderer/pages/Tools/pages/Recorder/components/addModal.vue";
 
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { RecentRecordClipItem } from "@renderer/apis/recordHistory";
@@ -246,6 +253,7 @@ const queryParams = reactive<RecorderAPI["queryStreamerDetail"]["Args"]>({
 const loading = ref(false);
 const recordActionLoading = ref(false);
 const recentClipLoading = ref(false);
+const recorderSettingVisible = ref(false);
 const activeTab = ref("timeline");
 const recentClips = ref<RecentRecordClipItem[]>([]);
 const result = reactive<RecorderAPI["queryStreamerDetail"]["Resp"]>({
@@ -386,10 +394,19 @@ const goBack = () => {
   });
 };
 
-const goToRecorder = () => {
-  router.push({
-    path: "/recorder",
-  });
+const openRecorderSetting = () => {
+  if (!streamerInfo.recorderId) {
+    notice.warning({
+      title: "缺少录制器信息，无法打开设置",
+    });
+    return;
+  }
+
+  recorderSettingVisible.value = true;
+};
+
+const handleRecorderSettingConfirm = async () => {
+  await handleQuery();
 };
 
 const copyRoomId = async () => {
@@ -788,6 +805,7 @@ onMounted(() => {
   line-height: 1.4;
   color: #111827;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
