@@ -77,7 +77,9 @@
         <template #action="{ item }">
           <div style="margin-top: 10px" class="section-container">
             <div class="section" @click="startRecord(item.id)">开始录制</div>
-            <div class="section" @click="stopRecord(item.id)">停止录制</div>
+            <div v-if="item.recordHandle" class="section" @click="stopRecord(item.id)">
+              停止录制
+            </div>
             <div
               class="section"
               @click="cut(item.id)"
@@ -102,9 +104,9 @@
               打开直播
             </div>
             <div
-              v-if="!isWeb && item.recordHandle?.savePath"
+              v-if="!isWeb"
               class="section"
-              @click="openSavePath(item.recordHandle?.savePath)"
+              @click="openSavePath(item.id, item.recordHandle?.savePath)"
             >
               打开录制文件夹
             </div>
@@ -655,10 +657,23 @@ const isWeb = ref(window.isWeb);
 
 /**
  * 打开录制文件夹
- * @param path
+ * @param id 录制器ID
+ * @param recordingPath 录制文件路径
  */
-const openSavePath = (path: string) => {
-  window.api.openPath(window.path.dirname(path));
+const openSavePath = async (id: string, recordingPath?: string) => {
+  if (recordingPath) {
+    await window.api.openPath(window.path.dirname(recordingPath));
+    return;
+  }
+
+  try {
+    const { folderPath } = await recoderApi.getRecentRecordFolder(id);
+    await window.api.openPath(folderPath);
+  } catch (error: any) {
+    notice.error({
+      title: error?.message,
+    });
+  }
 };
 
 const toWebhook = (channelId: string) => {

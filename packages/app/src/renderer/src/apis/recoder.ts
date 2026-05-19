@@ -67,6 +67,13 @@ const cut = async (id: string) => {
   return res.data.payload;
 };
 
+const getRecentRecordFolder = async (
+  id: string,
+): Promise<RecorderAPI["getRecentRecordFolder"]["Resp"]> => {
+  const res = await request.get(`/recorder/${id}/recent-record-folder`);
+  return res.data.payload;
+};
+
 const batchStartRecord = async (
   ids: string[],
 ): Promise<RecorderAPI["batchStartRecord"]["Resp"]> => {
@@ -130,6 +137,7 @@ const recoder = {
   batchResolveChannel,
   getLiveInfo,
   cut,
+  getRecentRecordFolder,
   queryStreamerDetail,
 };
 
