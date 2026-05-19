@@ -8,6 +8,7 @@
 ## 优化
 
 - 重构：暗黑模式优化 [#445](https://github.com/renmu123/biliLive-tools/pull/445)
+- 录制：非录制状态下也支持快速打开文件夹
 - ffmpeg：支持帧率参数 [#438](https://github.com/renmu123/biliLive-tools/pull/438)
 
 ## Bug修复

@@ -231,6 +231,14 @@ export type BatchStopRecordResp = {
   results: BatchOperateResult[];
 };
 
+export interface GetRecentRecordFolderArgs {
+  id: RecoderConfig["id"];
+}
+
+export interface GetRecentRecordFolderResp {
+  folderPath: string;
+}
+
 export type RecorderAPI = {
   getLiveInfo: {
     Args: GetLiveInfoArgs;
@@ -275,6 +283,10 @@ export type RecorderAPI = {
   batchStopRecord: {
     Args: BatchStopRecordArgs;
     Resp: BatchStopRecordResp;
+  };
+  getRecentRecordFolder: {
+    Args: GetRecentRecordFolderArgs;
+    Resp: GetRecentRecordFolderResp;
   };
   queryStreamerDetail: {
     Args: QueryStreamerDetailArgs;

@@ -228,6 +228,17 @@ router.post("/:id/cut", async (ctx) => {
 });
 
 /**
+ * 获取最近录制文件所在文件夹
+ * @route GET /recorder/:recorderId/recent-record-folder
+ * @param recorderId 直播间ID
+ * @returns 最近录制文件目录
+ */
+router.get("/:id/recent-record-folder", async (ctx) => {
+  const { id } = ctx.params;
+  ctx.body = { payload: await recorderService.getRecentRecordFolder({ id }) };
+});
+
+/**
  * 批量开始录制
  * @route POST /recorder/manager/batch_start_record
  * @param ids 直播间ID列表
