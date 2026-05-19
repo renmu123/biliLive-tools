@@ -87,132 +87,128 @@
           </n-card>
         </div>
 
-        <n-card class="timeline-panel" :bordered="false">
-          <div class="section-header">
-            <div>
-              <h2>时间线</h2>
-            </div>
-          </div>
-
-          <div v-if="recorderTimeline.length > 0" class="timeline-list">
-            <div
-              v-for="(item, index) in recorderTimeline"
-              :key="`${item.startTime}-${index}`"
-              class="timeline-item"
-            >
-              <div class="timeline-track">
-                <span class="timeline-dot"></span>
-                <span v-if="index !== recorderTimeline.length - 1" class="timeline-line"></span>
-              </div>
-              <div class="timeline-content">
-                <span class="timeline-time">
-                  {{ formatTimelineRange(item.startTime, item.endTime) }}
-                </span>
-                <span class="timeline-text">{{ item.text }}</span>
-              </div>
-            </div>
-          </div>
-
-          <n-empty v-else description="暂无录制时间线" />
-        </n-card>
-
-        <n-card class="clips-panel" :bordered="false">
-          <div class="section-header clips-header">
-            <div>
-              <h2>最近录制片段</h2>
-            </div>
-          </div>
-
-          <n-spin :show="recentClipLoading">
-            <div v-if="recentClips.length > 0" class="clip-card-grid">
-              <div v-for="clip in recentClips" :key="clip.id" class="clip-card">
-                <Artplayer
-                  style="height: 160px"
-                  :option="{
-                    url: commonApi.getVideo(clip.videoFileId),
-                    type: clip.videoFileExt,
-                  }"
-                  “:isLive="false"
-                ></Artplayer>
-
-                <div class="clip-info">
-                  <div class="clip-title">{{ clip.title || "未命名片段" }}</div>
-                  <div class="clip-meta-row">
-                    <span>{{ formatRecentRecordTime(clip.recordStartTime) }}</span>
-                    <span>{{ formatFileSize(clip.videoFileSize) }}</span>
+        <n-card class="tab-panel" :bordered="false">
+          <n-tabs v-model:value="activeTab" type="segment" animated>
+            <n-tab-pane name="timeline" tab="时间线">
+              <div v-if="recorderTimeline.length > 0" class="timeline-list">
+                <div
+                  v-for="(item, index) in recorderTimeline"
+                  :key="`${item.startTime}-${index}`"
+                  class="timeline-item"
+                >
+                  <div class="timeline-track">
+                    <span class="timeline-dot"></span>
+                    <span v-if="index !== recorderTimeline.length - 1" class="timeline-line"></span>
+                  </div>
+                  <div class="timeline-content">
+                    <span class="timeline-time">
+                      {{ formatTimelineRange(item.startTime, item.endTime) }}
+                    </span>
+                    <span class="timeline-text">{{ item.text }}</span>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <n-empty v-else description="暂无可播放的录制片段" />
-          </n-spin>
-        </n-card>
+              <n-empty v-else description="暂无录制时间线" />
+            </n-tab-pane>
 
-        <n-card class="session-panel" :bordered="false">
-          <div class="section-header">
-            <div>
-              <h2>最近场次</h2>
-            </div>
-            <n-button text type="primary" @click="goToHistory">查看录制历史 ></n-button>
-          </div>
+            <n-tab-pane name="clips" tab="最近录制片段">
+              <n-spin :show="recentClipLoading">
+                <div v-if="recentClips.length > 0" class="clip-card-grid">
+                  <div v-for="clip in recentClips" :key="clip.id" class="clip-card">
+                    <Artplayer
+                      style="height: 160px"
+                      :option="{
+                        url: commonApi.getVideo(clip.videoFileId),
+                        type: clip.videoFileExt,
+                      }"
+                      :isLive="false"
+                    ></Artplayer>
 
-          <template v-if="result.data.length > 0">
-            <div class="session-table-wrap">
-              <table class="session-table">
-                <thead class="table-header">
-                  <tr>
-                    <th>直播标题</th>
-                    <th>直播开始时间</th>
-                    <th>开始时间</th>
-                    <th>结束时间</th>
-                    <th>录制时长</th>
-                    <th>片段数</th>
-                    <th>弹幕数</th>
-                    <th>状态</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(session, index) in result.data" :key="session.sessionKey">
-                    <td class="title-cell">
-                      <div class="session-name">{{ session.title || "-" }}</div>
-                    </td>
-                    <td>{{ formatTime(session.recordStartTime) }}</td>
-                    <td>{{ formatTime(session.liveStartTime) }}</td>
-                    <td>{{ formatTime(session.lastRecordTime) }}</td>
-                    <td>{{ formatDuration(session.totalDuration, "00:00:00") }}</td>
-                    <td>{{ session.clipCount }}</td>
-                    <td>{{ formatNumber(session.totalDanmaNum) }}</td>
-                    <td>
-                      <n-tag size="small" round :type="resolveSessionStatus(index).type">
-                        {{ resolveSessionStatus(index).label }}
-                      </n-tag>
-                    </td>
-                    <td class="operation-cell">
-                      <n-button text type="primary" @click="showSessionDetailPlaceholder(session)">
-                        详情
-                      </n-button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    <div class="clip-info">
+                      <div class="clip-title">{{ clip.title || "未命名片段" }}</div>
+                      <div class="clip-meta-row">
+                        <span>{{ formatRecentRecordTime(clip.recordStartTime) }}</span>
+                        <span>{{ formatFileSize(clip.videoFileSize) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-            <div class="pagination-row" v-if="result.pagination.total > result.pagination.pageSize">
-              <n-pagination
-                v-model:page="queryParams.page"
-                :page-size="queryParams.pageSize"
-                :item-count="result.pagination.total"
-                show-size-picker
-                :page-sizes="[5, 10, 20, 30]"
-                @update:page="handlePageChange"
-                @update:page-size="handlePageSizeChange"
-              />
-            </div>
-          </template>
+                <n-empty v-else description="暂无可播放的录制片段" />
+              </n-spin>
+            </n-tab-pane>
 
-          <n-empty v-else description="暂无场次数据" />
+            <n-tab-pane name="sessions" tab="最近场次">
+              <div class="section-header section-header-inline">
+                <n-button text type="primary" @click="goToHistory">查看录制历史 ></n-button>
+              </div>
+
+              <template v-if="result.data.length > 0">
+                <div class="session-table-wrap">
+                  <table class="session-table">
+                    <thead class="table-header">
+                      <tr>
+                        <th>直播标题</th>
+                        <th>直播开始时间</th>
+                        <th>开始时间</th>
+                        <th>结束时间</th>
+                        <th>录制时长</th>
+                        <th>片段数</th>
+                        <th>弹幕数</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(session, index) in result.data" :key="session.sessionKey">
+                        <td class="title-cell">
+                          <div class="session-name">{{ session.title || "-" }}</div>
+                        </td>
+                        <td>{{ formatTime(session.recordStartTime) }}</td>
+                        <td>{{ formatTime(session.liveStartTime) }}</td>
+                        <td>{{ formatTime(session.lastRecordTime) }}</td>
+                        <td>{{ formatDuration(session.totalDuration, "00:00:00") }}</td>
+                        <td>{{ session.clipCount }}</td>
+                        <td>{{ formatNumber(session.totalDanmaNum) }}</td>
+                        <td>
+                          <n-tag size="small" round :type="resolveSessionStatus(index).type">
+                            {{ resolveSessionStatus(index).label }}
+                          </n-tag>
+                        </td>
+                        <td class="operation-cell">
+                          <n-button
+                            text
+                            type="primary"
+                            @click="showSessionDetailPlaceholder(session)"
+                          >
+                            详情
+                          </n-button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div
+                  class="pagination-row"
+                  v-if="result.pagination.total > result.pagination.pageSize"
+                >
+                  <n-pagination
+                    v-model:page="queryParams.page"
+                    :page-size="queryParams.pageSize"
+                    :item-count="result.pagination.total"
+                    show-size-picker
+                    :page-sizes="[5, 10, 20, 30]"
+                    @update:page="handlePageChange"
+                    @update:page-size="handlePageSizeChange"
+                  />
+                </div>
+              </template>
+
+              <n-empty v-else description="暂无场次数据" />
+            </n-tab-pane>
+          </n-tabs>
         </n-card>
       </div>
     </n-spin>
@@ -253,6 +249,7 @@ const queryParams = reactive<RecorderAPI["queryStreamerDetail"]["Args"]>({
 const loading = ref(false);
 const recordActionLoading = ref(false);
 const recentClipLoading = ref(false);
+const activeTab = ref("timeline");
 const recentClips = ref<RecentRecordClipItem[]>([]);
 const result = reactive<RecorderAPI["queryStreamerDetail"]["Resp"]>({
   recorderInfo: null,
@@ -541,13 +538,17 @@ onMounted(() => {
 .overview-shell {
   display: grid;
   gap: 18px;
+
+  :deep(.n-tabs-nav) {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
 }
 
 .hero-card,
 .stat-card,
-.timeline-panel,
-.clips-panel,
-.session-panel {
+.tab-panel {
   border-radius: 24px;
   border: 1px solid rgba(215, 223, 235, 0.6);
   box-shadow: 0 18px 40px rgba(57, 74, 103, 0.08);
@@ -677,9 +678,7 @@ onMounted(() => {
   line-height: 1.15;
 }
 
-.timeline-panel,
-.clips-panel,
-.session-panel {
+.tab-panel {
   background: rgba(255, 255, 255, 0.94);
 
   [data-theme="dark"] & {
@@ -752,10 +751,6 @@ onMounted(() => {
   color: #667085;
 }
 
-.clips-header {
-  margin-bottom: 14px;
-}
-
 .clip-card-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -783,41 +778,6 @@ onMounted(() => {
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
     }
   }
-}
-
-.clip-preview {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  background:
-    linear-gradient(135deg, rgba(18, 24, 38, 0.82), rgba(52, 64, 84, 0.48)),
-    radial-gradient(circle at top left, rgba(79, 70, 229, 0.28), transparent 42%),
-    radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.2), transparent 38%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.clip-duration {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: rgba(17, 24, 39, 0.72);
-  color: #fff;
-  font-size: 12px;
-  line-height: 1;
-}
-
-.clip-play-indicator {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: rgba(17, 24, 39, 0.38);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .clip-info {
@@ -853,10 +813,6 @@ onMounted(() => {
   }
 }
 
-.clip-size-row {
-  justify-content: flex-start;
-}
-
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -873,6 +829,11 @@ onMounted(() => {
       color: rgba(255, 255, 255, 0.94);
     }
   }
+}
+
+.section-header-inline {
+  justify-content: flex-end;
+  margin-bottom: 14px;
 }
 
 .session-table-wrap {
@@ -896,9 +857,11 @@ onMounted(() => {
     text-align: left;
     font-size: 14px;
   }
+
   td {
     padding: 12px 14px;
   }
+
   th {
     padding: 8px 14px;
     font-weight: normal;
@@ -907,10 +870,6 @@ onMounted(() => {
   tbody tr:last-child td {
     border-bottom: none;
   }
-}
-
-.title-cell {
-  // min-width: 220px;
 }
 
 .session-name {
