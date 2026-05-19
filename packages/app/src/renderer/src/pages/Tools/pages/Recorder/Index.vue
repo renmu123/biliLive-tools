@@ -68,6 +68,7 @@
         @sort="handleSort"
         @startRecord="startRecord"
         @stopRecord="stopRecord"
+        @showDetail="viewStreamerDetail"
       >
         <template #cornerAction="{ item }">
           <div class="card-corner-action" @click.stop="viewStreamerDetail(item)">

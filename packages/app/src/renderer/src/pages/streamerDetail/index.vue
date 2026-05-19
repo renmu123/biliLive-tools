@@ -109,7 +109,7 @@
                 </div>
               </div>
 
-              <n-empty v-else description="暂无录制时间线" />
+              <n-empty v-else description="暂无数据" />
             </n-tab-pane>
 
             <n-tab-pane name="clips" tab="最近录制片段">

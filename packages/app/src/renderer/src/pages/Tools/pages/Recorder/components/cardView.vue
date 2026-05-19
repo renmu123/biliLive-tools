@@ -86,6 +86,7 @@
                 'title-blocked': item.state === 'title-blocked',
               }"
               v-if="['check-error', 'stopping-record', 'title-blocked'].includes(item.state)"
+              @click="emit('showDetail', item)"
               >{{ stateMap[item.state] }}</span
             >
           </div>
@@ -114,6 +115,12 @@ interface Props {
   list: any[];
   visibleColumns?: string[];
 }
+
+const emit = defineEmits<{
+  (e: "startRecord", channelId: string): void;
+  (e: "stopRecord", channelId: string): void;
+  (e: "showDetail", payload: { channelId: string }): void;
+}>();
 
 const props = withDefaults(defineProps<Props>(), {
   list: () => [],
@@ -286,6 +293,7 @@ const stateMap = {
     &.state {
       background-color: #fff1b8;
       color: #d48806;
+      cursor: pointer;
       &.error {
         background-color: #fff1f0;
         color: #ff4d4f;
