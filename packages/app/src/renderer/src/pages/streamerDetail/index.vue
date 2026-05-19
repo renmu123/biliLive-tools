@@ -67,7 +67,8 @@
               <n-button type="primary" :loading="recordActionLoading" @click="toggleRecording">
                 {{ isRecording ? "停止录制" : "开始录制" }}
               </n-button>
-              <n-button @click="goToRecorder">设置</n-button>
+              <n-button type="warning" @click="goToHistory">录制历史</n-button>
+              <!-- <n-button>设置</n-button> -->
               <n-button @click="goBack">返回</n-button>
             </div>
           </div>
@@ -140,10 +141,6 @@
             </n-tab-pane>
 
             <n-tab-pane name="sessions" tab="最近场次">
-              <div class="section-header section-header-inline">
-                <n-button text type="primary" @click="goToHistory">查看录制历史 ></n-button>
-              </div>
-
               <template v-if="result.data.length > 0">
                 <div class="session-table-wrap">
                   <table class="session-table">
