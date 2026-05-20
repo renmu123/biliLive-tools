@@ -316,6 +316,10 @@ export const videoFormatOptions = [
     value: "flv",
     label: "FLV",
   },
+  {
+    value: "mp4",
+    label: "MP4",
+  },
 ];
 
 // 录制器
@@ -417,7 +421,7 @@ export const textInfo = {
     },
     format: {
       text: "视频格式",
-      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为fmp4<br/>FLV存在分辨率变化或参数变化会花屏，请尝试修复<br/>mesio和录播姬引擎不支持指定",
+      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为fmp4<br/>FLV存在分辨率变化或参数变化会花屏，请尝试修复<br/><b>MP4容器如果出现突然中断，会导致视频损坏</b><br/>mesio和录播姬引擎不支持指定",
     },
     recorderType: {
       text: "录制器",

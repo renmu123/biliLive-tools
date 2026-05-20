@@ -9,6 +9,7 @@
 
 - 重构：暗黑模式优化 [#445](https://github.com/renmu123/biliLive-tools/pull/445)
 - 录制：非录制状态下也支持快速打开文件夹
+- 录制；ffmpeg录制器格式支持MP4容器，**如果出现突然中断，会导致视频损坏**
 - ffmpeg：支持帧率参数 [#438](https://github.com/renmu123/biliLive-tools/pull/438)
 
 ## Bug修复
