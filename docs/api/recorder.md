@@ -6,7 +6,7 @@
 其中的id是内部id，并非直播间id，可从列表接口获取
 :::
 
-## 获取录制任务列表
+## 获取录制列表
 
 获取所有录制任务的列表,支持筛选和分页。
 
@@ -14,16 +14,70 @@
 
 **请求参数:**
 
-| 参数名        | 类型    | 必填 | 说明                                                                               |
-| ------------- | ------- | ---- | ---------------------------------------------------------------------------------- |
-| platform      | string  | 否   | 直播平台,可选值: `DouYu`(斗鱼), `HuYa`(虎牙), `Bilibili`(哔哩哔哩), `DouYin`(抖音) |
-| recordStatus  | string  | 否   | 录制状态, `recording`(录制中), `unrecorded`(未录制)                                |
-| name          | string  | 否   | 备注名称或直播间号,模糊搜索                                                        |
-| autoCheck     | boolean | 否   | 是否自动监控                                                                       |
-| page          | number  | 否   | 页码                                                                               |
-| pageSize      | number  | 否   | 每页数量                                                                           |
-| sortField     | string  | 否   | 排序字段, `living`(直播状态), `state`(录制状态), `monitorStatus`(监控状态)         |
-| sortDirection | string  | 否   | 排序方向, `asc`(升序), `desc`(降序)                                                |
+| 参数名        | 类型    | 必填 | 说明                                                                                                |
+| ------------- | ------- | ---- | --------------------------------------------------------------------------------------------------- |
+| platform      | string  | 否   | 直播平台,可选值: `DouYu`(斗鱼), `HuYa`(虎牙), `Bilibili`(哔哩哔哩), `DouYin`(抖音)、`XHS`(小红书)   |
+| status        | string  | 否   | 录制状态, `recording`(录制中), `idle`(空闲中), `check-error`(检查错误), `title-blocked`(标题被屏蔽) |
+| name          | string  | 否   | 备注名称或直播间号,模糊搜索                                                                         |
+| autoCheck     | boolean | 否   | 是否自动监控                                                                                        |
+| page          | number  | 否   | 页码                                                                                                |
+| pageSize      | number  | 否   | 每页数量                                                                                            |
+| sortField     | string  | 否   | 排序字段, `living`(直播状态), `state`(录制状态), `monitorStatus`(监控状态)                          |
+| sortDirection | string  | 否   | 排序方向, `asc`(升序), `desc`(降序)                                                                 |
+
+**返回数据:**
+
+```json
+{
+  "payload": [
+    {
+      "id": "fd5f94e4-4f78-4623-b705-5a7095676f96", // 内部的id，用于其他删除等操作
+      "providerId": "DouYu", // 平台
+      "channelId": "2140934", // 直播间号
+      "remarks": "老皮12.27历险记", // 备注
+      "disableAutoCheck": true, // 是否禁用自动录制
+      "channelURL": "https://www.douyu.com/2140934", // 原站链接
+      // 仅当录制中状态存在
+      "recordHandle": {
+        "id": "b59f832a-82b0-4948-af88-5715b9aa4794",
+        "stream": "原画2K60", // 画质
+        "source": "hs", // 使用的路线
+        "recorderType": "ffmpeg", // 使用的录制器
+        "url": "https://huos1a.douyucdn2.cn/live/2140934rMNEDcr4D.flv?wsAuth=874e3bf44e9d4456de93434ac4ef8032&token=web-h5-0-2140934-c5beacba295c6775a5ed35207379674e5b17beacf5dc2fc2&logo=0&expire=0&did=0cd6b908331044a28188f47e64126ac8&pt=2&st=0&sid=431568548&mcid2=0&origin=dy&fcdn=hs&fo=0&mix=0&isp=", // 当前录制的链接
+        "savePath": "C:\\Users\\renmu\\Downloads\\录制\\斗鱼\\老皮历险记\\老皮12.27历险记-单机王中王 2026-05-21 22-01-PART%03d.mp4", //保存路径
+        "progress": { "time": "00:09:55" } // 录制时长，不一定存在
+      },
+      // 仅当监听中状态存在
+      "liveInfo": {
+        "living": true, // 是否正在直播
+        "owner": "老皮历险记", // 主播名称
+        "title": "单机王中王", // 直播标题
+        "avatar": "https://apic.douyucdn.cn/upload/avanew/face/201707/31/08/10261cc4580588526811b7a4da775de8_big.jpg", // 主播头像
+        "cover": "https://rpic.douyucdn.cn/asrpic/260521/2140934_src_2158.avif/dy4", // 直播封面
+        "liveStartTime": "2026-05-21T09:19:16.000Z", // 直播开始时间
+        "liveId": "b392a59f3b574a4fde630422549db852",
+        "recordStartTime": "2026-05-21T14:01:08.652Z", // 录制开始时间，如果正在录制的话
+        "area": "主机其他游戏" // 分区
+      },
+      "state": "recording", // 当前状态，recording：录制中、idle：空闲中、check-error：检查错误、title-blocked：标题被屏蔽
+      "usedSource": "hs", // 使用的路线
+      "usedStream": "原画2K60", // 画质
+      "tempStopIntervalCheck": false, // 是否被临时暂停了
+      "onlyAudio": false, // 是否使用了仅音频
+      "extra": {
+        "createTimestamp": 1760791981452, // 录制创建时间
+        "avatar": "https://apic.douyucdn.cn/upload/avanew/face/201707/31/08/10261cc4580588526811b7a4da775de8_big.jpg",
+        "lastRecordTime": 1779372068796 // 最后的录制时间
+      }
+    }
+  ],
+  "pagination": {
+    "total": 100,
+    "page": 1,
+    "pageSize": 100
+  }
+}
+```
 
 ## 添加录制任务
 
