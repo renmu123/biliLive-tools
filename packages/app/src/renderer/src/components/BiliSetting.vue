@@ -618,7 +618,6 @@ const savePreset = async () => {
 };
 
 const _savePreset = async (data: BiliupPreset) => {
-  await biliApi.validUploadParams(deepRaw(data.config));
   await videoPresetApi.save(deepRaw(data));
 };
 

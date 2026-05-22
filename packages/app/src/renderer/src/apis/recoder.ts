@@ -47,14 +47,14 @@ const update = async (
 };
 
 const startRecord = async (id: string) => {
-  const res = await request.post(`/recorder/${id}/start_record`, {
+  const res = await request.post(`/recorder/${id}/start`, {
     id,
   });
   return res.data.payload;
 };
 
 const stopRecord = async (id: string) => {
-  const res = await request.post(`/recorder/${id}/stop_record`, {
+  const res = await request.post(`/recorder/${id}/stop`, {
     id,
   });
   return res.data.payload;
@@ -87,7 +87,7 @@ const batchStopRecord = async (ids: string[]): Promise<RecorderAPI["batchStopRec
 };
 
 const resolveChannel = async (url: string): Promise<RecorderAPI["resolveChannel"]["Resp"]> => {
-  const res = await request.get(`/recorder/manager/resolveChannel`, {
+  const res = await request.get(`/recorder/manager/resolve-channel`, {
     params: { url },
   });
   return res.data.payload;
@@ -111,7 +111,7 @@ const getLiveInfo = async (
   ids: string[],
   forceRequest: boolean,
 ): Promise<RecorderAPI["getLiveInfo"]["Resp"]> => {
-  const res = await request.post(`/recorder/manager/liveInfo`, { ids, forceRequest });
+  const res = await request.post(`/recorder/manager/live-info`, { ids, forceRequest });
   return res.data.payload;
 };
 

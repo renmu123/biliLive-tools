@@ -967,7 +967,10 @@ async function queryVideoStatus(taskId: string) {
   }
   const client = createClient(task.uid);
   const res = await client.platform.getArchive({ aid: Number(task.output) });
-  return res;
+  return {
+    state: res.archive.state,
+    state_desc: res.archive.state_desc,
+  };
 }
 
 async function getSessionId(
@@ -1026,7 +1029,7 @@ async function getTypeDesc(tid: number, uid: number) {
 
 // 验证配置
 export const validateBiliupConfig = (config: BiliupConfig): [boolean, string | null] => {
-  let msg: string | undefined = undefined;
+  let msg: string | null = null;
   if (!config.title) {
     msg = "标题不能为空";
   }

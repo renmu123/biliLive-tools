@@ -1,5 +1,7 @@
 import Router from "@koa/router";
 import { container } from "../index.js";
+import { validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
+import { uuid } from "@biliLive-tools/shared/utils/index.js";
 
 import { omit } from "lodash-es";
 
@@ -19,7 +21,7 @@ router.get("/danmu/:id", async (ctx) => {
 router.post("/danmu", async (ctx) => {
   const danmuPreset = container.resolve("danmuPreset");
   const data: any = ctx.request.body;
-  ctx.body = await danmuPreset.save(data);
+  ctx.body = await danmuPreset.save({ ...data, id: uuid() });
 });
 router.del("/danmu/:id", async (ctx) => {
   const danmuPreset = container.resolve("danmuPreset");
@@ -45,7 +47,11 @@ router.post("/video", async (ctx) => {
   const data: any = ctx.request.body;
 
   data.config = omit(data.config, ["dtime"]);
-  ctx.body = await preset.save(data);
+  const [status, msg] = validateBiliupConfig(data.config);
+  if (!status) {
+    throw new Error(msg || "配置验证失败");
+  }
+  ctx.body = await preset.save({ ...data, id: uuid() });
 });
 router.del("/video/:id", async (ctx) => {
   const preset = container.resolve("videoPreset");
@@ -56,6 +62,10 @@ router.put("/video/:id", async (ctx) => {
   const data: any = ctx.request.body;
 
   data.config = omit(data.config, ["dtime"]);
+  const [status, msg] = validateBiliupConfig(data.config);
+  if (!status) {
+    throw new Error(msg || "配置验证失败");
+  }
   ctx.body = await preset.save({ ...data, id: ctx.params.id });
 });
 
@@ -75,7 +85,7 @@ router.get("/ffmpeg/:id", async (ctx) => {
 router.post("/ffmpeg", async (ctx) => {
   const preset = container.resolve("ffmpegPreset");
   const data: any = ctx.request.body;
-  ctx.body = await preset.save(data);
+  ctx.body = await preset.save({ ...data, id: uuid() });
 });
 router.del("/ffmpeg/:id", async (ctx) => {
   const preset = container.resolve("ffmpegPreset");
@@ -99,7 +109,7 @@ router.get("/subtitle-style/:id", async (ctx) => {
 router.post("/subtitle-style", async (ctx) => {
   const preset = container.resolve("subtitleStylePreset");
   const data: any = ctx.request.body;
-  ctx.body = await preset.save(data);
+  ctx.body = await preset.save({ ...data, id: uuid() });
 });
 router.del("/subtitle-style/:id", async (ctx) => {
   const preset = container.resolve("subtitleStylePreset");
