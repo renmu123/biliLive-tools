@@ -1,7 +1,8 @@
-# Next
+# 1.17.0
 
 - 修复某些情况下`waitTime`不会被遵守的bug
 - 修复`multiThreadCheck`并发次数无法热加载的bug
+- 增加时间线的相关事件处理
 
 # 1.16.2
 

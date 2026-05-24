@@ -21,7 +21,13 @@ export interface PagedResp extends PagedArgs {
 
 export type ClientRecorder = Omit<
   Recorder<RecoderConfig["extra"]>,
-  "all" | "getChannelURL" | "checkLiveStatusAndRecord" | "recordHandle" | "toJSON" | "getLiveInfo"
+  | "all"
+  | "getChannelURL"
+  | "checkLiveStatusAndRecord"
+  | "recordHandle"
+  | "toJSON"
+  | "getLiveInfo"
+  | "appendTimeline"
 > & {
   channelURL: string;
   recordHandle?: Omit<RecordHandle, "stop">;

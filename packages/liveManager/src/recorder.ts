@@ -129,6 +129,17 @@ export type RecorderState =
   | "title-blocked";
 export type Progress = { time: string | null };
 
+export interface RecorderTimelineItem {
+  startTime: number;
+  text: string;
+  endTime?: number;
+}
+
+export interface AppendRecorderTimelineArgs {
+  startTime?: number;
+  text: string;
+}
+
 export interface RecordHandle {
   // 表示这一次录制操作的唯一 id
   id: string;
@@ -164,6 +175,10 @@ export interface Recorder<E extends AnyObject = UnknownObject>
       RecordStart: RecordHandle;
       RecordSegment?: RecordHandle;
       videoFileCreated: { filename: string; cover?: string; rawFilename?: string };
+      stateChange: {
+        state: RecorderState;
+        msg?: string;
+      };
       videoFileCompleted: { filename: string; stats?: XmlStreamStats };
       progress: Progress;
       RecordStop: { recordHandle: RecordHandle; reason?: string };
@@ -199,6 +214,8 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     area?: string;
   };
   tempStopIntervalCheck?: boolean;
+  timeline?: RecorderTimelineItem[];
+  appendTimeline: (args: AppendRecorderTimelineArgs) => RecorderTimelineItem[];
   /** 缓存实例（命名空间） */
   cache: NamespacedCache;
   getChannelURL: (this: Recorder<E>) => string;

@@ -364,7 +364,7 @@ router.get("/video/:videoId", async (ctx) => {
   } else {
     const MAX_CHUNK_SIZE = 1024 * 1024 * 1; // 1MB
     const head = {
-      "Content-Length": fileSize,
+      "Content-Length": MAX_CHUNK_SIZE,
       "Content-Type": contentType,
       "Content-Range": `bytes 0-${Math.min(MAX_CHUNK_SIZE - 1, fileSize - 1)}/${fileSize}`,
       "Accept-Ranges": "bytes",

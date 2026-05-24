@@ -68,7 +68,13 @@
         @sort="handleSort"
         @startRecord="startRecord"
         @stopRecord="stopRecord"
+        @showDetail="viewStreamerDetail"
       >
+        <template #cornerAction="{ item }">
+          <div class="card-corner-action" @click.stop="viewStreamerDetail(item)">
+            <span class="card-corner-action__label">详情</span>
+          </div>
+        </template>
         <template #action="{ item }">
           <div style="margin-top: 10px" class="section-container">
             <div class="section" @click="startRecord(item.id)">开始录制</div>

@@ -41,6 +41,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     useServerTimestamp: opts.useServerTimestamp ?? true,
     state: "idle",
     cache: null as any,
+    appendTimeline: null as any,
 
     getChannelURL() {
       return `https://live.douyin.com/${this.channelId}`;
@@ -124,9 +125,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       uid: this.uid,
     });
     this.liveInfo = liveInfo;
-    this.state = "idle";
+    this.emit("stateChange", { state: "idle" });
   } catch (error) {
-    this.state = "check-error";
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: `检查失败，` + (error instanceof Error ? error.message : String(error)),
+    });
     throw error;
   }
 
@@ -150,7 +154,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
-    // TODO: 检查mobile接口处理双屏录播流
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
@@ -174,12 +177,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
 
-    this.state = "check-error";
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: `检查失败，` + (err instanceof Error ? err.message : String(err)),
+    });
     throw err;
   }
   const { owner, title, liveStartTime, recordStartTime } = this.liveInfo;
 
-  this.state = "recording";
+  this.emit("stateChange", { state: "recording" });
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
   this.availableStreams = availableStreams.map((s) => s.desc);
   this.availableSources = availableSources.map((s) => s.name);
@@ -388,24 +394,26 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     giftMessageCache.set(groupId, { gift, timer });
   });
   client.on("reconnect", (attempts: number) => {
+    this.appendTimeline({ text: `弹幕连接断开，正在重试: ${attempts}` });
     this.emit("DebugLog", {
       type: "common",
-      text: `douyin ${this.channelId}  danma has reconnect ${attempts}`,
+      text: `douyin ${this.channelId} danma has reconnect ${attempts}`,
     });
   });
   client.on("error", (err) => {
     this.emit("DebugLog", {
       type: "common",
-      text: `douyin ${this.channelId}  danma error: ${String(err)}`,
+      text: `douyin ${this.channelId} danma error: ${String(err)}`,
     });
   });
   client.on("init", (url) => {
     this.emit("DebugLog", {
       type: "common",
-      text: `douyin ${this.channelId}  danma init ${url}`,
+      text: `douyin ${this.channelId} danma init ${url}`,
     });
   });
   client.on("open", () => {
+    this.appendTimeline({ text: `弹幕连接已建立` });
     this.emit("DebugLog", {
       type: "common",
       text: `douyin ${this.channelId} danma open`,
@@ -445,7 +453,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const stop = singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
-    this.state = "stopping-record";
+    this.emit("stateChange", { state: "stopping-record" });
 
     try {
       // 清理所有礼物缓存定时器
@@ -473,7 +481,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.liveInfo = undefined;
-    this.state = "idle";
+    this.emit("stateChange", { state: "idle" });
     this.cache.set("qualityRetryLeft", this.qualityRetry);
   });
 

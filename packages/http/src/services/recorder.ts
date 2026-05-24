@@ -313,6 +313,7 @@ export function recorderToClient(recorder: Recorder): ClientRecorder {
       "all",
       "getChannelURL",
       "checkLiveStatusAndRecord",
+      "appendTimeline",
       "recordHandle",
       "toJSON",
       "getLiveInfo",
