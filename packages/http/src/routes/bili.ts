@@ -87,16 +87,6 @@ router.get("/platformArchiveDetail", async (ctx) => {
   const data = await biliApi.getPlatformArchiveDetail(aid, uid);
   ctx.body = data;
 });
-router.get("/platformPre", async (ctx) => {
-  const { uid } = ctx.request.query as unknown as { uid: number };
-  const data = await biliApi.getPlatformPre(uid);
-  ctx.body = data;
-});
-router.get("/typeDesc", async (ctx) => {
-  const { tid, uid } = ctx.request.query as unknown as { tid: number; uid: number };
-  const data = await biliApi.getTypeDesc(tid, uid);
-  ctx.body = data;
-});
 
 /**
  * 上传以及续传视频

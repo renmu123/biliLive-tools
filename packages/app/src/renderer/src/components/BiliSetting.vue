@@ -70,6 +70,7 @@
           <n-space>
             <n-radio :value="1"> 自制 </n-radio>
             <n-radio :value="2"> 转载 </n-radio>
+            <n-radio :value="3"> 其他 </n-radio>
           </n-space>
         </n-radio-group>
       </n-form-item>
@@ -89,20 +90,17 @@
           show-count
         />
       </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip
-            tip="仍在使用的分区，但是官方投稿已无法手动选择，这里你还是可以手动选的"
-            text="旧分区"
-          ></Tip>
-        </template>
-        <n-cascader
-          v-model:value="options.config.tid"
+      <n-form-item
+        label="创作声明"
+        v-if="options.config.copyright === 1 || options.config.copyright === 3"
+      >
+        <n-select
+          v-model:value="options.config.creationStatement"
+          :options="creationStatementList"
+          key-field="id"
           label-field="name"
           value-field="id"
-          :options="areaData"
-          check-strategy="child"
-          filterable
+          clearable
         />
       </n-form-item>
       <n-form-item label="分区">
@@ -126,7 +124,7 @@
           :loading="tagCreateLoading"
         />
       </n-form-item>
-      <n-form-item v-if="options.config.copyright === 1">
+      <n-form-item v-if="options.config.copyright === 1 || options.config.copyright === 3">
         <template #label>
           <Tip tip="话题也会占据一个tag栏~" text="话题"></Tip>
         </template>
@@ -208,7 +206,10 @@
           }"
         />
       </n-form-item>
-      <n-form-item v-if="options.config.copyright === 1" label="添加水印">
+      <n-form-item
+        v-if="options.config.copyright === 1 || options.config.copyright === 3"
+        label="添加水印"
+      >
         <n-checkbox
           v-model:checked="options.config.watermark"
           :checked-value="1"
@@ -642,11 +643,6 @@ watchEffect(() => {
     options.value.config.closeReply = 0;
   }
 });
-// watchEffect(() => {
-//   if (options.value.config.tid) {
-//     getTypeDesc(options.value.config.tid);
-//   }
-// });
 
 // 合集
 const userInfoStore = useUserInfoStore();
@@ -711,27 +707,6 @@ const getSeasonList = async (force?: boolean) => {
   }
 };
 
-const areaData = ref<any[]>([]);
-const getPlatformTypes = async () => {
-  // 优先从本地缓存获取
-  const rawLocalData = window.localStorage.getItem("areaData");
-  if (rawLocalData) {
-    try {
-      areaData.value = JSON.parse(rawLocalData);
-      return;
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  if (!userInfoStore?.userInfo?.uid) {
-    return;
-  }
-  const data = await biliApi.getPlatformPre(userInfoStore.userInfo.uid);
-  areaData.value = data.typelist;
-  window.localStorage.setItem("areaData", JSON.stringify(data.typelist));
-};
-
 const descMaxLength = ref(2000);
 
 watch(
@@ -744,7 +719,6 @@ watch(
 watchEffect(() => {
   if (!userInfoStore.userInfo) return;
   getSeasonList();
-  getPlatformTypes();
 });
 
 const topicLoading = ref(false);
@@ -1093,6 +1067,29 @@ const humanTypeList = ref([
   {
     id: 1031,
     name: "生活经验",
+  },
+]);
+
+const creationStatementList = ref([
+  {
+    id: -1,
+    name: "内容无需标注",
+  },
+  {
+    id: 1,
+    name: "含AI生成内容",
+  },
+  {
+    id: 2,
+    name: "含虚构演绎内容",
+  },
+  {
+    id: 3,
+    name: "内容含营销信息",
+  },
+  {
+    id: 4,
+    name: "个人观点，仅供参考",
   },
 ]);
 </script>

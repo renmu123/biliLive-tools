@@ -306,10 +306,21 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     cover = undefined;
   }
 
+  let creationStatement: { id: -1 | 1 | 2 | 3 | 4 } | undefined = undefined;
+  if (options.copyright === 1 || options.copyright === 3) {
+    if (options.creationStatement) {
+      creationStatement = { id: options.creationStatement };
+    }
+    if (options.copyright === 3 && !options.creationStatement) {
+      creationStatement = { id: -1 };
+    }
+  }
+
   const data: MediaOptions = {
     cover: cover,
     title: options.title,
-    tid: options.tid,
+    // 移除老分区后，web的默认分区为21
+    tid: 21,
     human_type2: options.human_type2,
     tag: tags.slice(0, 10).join(","),
     copyright: options.copyright,
@@ -334,6 +345,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
       options.copyright === 2 || options.watermark === undefined
         ? undefined
         : { state: options.watermark },
+    creation_statement: creationStatement,
   };
   return data;
 }
@@ -1008,22 +1020,6 @@ async function getPlatformArchiveDetail(aid: number, uid: number) {
   return client.platform.getArchive({ aid });
 }
 
-/**
- * 获取投稿分区
- */
-async function getPlatformPre(uid: number) {
-  const client = createClient(uid);
-  return client.platform.getArchivePre();
-}
-
-/**
- * 获取分区简介信息
- */
-async function getTypeDesc(tid: number, uid: number) {
-  const client = createClient(uid);
-  return client.platform.getTypeDesc(tid);
-}
-
 // 验证配置
 export const validateBiliupConfig = (config: BiliupConfig): [boolean, string | null] => {
   let msg: string | undefined = undefined;
@@ -1039,9 +1035,13 @@ export const validateBiliupConfig = (config: BiliupConfig): [boolean, string | n
     if (config.topic_name) {
       msg = "转载类型稿件不支持活动参加哦~";
     }
+  } else if (config.copyright === 3) {
+    if (!config.creationStatement) {
+      msg = "必须选择一个创作声明";
+    }
   }
   if (config.tag.length === 0) {
-    msg = "标签不能为空";
+    msg = "标签至少存在一个";
   }
   if (config.tag.length > 10) {
     msg = "标签不能超过10个";
@@ -1242,8 +1242,6 @@ export const biliApi = {
   editMedia,
   getSeasonList,
   getArchiveDetail,
-  getPlatformPre,
-  getTypeDesc,
   download,
   getSessionId,
   getPlatformArchiveDetail,
