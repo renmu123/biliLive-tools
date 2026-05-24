@@ -85,7 +85,7 @@
     "mpegts.js": "^1.8.0",
     "naive-ui": "^2.44.1",
     "path-unified": "^0.2.0",
-    "pinia": "^3.0.1",
+    "pinia": "^3.0.4",
     "sortablejs": "^1.15.6",
     "srt-parser-2": "^1.2.3",
     "unplugin-auto-import": "^20.2.0",

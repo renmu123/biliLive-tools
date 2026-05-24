@@ -4,7 +4,7 @@
 
 - 录制：斗鱼获取流迁移到新接口，支持流编码选项 [#449](https://github.com/renmu123/biliLive-tools/pull/449)
 - 录制：新增主播详情页用于数据展示 [#426](https://github.com/renmu123/biliLive-tools/pull/426)
-- B站上传：移除老分区参数，支持新创作声明
+- B站上传：移除老分区参数，支持新创作声明 [#454](https://github.com/renmu123/biliLive-tools/pull/454)
 
 ## 优化
 
@@ -20,6 +20,11 @@
 - 录制：修复设置“流匹配重试次数”失效的bug
 - 录制：修复录制详情预览视频一些情况下的错误
 - 切片：修复web环境下无法识别字幕的bug [#447](https://github.com/renmu123/biliLive-tools/issues/447)
+
+## 其他
+
+- deps: pinia update to 0.3.4
+- deps: font-ls update to 0.6.6
 
 # 3.14.0(2026.05.14)
 
