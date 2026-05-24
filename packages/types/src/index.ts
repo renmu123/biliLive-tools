@@ -1038,7 +1038,8 @@ export interface BiliupConfig {
   hires: 0 | 1; // Hi-Res
   copyright: 1 | 2; // 1：自制，2：转载
   tag: string[]; // 标签，不能为空，不能超过10个，调用接口验证
-  tid: number; // 174 投稿分区
+  // @deprecated，174 投稿分区
+  tid: number;
   source?: string; // 转载来源
   dynamic?: string; // 空间动态
   /** 封面，可能为文件名也有可能是绝对路径 */

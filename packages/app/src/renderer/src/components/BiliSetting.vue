@@ -89,22 +89,6 @@
           show-count
         />
       </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip
-            tip="仍在使用的分区，但是官方投稿已无法手动选择，这里你还是可以手动选的"
-            text="旧分区"
-          ></Tip>
-        </template>
-        <n-cascader
-          v-model:value="options.config.tid"
-          label-field="name"
-          value-field="id"
-          :options="areaData"
-          check-strategy="child"
-          filterable
-        />
-      </n-form-item>
       <n-form-item label="分区">
         <n-select
           v-model:value="options.config.human_type2"
@@ -642,11 +626,6 @@ watchEffect(() => {
     options.value.config.closeReply = 0;
   }
 });
-// watchEffect(() => {
-//   if (options.value.config.tid) {
-//     getTypeDesc(options.value.config.tid);
-//   }
-// });
 
 // 合集
 const userInfoStore = useUserInfoStore();
@@ -711,27 +690,6 @@ const getSeasonList = async (force?: boolean) => {
   }
 };
 
-const areaData = ref<any[]>([]);
-const getPlatformTypes = async () => {
-  // 优先从本地缓存获取
-  const rawLocalData = window.localStorage.getItem("areaData");
-  if (rawLocalData) {
-    try {
-      areaData.value = JSON.parse(rawLocalData);
-      return;
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  if (!userInfoStore?.userInfo?.uid) {
-    return;
-  }
-  const data = await biliApi.getPlatformPre(userInfoStore.userInfo.uid);
-  areaData.value = data.typelist;
-  window.localStorage.setItem("areaData", JSON.stringify(data.typelist));
-};
-
 const descMaxLength = ref(2000);
 
 watch(
@@ -744,7 +702,6 @@ watch(
 watchEffect(() => {
   if (!userInfoStore.userInfo) return;
   getSeasonList();
-  getPlatformTypes();
 });
 
 const topicLoading = ref(false);

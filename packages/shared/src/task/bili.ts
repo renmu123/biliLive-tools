@@ -309,7 +309,8 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
   const data: MediaOptions = {
     cover: cover,
     title: options.title,
-    tid: options.tid,
+    // 移除老分区后，web的默认分区为21
+    tid: 21,
     human_type2: options.human_type2,
     tag: tags.slice(0, 10).join(","),
     copyright: options.copyright,
@@ -1008,22 +1009,6 @@ async function getPlatformArchiveDetail(aid: number, uid: number) {
   return client.platform.getArchive({ aid });
 }
 
-/**
- * 获取投稿分区
- */
-async function getPlatformPre(uid: number) {
-  const client = createClient(uid);
-  return client.platform.getArchivePre();
-}
-
-/**
- * 获取分区简介信息
- */
-async function getTypeDesc(tid: number, uid: number) {
-  const client = createClient(uid);
-  return client.platform.getTypeDesc(tid);
-}
-
 // 验证配置
 export const validateBiliupConfig = (config: BiliupConfig): [boolean, string | null] => {
   let msg: string | undefined = undefined;
@@ -1242,8 +1227,6 @@ export const biliApi = {
   editMedia,
   getSeasonList,
   getArchiveDetail,
-  getPlatformPre,
-  getTypeDesc,
   download,
   getSessionId,
   getPlatformArchiveDetail,
