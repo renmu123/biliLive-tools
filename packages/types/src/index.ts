@@ -1036,7 +1036,7 @@ export interface BiliupConfig {
   desc?: string;
   dolby: 0 | 1; // 杜比
   hires: 0 | 1; // Hi-Res
-  copyright: 1 | 2; // 1：自制，2：转载
+  copyright: 1 | 2 | 3; // 1：自制，2：转载，3：其他创作声明
   tag: string[]; // 标签，不能为空，不能超过10个，调用接口验证
   // @deprecated，174 投稿分区
   tid: number;
@@ -1083,6 +1083,8 @@ export interface BiliupConfig {
   dtime?: number;
   // 表示按照cid顺序上传，编辑接口会根据这个参数对pathArray进行排序后上传，如果没有这个参数，则按照pathArray的顺序上传
   sortByCid?: Array<number>;
+  // 创作声明，仅当copyright=1、3时有效，// -1: 内容无需标注，1: 含AI生成内容，2：含虚构演绎内容，3：内容含营销信息，4：个人观点，仅供参考
+  creationStatement?: -1 | 1 | 2 | 3 | 4 | null;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {
