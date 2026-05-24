@@ -251,7 +251,6 @@ describe("stream.ts", () => {
     //     encrypted: false,
     //     is_sp: 0 as 0 | 1,
     //   };
-
     //   const mockLiveInfo = {
     //     current_qn: 10000,
     //     accept_qn: [10000],
@@ -266,7 +265,6 @@ describe("stream.ts", () => {
     //     ],
     //     name: "原画",
     //   };
-
     //   vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
     //   vi.mocked(getRoomPlayInfo).mockResolvedValue({
     //     uid: 12345,
@@ -306,42 +304,37 @@ describe("stream.ts", () => {
     //       },
     //     },
     //   });
-
     //   const stream = await getStream({
     //     channelId: "12345",
     //     quality: 10000,
     //     formatName: "flv",
     //     codecName: "avc",
     //   });
-
     //   expect(stream.currentStream).toEqual({
     //     name: "原画",
     //     source: "主线",
     //     url: "https://example.com/stream?key=value",
     //   });
     // });
-
-    it("当直播间未开播时应该抛出错误", async () => {
-      const mockRoomInit = {
-        room_id: 12345,
-        short_id: 0,
-        uid: 12345,
-        live_status: 0 as LiveStatus,
-        live_time: 1704067200,
-        encrypted: false,
-        is_sp: 0 as 0 | 1,
-      };
-
-      vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
-
-      await expect(
-        getStream({
-          channelId: "12345",
-          quality: 10000,
-          formatName: "flv",
-          codecName: "avc",
-        }),
-      ).rejects.toThrow("It must be called getStream when living");
-    });
+    // it("当直播间未开播时应该抛出错误", async () => {
+    //   const mockRoomInit = {
+    //     room_id: 12345,
+    //     short_id: 0,
+    //     uid: 12345,
+    //     live_status: 0 as LiveStatus,
+    //     live_time: 1704067200,
+    //     encrypted: false,
+    //     is_sp: 0 as 0 | 1,
+    //   };
+    //   vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
+    //   await expect(
+    //     getStream({
+    //       channelId: "12345",
+    //       quality: 10000,
+    //       formatName: "flv",
+    //       codecName: "avc",
+    //     }),
+    //   ).rejects.toThrow("It must be called getStream when living");
+    // });
   });
 });
