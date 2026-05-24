@@ -41,6 +41,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     useServerTimestamp: opts.useServerTimestamp ?? true,
     state: "idle",
     cache: null as any,
+    appendTimeline: null as any,
 
     getChannelURL() {
       return `https://live.douyin.com/${this.channelId}`;

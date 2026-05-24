@@ -198,7 +198,7 @@ export function createDYClient(
     }
   };
 
-  const scheduleReconnect = (err: unknown) => {
+  const scheduleReconnect = (_err: unknown) => {
     if (reconnectTimer) {
       return;
     }

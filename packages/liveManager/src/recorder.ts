@@ -215,7 +215,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   };
   tempStopIntervalCheck?: boolean;
   timeline?: RecorderTimelineItem[];
-  appendTimeline?: (args: AppendRecorderTimelineArgs) => RecorderTimelineItem[];
+  appendTimeline: (args: AppendRecorderTimelineArgs) => RecorderTimelineItem[];
   /** 缓存实例（命名空间） */
   cache: NamespacedCache;
   getChannelURL: (this: Recorder<E>) => string;

@@ -28,6 +28,8 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     ...mitt(),
     ...opts,
     cache: null as any,
+    appendTimeline: null as any,
+
     availableStreams: [],
     availableSources: [],
     qualityRetry: opts.qualityRetry ?? 0,
