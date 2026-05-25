@@ -522,6 +522,9 @@ importers:
       '@biliLive-tools/types':
         specifier: workspace:*
         version: link:../types
+      '@bililive-tools/douyin-recorder':
+        specifier: workspace:*
+        version: link:../DouYinRecorder
       '@bililive-tools/manager':
         specifier: workspace:*
         version: link:../liveManager

@@ -9,6 +9,7 @@ import { pick } from "lodash-es";
 import recorderService from "../services/recorder.js";
 import { appConfig } from "../index.js";
 import streamerDetailService from "@biliLive-tools/shared/db/service/streamerDetailService.js";
+import { getInfo, getStream } from "@bililive-tools/douyin-recorder/stream.js";
 
 import type { RecorderAPI } from "../types/recorder.js";
 
@@ -490,6 +491,65 @@ router.post("/manager/liveInfo", async (ctx) => {
   ctx.body = {
     payload: list,
   };
+});
+
+router.get("/douyin/live-info", async (ctx) => {
+  const { roomId, platform, dev } = ctx.request.query;
+  if (platform !== "douyin") {
+    ctx.body = { error: "Platform not supported" };
+    ctx.status = 400;
+    return;
+  }
+  try {
+    const info = await getInfo(roomId as string, { api: "balance" });
+    const body = {
+      title: info.title,
+      owner: info.owner,
+      living: info.living,
+    };
+    if (dev) {
+      body["dev"] = info;
+    }
+    ctx.body = body;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: (error as Error).message };
+  }
+});
+
+/**
+ * 获取抖音直播间流信息，for bgo
+ * @route GET /recorder/douyin/stream-info
+ * @param roomId 直播间ID
+ * @param platform 直播平台，必须为douyin
+ * @param quality 画质，原画(origin)、蓝光(uhd)、超清(hd)、高清(sd)、标清(ld)，音频流(ao)，真原画(real_origin)，默认为origin
+ * @param dev 是否返回开发信息，默认为false
+ * @returns 直播流信息
+ */
+router.get("/douyin/stream-info", async (ctx) => {
+  const { roomId, platform, dev, quality } = ctx.request.query;
+  if (platform !== "douyin") {
+    ctx.body = { error: "Platform not supported" };
+    ctx.status = 400;
+    return;
+  }
+  try {
+    const info = await getStream({
+      channelId: roomId as string,
+      quality: getSingleQueryValue(quality) || "origin",
+      streamPriorities: [],
+      sourcePriorities: [],
+      formatPriorities: ["flv"],
+    });
+    const body = { stream: info.currentStream.url };
+    if (dev) {
+      body["dev"] = info;
+    }
+    ctx.body = body;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: (error as Error).message };
+  }
 });
 
 export default router;

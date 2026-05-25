@@ -32,6 +32,7 @@
     "@biliLive-tools/shared": "workspace:*",
     "@biliLive-tools/types": "workspace:*",
     "@bililive-tools/manager": "workspace:*",
+    "@bililive-tools/douyin-recorder": "workspace:*",
     "@koa/bodyparser": "^5.1.1",
     "@koa/cors": "^5.0.0",
     "@koa/router": "^14.0.0",
