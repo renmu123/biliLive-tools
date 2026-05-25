@@ -37,9 +37,6 @@
 
 <script setup lang="ts">
 import BiliSetting from "./BiliSetting.vue";
-import { useUploadPreset } from "@renderer/stores";
-
-const { getUploadPresets } = useUploadPreset();
 
 import type { BiliupPreset } from "@biliLive-tools/types";
 
@@ -81,7 +78,6 @@ const handleSave = async () => {
       return;
     }
     if (currentPreset.value) {
-      getUploadPresets();
       emits("saved", currentPreset.value);
     }
     visible.value = false;

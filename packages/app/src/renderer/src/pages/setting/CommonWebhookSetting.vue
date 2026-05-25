@@ -568,10 +568,7 @@
   </template>
 
   <DanmuFactorySettingDailog v-model:visible="showDanmuPresetDialog" v-model="danmuPresetModel" />
-  <BiliPresetEditDialog
-    v-model:show="showUploadPresetDialog"
-    :preset-id="data.uploadPresetId"
-  />
+  <BiliPresetEditDialog v-model:show="showUploadPresetDialog" :preset-id="data.uploadPresetId" />
 </template>
 
 <script setup lang="ts">
