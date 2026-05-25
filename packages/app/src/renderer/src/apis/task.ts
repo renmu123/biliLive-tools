@@ -206,6 +206,12 @@ const cut = async (
     savePath?: string;
     /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
     saveType?: 1 | 2;
+    uploadOptions?: {
+      upload: boolean;
+      config: BiliupPreset["config"];
+      filePath: string;
+      uid: number;
+    };
   },
 ) => {
   const res = await request.post(`/task/cut`, {

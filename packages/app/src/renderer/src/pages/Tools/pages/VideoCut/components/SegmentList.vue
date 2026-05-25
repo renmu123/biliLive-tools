@@ -239,6 +239,10 @@ const props = withDefaults(defineProps<Props>(), {
   danmaList: () => [],
 });
 
+const emits = defineEmits<{
+  (event: "export-upload", segment: Segment): void;
+}>();
+
 const el = ref<HTMLElement | null>(null);
 
 const { width, height } = useWindowSize();
@@ -862,6 +866,12 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
             },
           },
         ],
+      },
+      {
+        label: "导出并上传",
+        onClick: () => {
+          emits("export-upload", segment);
+        },
       },
     ],
   });

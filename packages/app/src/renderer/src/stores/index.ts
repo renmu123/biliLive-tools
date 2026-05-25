@@ -348,6 +348,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         ignoreDanmu: false,
         ignoreSubtitle: false,
         exportSubtitle: true,
+        uploadPresetId: "",
       },
     },
   });
