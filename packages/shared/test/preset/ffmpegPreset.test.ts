@@ -14,6 +14,7 @@ describe("FFmpegPreset", () => {
       const validConfig: FfmpegOptions = {
         encoder: "libx264" as VideoCodec,
         preset: "fast",
+        fps: 60,
         resetResolution: false,
         resolutionWidth: 1920,
         resolutionHeight: 1080,
@@ -78,6 +79,28 @@ describe("FFmpegPreset", () => {
       };
 
       expect(() => ffmpegPreset.validate(config)).not.toThrow();
+    });
+
+    it("应该抛出错误当帧率为0", () => {
+      const zeroFpsConfig: FfmpegOptions = {
+        encoder: "libx264" as VideoCodec,
+        preset: "fast",
+        fps: 0,
+        resetResolution: false,
+      };
+
+      expect(() => ffmpegPreset.validate(zeroFpsConfig)).toThrow("帧率参数必须大于0");
+    });
+
+    it("应该抛出错误当帧率为负数", () => {
+      const negativeFpsConfig: FfmpegOptions = {
+        encoder: "libx264" as VideoCodec,
+        preset: "fast",
+        fps: -1,
+        resetResolution: false,
+      };
+
+      expect(() => ffmpegPreset.validate(negativeFpsConfig)).toThrow("帧率参数必须大于0");
     });
   });
 });

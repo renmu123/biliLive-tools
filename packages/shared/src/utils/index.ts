@@ -86,7 +86,7 @@ export const escaped = (s: string) => {
  */
 export const getHardwareAcceleration = (
   encoder: VideoCodec,
-): "nvenc" | "qsv" | "amf" | "copy" | "cpu" => {
+): "nvenc" | "qsv" | "amf" | "copy" | "cpu" | "videotoolbox" => {
   if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(encoder)) {
     return "nvenc";
   } else if (["h264_qsv", "hevc_qsv", "av1_qsv"].includes(encoder)) {
@@ -97,12 +97,16 @@ export const getHardwareAcceleration = (
     return "copy";
   } else if (["libx264", "libx265", "libsvtav1"].includes(encoder)) {
     return "cpu";
+  } else if (["h264_videotoolbox", "hevc_videotoolbox", "av1_videotoolbox"].includes(encoder)) {
+    return "videotoolbox";
   } else {
     throw new Error(`未知的编码器: ${encoder}`);
   }
 };
 
 export const genFfmpegParams = (options: FfmpegOptions) => {
+  const hardware = getHardwareAcceleration(options.encoder);
+
   const result: string[] = [];
   if (options.encoder) {
     result.push(`-c:v ${options.encoder}`);
@@ -135,7 +139,11 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
     if (options.preset) {
       const encoder = videoEncoders.find((item) => item.value === options.encoder);
       if ((encoder?.presets ?? []).findIndex((item) => item.value === options.preset) !== -1) {
-        result.push(`-preset ${options.preset}`);
+        if (hardware === "videotoolbox") {
+          result.push(`-realtime ${options.preset}`);
+        } else {
+          result.push(`-preset ${options.preset}`);
+        }
       }
     }
 
@@ -150,8 +158,6 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
   }
   if (options.audioCodec) {
     result.push(`-c:a ${options.audioCodec}`);
-  } else {
-    result.push(`-c:a copy`);
   }
   if (options.extraOptions) {
     options.extraOptions.split(" ").forEach((option) => {
@@ -653,4 +659,20 @@ export const isBetweenTimeRange = (range: undefined | [] | [string, string]): bo
  */
 export function replaceFourByteUnicode(str: string, replacement: string = "_"): string {
   return str.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, replacement);
+}
+
+/**
+ * 将RGB颜色转换为BGR颜色
+ * @param color
+ * @returns
+ */
+export function RGB2BGR(color: string): string {
+  if (!/^#?[0-9A-Fa-f]{6}$/.test(color)) {
+    throw new Error("Invalid color format. Expected hex string like '#RRGGBB'.");
+  }
+  const hex = color.replace("#", "");
+  const r = hex.slice(0, 2);
+  const g = hex.slice(2, 4);
+  const b = hex.slice(4, 6);
+  return `#${b}${g}${r}`;
 }

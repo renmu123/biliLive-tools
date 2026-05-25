@@ -209,6 +209,7 @@ export function send(title: string, desp: string, options?: { type?: TaskType })
       notifyType = config?.notification?.taskNotificationType[options.type];
     }
   }
+  log.debug("send notify", { title, desp, notifyType });
   return _send(title, desp, config, notifyType);
 }
 

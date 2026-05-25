@@ -1,16 +1,16 @@
 /**
- * 阿里云 ASR 测试示例
+ * ASR 测试示例
  *
  * 使用前请确保：
- * 1. 在 AISetting.vue 中配置了阿里云 API Key
+ * 1. 在 AISetting.vue 中配置了相应的 API Key
  * 2. 准备好要识别的音频文件
  */
 
-import { AliyunASR } from "../index.js";
+import { AliyunASR, OpenAIWhisperASR, createASRProvider } from "../index.js";
 
-// 示例 1: 识别在线音频文件
+// 示例 1: 识别在线音频文件（阿里云）
 async function example1() {
-  console.log("=== 示例 1: 识别在线音频文件 ===");
+  console.log("=== 示例 1: 识别在线音频文件（阿里云）===");
 
   const asr = new AliyunASR({
     apiKey: process.env.DASHSCOPE_API_KEY || "your-api-key",
@@ -27,9 +27,9 @@ async function example1() {
   }
 }
 
-// 示例 2: 识别本地音频文件（自动上传）
+// 示例 2: 识别本地音频文件（阿里云，自动上传）
 async function example2() {
-  console.log("\n=== 示例 2: 识别本地音频文件 ===");
+  console.log("\n=== 示例 2: 识别本地音频文件（阿里云）===");
 
   const asr = new AliyunASR({
     apiKey: process.env.DASHSCOPE_API_KEY || "your-api-key",
@@ -49,9 +49,80 @@ async function example2() {
   }
 }
 
-// 示例 3: 说话人分离
+// 示例 3: 使用 OpenAI Whisper 识别本地文件
 async function example3() {
-  console.log("\n=== 示例 3: 说话人分离 ===");
+  console.log("\n=== 示例 3: 使用 OpenAI Whisper 识别 ===");
+
+  const asr = new OpenAIWhisperASR({
+    apiKey: process.env.OPENAI_API_KEY || "your-api-key",
+    baseURL: "https://api.openai.com/v1", // 可选，支持 Azure OpenAI 或其他兼容端点
+    model: "whisper-1",
+  });
+
+  try {
+    const result = await asr.recognizeLocalFile("./test-audio.mp3", {
+      language: "zh", // 指定语言可以提高准确度
+      prompt: "这是一段关于技术的讨论", // 可选的提示文本
+    });
+
+    console.log("识别结果:");
+    console.log("- 语言:", result.language);
+    console.log("- 时长:", result.duration, "秒");
+    console.log("- 转写文本:", result.text);
+    console.log("- 分段数量:", result.segments.length);
+
+    // 显示前3个分段
+    result.segments.slice(0, 3).forEach((seg, i) => {
+      console.log(
+        `  段落 ${i + 1}: [${seg.start.toFixed(2)}s - ${seg.end.toFixed(2)}s] ${seg.text}`,
+      );
+    });
+  } catch (error) {
+    console.error("识别失败:", error);
+  }
+}
+
+// 示例 4: 使用适配器（推荐方式）- 根据 modelId 自动选择提供商
+async function example4() {
+  console.log("\n=== 示例 4: 使用适配器（推荐）===");
+
+  try {
+    // 假设在配置中设置了 modelId
+    // 工厂函数会自动根据 modelId 查找对应的 vendor 和 provider
+    const modelId = "116497be-e650-4b21-8769-536859cb16dc"; // 阿里云 fun-asr
+    // const modelId = "a1b2c3d4-5678-90ab-cdef-1234567890ab"; // OpenAI whisper-1
+
+    const asr = createASRProvider(modelId);
+
+    const result = await asr.recognizeLocalFile("./test-audio.mp3");
+
+    console.log("标准格式识别结果:");
+    console.log("- 完整文本:", result.text);
+    console.log("- 时长:", result.duration, "秒");
+    console.log("- 语言:", result.language || "未知");
+    console.log("- 分段数量:", result.segments.length);
+
+    // 显示分段信息
+    result.segments.slice(0, 3).forEach((seg) => {
+      console.log(`  [${seg.start.toFixed(2)}s - ${seg.end.toFixed(2)}s] ${seg.text}`);
+      if (seg.speaker) {
+        console.log(`    说话人: ${seg.speaker}`);
+      }
+    });
+
+    // 词级别信息（如果有）
+    if (result.words && result.words.length > 0) {
+      console.log("- 词级别时间戳数量:", result.words.length);
+      console.log("  示例:", result.words.slice(0, 3));
+    }
+  } catch (error) {
+    console.error("识别失败:", error);
+  }
+}
+
+// 示例 5: 说话人分离（阿里云）
+async function example5() {
+  console.log("\n=== 示例 5: 说话人分离（阿里云）===");
 
   const asr = new AliyunASR({
     apiKey: process.env.DASHSCOPE_API_KEY || "your-api-key",
@@ -78,9 +149,9 @@ async function example3() {
   }
 }
 
-// 示例 4: 手动控制流程
-async function example4() {
-  console.log("\n=== 示例 4: 手动控制流程 ===");
+// 示例 6: 手动控制流程（阿里云）
+async function example6() {
+  console.log("\n=== 示例 6: 手动控制流程（阿里云）===");
 
   const asr = new AliyunASR({
     apiKey: process.env.DASHSCOPE_API_KEY || "your-api-key",
@@ -119,9 +190,9 @@ async function example4() {
   }
 }
 
-// 示例 5: 循环识别多个文件
-async function example5() {
-  console.log("\n=== 示例 5: 循环识别多个文件 ===");
+// 示例 7: 循环识别多个文件
+async function example7() {
+  console.log("\n=== 示例 7: 循环识别多个文件 ===");
 
   const asr = new AliyunASR({
     apiKey: process.env.DASHSCOPE_API_KEY || "your-api-key",
@@ -152,14 +223,16 @@ async function example5() {
 
 // 运行示例
 async function main() {
-  console.log("阿里云 ASR 测试示例\n");
+  console.log("ASR 测试示例\n");
 
   // 取消注释要运行的示例
-  // await example1();
-  // await example2();
-  // await example3();
-  // await example4();
-  // await example5();
+  // await example1(); // 阿里云在线文件
+  // await example2(); // 阿里云本地文件
+  // await example3(); // OpenAI Whisper
+  // await example4(); // 使用适配器（推荐）
+  // await example5(); // 说话人分离
+  // await example6(); // 手动控制流程
+  // await example7(); // 批量识别
 
   console.log("\n测试完成！");
 }
@@ -169,4 +242,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 
-export { example1, example2, example3, example4, example5 };
+export { example1, example2, example3, example4, example5, example6, example7 };

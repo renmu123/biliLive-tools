@@ -1,6 +1,6 @@
 import request from "./request";
 
-import type { SyncType } from "@biliLive-tools/types";
+import type { SyncType, AliyunPanDriveType } from "@biliLive-tools/types";
 
 const syncTestUpload = async (data: {
   remoteFolder: string;
@@ -51,6 +51,7 @@ const sync = async (data: {
   file: string;
   type: SyncType;
   targetPath: string;
+  aliyunpanDriveType?: AliyunPanDriveType;
   options: { removeOrigin: boolean };
 }) => {
   const res = await request.post(`/sync/sync`, data);

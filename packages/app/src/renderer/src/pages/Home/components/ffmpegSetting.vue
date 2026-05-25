@@ -41,6 +41,7 @@
           <p>AMF 是 AMD 的硬件加速</p>
           <p>H264泛用性较高，压缩率较低；H265 压缩率高于H264但可能低于AV1</p>
           <p>AV1 新一代的编码宠儿，需要新一代硬件才可硬件加速，如40系显卡</p>
+          <p>如果是 apple 专用编码，请使用相关专业编码，AV1 需要ffmpeg8.0及以上</p>
           <p>copy为复制原始流，不做任何更改，<b>如果你需要压制弹幕请不要使用这个参数</b></p>
         </n-popover>
       </template>
@@ -133,6 +134,22 @@
           v-model:value="ffmpegOptions.config.preset"
           :options="encoderOptions?.presets || []"
           placeholder="请选择预设"
+        />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip text="帧率">
+            使用 fps 滤镜控制输出帧率，留空时不生效。<br />
+            一般用于电台等帧率极低的视频，来避免滚动弹幕时出现卡顿
+          </Tip>
+        </template>
+        <n-input-number
+          v-model:value.number="ffmpegOptions.config.fps"
+          class="input-number"
+          :min="0.01"
+          :step="1"
+          placeholder="留空则不生效"
+          style="width: 120px; flex: none"
         />
       </n-form-item>
       <n-form-item v-if="['libsvtav1'].includes(ffmpegOptions.config.encoder)">
@@ -300,10 +317,9 @@
                 style="width: 120px"
               />
             </n-form-item>
-            <n-form-item label="字体颜色">
+            <n-form-item label="字体颜色" style="width: 120px">
               <n-color-picker
                 v-model:value="ffmpegOptions.config.timestampFontColor"
-                style="width: 120px"
                 title="字体颜色"
               />
             </n-form-item>
@@ -367,20 +383,14 @@
 
     <n-form-item>
       <template #label>
-        <n-popover trigger="hover">
-          <template #trigger>
-            <span
-              class="flex align-center"
-              :style="{
-                'justify-content': 'flex-end',
-              }"
-            >
-              音频编码器</span
-            >
-          </template>
-        </n-popover>
+        <Tip text="音频编码器"> 你也可以不选，在输出参数中完全自定义 </Tip>
       </template>
-      <n-select v-model:value="ffmpegOptions.config.audioCodec" :options="audioEncoders" />
+      <n-select
+        v-model:value="ffmpegOptions.config.audioCodec"
+        :options="audioEncoders"
+        clearable
+        placeholder="请选择音频编码器"
+      />
     </n-form-item>
 
     <n-form-item v-if="ffmpegOptions.config.encoder !== 'copy'">

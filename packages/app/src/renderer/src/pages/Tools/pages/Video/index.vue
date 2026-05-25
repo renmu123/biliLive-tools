@@ -277,7 +277,7 @@ const confirm = async (options: {
       id: part.partId,
       platform: data.value.platform,
       savePath: options.savePath,
-      filename: `${sanitizeFileName(part.name)}.mp4`,
+      filename: `${sanitizeFileName(part.name)}.ts`,
       resolution: options.resoltion,
       extra: part.extra,
       danmu: options.danmu,

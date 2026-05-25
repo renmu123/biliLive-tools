@@ -21,41 +21,191 @@ import { XMLBuilder } from "fast-xml-parser";
 
 import type { DanmuConfig, DanmaOptions, HotProgressOptions } from "@biliLive-tools/types";
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+type XmlDanmuItemType = "danmu" | "sc" | "guard" | "gift";
+type XmlItem = Record<string, any>;
+type XmlFilterFunction = (type: XmlDanmuItemType, danmu: XmlItem, logger: typeof log) => boolean;
+type XmlTransformFunction = (type: XmlDanmuItemType, danmu: XmlItem, logger: typeof log) => unknown;
 
-/**
- * 生成过滤后的xml文件
- * @param input
- * @param output
- * @param filterFunction
- * @returns
- */
-const genFilteredXml = async (input: string, output: string, filterFunction: string) => {
-  const filterFunc = new Function(
+interface XmlEventItem {
+  sourceType: XmlDanmuItemType;
+  item: XmlItem;
+}
+
+interface ProcessedXmlBuckets {
+  danmu: CommonItem[];
+  sc: CommonItem[];
+  guard: CommonItem[];
+  gift: CommonItem[];
+}
+
+const createEmptyXmlBuckets = (): ProcessedXmlBuckets => ({
+  danmu: [],
+  sc: [],
+  guard: [],
+  gift: [],
+});
+
+const isXmlDanmuItemType = (value: unknown): value is XmlDanmuItemType => {
+  return ["danmu", "sc", "guard", "gift"].includes(String(value));
+};
+
+const isValidXmlItemForType = (type: XmlDanmuItemType, item: XmlItem) => {
+  if (type === "danmu") {
+    return typeof item["@_p"] === "string" && item["@_p"].length > 0;
+  }
+
+  return (
+    (typeof item["@_ts"] === "string" && item["@_ts"].length > 0) ||
+    typeof item["@_ts"] === "number"
+  );
+};
+
+const logInvalidTransformedItem = (
+  reason: string,
+  sourceType: XmlDanmuItemType,
+  item: unknown,
+  targetType?: unknown,
+) => {
+  log.error("filterFunction transform item dropped", {
+    reason,
+    sourceType,
+    targetType,
+    item,
+  });
+};
+
+const createFilterFunction = (filterFunction: string): XmlFilterFunction | undefined => {
+  if (!filterFunction.includes("filter")) {
+    return;
+  }
+
+  return new Function(
     "type",
     "danmu",
     "logger",
     `
     ${filterFunction}
     return filter(type, danmu, logger);`,
-  );
+  ) as XmlFilterFunction;
+};
+
+const createTransformFunction = (filterFunction: string): XmlTransformFunction | undefined => {
+  if (!filterFunction.includes("transform")) {
+    return;
+  }
+
+  return new Function(
+    "type",
+    "danmu",
+    "logger",
+    `
+    ${filterFunction}
+    return transform(type, danmu, logger);`,
+  ) as XmlTransformFunction;
+};
+
+const transformXmlItem = (
+  sourceType: XmlDanmuItemType,
+  item: XmlItem,
+  transformFunc: XmlTransformFunction,
+) => {
+  const transformed = transformFunc(sourceType, item, log);
+
+  if (transformed == null || transformed === false) {
+    return null;
+  }
+
+  const candidate = transformed === true || transformed === undefined ? item : transformed;
+  if (typeof candidate !== "object" || candidate === null || Array.isArray(candidate)) {
+    logInvalidTransformedItem("transform must return an object", sourceType, candidate);
+    return null;
+  }
+
+  const nextType = "type" in candidate ? candidate.type : sourceType;
+  if (!isXmlDanmuItemType(nextType)) {
+    logInvalidTransformedItem("unsupported target type", sourceType, candidate, nextType);
+    return null;
+  }
+
+  const normalizedItem: XmlItem = { ...(candidate as XmlItem) };
+  delete normalizedItem.type;
+
+  if (!isValidXmlItemForType(nextType, normalizedItem)) {
+    logInvalidTransformedItem(
+      "missing required fields for target type",
+      sourceType,
+      candidate,
+      nextType,
+    );
+    return null;
+  }
+
+  return {
+    type: nextType,
+    item: normalizedItem,
+  };
+};
+
+export const processXmlItems = (events: XmlEventItem[], filterFunction: string) => {
+  const buckets = createEmptyXmlBuckets();
+  const filterFunc = createFilterFunction(filterFunction);
+  const transformFunc = createTransformFunction(filterFunction);
+
+  for (const event of events) {
+    if (filterFunc && !filterFunc(event.sourceType, event.item, log)) {
+      continue;
+    }
+
+    if (!transformFunc) {
+      buckets[event.sourceType].push(event.item as CommonItem);
+      continue;
+    }
+
+    const transformedItem = transformXmlItem(event.sourceType, event.item, transformFunc);
+    if (!transformedItem) {
+      continue;
+    }
+
+    buckets[transformedItem.type].push(transformedItem.item as CommonItem);
+  }
+
+  return buckets;
+};
+
+const createXmlEvents = (items: XmlItem[], sourceType: XmlDanmuItemType): XmlEventItem[] => {
+  const result: XmlEventItem[] = [];
+
+  for (const item of items) {
+    result.push({
+      sourceType,
+      item,
+    });
+  }
+
+  return result;
+};
+
+/**
+ * 生成经过自定义处理后的xml文件
+ * @param input
+ * @param output
+ * @param options
+ * @returns
+ */
+const genProcessedXml = async (input: string, output: string, filterFunction: string) => {
   const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(input, true);
-  const filteredDanmuku = danmuku.filter((item) => {
-    return filterFunc("danmu", item, log);
-  });
-  const filteredSc = sc.filter((item) => {
-    return filterFunc("sc", item, log);
-  });
-  const filteredGuard = guard.filter((item) => {
-    return filterFunc("guard", item, log);
-  });
-  const filteredGift = gift.filter((item) => {
-    return filterFunc("gift", item, log);
-  });
+  const events = [
+    ...createXmlEvents(danmuku, "danmu"),
+    ...createXmlEvents(sc, "sc"),
+    ...createXmlEvents(guard, "guard"),
+    ...createXmlEvents(gift, "gift"),
+  ];
+  const processedBuckets = processXmlItems(events, filterFunction);
   const xmlData = generateMergedXmlContent(
-    filteredDanmuku,
-    filteredGift,
-    filteredSc,
-    filteredGuard,
+    processedBuckets.danmu as unknown as DanmuItem[],
+    processedBuckets.gift,
+    processedBuckets.sc,
+    processedBuckets.guard,
     jObj.i?.metadata || {},
   );
   await fs.writeFile(output, xmlData);
@@ -97,10 +247,15 @@ const addConvertDanmu2AssTask = async (
   }
 
   let filteredOutput: string | undefined;
-  if (opts.filterFunction && (opts.filterFunction ?? "").includes("filter")) {
-    // 如果存在自定义过滤函数，则需要把过滤后的xml保存到临时文件夹中
+  const hasFilterFunction =
+    Boolean((opts.filterFunction ?? "").trim()) && (opts.filterFunction ?? "").includes("filter");
+  const hasTransformFunction =
+    Boolean((opts.filterFunction ?? "").trim()) &&
+    (opts.filterFunction ?? "").includes("transform");
+  if (hasTransformFunction || hasFilterFunction) {
+    // 如果存在自定义数据处理函数，则需要把处理后的xml保存到临时文件夹中
     filteredOutput = join(tempDir, `${uuid()}.xml`);
-    await genFilteredXml(originInput, filteredOutput, opts.filterFunction);
+    await genProcessedXml(originInput, filteredOutput, opts.filterFunction);
   }
 
   if (opts.blacklist) {

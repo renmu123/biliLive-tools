@@ -25,13 +25,13 @@ describe("RecorderConfig", () => {
     mockAppConfig.get.mockImplementation((key: string) => {
       if (key === "recorder") {
         return {
+          qualityRetry: 3,
           bilibili: {
             uid: "123456",
             useM3U8Proxy: true,
             formatName: "bilibili_format",
             quality: "highest",
             codecName: "h264",
-            qualityRetry: 3,
           },
           douyu: {
             quality: "high",
@@ -127,6 +127,7 @@ describe("RecorderConfig", () => {
         sourcePriorities: [],
         api: "auto",
         useServerTimestamp: true,
+        convert2Mp4: false,
       });
     });
 
@@ -153,13 +154,14 @@ describe("RecorderConfig", () => {
         auth: undefined,
         useM3U8Proxy: true,
         formatName: "auto",
-        codecName: "h264",
+        codecName: "auto",
         source: "auto",
         doubleScreen: undefined,
         formatPriorities: undefined,
         sourcePriorities: [],
         api: "auto",
         useServerTimestamp: true,
+        convert2Mp4: false,
       });
     });
 
@@ -188,12 +190,13 @@ describe("RecorderConfig", () => {
           auth: undefined,
           useM3U8Proxy: true,
           formatName: "auto",
-          codecName: "h264",
+          codecName: "auto",
           source: "auto",
           doubleScreen: undefined,
           sourcePriorities: [],
           api: "auto",
           useServerTimestamp: true,
+          convert2Mp4: false,
         });
       });
       it("正确处理HuYa source全局参数", () => {
@@ -276,13 +279,14 @@ describe("RecorderConfig", () => {
         auth: undefined,
         useM3U8Proxy: true,
         formatName: "auto",
-        codecName: "h264",
+        codecName: "auto",
         source: "auto",
         formatPriorities: ["flv", "hls"],
         doubleScreen: true,
         sourcePriorities: [],
         api: "auto",
         useServerTimestamp: true,
+        convert2Mp4: false,
       });
     });
 
@@ -322,6 +326,7 @@ describe("RecorderConfig", () => {
       mockAppConfig.get.mockImplementation((key: string) => {
         if (key === "recorder") {
           return {
+            qualityRetry: 3,
             bilibili: {
               uid: undefined,
               useM3U8Proxy: true,
@@ -329,7 +334,6 @@ describe("RecorderConfig", () => {
               quality: "highest",
               codecName: "h264",
               debugLevel: "none",
-              qualityRetry: 3,
               saveGiftDanma: true,
               saveSCDanma: false,
               saveCover: true,
@@ -388,6 +392,7 @@ describe("RecorderConfig", () => {
         sourcePriorities: [],
         api: "auto",
         useServerTimestamp: true,
+        convert2Mp4: false,
       });
     });
   });

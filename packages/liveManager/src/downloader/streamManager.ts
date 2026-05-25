@@ -1,6 +1,7 @@
 import EventEmitter from "node:events";
-
 import fs from "fs/promises";
+import fsSync from "fs";
+
 import { createRecordExtraDataController } from "../xml_stream_controller.js";
 import {
   ensureFolderExist,
@@ -14,9 +15,19 @@ import {
 
 import type { RecorderCreateOpts } from "../recorder.js";
 import type { TrueVideoFormat } from "../index.js";
+import type { XmlStreamStats } from "../xml_stream_controller.js";
 
-export type GetSavePath = (data: { startTime: number; title?: string }) => string;
+export type GetSavePath = (data: {
+  startTime: number;
+  title?: string;
+  extraMs?: boolean;
+}) => string;
 type RecorderType = Exclude<RecorderCreateOpts["recorderType"], undefined | "auto">;
+
+export interface VideoFileCompletedPayload {
+  filename: string;
+  stats?: XmlStreamStats;
+}
 
 export class Segment extends EventEmitter {
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
@@ -28,12 +39,26 @@ export class Segment extends EventEmitter {
   outputVideoFilePath!: string;
   disableDanma: boolean;
   videoExt: TrueVideoFormat;
+  options?: { firstStartTime: number };
 
-  constructor(getSavePath: GetSavePath, disableDanma: boolean, videoExt: TrueVideoFormat) {
+  constructor(
+    getSavePath: GetSavePath,
+    disableDanma: boolean,
+    videoExt: TrueVideoFormat,
+    options?: { firstStartTime: number },
+  ) {
     super();
     this.getSavePath = getSavePath;
     this.disableDanma = disableDanma;
     this.videoExt = videoExt;
+    this.options = options;
+  }
+
+  private getVideoFileCompletedPayload(): VideoFileCompletedPayload {
+    return {
+      filename: this.outputFilePath,
+      stats: this.extraDataController?.getStats(),
+    };
   }
 
   async handleSegmentEnd() {
@@ -45,6 +70,7 @@ export class Segment extends EventEmitter {
       return;
     }
 
+    const data = this.getVideoFileCompletedPayload();
     try {
       this.emit("DebugLog", {
         type: "info",
@@ -54,14 +80,14 @@ export class Segment extends EventEmitter {
         retry(() => fs.rename(this.rawRecordingVideoPath, this.outputFilePath), 20, 1000),
         this.extraDataController?.flush(),
       ]);
-      this.emit("videoFileCompleted", { filename: this.outputFilePath });
+      this.emit("videoFileCompleted", data);
     } catch (err) {
       this.emit("DebugLog", {
         type: "error",
         text: "videoFileCompleted error " + String(err),
       });
       // 虽然重命名失败了，但是也当作完成处理，避免卡住录制流程
-      this.emit("videoFileCompleted", { filename: this.outputFilePath });
+      this.emit("videoFileCompleted", data);
     }
   }
 
@@ -72,14 +98,16 @@ export class Segment extends EventEmitter {
     if (!this.init) {
       await this.handleSegmentEnd();
     }
+    // 首次创建使用上次的时间戳，后续创建使用当前时间戳
+    const startTime = this.init ? (this.options?.firstStartTime ?? Date.now()) : Date.now();
     this.init = false;
-    const startTime = Date.now();
     let liveInfo: {
       title?: string;
       cover?: string;
     } = { title: "", cover: "" };
     if (callBack?.onUpdateLiveInfo) {
       try {
+        // TODO:这里存在bug，当调用onUpdateLiveInfo并在等待时，handleSegmentEnd被调用，那么会造成竞态导致数据错误，后续需要优化，需要保存segment状态
         liveInfo = await callBack.onUpdateLiveInfo();
       } catch (err) {
         this.emit("DebugLog", {
@@ -88,11 +116,20 @@ export class Segment extends EventEmitter {
         });
       }
     }
-    this.outputVideoFilePath = this.getSavePath({
+    let recordSavePath = this.getSavePath({
       startTime: startTime,
-      title: liveInfo?.title,
+      title: liveInfo?.title ? liveInfo.title : undefined,
     });
+    // 文件重复判断
+    if (fsSync.existsSync(recordSavePath + "." + this.videoExt)) {
+      recordSavePath = this.getSavePath({
+        startTime: startTime,
+        title: liveInfo?.title,
+        extraMs: true,
+      });
+    }
 
+    this.outputVideoFilePath = recordSavePath;
     ensureFolderExist(this.outputVideoFilePath);
 
     if (!this.disableDanma) {
@@ -154,15 +191,25 @@ export class StreamManager extends EventEmitter {
     },
   ) {
     super();
-    const recordSavePath = getSavePath({ startTime: Date.now() });
-    this.recordSavePath = recordSavePath;
+    const startTime = Date.now();
+    let recordSavePath = getSavePath({ startTime });
     this.videoFormat = videoFormat;
     this.recorderType = recorderType;
     this.hasSegment = hasSegment;
     this.callBack = callBack;
 
+    console.log("Initial recordSavePath:", recordSavePath);
+    // 文件重复判断
+    if (fsSync.existsSync(recordSavePath + "." + videoFormat)) {
+      console.log("File already exists, generating new save path with extraMs");
+      recordSavePath = getSavePath({ startTime, extraMs: true });
+    }
+    this.recordSavePath = recordSavePath;
+
     if (hasSegment) {
-      this.segment = new Segment(getSavePath, disableDanma, this.videoExt);
+      this.segment = new Segment(getSavePath, disableDanma, this.videoExt, {
+        firstStartTime: startTime,
+      });
       this.segment.on("DebugLog", (data) => {
         this.emit("DebugLog", data);
       });
@@ -173,6 +220,8 @@ export class StreamManager extends EventEmitter {
         this.emit("videoFileCompleted", data);
       });
     } else {
+      ensureFolderExist(recordSavePath);
+
       const extraDataSavePath = `${recordSavePath}.xml`;
 
       if (!disableDanma) {
@@ -216,8 +265,13 @@ export class StreamManager extends EventEmitter {
         await this.segment.handleSegmentEnd();
       } else {
         if (this.recordStartTime) {
-          await this.getExtraDataController()?.flush();
-          this.emit("videoFileCompleted", { filename: this.videoFilePath });
+          const stats = this.extraDataController?.getStats();
+          const extraDataController = this.getExtraDataController();
+          await extraDataController?.flush();
+          this.emit("videoFileCompleted", {
+            filename: this.videoFilePath,
+            stats: stats,
+          });
         }
       }
     } else if (this.recorderType === "mesio") {

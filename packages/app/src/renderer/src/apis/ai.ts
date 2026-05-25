@@ -29,10 +29,34 @@ const songRecognize = async (
   return res.data;
 };
 
+const subtitleRecognize = async (
+  file: string,
+  startTime: number,
+  endTime: number,
+  modelId: string,
+  options?: {
+    offset?: number;
+    song?: boolean;
+  },
+): Promise<{
+  srt: string;
+}> => {
+  const res = await request.post("/ai/subtitle", {
+    file,
+    modelId,
+    startTime,
+    endTime,
+    offset: options?.offset,
+    song: options?.song,
+  });
+  return res.data;
+};
+
 const ai = {
   asrRecognize,
   llm,
   songRecognize,
+  subtitleRecognize,
 };
 
 export default ai;

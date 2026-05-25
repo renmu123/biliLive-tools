@@ -75,6 +75,7 @@ export const getFiles = async (params: {
     type: "file" | "directory";
     name: string;
     path: string;
+    size?: number;
   }[];
   parent: string;
 }> => {
@@ -88,7 +89,7 @@ export const getFiles = async (params: {
 };
 
 const fileJoin = async (dir: string, name: string): Promise<string> => {
-  const res = await request.post(`/common/fileJoin`, {
+  const res = await request.post(`/files/join`, {
     dir,
     name,
   });
@@ -114,7 +115,7 @@ export async function parseMeta(files: {
   duration: number;
   platform: string | null;
 }> {
-  const res = await request.post("/common/parseMeta", files);
+  const res = await request.post("/common/parseVideoMetadata", files);
   return res.data;
 }
 
@@ -134,7 +135,7 @@ export async function uploadCover(file: File): Promise<{
 }> {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await request.post("/common/cover/upload", formData, {
+  const res = await request.post("/files/cover/upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -144,6 +145,16 @@ export async function uploadCover(file: File): Promise<{
 
 export async function appStartTime(): Promise<number> {
   const res = await request.get(`/common/appStartTime`);
+  return res.data;
+}
+
+export async function appStatistics(): Promise<{
+  startTime: number | null;
+  videoTotalDuaration: number | null;
+  recordingNum: number;
+  recorderNum: number;
+}> {
+  const res = await request.get(`/common/statistics`);
   return res.data;
 }
 
@@ -182,13 +193,13 @@ export const applyVideoId = async (
   expireAt: number;
   type: string;
 }> => {
-  const res = await request.post(`/common/apply-video-id`, {
+  const res = await request.post(`/common/applyVideoId`, {
     videoPath,
   });
   return res.data;
 };
 
-export const getVideo = async (videoId: string): Promise<string> => {
+export const getVideo = (videoId: string): string => {
   return `${request.defaults.baseURL}/common/video/${videoId}`;
 };
 
@@ -256,7 +267,7 @@ export const checkUpdate = async (): Promise<{
  * 获取缓存文件夹路径
  */
 export const getTempPath = async (): Promise<string> => {
-  const res = await request.get("/common/tempPath");
+  const res = await request.get("/files/temp");
   return res.data;
 };
 
@@ -264,9 +275,22 @@ export const getTempPath = async (): Promise<string> => {
  * 文件是否存在
  */
 export const fileExists = async (filepath: string): Promise<boolean> => {
-  const res = await request.post("/common/fileExists", {
+  const res = await request.post("/files/exists", {
     filepath,
   });
+  return res.data;
+};
+
+/**
+ * 获取磁盘空间信息
+ */
+export const getDiskSpace = async (): Promise<{
+  total: number;
+  free: number;
+  used: number;
+  usedPercentage: number;
+}> => {
+  const res = await request.get("/common/diskSpace");
   return res.data;
 };
 
@@ -279,6 +303,7 @@ const common = {
   getFontList,
   uploadCover,
   appStartTime,
+  appStatistics,
   getDanmaStream,
   exportLogs,
   getLogContent,
@@ -298,6 +323,7 @@ const common = {
   readLLCProject,
   writeLLCProject,
   fileExists,
+  getDiskSpace,
 };
 
 export default common;

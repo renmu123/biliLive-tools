@@ -1,6 +1,6 @@
 import request from "./request";
 
-import type { BiliupConfig } from "@biliLive-tools/types";
+import type { BiliupConfig, PartTitleFormatOptions } from "@biliLive-tools/types";
 import type { BiliApi } from "../../../types";
 
 const validUploadParams = async (data: BiliupConfig) => {
@@ -60,23 +60,6 @@ const getSessionId = async (aid: number, uid: number) => {
 const getPlatformArchiveDetail = async (aid: number, uid: number) => {
   const res = await request.get("/bili/platformArchiveDetail", {
     params: { aid, uid },
-  });
-  return res.data;
-};
-
-const getPlatformPre = async (uid: number): Promise<ReturnType<BiliApi["getPlatformPre"]>> => {
-  const res = await request.get("/bili/platformPre", {
-    params: { uid },
-  });
-  return res.data;
-};
-
-const getTypeDesc = async (
-  tid: number,
-  uid: number,
-): Promise<ReturnType<BiliApi["getTypeDesc"]>> => {
-  const res = await request.get("/bili/typeDesc", {
-    params: { tid, uid },
   });
   return res.data;
 };
@@ -148,9 +131,36 @@ export const formatWebhookTitle = async (
   return res.data;
 };
 
-export const formatWebhookPartTitle = async (template: string): Promise<string> => {
+export const formatWebhookPartTitle = async (
+  template: string,
+  options?: PartTitleFormatOptions,
+): Promise<string> => {
   const res = await request.post(`/bili/formatPartTitle`, {
     template,
+    options: options,
+  });
+  return res.data;
+};
+
+export const formatWebhookDesc = async (
+  template: string,
+  options?: {
+    title: string;
+    username: string;
+    time: string;
+    roomId: string | number;
+    filename: string;
+  },
+): Promise<string> => {
+  const res = await request.post(`/bili/formatDesc`, {
+    template,
+    options: options || {
+      title: "标题",
+      username: "主播名",
+      time: new Date().toISOString(),
+      roomId: 123456,
+      filename: "文件名",
+    },
   });
   return res.data;
 };
@@ -164,14 +174,13 @@ const bili = {
   getArchiveDetail,
   getSessionId,
   getPlatformArchiveDetail,
-  getPlatformPre,
-  getTypeDesc,
   qrcode,
   loginCancel,
   loginPoll,
   upload,
   formatWebhookTitle,
   formatWebhookPartTitle,
+  formatWebhookDesc,
 };
 
 export default bili;

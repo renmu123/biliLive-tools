@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { formatTime, formatTitle } from "../../src/utils/webhook";
+import { formatPartTitle, formatTime, formatTitle } from "../../src/utils/webhook";
 
 describe("formatTime", () => {
   it("should format the time correctly", () => {
@@ -97,5 +97,35 @@ describe("formatTitle", () => {
     const template = "Title: {{title}}, User: {{user}}, Date: {{now}}";
     const result = formatTitle(options, template);
     expect(result.length).toBe(80);
+  });
+});
+
+describe("formatPartTitle", () => {
+  it("should format part title with index and danma status", () => {
+    const options = {
+      title: "Live Title",
+      username: "Streamer",
+      time: "2022-01-01T12:34:56.789Z",
+      roomId: 123456,
+      filename: "MyFile-弹幕版",
+      index: 2,
+    };
+    const template = "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}-{{hasDanmaStr}}";
+    const result = formatPartTitle(options, template);
+    expect(result).toBe("MyFile-弹幕版-Live Title-Streamer-123456-2-弹幕版");
+  });
+
+  it("should support ejs variables for danma flags", () => {
+    const options = {
+      title: "Live Title",
+      username: "Streamer",
+      time: "2022-01-01T12:34:56.789Z",
+      roomId: 123456,
+      filename: "MyFile",
+      index: 1,
+    };
+    const template = "EJS:<%= isDanmaFile %>-<%= hasDanmaStr %>";
+    const result = formatPartTitle(options, template);
+    expect(result).toBe("EJS:false-纯享版");
   });
 });

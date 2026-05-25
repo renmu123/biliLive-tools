@@ -1,7 +1,11 @@
+import path from "node:path";
+import fs from "fs-extra";
+
 import Router from "@koa/router";
 
 import { mergeXml } from "@biliLive-tools/shared/task/danmu.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
+import { fileCache } from "../index.js";
 
 const router = new Router({
   prefix: "/danma",
@@ -28,18 +32,15 @@ function int2HexColor(color: number): string {
   return `#${hex}`;
 }
 
-router.post("/parseForArtPlayer", async (ctx) => {
-  const { filepath } = ctx.request.body as {
-    filepath: string;
-  };
+async function parseForArtPlayerData(filepath: string) {
   const data = await parseDanmu(filepath);
   const danmuList: {
-    text: string; // 弹幕文本
-    time: number; // 弹幕时间, 默认为当前播放器时间
-    mode: 0 | 1 | 2; // 弹幕模式: 0: 滚动(默认)，1: 顶部，2: 底部
-    color: string; // 弹幕颜色，默认为白色
-    border: boolean; // 弹幕是否有描边, 默认为 false
-    style: {}; // 弹幕自定义样式, 默认为空对象
+    text: string;
+    time: number;
+    mode: 0 | 1 | 2;
+    color: string;
+    border: boolean;
+    style: {};
   }[] = [];
   for (const item of data.danmu) {
     if (!item.text) continue;
@@ -68,7 +69,48 @@ router.post("/parseForArtPlayer", async (ctx) => {
       style: {},
     });
   }
-  ctx.body = danmuList;
+  return danmuList;
+}
+
+router.get("/content/:id", async (ctx) => {
+  const { id } = ctx.params;
+  const file = fileCache.get(id);
+  if (!file) {
+    ctx.status = 404;
+    ctx.body = { message: "弹幕文件不存在" };
+    return;
+  }
+  if (!(await fs.pathExists(file.path))) {
+    ctx.status = 404;
+    ctx.body = { message: "弹幕文件不存在" };
+    return;
+  }
+
+  const ext = path.extname(file.path).toLowerCase();
+  if (ext === ".ass") {
+    ctx.body = {
+      danmaType: "ass",
+      content: await fs.readFile(file.path, "utf-8"),
+    };
+    return;
+  }
+  if (ext === ".xml") {
+    ctx.body = {
+      danmaType: "xml",
+      content: await parseForArtPlayerData(file.path),
+    };
+    return;
+  }
+
+  ctx.status = 400;
+  ctx.body = { message: "不支持的弹幕格式" };
+});
+
+router.post("/parseForArtPlayer", async (ctx) => {
+  const { filepath } = ctx.request.body as {
+    filepath: string;
+  };
+  ctx.body = await parseForArtPlayerData(filepath);
 });
 
 export default router;

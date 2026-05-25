@@ -174,8 +174,8 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
     this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename, title }) => {
       this.emit("videoFileCreated", { filename, cover, rawFilename, title });
     });
-    this.streamManager.on("videoFileCompleted", ({ filename }) => {
-      this.emit("videoFileCompleted", { filename });
+    this.streamManager.on("videoFileCompleted", (data) => {
+      this.emit("videoFileCompleted", data);
     });
     this.streamManager.on("DebugLog", (data) => {
       this.emit("DebugLog", data);
@@ -183,7 +183,7 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
   }
 
   createCommand() {
-    const inputOptions = [...this.inputOptions, "--fix"];
+    const inputOptions = [...this.inputOptions, "--fix", "--disable-log-file"];
     if (this.proxy) {
       try {
         const { protocol, username, password, origin, search, pathname } = new URL(this.proxy);

@@ -55,6 +55,7 @@ export default defineConfig({
                 { text: "斗鱼", link: "/features/recorder/douyu" },
                 { text: "虎牙", link: "/features/recorder/huya" },
                 { text: "抖音", link: "/features/recorder/douyin" },
+                { text: "小红书", link: "/features/recorder/xhs" },
               ],
             },
             { text: "Webhook", link: "/features/webhook" },
@@ -66,6 +67,7 @@ export default defineConfig({
             { text: "虚拟录制", link: "/features/virtual-record" },
             { text: "通知", link: "/features/notification" },
             { text: "下载订阅", link: "/features/download" },
+            { text: "AI功能", link: "/features/ai" },
           ],
         },
         {

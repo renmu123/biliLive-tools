@@ -25,7 +25,7 @@
 
           <!-- 文件夹与文件展示 -->
           <ul class="file-list">
-            <li v-if="currentPath && currentPath !== '/'" @click="goUpDirectory">上一级</li>
+            <li v-if="currentPath && currentPath !== '/'" @click="goUpDirectory">上一层</li>
             <li
               v-for="(file, index) in files"
               :key="index"
@@ -33,7 +33,12 @@
               :class="{ selected: selectedFiles.includes(file.path) }"
               @click="selectFile(file)"
             >
-              {{ file.type === "directory" ? "📁" : "📄" }} {{ file.name }}
+              <span class="file-name">
+                {{ file.type === "directory" ? "📁" : "📄" }} {{ file.name }}
+              </span>
+              <span v-if="showFileSize && file.type === 'file'" class="file-size">
+                {{ formatFileSize(file.size) }}
+              </span>
             </li>
           </ul>
         </div>
@@ -45,10 +50,11 @@
                 v-model:value="filename"
                 placeholder="请输入文件名"
                 @keyup.enter="confirm"
-                ><template #suffix>
-                  {{ props.extension ? `.${props.extension}` : "" }}
-                </template></n-input
               >
+                <template #suffix>
+                  {{ props.extension ? `.${props.extension}` : "" }}
+                </template>
+              </n-input>
             </div>
             <div style="flex: none">
               <n-button @click="closeDialog">取消</n-button>
@@ -57,8 +63,9 @@
                 type="primary"
                 style="margin-left: 10px"
                 @click="confirm"
-                >{{ confirmText }}</n-button
               >
+                {{ confirmText }}
+              </n-button>
             </div>
           </div>
         </template>
@@ -69,9 +76,9 @@
 
 <script lang="ts" setup>
 import { commonApi } from "@renderer/apis";
-import { dateZhCN, zhCN } from "naive-ui";
-import { useStorage } from "@vueuse/core";
 import { useThemeStore } from "@renderer/stores/theme";
+import { useStorage } from "@vueuse/core";
+import { dateZhCN, zhCN } from "naive-ui";
 
 interface Props {
   type?: "file" | "directory" | "save";
@@ -81,6 +88,13 @@ interface Props {
   defaultPath?: string;
   close: () => void;
   confirm: (path: string[]) => void;
+}
+
+interface BrowserFileItem {
+  name: string;
+  type: "file" | "directory";
+  path: string;
+  size?: number;
 }
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
@@ -95,20 +109,13 @@ const props = withDefaults(defineProps<Props>(), {
   confirm: () => {},
 });
 
-const files = ref<
-  {
-    name: string;
-    type: "file" | "directory";
-    path: string;
-  }[]
->([]);
+const files = ref<BrowserFileItem[]>([]);
 // const currentPath = ref("/"); // 跟踪当前路径
 const currentPath = useStorage("file-store", "/");
 const filename = ref(""); // 跟踪当前文件名
-
 // const selectedExt = ref<string[]>([]); // 跟踪当前选择的扩展名
-const selectedFiles = ref<string[]>([]); // 跟踪当前选择的文件
-const parentPath = ref();
+const selectedFiles = ref<string[]>([]);
+const parentPath = ref<string>();
 
 let runCount = 0;
 // 获取文件列表
@@ -151,20 +158,44 @@ const confirmText = computed(() => {
   }
 });
 
+const showFileSize = computed(() => props.type === "file");
+
+// 优化文件大小显示
+const formatFileSize = (size?: number) => {
+  if (typeof size !== "number" || Number.isNaN(size) || size < 0) {
+    return "";
+  }
+
+  if (size < 1024) {
+    return `${size} B`;
+  }
+
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = size / 1024;
+  let unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+
+  return `${value.toFixed(value < 10 ? 1 : 0)} ${units[unitIndex]}`;
+};
+
 // 进入文件夹
-const openDirectory = (file) => {
+const openDirectory = (file: { path: string }) => {
   currentPath.value = file.path;
   fetchFiles();
 };
 
 // 返回上一级目录
 const goUpDirectory = () => {
-  currentPath.value = parentPath.value;
+  currentPath.value = parentPath.value || "/";
   fetchFiles();
 };
 
 // 选择文件
-const selectFile = (file: { name: string; type: "file" | "directory"; path: string }) => {
+const selectFile = (file: BrowserFileItem) => {
   if (props.type === "file" && file.type === "directory") {
     openDirectory(file);
     return;
@@ -220,12 +251,14 @@ onMounted(() => {
     if (window.path.isAbsolute(props.defaultPath)) {
       currentPath.value = window.path.dirname(props.defaultPath);
     }
+
     // 文件名
     filename.value = window.path.basename(
       props.defaultPath,
       window.path.extname(props.defaultPath),
     );
   }
+
   fetchFiles();
 });
 
@@ -248,6 +281,10 @@ const themeStore = useThemeStore();
   cursor: pointer;
   margin-bottom: 5px;
   user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 
   &.selected {
     // 选中颜色更深一点
@@ -260,6 +297,19 @@ const themeStore = useThemeStore();
   &:hover {
     background-color: var(--bg-hover);
   }
+}
+
+.file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  flex: none;
+  color: var(--text-color-3);
+  font-variant-numeric: tabular-nums;
 }
 
 .file-actions {

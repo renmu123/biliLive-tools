@@ -6,6 +6,7 @@ export default defineConfig({
       tsconfig: "tsconfig.vitest.json",
     },
     globalSetup: "./test-globals.js",
+    setupFiles: ["./test/setup-mocks.ts"],
     coverage: {
       provider: "istanbul", // or 'v8'
     },

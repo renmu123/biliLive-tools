@@ -10,7 +10,6 @@ export * from "./common.js";
 export * from "./recorder.js";
 export * from "./manager.js";
 export * from "./cache.js";
-export * from "./record_extra_data_controller.js";
 export * from "./downloader/FFmpegDownloader.js";
 export { createDownloader } from "./downloader/index.js";
 export { checkTitleKeywordsWhileRecording, checkTitleKeywordsBeforeRecord } from "./utils.js";
@@ -46,6 +45,7 @@ export function defaultToJSON<E extends AnyObject>(
       "segment",
       "saveSCDanma",
       "saveCover",
+      "convert2Mp4",
       "saveGiftDanma",
       "disableProvideCommentsWhenRecording",
       "liveInfo",

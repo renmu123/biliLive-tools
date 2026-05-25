@@ -75,6 +75,7 @@ import { NIcon } from "naive-ui";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
   BuildOutline as BuildIcon,
+  FolderOpenOutline as FolderIcon,
   HomeOutline as HomeIcon,
   InformationCircleOutline as InfoIcon,
   GitPullRequestOutline as QueueIcon,
@@ -106,6 +107,7 @@ activeKey.value = route.name as string;
 const collapsed = useStorage("collapsed", false);
 
 appConfig.getAppConfig();
+quenuStore.init();
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });
@@ -140,7 +142,11 @@ function renderQueueIcon(icon: Component) {
 
 function renderImg(src: string) {
   return () =>
-    h("img", { src, style: { height: "30px", width: "30px" }, referrerpolicy: "no-referrer" });
+    h("img", {
+      src,
+      style: { height: "25px", width: "25px", "border-radius": "50%" },
+      referrerpolicy: "no-referrer",
+    });
 }
 
 const router = useRouter();
@@ -288,7 +294,12 @@ const menuOptions = computed<MenuOption[]>(() => {
             "a",
             {
               onClick: async () => {
-                await window.api.common.createSubWindow();
+                await window.api.common.createSubWindow({
+                  routeName: "videoCut",
+                  hideAside: true,
+                  maximized: true,
+                  hideMenuBar: appConfig.appConfig.menuBarVisible ? false : true,
+                });
               },
             },
             { default: () => "切片" },
@@ -356,7 +367,7 @@ const menuOptions = computed<MenuOption[]>(() => {
               name: "Home",
             },
           },
-          { default: () => "主页" },
+          { default: () => "压制" },
         ),
       key: "Home",
       icon: renderIcon(HomeIcon),
@@ -430,6 +441,22 @@ const menuOptions = computed<MenuOption[]>(() => {
       icon: renderImg(userInfo.value?.profile?.face || defaultUserAvatar),
     },
   ];
+  if (isWeb.value) {
+    menus.push({
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "FileBrowser",
+            },
+          },
+          { default: () => "文件浏览器" },
+        ),
+      key: "FileBrowser",
+      icon: renderIcon(FolderIcon),
+    });
+  }
   return menus;
 });
 

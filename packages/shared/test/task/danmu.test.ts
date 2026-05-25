@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { processDanmuOffset, generateMergedXmlContent } from "../../src/task/danmu.js";
+import {
+  processDanmuOffset,
+  generateMergedXmlContent,
+  processXmlItems,
+} from "../../src/task/danmu.js";
 
 describe("processDanmuOffset", () => {
   // 测试普通弹幕(p属性)的时间偏移
@@ -149,5 +153,107 @@ describe("generateMergedXmlContent", () => {
     expect(result).toContain('<?xml version="1.0" encoding="utf-8"?>');
     expect(result).toContain("<i>");
     expect(result).toContain("</i>");
+  });
+});
+
+describe("processXmlItems", () => {
+  it("应支持将 danmu 转换为 gift 并重新分桶", () => {
+    const result = processXmlItems(
+      [
+        {
+          sourceType: "danmu",
+          item: {
+            "@_p": "10.5,1,25,16777215,1745081775235,0,123456,123456,0",
+            "@_user": "用户1",
+            "#text": "弹幕1",
+          },
+        },
+      ],
+      `
+      function transform(type, data) {
+        if (type !== "danmu") return data;
+        return {
+          type: "gift",
+          "@_ts": "10.5",
+          "@_user": data["@_user"],
+          "@_giftname": data["#text"],
+          "@_giftcount": "1",
+        };
+      }
+      `,
+    );
+
+    expect(result.danmu).toHaveLength(0);
+    expect(result.gift).toHaveLength(1);
+    expect(result.gift[0]["@_giftname"]).toBe("弹幕1");
+    expect(result.gift[0]["@_user"]).toBe("用户1");
+  });
+
+  it("应在 filter 后再执行 transform", () => {
+    const result = processXmlItems(
+      [
+        {
+          sourceType: "danmu",
+          item: {
+            "@_p": "10.5,1,25,16777215,1745081775235,0,123456,123456,0",
+            "@_user": "保留用户",
+            "#text": "保留弹幕",
+          },
+        },
+        {
+          sourceType: "danmu",
+          item: {
+            "@_p": "11.5,1,25,16777215,1745081775235,0,123456,123456,0",
+            "@_user": "过滤用户",
+            "#text": "过滤弹幕",
+          },
+        },
+      ],
+      `
+      function filter(type, data) {
+        return data["@_user"] !== "过滤用户";
+      }
+      function transform(type, data) {
+        return {
+          type: "gift",
+          "@_ts": "20.0",
+          "@_user": data["@_user"],
+          "@_giftname": data["#text"],
+        };
+      }
+      `,
+    );
+
+    expect(result.gift).toHaveLength(1);
+    expect(result.gift[0]["@_user"]).toBe("保留用户");
+  });
+
+  it("目标类型缺少必需字段时应丢弃该条数据", () => {
+    const result = processXmlItems(
+      [
+        {
+          sourceType: "danmu",
+          item: {
+            "@_p": "10.5,1,25,16777215,1745081775235,0,123456,123456,0",
+            "@_user": "用户1",
+            "#text": "弹幕1",
+          },
+        },
+      ],
+      `
+      function transform(type, data) {
+        return {
+          type: "gift",
+          "@_user": data["@_user"],
+          "@_giftname": data["#text"],
+        };
+      }
+      `,
+    );
+
+    expect(result.danmu).toHaveLength(0);
+    expect(result.gift).toHaveLength(0);
+    expect(result.sc).toHaveLength(0);
+    expect(result.guard).toHaveLength(0);
   });
 });

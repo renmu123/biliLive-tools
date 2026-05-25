@@ -20,16 +20,21 @@ import {
   getTempPath,
   parseSavePath,
   getUnusedFileName,
+  replaceExtName,
+  calculateFileQuickHash,
+  RGB2BGR,
 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask, AbstractTask } from "./task.js";
 import { isEmptyDanmu, convertXml2Ass, genHotProgress } from "./danmu.js";
+import { recordHistoryService } from "../db/index.js";
 
 import type {
   FfmpegOptions,
   VideoMergeOptions,
   DanmuConfig,
   HotProgressOptions,
+  SubtitleOptions,
 } from "@biliLive-tools/types";
 import type Ffmpeg from "@biliLive-tools/types/ffmpeg.js";
 
@@ -313,8 +318,60 @@ export class ComplexFilter {
     return this.addFilter("scale", scaleFilter);
   }
 
-  addSubtitleFilter(assFile: string) {
-    return this.addFilter("subtitles", `${escaped(assFile)}`);
+  addSubtitleFilter(assFile: string, options?: SubtitleOptions) {
+    let filter = `${escaped(assFile)}`;
+    if (options) {
+      let forceStyle: string[] = [];
+
+      if (options.fontName) {
+        forceStyle.push(`FontName=${options.fontName}`);
+      }
+      if (options.fontSize) {
+        forceStyle.push(`FontSize=${options.fontSize}`);
+      }
+      if (options.primaryColour) {
+        forceStyle.push(`PrimaryColour=&H${RGB2BGR(options.primaryColour).replace("#", "")}`);
+      }
+      if (options.outlineColour) {
+        forceStyle.push(`OutlineColour=&H${RGB2BGR(options.outlineColour).replace("#", "")}`);
+      }
+      if (options.backColour) {
+        forceStyle.push(`BackColour=&H${RGB2BGR(options.backColour).replace("#", "")}`);
+      }
+      if (options.bold !== undefined) {
+        forceStyle.push(`Bold=${options.bold}`);
+      }
+      if (options.italic !== undefined) {
+        forceStyle.push(`Italic=${options.italic}`);
+      }
+      if (options.underline !== undefined) {
+        forceStyle.push(`Underline=${options.underline}`);
+      }
+      if (options.outline) {
+        forceStyle.push(`Outline=${options.outline}`);
+      }
+      if (options.shadow) {
+        forceStyle.push(`Shadow=${options.shadow}`);
+      }
+      if (options.alignment) {
+        forceStyle.push(`Alignment=${options.alignment}`);
+      }
+      if (options.marginL) {
+        forceStyle.push(`MarginL=${options.marginL}`);
+      }
+      if (options.marginR) {
+        forceStyle.push(`MarginR=${options.marginR}`);
+      }
+      if (options.marginV) {
+        forceStyle.push(`MarginV=${options.marginV}`);
+      }
+
+      if (options)
+        if (forceStyle.length > 0) {
+          filter += `:force_style='${forceStyle.join(",")}'`;
+        }
+    }
+    return this.addFilter("subtitles", filter);
   }
 
   addColorkeyFilter(inputs?: string[]) {
@@ -323,6 +380,10 @@ export class ComplexFilter {
 
   addOverlayFilter(inputs: string[]) {
     return this.addFilter("overlay", "W-w-0:H-h-0", inputs);
+  }
+
+  addFpsFilter(fps: number) {
+    return this.addFilter("fps", `${fps}`);
   }
 
   addDrawtextFilter({
@@ -536,6 +597,112 @@ export async function readXmlTimestamp(filePath: string, timeout = 10000): Promi
 }
 
 /**
+ * 解析获取视频元数据
+ * @link https://github.com/renmu123/biliLive-tools/issues/339
+ * @param files
+ * @param files.videoFilePath 视频文件路径
+ * @param files.danmaFilePath 弹幕文件路径
+ */
+export async function pasrseMetadata(files: { videoFilePath: string; danmaFilePath?: string }) {
+  const videoFile = files.videoFilePath;
+  let danmaFile: string | undefined = files.danmaFilePath;
+  const data: {
+    // 秒级时间戳
+    startTimestamp: number | null;
+    roomId: string | null;
+    title: string | null;
+    username: string | null;
+    platform?: string | null;
+  } = {
+    startTimestamp: null,
+    roomId: null,
+    title: null,
+    username: null,
+    platform: null,
+  };
+
+  if (!(await pathExists(files.videoFilePath))) {
+    throw new Error("视频文件不存在");
+  }
+  if (!danmaFile || !(await pathExists(danmaFile))) {
+    danmaFile = replaceExtName(videoFile, ".xml");
+    if (!(await pathExists(danmaFile))) {
+      danmaFile = undefined;
+    }
+  }
+  // 优先计算视频哈希来从数据查找
+  const videoHash = await calculateFileQuickHash(videoFile);
+  let recordItem = recordHistoryService.query({
+    quick_hash: videoHash,
+    include: { streamer: true },
+  });
+  if (recordItem) {
+    data.title = recordItem.title;
+    data.startTimestamp = Math.floor(recordItem.record_start_time / 1000);
+    data.roomId = recordItem?.streamer?.room_id ?? null;
+    data.username = recordItem?.streamer?.name ?? null;
+    data.platform = recordItem?.streamer?.platform?.toLowerCase() ?? null;
+    if (data.title && data.startTimestamp && data.roomId && data.platform && data.username) {
+      return data;
+    }
+  }
+  // 接下来尝试从recordHistory的filename以及video_duration来匹配，这个匹配可能并不完全精准，但够用了
+  let videoDuration = 0;
+  let content = "";
+  try {
+    const meta = await readVideoMeta(videoFile, { json: true });
+    videoDuration = parseInt(String(Number(meta?.format?.duration) || 0));
+    content += String(meta?.format?.tags?.comment) ?? "";
+  } catch (e) {
+    log.error("pasrseMetadata, read video meta error", e);
+  }
+
+  recordItem = recordHistoryService.query({
+    video_filename: parse(videoFile).name,
+    video_duration: videoDuration,
+    include: { streamer: true },
+  });
+  if (!recordItem) {
+    // 移除掉-弹幕版等后缀再匹配一次
+    const filenameWithoutSuffix = parse(videoFile).name.replace("-弹幕版", "");
+    recordItem = recordHistoryService.query({
+      video_filename: filenameWithoutSuffix,
+      video_duration: videoDuration,
+      include: { streamer: true },
+    });
+  }
+  if (recordItem) {
+    if (!data.title) data.title = recordItem.title;
+    if (!data.startTimestamp) data.startTimestamp = Math.floor(recordItem.record_start_time / 1000);
+    if (!data.roomId) data.roomId = recordItem?.streamer?.room_id ?? null;
+    if (!data.username) data.username = recordItem?.streamer?.name ?? null;
+    if (!data.platform) data.platform = recordItem?.streamer?.platform?.toLowerCase() ?? null;
+
+    if (data.title && data.startTimestamp && data.roomId && data.platform && data.username) {
+      return data;
+    }
+  }
+
+  // 最后尝试从文件中读取
+  if (danmaFile) {
+    try {
+      content += (await readLines(danmaFile, 0, 30)).join("\n");
+    } catch (e) {
+      log.error("pasrseMetadata, read danma file error", e);
+    }
+  }
+  if (!content) return data;
+
+  if (!data.title) data.title = matchTitle(content);
+  if (!data.startTimestamp) data.startTimestamp = matchDanmaTimestamp(content);
+  if (!data.roomId) data.roomId = matchRoomId(content);
+  if (!data.username) data.username = matchUser(content);
+  if (!data.platform) data.platform = matchPlatform(content);
+
+  return data;
+}
+
+/**
  * 解析元数据
  * @param files
  * @param files.videoFilePath 视频文件路径
@@ -599,6 +766,7 @@ export const genMergeAssMp4Command = async (
     assFilePath: string | undefined;
     outputPath: string;
     hotProgressFilePath: string | undefined;
+    subtitlePath?: string;
   },
   ffmpegOptions: FfmpegOptions = {
     encoder: "libx264",
@@ -615,6 +783,7 @@ export const genMergeAssMp4Command = async (
 ) => {
   const command = ffmpeg(files.videoFilePath).output(files.outputPath);
   const assFile = files.assFilePath;
+  const subtitleFile = files.subtitlePath;
   const complexFilter = new ComplexFilter();
 
   // 获取添加drawtext的参数，为空就是不支持添加
@@ -660,6 +829,11 @@ export const genMergeAssMp4Command = async (
       });
     }
 
+    if (ffmpegOptions.fps) {
+      complexFilter.addFpsFilter(ffmpegOptions.fps);
+    }
+
+    // 弹幕文件
     if (assFile) {
       if (files.hotProgressFilePath) {
         const subtitleStream = complexFilter.addSubtitleFilter(assFile);
@@ -669,6 +843,11 @@ export const genMergeAssMp4Command = async (
         complexFilter.addSubtitleFilter(assFile);
       }
     }
+    // 字幕文件
+    if (subtitleFile) {
+      complexFilter.addSubtitleFilter(subtitleFile, ffmpegOptions.subtitleOptions);
+    }
+
     // 先渲染后缩放
     if (
       (scaleMethod === "auto" || scaleMethod === "after") &&
@@ -800,8 +979,11 @@ export const genMergeAssMp4Command = async (
  * @param {string} files.videoFilePath 视频文件路径
  * @param {string} files.assFilePath 弹幕文件路径，不能有空格
  * @param {string} files.outputPath 输出文件路径
+ * @param {string} files.hotProgressFilePath 高能进度条文件路径
+ * @param {string} files.subtitlePath 字幕文件路径
  * @param {object} options
  * @param {boolean} options.removeOrigin 是否删除原始文件
+ * @param {number} options.startTimestamp 视频录制开始的秒时间戳，默认为0
  * @param {object} ffmpegOptions ffmpeg参数
  */
 export const mergeAssMp4 = async (
@@ -810,6 +992,7 @@ export const mergeAssMp4 = async (
     assFilePath: string | undefined;
     outputPath: string;
     hotProgressFilePath: string | undefined;
+    subtitlePath?: string;
   },
   options: {
     removeOrigin: boolean;
@@ -818,6 +1001,7 @@ export const mergeAssMp4 = async (
     timestampFont?: string;
     limitTime?: [] | [string, string];
     autoRun?: boolean;
+    removeSubtitle?: boolean;
   } = {
     removeOrigin: false,
     startTimestamp: 0,
@@ -890,6 +1074,10 @@ export const mergeAssMp4 = async (
           log.info("mergrAssMp4, remove hot progress origin file", assFile);
           await fs.unlink(files.hotProgressFilePath);
         }
+        if (files.subtitlePath && options.removeSubtitle) {
+          log.info("mergrAssMp4, remove subtitle origin file", files.subtitlePath);
+          await fs.unlink(files.subtitlePath);
+        }
       },
       onError: async () => {
         if (files.hotProgressFilePath) {
@@ -909,7 +1097,7 @@ export const mergeAssMp4 = async (
  * 切割视频
  */
 export const cut = async (
-  files: { videoFilePath: string; assFilePath?: string },
+  files: { videoFilePath: string; assFilePath?: string; subtitlePath?: string },
   output: string,
   ffmpegOptions: FfmpegOptions,
   option: {
@@ -918,6 +1106,8 @@ export const cut = async (
     savePath?: string;
     /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
     saveType: 1 | 2;
+    /** 是否删除字幕文件 */
+    removeSubtitle?: boolean;
   },
 ) => {
   const options = Object.assign(
@@ -945,10 +1135,12 @@ export const cut = async (
       assFilePath: files.assFilePath,
       outputPath: outputFile,
       hotProgressFilePath: undefined,
+      subtitlePath: files.subtitlePath,
     },
     {
       removeOrigin: false,
       override: options.override,
+      removeSubtitle: options.removeSubtitle,
     },
     ffmpegOptions,
   );
@@ -1020,14 +1212,15 @@ export const checkMergeVideos = async (
   const videoMetas = await Promise.all(inputFiles.map((file) => readVideoMeta(file)));
   const errors: string[] = [];
   const warnings: string[] = [];
+
+  const videoStream0 = videoMetas[0].streams.find((stream) => stream.codec_type === "video");
+  const audioStream0 = videoMetas[0].streams.find((stream) => stream.codec_type === "audio");
   for (const meta of videoMetas) {
     if (meta.format.format_name !== videoMetas[0].format.format_name) {
       errors.push("输入视频容器不一致");
     }
     const videoStream = meta.streams.find((stream) => stream.codec_type === "video");
-    const videoStream0 = videoMetas[0].streams.find((stream) => stream.codec_type === "video");
     const audioStream = meta.streams.find((stream) => stream.codec_type === "audio");
-    const audioStream0 = videoMetas[0].streams.find((stream) => stream.codec_type === "audio");
 
     if (videoStream?.codec_name !== videoStream0?.codec_name) {
       errors.push("输入视频编码器不一致");
@@ -1035,12 +1228,17 @@ export const checkMergeVideos = async (
     if (audioStream?.codec_name !== audioStream0?.codec_name) {
       errors.push("输入视频音频编码器不一致");
     }
-    // 分辨率不一致警告
     if (videoStream?.width !== videoStream0?.width) {
-      warnings.push("输入视频分辨率宽不一致");
+      errors.push("输入视频分辨率宽不一致");
     }
     if (videoStream?.height !== videoStream0?.height) {
-      warnings.push("输入视频分辨率高不一致");
+      errors.push("输入视频分辨率高不一致");
+    }
+    if (audioStream?.sample_rate !== audioStream0?.sample_rate) {
+      errors.push("输入视频音频采样率不一致");
+    }
+    if (videoStream?.r_frame_rate !== videoStream0?.r_frame_rate) {
+      warnings.push("输入视频帧率不一致");
     }
   }
 

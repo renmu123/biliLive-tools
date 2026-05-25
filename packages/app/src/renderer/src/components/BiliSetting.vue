@@ -13,7 +13,7 @@
         </template>
         <image-crop v-model="options.config.cover"></image-crop>
       </n-form-item>
-      <n-form-item label="视频标题">
+      <n-form-item label="视频标题" style="margin-bottom: 10px">
         <template #label>
           <Tip :tip="titleTip" text="视频标题"></Tip>
         </template>
@@ -37,11 +37,40 @@
           >
         </template>
       </n-form-item>
+      <n-form-item label="分P标题" style="margin-bottom: 10px">
+        <template #label>
+          <Tip :tip="partTitleTip" text="分P标题"></Tip>
+        </template>
+        <n-input
+          ref="partTitleInput"
+          v-model:value="options.config.partTitleTemplate"
+          placeholder="留空则使用当前分P标题"
+          clearable
+          style="margin-right: 10px"
+          spellcheck="false"
+        />
+        <n-button
+          style="margin-right: 10px"
+          @click="previewPartTitle(options.config.partTitleTemplate || '')"
+          >预览</n-button
+        >
+        <template #feedback>
+          <span
+            v-for="item in partTitleList"
+            :key="item.value"
+            :title="item.label"
+            class="title-var"
+            @click="setPartTitleVar(item.value)"
+            >{{ item.value }}</span
+          >
+        </template>
+      </n-form-item>
       <n-form-item label="稿件类型">
         <n-radio-group v-model:value="options.config.copyright" name="radiogroup">
           <n-space>
             <n-radio :value="1"> 自制 </n-radio>
             <n-radio :value="2"> 转载 </n-radio>
+            <n-radio :value="3"> 其他 </n-radio>
           </n-space>
         </n-radio-group>
       </n-form-item>
@@ -61,20 +90,17 @@
           show-count
         />
       </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip
-            tip="仍在使用的分区，但是官方投稿已无法手动选择，这里你还是可以手动选的"
-            text="旧分区"
-          ></Tip>
-        </template>
-        <n-cascader
-          v-model:value="options.config.tid"
+      <n-form-item
+        label="创作声明"
+        v-if="options.config.copyright === 1 || options.config.copyright === 3"
+      >
+        <n-select
+          v-model:value="options.config.creationStatement"
+          :options="creationStatementList"
+          key-field="id"
           label-field="name"
           value-field="id"
-          :options="areaData"
-          check-strategy="child"
-          filterable
+          clearable
         />
       </n-form-item>
       <n-form-item label="分区">
@@ -98,7 +124,7 @@
           :loading="tagCreateLoading"
         />
       </n-form-item>
-      <n-form-item v-if="options.config.copyright === 1">
+      <n-form-item v-if="options.config.copyright === 1 || options.config.copyright === 3">
         <template #label>
           <Tip tip="话题也会占据一个tag栏~" text="话题"></Tip>
         </template>
@@ -116,16 +142,14 @@
         />
       </n-form-item>
 
-      <n-form-item>
+      <n-form-item style="margin-bottom: 10px">
         <template #label>
-          <Tip
-            text="视频简介"
-            tip="可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与uid对应。"
-          ></Tip>
+          <Tip :tip="descTip" text="视频简介"></Tip>
         </template>
         <n-input
+          ref="descInput"
           v-model:value="options.config.desc"
-          placeholder="请输入视频简介"
+          placeholder="请输入视频简介,支持{{title}},{{user}},{{now}}等占位符。可以输入[暮色312]<10995238>来进行艾特用户"
           clearable
           :maxlength="descMaxLength"
           show-count
@@ -134,6 +158,19 @@
             minRows: 4,
           }"
         />
+        <n-button style="margin-right: 10px" @click="previewDesc(options.config.desc || '')"
+          >预览</n-button
+        >
+        <template #feedback>
+          <span
+            v-for="item in titleList"
+            :key="item.value"
+            :title="item.label"
+            class="title-var"
+            @click="setDescVar(item.value)"
+            >{{ item.value }}</span
+          >
+        </template>
       </n-form-item>
 
       <n-form-item path="dtime" :rule="scheduledDatetimeRule">
@@ -169,7 +206,10 @@
           }"
         />
       </n-form-item>
-      <n-form-item v-if="options.config.copyright === 1" label="添加水印">
+      <n-form-item
+        v-if="options.config.copyright === 1 || options.config.copyright === 3"
+        label="添加水印"
+      >
         <n-checkbox
           v-model:checked="options.config.watermark"
           :checked-value="1"
@@ -257,6 +297,14 @@
                 <n-radio :value="1"> 仅自己可见 </n-radio>
               </n-space>
             </n-radio-group>
+          </div>
+          <div class="inline-item">
+            <n-checkbox
+              v-model:checked="options.config.space_hidden"
+              :checked-value="1"
+              :unchecked-value="2"
+              >在个人空间-投稿中隐藏
+            </n-checkbox>
           </div>
         </div>
       </n-form-item>
@@ -595,11 +643,6 @@ watchEffect(() => {
     options.value.config.closeReply = 0;
   }
 });
-// watchEffect(() => {
-//   if (options.value.config.tid) {
-//     getTypeDesc(options.value.config.tid);
-//   }
-// });
 
 // 合集
 const userInfoStore = useUserInfoStore();
@@ -664,27 +707,6 @@ const getSeasonList = async (force?: boolean) => {
   }
 };
 
-const areaData = ref<any[]>([]);
-const getPlatformTypes = async () => {
-  // 优先从本地缓存获取
-  const rawLocalData = window.localStorage.getItem("areaData");
-  if (rawLocalData) {
-    try {
-      areaData.value = JSON.parse(rawLocalData);
-      return;
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  if (!userInfoStore?.userInfo?.uid) {
-    return;
-  }
-  const data = await biliApi.getPlatformPre(userInfoStore.userInfo.uid);
-  areaData.value = data.typelist;
-  window.localStorage.setItem("areaData", JSON.stringify(data.typelist));
-};
-
 const descMaxLength = ref(2000);
 
 watch(
@@ -697,7 +719,6 @@ watch(
 watchEffect(() => {
   if (!userInfoStore.userInfo) return;
   getSeasonList();
-  getPlatformTypes();
 });
 
 const topicLoading = ref(false);
@@ -750,6 +771,99 @@ const titleTip = computed(() => {
     .reduce((prev, cur) => prev + cur, base);
 });
 
+const partTitleList = ref([
+  {
+    label: "标题",
+    value: "{{title}}",
+  },
+  {
+    value: "{{user}}",
+    label: "主播名",
+  },
+  {
+    value: "{{roomId}}",
+    label: "房间号",
+  },
+  {
+    label: "文件名",
+    value: "{{filename}}",
+  },
+  {
+    label: "序号",
+    value: "{{index}}",
+  },
+  {
+    label: "弹幕版or纯享版",
+    value: "{{hasDanmaStr}}",
+  },
+  {
+    value: "{{yyyy}}",
+    label: "年",
+  },
+  {
+    value: "{{MM}}",
+    label: "月（补零）",
+  },
+  {
+    value: "{{dd}}",
+    label: "日（补零）",
+  },
+  {
+    value: "{{HH}}",
+    label: "时（补零）",
+  },
+  {
+    value: "{{mm}}",
+    label: "分（补零）",
+  },
+  {
+    value: "{{ss}}",
+    label: "秒（补零）",
+  },
+]);
+const partTitleTip = computed(() => {
+  const base = `留空则使用当前分P标题。<br/>更多模板引擎等高级用法见文档<br/>`;
+  return partTitleList.value
+    .map((item) => {
+      return `${item.label}：${item.value}<br/>`;
+    })
+    .reduce((prev, cur) => prev + cur, base);
+});
+
+const partTitleInput = templateRef("partTitleInput");
+const setPartTitleVar = async (value: string) => {
+  if (!options.value.config.partTitleTemplate) {
+    options.value.config.partTitleTemplate = "";
+  }
+  const input = partTitleInput.value?.inputElRef;
+  if (input) {
+    const currentValue = options.value.config.partTitleTemplate || "";
+    const start = input.selectionStart ?? currentValue.length;
+    const end = input.selectionEnd ?? currentValue.length;
+    options.value.config.partTitleTemplate =
+      currentValue.slice(0, start) + value + currentValue.slice(end);
+    input.focus();
+    await nextTick();
+    input.setSelectionRange(start + value.length, start + value.length);
+  } else {
+    options.value.config.partTitleTemplate = (options.value.config.partTitleTemplate || "") + value;
+  }
+};
+const previewPartTitle = async (template: string) => {
+  if (!template) {
+    notice.warning({
+      title: "请输入分P标题模板",
+      duration: 2000,
+    });
+    return;
+  }
+  const data = await biliApi.formatWebhookPartTitle(template);
+  notice.info({
+    title: data,
+    duration: 3000,
+  });
+};
+
 const previewTitle = async (template: string) => {
   const data = await biliApi.formatWebhookTitle(template);
   notice.warning({
@@ -775,6 +889,51 @@ const setTitleVar = async (value: string) => {
     options.value.config.title += value;
   }
 };
+
+const descInput = templateRef("descInput");
+const setDescVar = async (value: string) => {
+  if (!options.value.config.desc) {
+    options.value.config.desc = "";
+  }
+  const input = descInput.value?.textareaElRef;
+  if (input) {
+    const currentValue = options.value.config.desc || "";
+    const start = input.selectionStart ?? currentValue.length;
+    const end = input.selectionEnd ?? currentValue.length;
+    options.value.config.desc = currentValue.slice(0, start) + value + currentValue.slice(end);
+    input.focus();
+    await nextTick();
+    input.setSelectionRange(start + value.length, start + value.length);
+  } else {
+    options.value.config.desc = (options.value.config.desc || "") + value;
+  }
+};
+
+const previewDesc = async (template: string) => {
+  if (!template) {
+    notice.warning({
+      title: "请输入简介内容",
+      duration: 2000,
+    });
+    return;
+  }
+  const data = await biliApi.formatWebhookDesc(template);
+  notice.info({
+    title: data,
+    duration: 3000,
+  });
+};
+
+const descTip = computed(() => {
+  const base = `上限2000字，多余的会被截断。<br/>
+  可以输入[暮色312]&lt;10995238&gt;来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与uid对应。<br/>
+  更多模板引擎等高级用法见文档<br/>`;
+  return titleList.value
+    .map((item) => {
+      return `${item.label}：${item.value}<br/>`;
+    })
+    .reduce((prev, cur) => prev + cur, base);
+});
 
 const setTitle = (name: string) => {
   options.value.config.title = name;
@@ -908,6 +1067,29 @@ const humanTypeList = ref([
   {
     id: 1031,
     name: "生活经验",
+  },
+]);
+
+const creationStatementList = ref([
+  {
+    id: -1,
+    name: "内容无需标注",
+  },
+  {
+    id: 1,
+    name: "含AI生成内容",
+  },
+  {
+    id: 2,
+    name: "含虚构演绎内容",
+  },
+  {
+    id: 3,
+    name: "内容含营销信息",
+  },
+  {
+    id: 4,
+    name: "个人观点，仅供参考",
   },
 ]);
 </script>

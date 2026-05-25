@@ -9,6 +9,10 @@ const requester = axios.create({
   // axios 会自动读取环境变量中的 http_proxy 和 https_proxy 并应用，
   // 但会导致请求报错 "Client network socket disconnected before secure TLS connection was established"。
   proxy: false,
+  headers: {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+  },
 });
 
 interface BilibiliResp<T = unknown> {
@@ -104,6 +108,8 @@ export async function getStatusInfoByUIDs<UID extends number>(userIds: UID[]) {
           online: number;
           room_id: number;
           short_id: number;
+          // 父分区名称
+          area_v2_parent_name: string;
         }
       >
     >

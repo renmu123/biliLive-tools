@@ -1,17 +1,17 @@
 # 直播录制
 
-biliLive-tools 支持 B站、斗鱼、虎牙、抖音四大平台的直播录制，包含弹幕和礼物信息。
+biliLive-tools 支持 B站、斗鱼、虎牙、抖音、小红书多平台的直播录制，包含弹幕和礼物信息。
 
 初始实现由 [LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord) 拓展而来
 
 ## 支持平台
 
-| 平台 | 弹幕 | 画质 | 线路 | Cookie | 流格式 | 流编码 | 只音频 | 付费直播 |
-| ---- | ---- | ---- | ---- | ------ | ------ | ------ | ------ | -------- |
-| 斗鱼 | ✅   | ✅   | ✅   | ❌     | ❌     | ❌     | ✅     | ❌       |
-| B站  | ✅   | ✅   | ❌   | ✅     | ✅     | ✅     | ✅     | ❌       |
-| 抖音 | ✅   | ✅   | ❌   | ✅     | ✅     | ❌     | ✅     | ❌       |
-| 虎牙 | ✅   | ✅   | ✅   | ❌     | ❌     | ❌     | ❌     | ❌       |
+| 平台 | 弹幕 | 画质 | 线路           | Cookie | 流格式 | 流编码 | 只音频 | 付费直播 |
+| ---- | ---- | ---- | -------------- | ------ | ------ | ------ | ------ | -------- |
+| 斗鱼 | ✅   | ✅   | ✅             | ❌     | ❌     | ✅     | ✅     | ❌       |
+| B站  | ✅   | ✅   | ✅(自定义host) | ✅     | ✅     | ✅     | ✅     | ❌       |
+| 抖音 | ✅   | ✅   | ❌             | ✅     | ✅     | ❌     | ✅     | ❌       |
+| 虎牙 | ✅   | ✅   | ✅             | ❌     | ❌     | ❌     | ❌     | ❌       |
 
 ### 功能说明
 
@@ -43,8 +43,18 @@ biliLive-tools 提供三种录制器引擎：
 | FLV 修复 | ❌     | ✅           | ✅         |
 
 ::: tip 提示
-当选择到某录制器不支持的直播流时，会自动尝试使用 FFmpeg 进行录制。
+当选择到某录制器不支持的直播流时，会尽量自动尝试使用 FFmpeg 进行录制。
 :::
+
+### Mesio
+
+项目地址：https://github.com/hua0512/rust-srec/tree/main/mesio-cli
+
+### 录播姬引擎
+
+项目地址：https://github.com/renmu123/BililiveRecorder
+
+录播姬引擎是从录播姬项目中提取了FLV录制引擎，一些细节上并不与原项目相同
 
 ### 视频格式
 
@@ -56,6 +66,12 @@ biliLive-tools 提供三种录制器引擎：
 | FLV  | 存在分辨率变化或参数变化会花屏，请尝试修复 |
 
 ## 配置选项
+
+### Cookie
+
+**Cookie 会用于相关的 API 请求中。程序请求与浏览器内正常使用所发送的请求不完全一致，能通过分析请求日志识别出来。**
+**软件开发者不对账号发生的任何事情负责，包括并不限于被标记为机器人账号、无法参与各种抽奖和活动等。建议使用小号。**
+**如您知晓您的账号会因以上所列出来的部分原因所导致无法使用或权益受损等情况，并愿意承担由此所会带来的一系列后果，请继续以下的操作，软件开发者不会对您账号所发生的任何后果承担责任。**
 
 ### 画质
 
@@ -88,6 +104,7 @@ biliLive-tools 提供三种录制器引擎：
 - `{hour}` - 小时
 - `{min}` - 分钟
 - `{sec}` - 秒
+- `{ms}` - 毫秒
 - `{startTime}` - 分段开始时间，Date对象
 - `{recordStartTime}` - 录制开始时间，Date对象
 - `{liveStartTime}` - 直播开始时间，Date对象，抖音同录制开始时间
@@ -188,6 +205,14 @@ biliLive-tools 提供三种录制器引擎：
 
 尝试使用最新版 potplayer 或转换为 MP4 格式
 
+### 录制的视频频繁中断
+
+大概又三种原因，但本软件**均无法控制，不要找我来问**
+
+- 你网络问题
+- 主播网络问题
+- 录制器认为该分段了
+
 ### 录制页面为什么显示“检查错误”
 
 可能的原因有两种：
@@ -219,5 +244,6 @@ biliLive-tools 提供三种录制器引擎：
 - [斗鱼录制](https://www.npmjs.com/package/@bililive-tools/douyu-recorder)
 - [虎牙录制](https://www.npmjs.com/package/@bililive-tools/huya-recorder)
 - [抖音录制](https://www.npmjs.com/package/@bililive-tools/douyin-recorder)
+- [小红书录制](https://www.npmjs.com/package/@bililive-tools/xhs-recorder)
 - [虎牙弹幕监听](https://www.npmjs.com/package/huya-danma-listener)
 - [抖音弹幕监听](https://www.npmjs.com/package/douyin-danma-listener)

@@ -23,6 +23,7 @@ export async function getInfo(
   api: RealAPIType;
   liveStartTime: Date;
   recordStartTime: Date;
+  area: string;
 }> {
   let info;
 
@@ -48,6 +49,7 @@ export async function getInfo(
     api: info.api,
     liveStartTime: startTime,
     recordStartTime: startTime,
+    area: info.area ?? "",
   };
 }
 

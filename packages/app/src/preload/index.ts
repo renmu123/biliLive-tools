@@ -24,6 +24,12 @@ export const api = {
     baiduLogin: () => {
       return ipcRenderer.invoke("cookie:baidu");
     },
+    xhsLogin: () => {
+      return ipcRenderer.invoke("cookie:xhs");
+    },
+    douyinLogin: () => {
+      return ipcRenderer.invoke("cookie:douyin");
+    },
   },
   common: {
     readFile: (path: string) => {
@@ -59,8 +65,14 @@ export const api = {
     execFile: (file: string, args: string[]) => {
       return ipcRenderer.invoke("common:execFile", file, args);
     },
-    createSubWindow: () => {
-      return ipcRenderer.invoke("common:createSubWindow", {});
+    createSubWindow: (opts: {
+      routeName: string;
+      hideAside?: boolean;
+      hideMenuBar?: boolean;
+      maximized?: boolean;
+      query?: Record<string, string>;
+    }) => {
+      return ipcRenderer.invoke("common:createSubWindow", opts);
     },
   },
   config: {

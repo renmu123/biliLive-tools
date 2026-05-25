@@ -16,7 +16,7 @@ async function unzip(zipFile, destination) {
         const filePath = path.join(destination, filename);
         fs.ensureDirSync(path.dirname(filePath));
         fs.writeFileSync(filePath, content);
-        if (process.platform === "linux") {
+        if (process.platform === "linux" || process.platform === "darwin") {
           fs.chmodSync(filePath, 0o755);
         }
       }
@@ -53,24 +53,27 @@ async function downloadFile(url, desc, options = {}) {
  */
 async function downloadMesio() {
   // https://github.com/hua0512/rust-srec
-  const platforms = {
-    win32: "windows",
-    darwin: "macos",
+  const version = "mesio-v0.4.1";
+  const mesioAssets = {
+    "win32-x64": "mesio-x86_64-pc-windows-msvc.exe",
+    "darwin-arm64": "mesio-aarch64-apple-darwin",
+    "darwin-x64": "mesio-x86_64-apple-darwin",
+    "linux-arm64": "mesio-aarch64-unknown-linux-musl",
+    "linux-x64": "mesio-x86_64-unknown-linux-musl",
   };
-  const archs = {
-    x64: "amd64",
-  };
-  const platform = platforms[process.platform] ?? process.platform;
-  const arch = archs[process.arch] ?? process.arch;
-  let mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/v0.3.6/mesio-${platform}-${arch}`;
-  if (platform === "windows") {
-    mesioUrl += ".exe";
+  const target = `${process.platform}-${process.arch}`;
+  const assetName = mesioAssets[target];
+
+  if (!assetName) {
+    throw new Error(`mesio ${version} 暂不支持平台: ${target}`);
   }
+
+  const mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/${version}/${assetName}`;
   await downloadFile(mesioUrl, "packages/app/resources/bin", {
-    filename: platform === "windows" ? "mesio.exe" : "mesio",
+    filename: process.platform === "win32" ? "mesio.exe" : "mesio",
   });
   // 添加执行权限
-  if (process.platform === "linux") {
+  if (process.platform === "linux" || process.platform === "darwin") {
     fs.chmodSync("packages/app/resources/bin/mesio", 0o755);
   }
 }
@@ -87,13 +90,13 @@ async function downloadBililiveRecorder() {
   const platform = platforms[process.platform] ?? process.platform;
   const arch = process.arch;
   const filename = `BililiveRecorder-CLI-${platform}-${arch}.zip`;
-  let url = `https://github.com/renmu123/BililiveRecorder/releases/download/v3.3.2/${filename}`;
+  let url = `https://github.com/renmu123/BililiveRecorder/releases/download/v3.3.3/${filename}`;
 
   await downloadFile(url, ".");
   await unzip(filename, "packages/app/resources/bin");
 
   // 添加执行权限
-  if (process.platform === "linux") {
+  if (process.platform === "linux" || process.platform === "darwin") {
     fs.chmodSync("packages/app/resources/bin/BililiveRecorder.Cli", 0o755);
   }
 }
@@ -152,11 +155,11 @@ async function downloadDanmakuFactory() {
 
   const platforms = {
     win32: "windows",
-    darwin: "osx",
+    darwin: "macosx",
   };
   const platform = platforms[process.platform] ?? process.platform;
   const filename = `DanmakuFactory-${platform}-${arch}-CLI.zip`;
-  let url = `https://github.com/renmu123/DanmakuFactory/releases/download/v2.0.0/${filename}`;
+  let url = `https://github.com/renmu123/DanmakuFactory/releases/download/v2.1.2/${filename}`;
 
   await downloadFile(url, ".");
   await unzip(filename, "packages/app/resources/bin");

@@ -16,7 +16,7 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   dynamic: "",
   cover: "",
   noReprint: 0,
-  watermark: 1,
+  watermark: 0,
   openElec: 0,
   closeDanmu: 0,
   closeReply: 0,
@@ -28,6 +28,7 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   comment: "",
   topic_name: null,
   is_only_self: 0,
+  space_hidden: 2,
 };
 
 export class VideoPreset extends CommonPreset<BiliupConfig> {

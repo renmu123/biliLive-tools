@@ -1,21 +1,31 @@
 import path from "node:path";
 import fs from "fs-extra";
 import { analyzeAudio, detectMusicSegments, DetectionConfig } from "music-segment-detector";
+import { stringifySync } from "subtitle";
 
 import { addExtractAudioTask } from "../task/video.js";
-import { AliyunASR, TranscriptionDetail, QwenLLM } from "../ai/index.js";
+import { QwenLLM, recognize } from "../ai/index.js";
 import { recognize as shazamRecognize } from "./shazam.js";
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
+import { getModel } from "./utils.js";
 import { getTempPath, uuid, calculateFileQuickHash } from "../utils/index.js";
+
+import type { StandardASRResult } from "../ai/index.js";
+export interface ProgressCallback {
+  (data: { stage: string; percentage: number; message: string }): void;
+}
 
 /**
  * 检测唱歌边界点
  * @param videoPath 输入视频文件路径,wav
+ * @param iConfig 检测配置
+ * @param onProgress 进度回调函数
  */
 export async function musicDetect(
   videoPath: string,
   iConfig?: Partial<DetectionConfig & { disableCache: boolean }>,
+  onProgress?: ProgressCallback,
 ) {
   const cachePath = getTempPath();
   const outputVideoName = `${uuid()}.wav`;
@@ -26,7 +36,9 @@ export async function musicDetect(
   if (await fs.pathExists(featuresJsonPath)) {
     logger.info("检测到已有音频特征缓存，直接读取:", featuresJsonPath);
     features = await fs.readJSON(featuresJsonPath);
+    onProgress?.({ stage: "cache", percentage: 30, message: "读取音频特征缓存" });
   } else {
+    onProgress?.({ stage: "extract", percentage: 0, message: "开始提取音频" });
     const task = await addExtractAudioTask(videoPath, outputVideoName, {
       saveType: 2,
       savePath: cachePath,
@@ -34,8 +46,21 @@ export async function musicDetect(
       addQueue: false,
       sampleRate: 16000,
     });
+
+    // 监听音频提取进度
+    task.on("task-progress", () => {
+      const progress = task.progress || 0;
+      const percentage = Math.floor(progress * 0.3); // 0-30%
+      onProgress?.({
+        stage: "extract",
+        percentage,
+        message: `提取音频中: ${progress.toFixed(1)}%`,
+      });
+    });
+
     const outputFile: string = await new Promise((resolve, reject) => {
       task.on("task-end", () => {
+        onProgress?.({ stage: "extract", percentage: 30, message: "音频提取完成" });
         resolve(task.output as string);
       });
       task.on("task-error", (err) => {
@@ -43,10 +68,33 @@ export async function musicDetect(
       });
     });
 
+    const startTime = Date.now();
+    onProgress?.({ stage: "analyze", percentage: 30, message: "开始分析音频特征" });
+
     // 1. 分析 WAV 音频文件（带进度回调）
-    features = await analyzeAudio(outputFile, 2048, 512, () => {
-      // console.log(`分析进度: ${(progress * 100).toFixed(1)}%`);
-    });
+    features = await analyzeAudio(
+      outputFile,
+      2048,
+      512,
+      (progress) => {
+        const percentage = 30 + Math.floor(progress * 60); // 30-90%
+        onProgress?.({
+          stage: "analyze",
+          percentage,
+          message: `分析音频特征: ${(progress * 100).toFixed(1)}%`,
+        });
+        // console.log(`分析进度: ${(progress * 100).toFixed(1)}%`);
+      },
+      {
+        useWorkers: true,
+        numWorkers: 2,
+      },
+    );
+    const endTime = Date.now();
+    logger.info(
+      `音频特征分析完成，耗时 ${(endTime - startTime) / 1000} 秒，共 ${features.length} 帧特征数据`,
+    );
+    onProgress?.({ stage: "analyze", percentage: 90, message: "音频特征分析完成" });
     fs.remove(outputFile);
 
     if (!iConfig?.disableCache) {
@@ -63,7 +111,13 @@ export async function musicDetect(
   };
 
   // 2. 检测音乐片段
+  onProgress?.({ stage: "detect", percentage: 90, message: "开始检测音乐片段" });
   const segments = detectMusicSegments(features, config);
+  onProgress?.({
+    stage: "detect",
+    percentage: 95,
+    message: `检测到 ${segments.length} 个音乐片段`,
+  });
 
   // 3. 如果配置了不保留缓存，删除缓存文件
   // @ts-ignore
@@ -76,52 +130,8 @@ export async function musicDetect(
   segments.forEach((segment) => {
     logger.info("检测到音乐片段:", segment);
   });
+  onProgress?.({ stage: "complete", percentage: 100, message: "分析完成" });
   return segments;
-}
-
-/**
- * 音乐字幕优化
- */
-function optimizeMusicSubtitles(results: TranscriptionDetail): TranscriptionDetail {
-  // 去除"，"、“。”等标点符号
-  const transcripts = results.transcripts?.map((transcript) => {
-    const optimizedSentences = transcript.sentences?.map((sentence) => {
-      let optimizedText = sentence.text.replace(/[，。、“”‘’！？]/g, " ");
-      return {
-        ...sentence,
-        text: optimizedText,
-      };
-    });
-
-    return {
-      ...transcript,
-      sentences: optimizedSentences,
-    };
-  });
-  return {
-    ...results,
-    transcripts: transcripts,
-  };
-}
-
-function convert2Srt(detail: TranscriptionDetail, offset: number): string {
-  let srt = "";
-  let index = 1;
-  for (const transcript of detail.transcripts || []) {
-    for (const sentence of transcript.sentences || []) {
-      const start = new Date(sentence.begin_time + offset)
-        .toISOString()
-        .substr(11, 12)
-        .replace(".", ",");
-      const end = new Date(sentence.end_time + offset)
-        .toISOString()
-        .substr(11, 12)
-        .replace(".", ",");
-      srt += `${index}\n${start} --> ${end}\n${sentence.text}\n\n`;
-      index++;
-    }
-  }
-  return srt;
 }
 
 interface ASRWord {
@@ -130,105 +140,19 @@ interface ASRWord {
   t: string;
 }
 
-function convert2Srt2(detail: ASRWord[], offset: number): string {
-  let srt = "";
-  let index = 1;
-  for (const sentence of detail || []) {
-    const start = new Date(sentence.st + offset).toISOString().substr(11, 12).replace(".", ",");
-    const end = new Date(sentence.et + offset).toISOString().substr(11, 12).replace(".", ",");
-    srt += `${index}\n${start} --> ${end}\n${sentence.t}\n\n`;
-    index++;
-  }
-  return srt;
-}
-
-/**
- * 获取 AI 服务商的 API Key，现在是随便写，只支持阿里
- * @returns
- */
-function getApiKey(): string {
-  const data = appConfig.get("ai") || {};
-  if (data?.vendors.length === 0) {
-    throw new Error("请先在配置中设置 AI 服务商的 API Key");
-  }
-  return data.vendors[0].apiKey || "";
-}
-
-/**
- * 音频识别
- * @param file
- * @param key
- * @returns
- */
-export async function asrRecognize(file: string, vendorId: string) {
-  const { apiKey } = getVendor(vendorId);
-
-  const asr = new AliyunASR({
-    apiKey: apiKey,
-  });
-
-  try {
-    const results = await asr.recognizeLocalFile(file);
-
-    // console.log("识别结果:", results.transcripts?.[0]);
-
-    // console.log("已将字幕保存到 output.srt 文件");
-    return results;
-  } catch (error) {
-    logger.error("ASR 识别失败:", error);
-    throw error;
-  }
-}
-
-/**
- * 使用通义千问 LLM 示例
- */
-export async function llm(
-  message: string,
-  systemPrompt?: string,
-  opts: {
-    key?: string;
-    enableSearch?: boolean;
-    jsonResponse?: boolean;
-    stream?: boolean;
-  } = {},
-) {
-  console.log("=== 示例: 使用通义千问 LLM ===");
-  const apiKey = opts.key ?? getApiKey();
-
-  const llm = new QwenLLM({
-    apiKey: apiKey,
-    model: "qwen-plus",
-  });
-
-  try {
-    // const testData = fs.readFileSync(
-    //   "C:\\Users\\renmu\\Downloads\\新建文件夹 (2)\\cleaned_data.json",
-    // );
-    // console.log("读取测试数据，长度:", message + testData, testData.length);
-    const response = await llm.sendMessage(message, systemPrompt, {
-      // responseFormat: zodResponseFormat(Song, "song"),
-      enableSearch: opts.enableSearch ?? false,
-      responseFormat: opts.jsonResponse ? { type: "json_object" } : undefined,
-      // @ts-ignore
-      stream: opts.stream ?? undefined,
-      searchOptions: {
-        forcedSearch: opts.enableSearch ?? false,
+function convert2Srt(detail: ASRWord[], offset: number): string {
+  const srtNodes = detail
+    .filter((word) => word.t.trim() !== "")
+    .map((word) => ({
+      type: "cue" as const,
+      data: {
+        start: word.st + offset,
+        end: word.et + offset,
+        text: word.t,
       },
-    });
+    }));
 
-    if ("content" in response) {
-      logger.info("LLM 请求成功", JSON.stringify(response));
-      // console.log("提问:", response);
-      // console.log("回复:", response.content);
-      // console.log("Token 使用:", response.usage);
-      return response;
-    }
-    throw new Error("LLM 未返回预期的响应内容");
-  } catch (error) {
-    console.error("LLM 请求失败:", error);
-    throw error;
-  }
+  return stringifySync(srtNodes, { format: "SRT" });
 }
 
 function getVendor(vendorId: string) {
@@ -241,24 +165,16 @@ function getVendor(vendorId: string) {
 }
 
 /**
- * 获取歌词优化配置
- */
-function getLyricOptimizeConfig() {
-  const { data, llmVendorId, llmModel } = getSongRecognizeConfig();
-  return {
-    vendorId: data?.songLyricOptimize?.vendorId || llmVendorId,
-    prompt: data?.songLyricOptimize?.prompt,
-    model: data?.songLyricOptimize?.model || llmModel,
-    enableStructuredOutput: data?.songLyricOptimize?.enableStructuredOutput ?? true,
-  };
-}
-
-/**
  * 歌词优化
  * @param lyrics - 原始歌词文本
  * @param offset - 偏移时间，单位毫秒
+ * @returns 优化后的 ASRWord 数组
  */
-export async function optimizeLyrics(asrData: TranscriptionDetail, lyrics: string, offset: number) {
+export async function optimizeLyrics(
+  asrData: StandardASRResult,
+  lyrics: string,
+  offset: number,
+): Promise<ASRWord[]> {
   const { vendorId, prompt, model, enableStructuredOutput } = getLyricOptimizeConfig();
   const { apiKey, baseURL } = getVendor(vendorId);
   const llm = new QwenLLM({
@@ -268,15 +184,24 @@ export async function optimizeLyrics(asrData: TranscriptionDetail, lyrics: strin
   });
 
   const asrCleanedSentences: ASRWord[] = [];
-  for (const transcript of asrData.transcripts || []) {
-    for (const sentence of transcript.sentences || []) {
-      for (const word of sentence.words || []) {
-        asrCleanedSentences.push({
-          st: word.begin_time,
-          et: word.end_time,
-          t: word.text,
-        });
-      }
+  if (asrData.words && asrData.words.length !== 0) {
+    // 优先使用词级时间戳
+    for (const word of asrData.words) {
+      asrCleanedSentences.push({
+        st: word.start * 1000, // 秒转毫秒
+        et: word.end * 1000,
+        t: word.word,
+      });
+    }
+  }
+  if (asrCleanedSentences.length === 0) {
+    // 回退到分段级时间戳
+    for (const segment of asrData.segments) {
+      asrCleanedSentences.push({
+        st: segment.start * 1000, // 秒转毫秒
+        et: segment.end * 1000,
+        t: segment.text,
+      });
     }
   }
 
@@ -301,8 +226,13 @@ export async function optimizeLyrics(asrData: TranscriptionDetail, lyrics: strin
   try {
     const json = JSON.parse(response.content) as ASRWord[] | { data: ASRWord[] };
     const aSRWords = Array.isArray(json) ? json : json.data;
-    const srtData = convert2Srt2(aSRWords, offset);
-    return srtData;
+    // 应用偏移时间
+    const wordsWithOffset = aSRWords.map((word) => ({
+      st: word.st + offset,
+      et: word.et + offset,
+      t: word.t,
+    }));
+    return wordsWithOffset;
   } catch (e) {
     logger.error("LLM 返回内容非 JSON 格式，尝试按纯文本处理", e);
     throw new Error("LLM 返回内容非 JSON 格式，无法解析优化后的歌词");
@@ -313,31 +243,52 @@ export async function optimizeLyrics(asrData: TranscriptionDetail, lyrics: strin
  * 获取歌曲识别配置
  */
 function getSongRecognizeConfig() {
-  const data = appConfig.get("ai") || {};
-  if (data?.vendors.length === 0) {
-    throw new Error("请先在配置中设置 AI 服务商的 API Key");
+  const config = appConfig.getAll();
+  const data = config.ai;
+
+  const asrModelId = data.songRecognizeAsr?.modelId;
+  if (!asrModelId) {
+    throw new Error("请先在配置中设置歌曲识别 ASR 模型");
   }
 
-  const asrVendorId = data.vendors.find((v) => v.provider === "aliyun")?.id;
-  if (!asrVendorId) {
-    throw new Error("请先在配置中设置 阿里云 ASR 服务商的 API Key");
-  }
-
-  let llmVendorId = asrVendorId;
-  if (data?.songRecognizeLlm?.vendorId) {
-    llmVendorId = data.songRecognizeLlm.vendorId;
+  const llmModel = getModel(data?.songRecognizeLlm?.modelId, config);
+  const llmVendor = data.vendors.find((v: any) => v.id === llmModel.vendorId);
+  if (!llmVendor) {
+    throw new Error("找不到LLM模型关联的供应商");
   }
 
   return {
     data,
-    asrVendorId,
-    llmVendorId,
+    asrModelId,
+    llmVendorId: llmVendor.id,
+    llmModel: llmModel.modelName,
     llmPrompt: data?.songRecognizeLlm?.prompt,
-    llmModel: data?.songRecognizeLlm?.model || "qwen-plus",
     enableSearch: data?.songRecognizeLlm?.enableSearch ?? false,
     maxInputLength: data?.songRecognizeLlm?.maxInputLength || 300,
     enableStructuredOutput: data?.songRecognizeLlm?.enableStructuredOutput ?? true,
     lyricOptimize: data?.songRecognizeLlm?.lyricOptimize ?? true,
+  };
+}
+
+/**
+ * 获取歌词优化配置
+ */
+function getLyricOptimizeConfig() {
+  const config = appConfig.getAll();
+  const data = config.ai;
+  let modelId = data?.songLyricOptimize?.modelId;
+
+  const model = getModel(modelId);
+  const vendor = data.vendors.find((v: any) => v.id === model.vendorId);
+  if (!vendor) {
+    throw new Error("找不到LLM模型关联的供应商");
+  }
+
+  return {
+    vendorId: vendor.id,
+    prompt: data?.songLyricOptimize?.prompt,
+    model: model.modelName,
+    enableStructuredOutput: data?.songLyricOptimize?.enableStructuredOutput ?? true,
   };
 }
 
@@ -411,7 +362,7 @@ async function recognizeSongNameWithLLM(
  */
 export async function songRecognize(file: string, audioStartTime: number = 0) {
   const {
-    asrVendorId,
+    asrModelId,
     llmVendorId,
     llmPrompt,
     llmModel,
@@ -439,8 +390,8 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
   }
 
   // 如果开启了歌词优化，首先要asr识别
-  const data = await asrRecognize(file, asrVendorId);
-  const messages = data.transcripts?.[0]?.text || "";
+  const data = await recognize(file, asrModelId);
+  const messages = data.text || "";
   if (!messages) {
     logger.warn("没有识别到任何文本内容，无法进行歌曲识别");
     return;
@@ -462,14 +413,34 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
   }
 
   const rawLyrics = info?.lyrics;
-  let srtData = "";
-  if (rawLyrics) {
-    if (lyricOptimize) {
-      srtData = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
-    } else {
-      srtData = convert2Srt(optimizeMusicSubtitles(data), audioStartTime * 1000);
+  let words: ASRWord[] = [];
+
+  if (rawLyrics && lyricOptimize) {
+    try {
+      words = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
+    } catch (error: any) {
+      logger.error("歌词优化失败:", error);
     }
   }
+
+  if (words.length === 0) {
+    // 如果没有歌词优化结果，使用原始 ASR 结果
+    const segments = data.segments || [];
+
+    // 使用词级时间戳生成 ASRWord 数组
+    words = segments.map((sentence) => {
+      let text = sentence.text.replace(/[，。、“”‘’！？]/g, " ");
+
+      return {
+        st: sentence.start * 1000 + audioStartTime * 1000,
+        et: sentence.end * 1000 + audioStartTime * 1000,
+        t: text,
+      };
+    });
+  }
+
+  // 统一生成 SRT
+  const srtData = convert2Srt(words, 0);
 
   const name = info?.name;
   return {

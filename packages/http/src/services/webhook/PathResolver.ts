@@ -135,6 +135,9 @@ export class PathResolver {
       yyyy: liveStartTime.getFullYear(),
       MM: (liveStartTime.getMonth() + 1).toString().padStart(2, "0"),
       dd: liveStartTime.getDate().toString().padStart(2, "0"),
+      HH: liveStartTime.getHours().toString().padStart(2, "0"),
+      mm: liveStartTime.getMinutes().toString().padStart(2, "0"),
+      ss: liveStartTime.getSeconds().toString().padStart(2, "0"),
       now: `${liveStartTime.getFullYear()}.${(liveStartTime.getMonth() + 1).toString().padStart(2, "0")}.${liveStartTime.getDate().toString().padStart(2, "0")}`,
     };
 

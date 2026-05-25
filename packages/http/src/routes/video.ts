@@ -281,7 +281,7 @@ async function parseVideo({
 }
 
 async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
-  const filepath = path.join(options.savePath, options.filename);
+  let filepath = path.join(options.savePath, options.filename);
 
   if (options.platform === "douyu") {
     if (!options?.extra?.decodeData) {
@@ -342,6 +342,7 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
     if (!options?.extra?.bvid) {
       throw new Error("bvid is required for bilibili download");
     }
+    filepath = replaceExtName(filepath, ".mp4");
     await biliApi.download({
       bvid: options.extra.bvid,
       cid: Number(options.id),

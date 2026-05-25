@@ -30,6 +30,14 @@ vi.spyOn(utils, "sleep").mockImplementation(async () => {
   return undefined;
 });
 
+const uploadItemMatcher = (part: Part, type: "raw" | "handled", path: string, title: string) =>
+  expect.objectContaining({
+    part,
+    type,
+    path,
+    title,
+  });
+
 describe("WebhookHandler", () => {
   let webhookHandler: WebhookHandler;
 
@@ -126,6 +134,9 @@ describe("WebhookHandler", () => {
       webhookHandler.liveData = [];
 
       vi.spyOn(utils, "getFileSize").mockResolvedValue(20 * 1024 * 1024); // 10MB
+      // @ts-ignore
+      vi.spyOn(fs, "pathExists").mockResolvedValue(true);
+
       const options: Options = {
         event: "FileOpening",
         roomId: "123",
@@ -166,8 +177,10 @@ describe("WebhookHandler", () => {
           partMergeMinute: 10,
         },
       );
+
+      await utils.sleep(500); // 等待异步处理完成
       const liveData2 = webhookHandler.liveData;
-      await utils.sleep(100); // 等待异步处理完成
+      await utils.sleep(500); // 等待异步处理完成
       expect(liveData2.length).toBe(1);
       expect(liveData2[0].parts[0].recordStatus).toBe("recorded");
     });
@@ -340,7 +353,6 @@ describe("WebhookHandler", () => {
           open: true,
           title: "test",
           convert2Mp4Option: true,
-          removeSourceAferrConvert2Mp4: true,
           minSize: 1,
           partMergeMinute: 10,
         });
@@ -475,12 +487,7 @@ describe("WebhookHandler", () => {
         // Assert
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          [
-            {
-              path: "/path/to/part1.mp4",
-              title: "part1",
-            },
-          ],
+          [uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1")],
           {
             ...DEFAULT_BILIUP_CONFIG,
             title: "webhook-title",
@@ -530,12 +537,7 @@ describe("WebhookHandler", () => {
         // Assert
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          [
-            {
-              path: "/path/to/part1.mp4",
-              title: "part1",
-            },
-          ],
+          [uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1")],
           {
             ...DEFAULT_BILIUP_CONFIG,
             title: "webhook-title-live-title",
@@ -587,12 +589,7 @@ describe("WebhookHandler", () => {
         // Assert
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          [
-            {
-              path: "/path/to/part1.mp4",
-              title: "part1",
-            },
-          ],
+          [uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1")],
           {
             ...DEFAULT_BILIUP_CONFIG,
             title: "live-title-username-2022.01.01-123",
@@ -662,18 +659,9 @@ describe("WebhookHandler", () => {
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
           [
-            {
-              path: "/path/to/part1.mp4",
-              title: "part1",
-            },
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1"),
+            uploadItemMatcher(live.parts[1], "handled", "/path/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "handled", "/path/to/part3.mp4", "part3"),
           ],
           {
             ...DEFAULT_BILIUP_CONFIG,
@@ -869,15 +857,10 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[1], "handled", "/path/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "handled", "/path/to/part3.mp4", "part3"),
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -942,15 +925,10 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[1], "handled", "/path/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "handled", "/path/to/part3.mp4", "part3"),
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -1012,15 +990,20 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2-part2-username-123-2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3-part3-username-123-3",
-            },
+            uploadItemMatcher(
+              live.parts[1],
+              "handled",
+              "/path/to/part2.mp4",
+              "part2-part2-username-123-2",
+            ),
+            uploadItemMatcher(
+              live.parts[2],
+              "handled",
+              "/path/to/part3.mp4",
+              "part3-part3-username-123-3",
+            ),
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -1094,15 +1077,20 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3-part3-username-123-2",
-            },
-            {
-              path: "/path/to/part5.mp4",
-              title: "part5-part5-username-123-3",
-            },
+            uploadItemMatcher(
+              live.parts[2],
+              "handled",
+              "/path/to/part3.mp4",
+              "part3-part3-username-123-2",
+            ),
+            uploadItemMatcher(
+              live.parts[4],
+              "handled",
+              "/path/to/part5.mp4",
+              "part5-part5-username-123-3",
+            ),
           ],
+          expect.anything(),
           [],
           "delete",
         );
@@ -1274,18 +1262,9 @@ describe("WebhookHandler", () => {
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
           [
-            {
-              path: "/rawPath/to/part1.mp4",
-              title: "part1",
-            },
-            {
-              path: "/rawPath/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/rawPath/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[0], "raw", "/rawPath/to/part1.mp4", "part1"),
+            uploadItemMatcher(live.parts[1], "raw", "/rawPath/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "raw", "/rawPath/to/part3.mp4", "part3"),
           ],
           {
             ...DEFAULT_BILIUP_CONFIG,
@@ -1293,7 +1272,7 @@ describe("WebhookHandler", () => {
             cover: "/path/to/cover.jpg",
           },
           [],
-          "none",
+          "delete",
         );
         expect(live.rawAid).toBe(789);
         expect(live.parts[0].rawUploadStatus).toBe("uploaded");
@@ -1499,17 +1478,12 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[1], "raw", "/path/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "raw", "/path/to/part3.mp4", "part3"),
           ],
+          expect.anything(),
           [],
-          "none",
+          "delete",
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
@@ -1576,17 +1550,12 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3",
-            },
+            uploadItemMatcher(live.parts[1], "raw", "/path/to/part2.mp4", "part2"),
+            uploadItemMatcher(live.parts[2], "raw", "/path/to/part3.mp4", "part3"),
           ],
+          expect.anything(),
           [],
-          "none",
+          "delete",
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
@@ -1648,17 +1617,22 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part2.mp4",
-              title: "part2-part2-username-123-2",
-            },
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3-part3-username-123-3",
-            },
+            uploadItemMatcher(
+              live.parts[1],
+              "raw",
+              "/path/to/part2.mp4",
+              "part2-part2-username-123-2",
+            ),
+            uploadItemMatcher(
+              live.parts[2],
+              "raw",
+              "/path/to/part3.mp4",
+              "part3-part3-username-123-3",
+            ),
           ],
+          expect.anything(),
           [],
-          "none",
+          "delete",
         );
       });
       it("应正确格式化分P标题2：index", async () => {
@@ -1734,17 +1708,22 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            {
-              path: "/path/to/part3.mp4",
-              title: "part3-part3-username-123-2",
-            },
-            {
-              path: "/path/to/part5.mp4",
-              title: "part5-part5-username-123-3",
-            },
+            uploadItemMatcher(
+              live.parts[2],
+              "raw",
+              "/path/to/part3.mp4",
+              "part3-part3-username-123-2",
+            ),
+            uploadItemMatcher(
+              live.parts[4],
+              "raw",
+              "/path/to/part5.mp4",
+              "part5-part5-username-123-3",
+            ),
           ],
+          expect.anything(),
           [],
-          "none",
+          "delete",
         );
       });
       // it("应仅在上传时间内处理上传操作2", async () => {
@@ -2527,84 +2506,6 @@ describe("WebhookHandler", () => {
       expect(liveData[1].parts[0].recordStatus).toBe("recording");
     });
   });
-
-  describe("handleVideoSync", () => {
-    // @ts-ignore
-    vi.spyOn(fs, "pathExistsSync").mockReturnValue(true);
-    // @ts-ignore
-    vi.spyOn(fs, "pathExists").mockResolvedValue(true);
-
-    it("视频：不同步不上传且删除", async () => {
-      vi.spyOn(webhookHandler, "hasTypeInSync").mockResolvedValue(false);
-      vi.spyOn(webhookHandler, "handleFileSync").mockResolvedValue(undefined);
-
-      const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue(undefined);
-
-      await webhookHandler.handleVideoSync("123", "/path/to/video.mp4", "part1", true);
-      expect(trashSpy).toHaveBeenCalledWith("/path/to/video.mp4");
-    });
-    it("视频：不同步不上传且不删除", async () => {
-      vi.spyOn(webhookHandler, "hasTypeInSync").mockResolvedValue(false);
-      vi.spyOn(webhookHandler, "handleFileSync").mockResolvedValue(undefined);
-
-      const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue(undefined);
-
-      await webhookHandler.handleVideoSync("123", "/path/to/video.mp4", "part1", false);
-      expect(trashSpy).not.toHaveBeenCalled();
-    });
-    it("视频：同步上传且删除", async () => {});
-    it("视频：同步上传且不删除", async () => {
-      const appConfig = {
-        getAll: vi.fn().mockReturnValue({
-          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-        }),
-      };
-      // @ts-ignore
-      const webhookHandler = new WebhookHandler(appConfig);
-      const existingLive = new Live({
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
-        roomId: "123",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        title: "Existing Video",
-        username: "username",
-      });
-      existingLive.addPart({
-        partId: "part1",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        filePath: "/path/to/existing-video.mp4",
-        recordStatus: "recorded",
-        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-        title: "part1",
-      });
-      webhookHandler.liveData.push(existingLive);
-
-      vi.spyOn(webhookHandler, "hasTypeInSync").mockResolvedValue(true);
-      vi.spyOn(webhookHandler.configManager, "getSyncConfig").mockReturnValue({
-        id: "sync1",
-        targetFiles: ["source"],
-        folderStructure: "",
-        syncSource: "alist",
-        name: "sync",
-      });
-      const addSyncTaskSpy = vi.spyOn(syncTask, "addSyncTask").mockResolvedValue({
-        on: vi.fn(),
-        cancel: vi.fn(),
-        start: vi.fn(),
-        pause: vi.fn(),
-        resume: vi.fn(),
-        destroy: vi.fn(),
-      } as any);
-
-      const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue(undefined);
-
-      await webhookHandler.handleVideoSync("123", "/path/to/video.mp4", "part1", true);
-      expect(trashSpy).not.toHaveBeenCalled();
-      expect(addSyncTaskSpy).toBeCalled();
-    });
-    // it("视频：不同步上传且不删除", () => {});
-    // it("视频：不同步不上传且不删除", () => {});
-  });
 });
 
 describe("Live", () => {
@@ -2808,26 +2709,6 @@ describe("Live", () => {
       });
     });
 
-    describe("shouldRemoveFile", () => {
-      it("应在操作成功且配置允许时返回true", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldRemoveFile(true, true, "warning");
-        expect(result).toBe(true);
-      });
-
-      it("应在操作失败时返回false", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldRemoveFile(false, true, "warning");
-        expect(result).toBe(false);
-      });
-
-      it("应在配置不允许删除时返回false", () => {
-        // @ts-ignore
-        const result = webhookHandler.shouldRemoveFile(true, false, "warning");
-        expect(result).toBe(false);
-      });
-    });
-
     describe("processMediaFiles", () => {
       beforeEach(() => {
         // @ts-ignore
@@ -2969,7 +2850,7 @@ describe("Live", () => {
         await webhookHandler.handleCloseEvent(options as any);
 
         const part = live.parts[0];
-        expect(part.cover).toBe("/path/to/cover.jpg");
+        expect(part.cover).toBe("");
       });
 
       it("应在useLiveCover为true时处理封面", async () => {
@@ -3175,6 +3056,139 @@ describe("Live", () => {
           );
 
           expect(result.filePaths[0].title).toBe("P2 part2");
+        });
+
+        it("应在同稿件模式下先收集全部处理版，再收集原始版", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/handled1.mp4",
+            rawFilePath: "/path/to/raw1.mp4",
+            recordStatus: "handled",
+            uploadStatus: "uploaded",
+            rawUploadStatus: "uploaded",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part 1",
+          });
+
+          live.addPart({
+            partId: "part-2",
+            filePath: "/path/to/handled2.mp4",
+            rawFilePath: "/path/to/raw2.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            rawUploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:05:00Z").getTime(),
+            title: "Part 2",
+          });
+
+          live.addPart({
+            partId: "part-3",
+            filePath: "/path/to/handled3.mp4",
+            rawFilePath: "/path/to/raw3.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            rawUploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:10:00Z").getTime(),
+            title: "Part 3",
+          });
+
+          const config = {
+            uploadNoDanmu: true,
+            uploadToSameMedia: true,
+            partTitleTemplate: "P{{index}} {{filename}}",
+          } as any;
+
+          // @ts-ignore
+          const result = webhookHandler.buildSameMediaUploadFileList(live, config);
+
+          expect(result.filePaths).toHaveLength(4);
+          expect(result.filePaths[0].type).toBe("handled");
+          expect(result.filePaths[0].part.partId).toBe("part-2");
+          expect(result.filePaths[0].title).toBe("P3 handled2");
+          expect(result.filePaths[1].type).toBe("handled");
+          expect(result.filePaths[1].part.partId).toBe("part-3");
+          expect(result.filePaths[1].title).toBe("P4 handled3");
+          expect(result.filePaths[2].type).toBe("raw");
+          expect(result.filePaths[2].part.partId).toBe("part-2");
+          expect(result.filePaths[2].title).toBe("P5 raw2");
+          expect(result.filePaths[3].type).toBe("raw");
+          expect(result.filePaths[3].part.partId).toBe("part-3");
+          expect(result.filePaths[3].title).toBe("P6 raw3");
+        });
+
+        it("应在同稿件续传排序中先排列全部处理版，再排列原始版", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/handled1.mp4",
+            rawFilePath: "/path/to/raw1.mp4",
+            recordStatus: "handled",
+            uploadStatus: "uploaded",
+            rawUploadStatus: "uploaded",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part 1",
+          });
+
+          live.addPart({
+            partId: "part-2",
+            filePath: "/path/to/handled2.mp4",
+            rawFilePath: "/path/to/raw2.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            rawUploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:05:00Z").getTime(),
+            title: "Part 2",
+          });
+
+          live.addPart({
+            partId: "part-3",
+            filePath: "/path/to/handled3.mp4",
+            rawFilePath: "/path/to/raw3.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            rawUploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:10:00Z").getTime(),
+            title: "Part 3",
+          });
+
+          const config = {
+            uploadNoDanmu: true,
+            uploadToSameMedia: true,
+          } as any;
+
+          // @ts-ignore
+          webhookHandler.setPartCid(live.parts[0], "handled", 101);
+          // @ts-ignore
+          webhookHandler.setPartCid(live.parts[0], "raw", 102);
+
+          // @ts-ignore
+          const result = webhookHandler.buildSameMediaSortParams(live, config);
+
+          expect(result).toEqual([
+            { filePath: "/path/to/handled1.mp4", cid: 101 },
+            { filePath: "/path/to/handled2.mp4", cid: undefined },
+            { filePath: "/path/to/handled3.mp4", cid: undefined },
+            { filePath: "/path/to/raw1.mp4", cid: 102 },
+            { filePath: "/path/to/raw2.mp4", cid: undefined },
+            { filePath: "/path/to/raw3.mp4", cid: undefined },
+          ]);
         });
       });
 
@@ -3663,6 +3677,7 @@ describe("Live", () => {
             123,
             789,
             expect.any(Array),
+            expect.anything(),
             expect.any(Array),
             "none",
           );
@@ -3711,6 +3726,65 @@ describe("Live", () => {
           await webhookHandler.uploadVideoByType(live, "handled");
 
           expect(live.parts[0].uploadStatus).toBe("error");
+        });
+
+        it("应在同稿件模式下共用同一个稿件并保持分P顺序", async () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/handled1.mp4",
+            rawFilePath: "/path/to/raw1.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            rawUploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part 1",
+          });
+
+          // @ts-ignore
+          vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
+            uid: 123,
+            uploadPresetId: "preset-1",
+            uploadNoDanmu: true,
+            uploadToSameMedia: true,
+            useLiveCover: false,
+            limitUploadTime: false,
+            uploadHandleTime: ["00:00:00", "23:59:59"],
+            partTitleTemplate: "P{{index}} {{filename}}",
+            afterUploadDeletAction: "none",
+            title: "Test Video {{user}}",
+          });
+
+          // @ts-ignore
+          webhookHandler.videoPreset.get = vi.fn().mockResolvedValue({
+            config: { title: "Preset {{title}}" },
+          });
+
+          const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(456);
+
+          await webhookHandler.handleLive(live);
+
+          expect(addUploadTaskSpy).toHaveBeenCalledWith(
+            123,
+            [
+              uploadItemMatcher(live.parts[0], "handled", "/path/to/handled1.mp4", "P1 handled1"),
+              uploadItemMatcher(live.parts[0], "raw", "/path/to/raw1.mp4", "P2 raw1"),
+            ],
+            expect.anything(),
+            [],
+            "none",
+          );
+          expect(live.aid).toBe(456);
+          expect(live.parts[0].uploadStatus).toBe("uploaded");
+          expect(live.parts[0].rawUploadStatus).toBe("uploaded");
         });
       });
     });

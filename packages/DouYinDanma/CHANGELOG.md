@@ -1,6 +1,11 @@
+# 0.4.1
+
+- 保持连接参数与网页端一致
+
 # 0.4.0
 
 - 支持更多弹幕类型 [#289](https://github.com/renmu123/biliLive-tools/pull/289)
+- `host`参数支持
 
 # 0.3.1
 

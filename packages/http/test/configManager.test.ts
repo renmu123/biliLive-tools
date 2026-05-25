@@ -344,6 +344,44 @@ describe("ConfigManager", () => {
       });
     });
 
+    describe("uploadToSameMedia", () => {
+      it("should uploadToSameMedia default to false", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              autoPartMerge: false,
+              partMergeMinute: 10,
+              uploadNoDanmu: true,
+            },
+          }),
+        };
+        // @ts-ignore
+        const configManager = new ConfigManager(appConfig);
+        const result = configManager.getConfig("123");
+        expect(result.uploadToSameMedia).toBe(false);
+      });
+
+      it("should uploadToSameMedia return true when configured", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              autoPartMerge: false,
+              partMergeMinute: 10,
+              uid: 123,
+              uploadNoDanmu: true,
+              uploadToSameMedia: true,
+            },
+          }),
+        };
+        // @ts-ignore
+        const configManager = new ConfigManager(appConfig);
+        const result = configManager.getConfig("123");
+        expect(result.uploadToSameMedia).toBe(true);
+      });
+    });
+
     describe("removeSourceAferrConvert2Mp4", () => {
       it("should removeSourceAferrConvert2Mp4 return true when convert2Mp4 open and afterConvertAction includes removeAfterConvert2Mp4", () => {
         const appConfig = {

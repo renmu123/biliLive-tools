@@ -10,7 +10,6 @@ import {
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
-import { ensureFolderExist } from "./utils.js";
 import HuYaDanMu, { HuYaMessage } from "huya-danma-listener";
 
 import type {
@@ -32,6 +31,8 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     ...mitt(),
     ...opts,
     cache: null as any,
+    appendTimeline: null as any,
+
     availableStreams: [],
     availableSources: [],
     qualityRetry: opts.qualityRetry ?? 0,
@@ -105,9 +106,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   try {
     const liveInfo = await getInfo(this.channelId);
     this.liveInfo = liveInfo;
-    this.state = "idle";
+    this.emit("stateChange", { state: "idle" });
   } catch (error) {
-    this.state = "check-error";
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: `检查失败，` + (error instanceof Error ? error.message : String(error)),
+    });
     throw error;
   }
   const { living, owner, title, liveStartTime, recordStartTime } = this.liveInfo;
@@ -145,11 +149,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
 
-    this.state = "check-error";
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: `检查失败，` + (err instanceof Error ? err.message : String(err)),
+    });
     throw err;
   }
 
-  this.state = "recording";
+  this.emit("stateChange", { state: "recording" });
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
   this.availableStreams = availableStreams.map((s) => s.desc);
   this.availableSources = availableSources.map((s) => s.name);
@@ -187,6 +194,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           startTime: opts.startTime,
           liveStartTime,
           recordStartTime,
+          extraMs: opts.extraMs,
         }),
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
@@ -202,21 +210,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       return info;
     },
   );
-
-  const savePath = getSavePath({
-    owner,
-    title,
-    startTime: Date.now(),
-    liveStartTime,
-    recordStartTime,
-  });
-
-  try {
-    ensureFolderExist(savePath);
-  } catch (err) {
-    this.state = "idle";
-    throw err;
-  }
 
   const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
     this.emit("videoFileCreated", { filename, cover, rawFilename });
@@ -238,8 +231,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
   };
   downloader.on("videoFileCreated", handleVideoCreated);
-  downloader.on("videoFileCompleted", ({ filename }) => {
-    this.emit("videoFileCompleted", { filename });
+  downloader.on("videoFileCompleted", (data) => {
+    this.emit("videoFileCompleted", data);
   });
   downloader.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
@@ -304,7 +297,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     client.on("error", (e: unknown) => {
       this.emit("DebugLog", { type: "common", text: String(e) });
     });
+    client.on("connect", () => {
+      this.appendTimeline({ text: `弹幕连接已建立` });
+    });
     client.on("retry", (e: { count: number; max: number }) => {
+      this.appendTimeline({ text: `弹幕连接断开，正在重试: ${e.count}/${e.max}` });
       this.emit("DebugLog", {
         type: "common",
         text: `${this?.liveInfo?.owner}:${this.channelId} huya danmu retry: ${e.count}/${e.max}`,
@@ -324,7 +321,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
 
-    this.state = "stopping-record";
+    this.emit("stateChange", { state: "stopping-record" });
 
     try {
       client?.stop();
@@ -340,7 +337,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.liveInfo = undefined;
-    this.state = "idle";
+    this.emit("stateChange", { state: "idle" });
     this.cache.set("qualityRetryLeft", this.qualityRetry);
   });
 
@@ -351,7 +348,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     recorderType: downloader.type,
     url: stream.url,
     downloaderArgs,
-    savePath: savePath,
+    savePath: downloader.videoFilePath,
     stop,
     cut,
   };

@@ -31,6 +31,7 @@
       ref="fileSelect"
       v-model="fileList"
       :extensions="[...supportedVideoExtensions, 'xml']"
+      :disableEdit="true"
     ></FileSelect>
 
     <div class="flex align-center column" style="margin-top: 10px">
@@ -59,6 +60,7 @@ import { useAppConfig } from "@renderer/stores";
 import { formatFile, supportedVideoExtensions } from "@renderer/utils";
 import { taskApi, danmaApi } from "@renderer/apis";
 import { showSaveDialog } from "@renderer/utils/fileSystem";
+import { useConfirm } from "@renderer/hooks";
 
 defineOptions({
   name: "VideoMerge",
@@ -67,7 +69,9 @@ defineOptions({
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
 
-const fileList = ref<{ id: string; title: string; videoPath: string; danmakuPath?: string }[]>([]);
+const fileList = ref<
+  { id: string; title: string; videoPath: string; danmakuPath?: string; ext?: string }[]
+>([]);
 
 const options = toReactive(
   computed({
@@ -117,6 +121,7 @@ const handleConfirm = (key?: string | number) => {
   }
 };
 
+const confirm = useConfirm();
 const convert = async () => {
   if (fileList.value.length < 2) {
     notice.error({
@@ -125,20 +130,6 @@ const convert = async () => {
     });
     return;
   }
-  const result = await taskApi.checkMergeVideos(fileList.value.map((item) => item.videoPath));
-  if (result.errors.length > 0) {
-    notice.error({
-      content: result.errors.join("\n"),
-      duration: 5000,
-    });
-    return;
-  }
-  if (result.warnings.length > 0) {
-    notice.warning({
-      content: result.warnings.join("\n"),
-      duration: 5000,
-    });
-  }
   if (options.mergeXml) {
     // 如果开启合并弹幕，那么所有的视频都要有对应的弹幕文件
     const hasDanmaku = fileList.value.every((item) => item.danmakuPath);
@@ -146,8 +137,24 @@ const convert = async () => {
       notice.error({
         title: `所有视频文件必须全部选择弹幕文件`,
       });
+      return;
     }
   }
+
+  const result = await taskApi.checkMergeVideos(fileList.value.map((item) => item.videoPath));
+  if (result.errors.length > 0 || result.warnings.length > 0) {
+    const list = result.errors
+      .map((item) => `${item}`)
+      .join("\n")
+      .concat(result.warnings.map((item) => `${item}`).join("\n"));
+
+    const [status] = await confirm.warning({
+      title: "继续合并很有可能出现问题，是否继续？",
+      content: `${list}`,
+    });
+    if (!status) return;
+  }
+
   let videoOutput: string | undefined = undefined;
   let xmlOutput: string | undefined = undefined;
 

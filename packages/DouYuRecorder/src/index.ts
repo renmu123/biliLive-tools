@@ -16,11 +16,9 @@ import type {
   RecorderProvider,
   RecordHandle,
 } from "@bililive-tools/manager";
-import { live } from "douyu-api";
+import { DouyuParser } from "@bililive-tools/stream-get";
 
 import { getInfo, getStream } from "./stream.js";
-import { getRoomInfo } from "./dy_api.js";
-import { ensureFolderExist } from "./utils.js";
 import { createDYClient } from "./dy_client/index.js";
 import { giftMap, colorTab } from "./danma.js";
 
@@ -34,12 +32,14 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     ...mitt(),
     ...opts,
     cache: null as any,
+    appendTimeline: null as any,
 
     availableStreams: [],
     availableSources: [],
     qualityRetry: opts.qualityRetry ?? 0,
     useServerTimestamp: opts.useServerTimestamp ?? true,
     state: "idle",
+    codecName: opts.codecName ?? "auto",
 
     getChannelURL() {
       return `https://www.douyu.com/${this.channelId}`;
@@ -62,6 +62,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       const res = await getStream({
         channelId: this.channelId,
         quality: this.quality,
+        codecName: this.codecName,
       });
       return res.currentStream;
     },
@@ -104,9 +105,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   try {
     const liveInfo = await getInfo(this.channelId);
     this.liveInfo = liveInfo;
-    this.state = "idle";
+    this.emit("stateChange", { state: "idle" });
   } catch (error) {
-    this.state = "check-error";
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: `检查失败，` + (error instanceof Error ? error.message : String(error)),
+    });
     throw error;
   }
   const { living, owner, title, liveStartTime, recordStartTime } = this.liveInfo;
@@ -120,6 +124,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!living) return null;
 
   // 检查标题是否包含关键词
+  console.log("检查标题关键词", { title, channelId: this.channelId, isManualStart });
   if (utils.checkTitleKeywordsBeforeRecord(title, this, isManualStart)) return null;
 
   const qualityRetryLeft = (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
@@ -138,15 +143,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       strictQuality,
       onlyAudio: this.onlyAudio,
       avoidEdgeCDN: true,
+      codecName: this.codecName,
+      api: this.api,
     });
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
-
-    this.state = "check-error";
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: `检查失败，` + (err instanceof Error ? err.message : String(err)),
+    });
     throw err;
   }
 
-  this.state = "recording";
+  this.emit("stateChange", { state: "recording" });
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
   this.availableStreams = availableStreams.map((s) => s.name);
   this.availableSources = availableSources.map((s) => s.name);
@@ -180,6 +189,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           startTime: opts.startTime,
           liveStartTime,
           recordStartTime,
+          extraMs: opts.extraMs,
         }),
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
@@ -193,21 +203,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       return info;
     },
   );
-
-  const savePath = getSavePath({
-    owner,
-    title,
-    startTime: Date.now(),
-    liveStartTime,
-    recordStartTime,
-  });
-
-  try {
-    ensureFolderExist(savePath);
-  } catch (err) {
-    this.state = "idle";
-    throw err;
-  }
 
   const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
     this.emit("videoFileCreated", { filename, cover, rawFilename });
@@ -229,8 +224,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
   };
   downloader.on("videoFileCreated", handleVideoCreated);
-  downloader.on("videoFileCompleted", ({ filename }) => {
-    this.emit("videoFileCompleted", { filename });
+  downloader.on("videoFileCompleted", (data) => {
+    this.emit("videoFileCompleted", data);
   });
   downloader.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
@@ -375,7 +370,21 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
   });
   client.on("error", (err) => {
+    this.appendTimeline({ text: `弹幕连接发生错误: ${String(err)}` });
     this.emit("DebugLog", { type: "common", text: String(err) });
+  });
+  client.on("start", () => {
+    this.appendTimeline({ text: "弹幕连接已建立" });
+    this.emit("DebugLog", { type: "common", text: "弹幕连接已建立" });
+  });
+  client.on("reconnect", ({ retryCount, maxRetry }) => {
+    this.appendTimeline({
+      text: `弹幕连接已断开，正在尝试重连... (重试次数: ${retryCount}/${maxRetry})`,
+    });
+    this.emit("DebugLog", {
+      type: "common",
+      text: `弹幕连接已断开，正在尝试重连... (重试次数: ${retryCount}/${maxRetry})`,
+    });
   });
   if (!this.disableProvideCommentsWhenRecording) {
     client.start();
@@ -384,8 +393,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const downloaderArgs = downloader.getArguments();
   downloader.run();
 
-  // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
-
   const cut = utils.singleton<RecordHandle["cut"]>(async () => {
     if (!this.recordHandle) return;
     downloader.cut();
@@ -393,7 +400,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
-    this.state = "stopping-record";
+    this.emit("stateChange", { state: "stopping-record" });
 
     try {
       client.stop();
@@ -409,7 +416,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.liveInfo = undefined;
-    this.state = "idle";
+    this.emit("stateChange", { state: "idle" });
     this.cache.set("qualityRetryLeft", this.qualityRetry);
   });
 
@@ -420,7 +427,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     recorderType: downloader.type,
     url: stream.url,
     downloaderArgs,
-    savePath: savePath,
+    savePath: downloader.videoFilePath,
     stop,
     cut,
   };
@@ -441,16 +448,16 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
   async resolveChannelInfoFromURL(channelURL) {
     if (!this.matchURL(channelURL)) return null;
 
-    const roomId = await live.parseRoomId(channelURL);
+    const parser = new DouyuParser();
+    const roomId = await parser.extractRoomId(channelURL);
     if (!roomId) return null;
-
-    const roomInfo = await getRoomInfo(Number(roomId));
+    const roomInfo = await parser.getRoomInfo(roomId);
 
     return {
       id: roomId,
-      title: roomInfo.room.room_name,
-      owner: roomInfo.room.nickname,
-      avatar: roomInfo.room.avatar?.big,
+      title: roomInfo.title,
+      owner: roomInfo.owner,
+      avatar: roomInfo.avatar,
     };
   },
 

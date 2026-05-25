@@ -1,5 +1,6 @@
 import ejs from "ejs";
 import log from "./log.js";
+import type { PartTitleFormatOptions } from "@biliLive-tools/types";
 
 /**
  * 支持{{title}},{{user}},{{now}}等占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
@@ -67,6 +68,71 @@ export function formatTitle(
 }
 
 /**
+ * 简介格式化，支持{{title}},{{user}},{{now}}等占位符
+ * 直播标题：{{title}}<br/>
+ * 主播名：{{user}}<br/>
+ * 房间号：{{roomId}}<br/>
+ * 当前时间（快速）：{{now}}，示例：2024.01.24<br/>
+ * 年：{{yyyy}}<br/>
+ * 月（补零）：{{MM}}<br/>
+ * 日（补零）：{{dd}}<br/>
+ * 时（补零）：{{HH}}<br/>
+ * 分（补零）：{{mm}}<br/>
+ * 秒（补零）：{{ss}}<br/>
+ * 文件名：{{filename}}<br/>
+ *
+ * @param {object} options 格式化参数
+ * @param {string} options.title 直播标题
+ * @param {string} options.username 主播名
+ * @param {string} options.time 直播时间
+ * @param {number} options.roomId 房间号
+ * @param {string} options.filename 文件名
+ * @param {string} template 格式化模板
+ */
+export function formatDesc(
+  options: {
+    title: string;
+    username: string;
+    time: string;
+    roomId: string | number;
+    filename: string;
+  },
+  template: string,
+) {
+  const { year, month, day, hours, minutes, seconds, now } = formatTime(options.time);
+  let renderText = template;
+  try {
+    const renderOptions = {
+      title: options.title,
+      user: options.username,
+      time: new Date(options.time),
+      roomId: options.roomId,
+      filename: options.filename,
+    };
+    renderText = ejs.render(template, renderOptions);
+  } catch (error) {
+    log.error("模板解析错误", error);
+  }
+
+  const desc = renderText
+    .replaceAll("{{title}}", options.title)
+    .replaceAll("{{user}}", options.username)
+    .replaceAll("{{roomId}}", String(options.roomId))
+    .replaceAll("{{now}}", now)
+    .replaceAll("{{yyyy}}", year)
+    .replaceAll("{{MM}}", month)
+    .replaceAll("{{dd}}", day)
+    .replaceAll("{{HH}}", hours)
+    .replaceAll("{{mm}}", minutes)
+    .replaceAll("{{ss}}", seconds)
+    .replaceAll("{{filename}}", options.filename)
+    .trim()
+    .slice(0, 2000);
+
+  return desc;
+}
+
+/**
  * 分P标题格式化
  * 直播标题：{{title}}<br/>
  * 主播名：{{user}}<br/>
@@ -88,17 +154,7 @@ export function formatTitle(
  * @param {string} options.filename 文件名
  * @param {string} template 格式化模板
  */
-export function formatPartTitle(
-  options: {
-    title: string;
-    username: string;
-    time: string;
-    roomId: string | number;
-    filename: string;
-    index: number;
-  },
-  template: string,
-) {
+export function formatPartTitle(options: PartTitleFormatOptions, template: string) {
   const { year, month, day, hours, minutes, seconds } = formatTime(options.time);
   let renderText = template;
   const isDanmaFile = options.filename.includes("-弹幕版");
@@ -135,6 +191,24 @@ export function formatPartTitle(
     .slice(0, 80);
 
   return title;
+}
+
+/**
+ * 根据平台和房间号构建直播间链接
+ * @param platform 平台名称
+ * @param roomId 房间号
+ * @returns 直播间链接或 null
+ */
+export function buildRoomLink(platform: string, roomId: string): string | null {
+  const platformLower = platform.toLowerCase();
+  const platformRoomLinkMap: Record<string, (roomId: string) => string> = {
+    bilibili: (id: string) => `https://live.bilibili.com/${id}`,
+    huya: (id: string) => `https://www.huya.com/${id}`,
+    douyu: (id: string) => `https://www.douyu.com/${id}`,
+    douyin: (id: string) => `https://live.douyin.com/${id}`,
+  };
+  const link = platformRoomLinkMap[platformLower]?.(roomId);
+  return link ?? null;
 }
 
 export function formatTime(time: string) {

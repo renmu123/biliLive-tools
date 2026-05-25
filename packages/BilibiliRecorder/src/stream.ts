@@ -79,6 +79,7 @@ export async function getInfo(channelId: string): Promise<{
   liveId: string;
   liveStartTime: Date;
   recordStartTime: Date;
+  area: string;
 }> {
   const roomInit = await getRoomInit(Number(channelId));
   const { [roomInit.uid]: status } = await getStatusInfoByUIDs([roomInit.uid]);
@@ -87,7 +88,6 @@ export async function getInfo(channelId: string): Promise<{
     // 未获取到直播间信息，可能是加密，尝试换一个接口
     const data = await getRoomBaseInfo(Number(channelId));
     const status = data[channelId];
-
     const liveStartTime = new Date(status.live_time);
     return {
       uid: roomInit.uid,
@@ -100,6 +100,7 @@ export async function getInfo(channelId: string): Promise<{
       roomId: roomInit.room_id,
       liveId: utils.md5(`${roomInit.room_id}-${liveStartTime?.getTime()}`),
       recordStartTime,
+      area: status.parent_area_name,
     };
   }
 
@@ -116,6 +117,7 @@ export async function getInfo(channelId: string): Promise<{
     liveStartTime: liveStartTime,
     liveId: utils.md5(`${roomInit.room_id}-${liveStartTime.getTime()}`),
     recordStartTime,
+    area: status.area_v2_parent_name,
   };
 }
 
@@ -130,6 +132,7 @@ async function getLiveInfo(
   },
 ) {
   const res = await getRoomPlayInfo(roomIdOrShortId, opts);
+  assert(res.playurl_info, "没有找到流");
 
   // https://github.com/FFmpeg/FFmpeg/commit/b76053d8bf322b197a9d07bd27bbdad14fd5bc15
   let conditons: {
@@ -291,11 +294,6 @@ export async function getStream(
   },
 ) {
   const roomId = Number(opts.channelId);
-  const roomInit = await getRoomInit(roomId);
-  if (roomInit.live_status !== 1) {
-    throw new Error("It must be called getStream when living");
-  }
-
   const qn = BiliQualities.includes(opts.quality as any) ? (opts.quality as number) : 10000;
 
   let liveInfo = await getLiveInfo(roomId, {

@@ -3,8 +3,13 @@ import { omit } from "lodash-es";
 
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { TvQrcodeLogin } from "@renmu/bili-api";
-import { formatTitle, formatPartTitle, uuid } from "@biliLive-tools/shared/utils/index.js";
-import type { BiliupConfig } from "@biliLive-tools/types";
+import {
+  formatTitle,
+  formatPartTitle,
+  formatDesc,
+  uuid,
+} from "@biliLive-tools/shared/utils/index.js";
+import type { BiliupConfig, PartTitleFormatOptions } from "@biliLive-tools/types";
 
 const router = new Router({
   prefix: "/bili",
@@ -80,16 +85,6 @@ router.get("/season/:aid", async (ctx) => {
 router.get("/platformArchiveDetail", async (ctx) => {
   const { aid, uid } = ctx.request.query as unknown as { aid: number; uid: number };
   const data = await biliApi.getPlatformArchiveDetail(aid, uid);
-  ctx.body = data;
-});
-router.get("/platformPre", async (ctx) => {
-  const { uid } = ctx.request.query as unknown as { uid: number };
-  const data = await biliApi.getPlatformPre(uid);
-  ctx.body = data;
-});
-router.get("/typeDesc", async (ctx) => {
-  const { tid, uid } = ctx.request.query as unknown as { tid: number; uid: number };
-  const data = await biliApi.getTypeDesc(tid, uid);
   ctx.body = data;
 });
 
@@ -241,11 +236,12 @@ router.post("/formatTitle", async (ctx) => {
 router.post("/formatPartTitle", async (ctx) => {
   const data = ctx.request.body as {
     template: string;
+    options?: PartTitleFormatOptions;
   };
   const template = (data.template || "") as string;
 
   const title = formatPartTitle(
-    {
+    data.options ?? {
       title: "标题",
       username: "主播名",
       time: new Date().toISOString(),
@@ -256,6 +252,26 @@ router.post("/formatPartTitle", async (ctx) => {
     template,
   );
   ctx.body = title;
+});
+
+router.post("/formatDesc", async (ctx) => {
+  const data = ctx.request.body as {
+    template: string;
+    options?: any;
+  };
+  const template = (data.template || "") as string;
+
+  const desc = formatDesc(
+    data.options ?? {
+      title: "标题",
+      username: "主播名",
+      time: new Date().toISOString(),
+      roomId: 123456,
+      filename: "文件名",
+    },
+    template,
+  );
+  ctx.body = desc;
 });
 
 export default router;

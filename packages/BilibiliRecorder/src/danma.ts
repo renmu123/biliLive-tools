@@ -86,6 +86,12 @@ class DanmaClient extends EventEmitter {
     const info = await getCachedBuvidConf();
     const buvid3 = info.data.b_3;
     const handler: MsgHandler = {
+      onOpen: () => {
+        this.emit("open");
+      },
+      onClose: () => {
+        this.emit("close");
+      },
       onIncomeDanmu: (msg) => {
         let content = msg.body.content;
         content = content.replace(/(^\s*)|(\s*$)/g, "").replace(/[\r\n]/g, "");
@@ -195,6 +201,7 @@ class DanmaClient extends EventEmitter {
     });
 
     this.client.live.on("error", (err) => {
+      console.error("DanmaClient error", err);
       this.retryCount -= 1;
       if (this.retryCount > 0) {
         setTimeout(() => {

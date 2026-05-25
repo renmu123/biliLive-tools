@@ -66,12 +66,12 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     hotProgressColor: "#f9f5f3",
     hotProgressFillColor: "#333333",
     convert2Mp4: false,
-    removeSourceAferrConvert2Mp4: true,
     flvRepair: false,
     syncId: undefined,
     uploadHandleTime: ["00:00:00", "23:59:59"],
     limitUploadTime: false,
     uploadNoDanmu: false,
+    uploadToSameMedia: false,
     noDanmuVideoPreset: undefined,
     limitVideoConvertTime: false,
     videoHandleTime: ["00:00:00", "23:59:59"],
@@ -112,6 +112,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     fileSync: {
       removeOrigin: false,
       syncType: undefined,
+      aliyunpanDriveType: "backup",
       targetPath: "/",
     },
     danmu: {
@@ -162,6 +163,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       danmuPresetId: "default",
       ignoreDanmu: false,
       exportSubtitle: true,
+      ignoreSubtitle: false,
     },
   },
   task: {
@@ -249,9 +251,37 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   },
   llmPresets: [],
   ai: {
-    vendors: [],
+    vendors: [
+      {
+        id: "3d09badd-5402-4b80-9113-48c0739d51b9",
+        name: "阿里云",
+        provider: "aliyun",
+        apiKey: "",
+      },
+    ],
+    models: [
+      {
+        vendorId: "3d09badd-5402-4b80-9113-48c0739d51b9",
+        modelId: "116497be-e650-4b21-8769-536859cb16dc",
+        modelName: "fun-asr",
+        remark: "语音识别",
+        tags: ["asr"],
+        config: {},
+      },
+      {
+        vendorId: "3d09badd-5402-4b80-9113-48c0739d51b9",
+        modelId: "ca277547-fabd-462b-99d2-cf76f56002e6",
+        modelName: "qwen-plus",
+        remark: "通用大模型",
+        tags: ["llm"],
+        config: {},
+      },
+    ],
+    songRecognizeAsr: {
+      modelId: "bcut",
+    },
     songRecognizeLlm: {
-      vendorId: undefined,
+      modelId: "",
       prompt: `
 你是一个极度专业的音乐识别专家，擅长从存在误差的 ASR（语音识别）文本中提取核心语义，并精准锁定歌曲信息。
 从搜索结果中精确获取歌名以及需确保返回的【歌词】版本为官方标准发行版，不要遗漏，请提供【歌词】
@@ -261,20 +291,19 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   "lyrics": "[查询到的完整标准歌词]",
   "name": "[准确的歌曲名称]"
 }`,
-      model: "qwen-plus",
       enableSearch: true,
       maxInputLength: 300,
       enableStructuredOutput: true,
       lyricOptimize: true,
     },
     songLyricOptimize: {
-      vendorId: undefined,
+      modelId: "",
       prompt: `
 # Role
 你是一个极度严谨的音频字幕对齐专家，擅长将破碎的 ASR 识别结果（ASR_Data）完美映射到标准文本（Standard_Lyrics）上。
 
 # Core Algorithm: Anchor-Based Alignment
-1. 语义锚点定位：首先在 Standard_Lyrics 中识别出每一行（Line）。
+1. 语义锚点定位：首先在 Standard_Lyrics 中识别出每一行（Line），如回车。。
 2. 碎片重组（Merging）：
   扫描 ASR_Data，将物理时间连续且语义指向 Standard_Lyrics 同一行的多个片段进行合并。
   新 st (begin_time) = 合并序列中第一个片段的 st。
@@ -297,8 +326,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
 ## Output Format
 仅输出 JSON 对象，格式如下： {"data": [{"st": 123, "et": 456, "t": "标准歌词内容"}]}
 `,
-      model: "",
       enableStructuredOutput: true,
+    },
+    subtitleRecognize: {
+      modelId: "bcut",
     },
   },
   biliUpload: {
@@ -315,13 +346,13 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   },
   recorder: {
     savePath: "",
-    nameRule: "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}",
+    nameRule: "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec}-{ms} {title}",
     autoRecord: true,
     quality: "highest",
     line: undefined,
     checkInterval: 60,
     maxThreadCount: 3,
-    waitTime: 0,
+    waitTime: 500,
     disableProvideCommentsWhenRecording: false,
     segment: "90",
     saveGiftDanma: false,
@@ -333,7 +364,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     qualityRetry: 0,
     videoFormat: "auto",
     recorderType: "bililive",
-    useServerTimestamp: true,
+    useServerTimestamp: false,
     recordRetryImmediately: true,
     bilibili: {
       uid: undefined,
@@ -343,16 +374,27 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       formatName: "auto",
       codecName: "auto",
       customHost: undefined,
+      checkInterval: undefined,
+      maxThreadCount: undefined,
+      waitTime: undefined,
     },
     douyu: {
       quality: 0,
       source: "auto",
+      checkInterval: undefined,
+      maxThreadCount: undefined,
+      waitTime: undefined,
+      codecName: "auto",
+      api: "auto",
     },
     huya: {
       quality: 0,
       formatName: "auto",
       source: "auto",
       api: "auto",
+      checkInterval: undefined,
+      maxThreadCount: undefined,
+      waitTime: undefined,
     },
     douyin: {
       quality: "origin",
@@ -360,6 +402,15 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       cookie: "",
       doubleScreen: true,
       api: "web",
+      checkInterval: undefined,
+      maxThreadCount: undefined,
+      waitTime: undefined,
+    },
+    xhs: {
+      cookie: "",
+      checkInterval: undefined,
+      maxThreadCount: undefined,
+      waitTime: undefined,
     },
     saveDanma2DB: false,
   },
@@ -494,6 +545,17 @@ export const amfPresets = [
   },
 ];
 
+export const videoToolBoxPresets = [
+  {
+    value: "1",
+    label: "realtime",
+  },
+  {
+    value: "0",
+    label: "not realtime",
+  },
+];
+
 export const amfAv1Presets = [
   ...amfPresets,
   {
@@ -569,6 +631,17 @@ export const videoEncoders = [
     ],
     presets: amfPresets,
   },
+  {
+    value: "h264_videotoolbox",
+    label: "H.264(Apple)",
+    birateControls: [
+      {
+        value: "VBR",
+        label: "平均比特率",
+      },
+    ],
+    presets: videoToolBoxPresets,
+  },
 
   {
     value: "libx265",
@@ -626,10 +699,21 @@ export const videoEncoders = [
     ],
     presets: amfPresets,
   },
+  {
+    value: "hevc_videotoolbox",
+    label: "H.265(Apple)",
+    birateControls: [
+      {
+        value: "VBR",
+        label: "平均比特率",
+      },
+    ],
+    presets: videoToolBoxPresets,
+  },
 
   {
     value: "libsvtav1",
-    label: "AV1 (libsvtav1)",
+    label: "AV1(libsvtav1)",
     birateControls: [
       {
         value: "CRF",
@@ -701,7 +785,7 @@ export const videoEncoders = [
   },
   {
     value: "av1_qsv",
-    label: "AV1 (Intel QSV)",
+    label: "AV1(Intel QSV)",
     birateControls: [
       {
         value: "ICQ",
@@ -716,7 +800,7 @@ export const videoEncoders = [
   },
   {
     value: "av1_nvenc",
-    label: "AV1 (NVIDIA NVEnc)",
+    label: "AV1(NVIDIA NVEnc)",
     birateControls: [
       {
         value: "CQ",
@@ -731,7 +815,7 @@ export const videoEncoders = [
   },
   {
     value: "av1_amf",
-    label: "AV1 (AMD AMF)",
+    label: "AV1(AMD AMF)",
     birateControls: [
       {
         value: "VBR",
@@ -739,6 +823,17 @@ export const videoEncoders = [
       },
     ],
     presets: amfAv1Presets,
+  },
+  {
+    value: "av1_videotoolbox",
+    label: "AV1(Apple)",
+    birateControls: [
+      {
+        value: "VBR",
+        label: "平均比特率",
+      },
+    ],
+    presets: videoToolBoxPresets,
   },
 ];
 
@@ -756,6 +851,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   sendToWebhook: false,
   noGlobalFollowFields: [],
   saveCover: false,
+  convert2Mp4: false,
   extra: {},
   qualityRetry: 0,
   formatName: "auto",
@@ -770,7 +866,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   recorderType: "ffmpeg",
   cookie: "",
   doubleScreen: true,
-  useServerTimestamp: true,
+  useServerTimestamp: false,
   handleTime: [null, null],
   debugLevel: "none",
   api: "web",

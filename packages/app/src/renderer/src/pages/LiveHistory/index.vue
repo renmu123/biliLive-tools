@@ -1,6 +1,5 @@
 <template>
   <div class="live-history">
-    <!-- TODO:增加一个header来展示主播相关数据，支持聚合通过liveId来进行聚合展示 -->
     <!-- 查询表单 -->
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px">
       <n-date-picker
@@ -54,34 +53,24 @@
     </div>
 
     <n-empty v-else-if="!loading && hasQueried" description="没有查询到相关记录" />
-
-    <PreviewModal
-      v-model:visible="previewModalVisible"
-      :files="previewFiles"
-      :hotProgress="{
-        visible: false,
-        sampling: 60,
-        height: 10,
-        color: 'white',
-        fillColor: 'white',
-      }"
-    ></PreviewModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
-import { recordHistoryApi, commonApi } from "../../apis";
+import { recordHistoryApi } from "../../apis";
 import { NIcon } from "naive-ui";
 import { FolderOpenOutline, DownloadOutline } from "@vicons/ionicons5";
 import { Delete20Regular, PlayCircle24Regular } from "@vicons/fluent";
 import { FileOpenOutlined } from "@vicons/material";
 import { useConfirm } from "@renderer/hooks";
 import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
-import PreviewModal from "../Home/components/previewModal.vue";
 import ColumnSelector from "@renderer/components/ColumnSelector.vue";
+import { toVideoPlayerPage } from "@renderer/utils/pages";
+import { formatTime, formatDuration } from "@renderer/utils";
 
 import type { VNode } from "vue";
+import type { QueryRecordsParams } from "../../apis/recordHistory";
 
 // 类型定义
 interface StreamerInfo {
@@ -93,6 +82,7 @@ interface StreamerInfo {
 interface QueryParams {
   room_id: string;
   platform: string;
+  liveId?: string;
   page: number;
   pageSize: number;
   startTime: number | null;
@@ -125,6 +115,9 @@ interface ColumnConfig {
   label: string;
 }
 
+defineOptions({
+  name: "LiveHistory",
+});
 const route = useRoute();
 
 // 主播信息
@@ -138,6 +131,7 @@ const streamerInfo = reactive<StreamerInfo>({
 const queryParams = reactive<QueryParams>({
   room_id: streamerInfo.room_id,
   platform: streamerInfo.platform,
+  liveId: (route.query.liveId as string) || undefined,
   page: 1,
   pageSize: 10,
   startTime: null,
@@ -202,12 +196,12 @@ const allColumns: {
   {
     title: "持续时长",
     key: "duration",
-    render: (row: LiveRecord) => formatDuration(row.record_start_time, row.record_end_time),
+    render: (row: LiveRecord) => formatWithStart(row.record_start_time, row.record_end_time),
   },
   {
     title: "视频时长",
     key: "video_duration",
-    render: (row: LiveRecord) => _formatDuration(row.video_duration),
+    render: (row: LiveRecord) => formatDuration(row.video_duration),
   },
   {
     title: "弹幕数量",
@@ -339,20 +333,27 @@ const handleQuery = async (): Promise<void> => {
   // 确保从路由参数更新最新的查询参数
   queryParams.room_id = streamerInfo.room_id;
   queryParams.platform = streamerInfo.platform;
-
+  queryParams.liveId = route.query.liveId as string | undefined;
   if (!queryParams.room_id || !queryParams.platform) {
     console.error("缺少必要的房间号或平台参数");
     return;
   }
 
   // 将时间戳传递给API
-  const apiParams = { ...queryParams };
+  const apiParams: QueryRecordsParams = {
+    room_id: queryParams.room_id,
+    platform: queryParams.platform,
+    liveId: queryParams.liveId,
+    page: queryParams.page,
+    pageSize: queryParams.pageSize,
+    startTime: queryParams.startTime ?? undefined,
+    endTime: queryParams.endTime ?? undefined,
+  };
 
   loading.value = true;
   hasQueried.value = true;
 
   try {
-    // @ts-ignore
     const result = await recordHistoryApi.queryRecords(apiParams);
     recordList.value = result.data || [];
     pagination.total = result.pagination.total;
@@ -382,38 +383,12 @@ const handlePageSizeChange = (pageSize: number): void => {
   handleQuery();
 };
 
-// 格式化时间
-const formatTime = (timestamp: number): string => {
-  if (!timestamp) return "--";
-  const date = new Date(timestamp);
-  return date
-    .toLocaleString("zh-CN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    })
-    .replace(/\//g, "-");
-};
-
 // 计算录制时长
-const formatDuration = (startTime: number, endTime: number | null): string => {
+const formatWithStart = (startTime: number, endTime: number | null): string => {
   if (!startTime || !endTime) return "--";
 
   const duration = (endTime - startTime) / 1000; // 秒
-  return _formatDuration(duration);
-};
-
-const _formatDuration = (duration?: number) => {
-  if (!duration) return "--";
-  const hours = Math.floor(duration / 3600);
-  const minutes = Math.floor((duration % 3600) / 60);
-  const seconds = Math.floor(duration % 60);
-
-  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  return formatDuration(duration);
 };
 
 // 打开文件
@@ -480,37 +455,14 @@ const goBack = () => {
   router.back();
 };
 
-const previewModalVisible = ref(false);
-const previewFiles = ref({
-  video: "",
-  danmu: "",
-  type: "",
-});
 const previewVideo = async (id: number) => {
-  try {
-    const { videoFileId, videoFileExt, danmaFilePath } = await recordHistoryApi.getFileInfo(id);
-    if (videoFileExt === "ts") {
-      notice.warning({
-        title: `暂不支持预览ts格式的视频`,
-        duration: 2000,
-      });
-      return;
-    }
-    const videoUrl = await commonApi.getVideo(videoFileId);
-    previewFiles.value.video = videoUrl;
-    previewFiles.value.type = videoFileExt;
-    previewFiles.value.danmu = danmaFilePath || "";
-    previewModalVisible.value = true;
-  } catch (error: any) {
-    notice.error({
-      title: error.message || error,
-    });
-  }
+  const { videoFileId, videoFileExt, danmaFileId } = await recordHistoryApi.getFileInfo(id);
+  toVideoPlayerPage({
+    videoId: videoFileId,
+    videoType: videoFileExt,
+    danmaId: danmaFileId,
+  });
 };
-
-defineOptions({
-  name: "LiveHistory",
-});
 </script>
 
 <style scoped>

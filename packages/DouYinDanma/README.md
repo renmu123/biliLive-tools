@@ -33,6 +33,7 @@ client.connect();
 - `cookie` (string): 可选的 Cookie 字符串，某些直播间可能需要？
 - `timeoutInterval` (number): 没有数据返回但`ws`未被主动关闭时超时后重新连接，单位为秒，默认`100`
 - `reconnectInterval`： 重连等待时间
+- `host`：弹幕连接域名
 
 ## 事件
 
