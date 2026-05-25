@@ -22,6 +22,7 @@ export interface BaseRecorderOptions {
     [key: string]: string | undefined;
   };
   videoFormat?: VideoFormat;
+  proxy?: string;
 }
 
 /**
@@ -36,6 +37,7 @@ export interface IDownloader extends EventEmitter {
   readonly disableDanma: boolean;
   readonly url: string;
   readonly headers: { [key: string]: string | undefined } | undefined;
+  readonly proxy?: string;
   readonly getSavePath: (data: { startTime: number; title?: string; extraMs?: boolean }) => string;
 
   // 核心方法

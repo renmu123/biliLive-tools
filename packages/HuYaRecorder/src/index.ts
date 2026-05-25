@@ -202,6 +202,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       headers: {
         "User-Agent": stream.ua,
       },
+      proxy: this.proxy,
     },
     onEnd,
     async () => {
