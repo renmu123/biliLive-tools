@@ -2,10 +2,10 @@
 <template>
   <div>
     <n-form ref="formRef" label-width="120px" label-placement="left" label-align="right">
-      <n-form-item label="预设">
+      <n-form-item v-if="!isEditOnlyMode" label="预设">
         <n-select v-model:value="presetId" :options="uploaPresetsOptions" />
       </n-form-item>
-      <n-divider />
+      <n-divider v-if="!isEditOnlyMode" />
 
       <n-form-item>
         <template #label>
@@ -381,14 +381,16 @@
       </n-form-item>
     </n-form>
 
-    <div style="text-align: right">
-      <n-button v-if="options.id !== 'default'" text type="error" @click="deletePreset"
-        >删除</n-button
-      >
-      <n-button type="primary" style="margin-left: 10px" @click="rename">重命名</n-button>
-      <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPreset"
-        >另存为</n-button
-      >
+    <div v-if="props.showActionButtons" style="text-align: right">
+      <template v-if="!isEditOnlyMode">
+        <n-button v-if="options.id !== 'default'" text type="error" @click="deletePreset"
+          >删除</n-button
+        >
+        <n-button type="primary" style="margin-left: 10px" @click="rename">重命名</n-button>
+        <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPreset"
+          >另存为</n-button
+        >
+      </template>
       <n-button type="primary" style="margin-left: 10px" @click="savePreset">保存</n-button>
     </div>
 
@@ -432,12 +434,27 @@ const confirm = useConfirm();
 const { getUploadPresets } = useUploadPreset();
 const { appConfig } = storeToRefs(useAppConfig());
 const { uploaPresetsOptions } = storeToRefs(useUploadPreset());
+const props = withDefaults(
+  defineProps<{
+    mode?: "full" | "edit-only";
+    presetId?: string;
+    showActionButtons?: boolean;
+  }>(),
+  {
+    mode: "full",
+    showActionButtons: true,
+  },
+);
 const emits = defineEmits<{
   (event: "change", value: BiliupPreset): void;
 }>();
 
 // const presetId = ref<string>("default");
 const presetId = defineModel<string>({ required: false });
+const isEditOnlyMode = computed(() => props.mode === "edit-only");
+const activePresetId = computed(() => {
+  return isEditOnlyMode.value ? props.presetId : presetId.value;
+});
 
 // @ts-ignore
 const options: Ref<BiliupPreset> = ref({
@@ -446,8 +463,8 @@ const options: Ref<BiliupPreset> = ref({
     seasonId: undefined,
   },
 });
-const handlePresetChange = async (value: string) => {
-  const preset = await videoPresetApi.get(value);
+const handlePresetChange = async (id: string) => {
+  const preset = await videoPresetApi.get(id);
   if (preset) {
     options.value = preset;
   } else {
@@ -462,7 +479,7 @@ const handlePresetChange = async (value: string) => {
 const noSideSpace = (value: string) => !value.startsWith(" ") && !value.endsWith(" ");
 
 watch(
-  () => presetId.value,
+  () => activePresetId.value,
   (value) => {
     value && handlePresetChange(value);
   },
@@ -600,6 +617,14 @@ const deletePreset = async () => {
 };
 
 const savePreset = async () => {
+  if (isEditOnlyMode.value && !options.value.id) {
+    notice.error({
+      title: "未找到可编辑的上传预设",
+      duration: 1000,
+    });
+    return false;
+  }
+
   const data = options.value;
   if (userInfoStore.userInfo?.uid) {
     data.config.uid = userInfoStore.userInfo.uid;
@@ -610,12 +635,13 @@ const savePreset = async () => {
       title: "保存成功，但定时发布不会保存到配置文件中",
       duration: 1000,
     });
-    return;
+    return true;
   }
   notice.success({
     title: "保存成功",
     duration: 1000,
   });
+  return true;
 };
 
 const _savePreset = async (data: BiliupPreset) => {
@@ -945,6 +971,7 @@ const getTitle = () => {
 defineExpose({
   setTitle,
   getTitle,
+  savePreset,
 });
 
 const humanTypeList = ref([
