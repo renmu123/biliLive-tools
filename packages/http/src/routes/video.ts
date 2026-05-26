@@ -297,6 +297,7 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
         live_start_time: options?.extra?.live_start_time,
         video_start_time: options?.extra?.video_start_time,
       });
+      return;
     }
     await douyu.download(filepath, options?.extra?.decodeData, {
       danmu: options.danmu,
