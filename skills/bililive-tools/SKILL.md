@@ -1,6 +1,6 @@
 ---
 name: bililive-tools
-description: "处理 biliLive-tools 录制相关操作。Use when: 需要查询录制状态，添加直播间、查询任务"
+description: "处理 biliLive-tools 录制相关操作。Use when: 需要查询录制状态，添加直播间、查询任务、视频压制、字幕识别"
 argument-hint: "提供需要进行的操作，如查询xx录制状态、添加直播间"
 user-invocable: true
 ---
@@ -52,6 +52,14 @@ See [the reference guide](references/preset.md) for details.
 一共存在三种预设，分别是ffmpeg预设、弹幕预设和视频发布预设，用户可以通过接口进行增删改查。
 
 如果涉及删除操作，必须用户额外确认
+
+### 视频相关
+
+See [the reference guide](references/video.md) for details.
+
+- 视频转码(`/task/transcode`)
+- 视频切片(`/task/cut`)
+- 字幕识别(`/task/subtitle`)
 
 ## 示例
 

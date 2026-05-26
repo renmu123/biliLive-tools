@@ -21,7 +21,7 @@ const songRecognize = async (
   lyrics: string;
   name: string;
 }> => {
-  const res = await request.post("/ai/song_recognize", {
+  const res = await request.post("/ai/song-recognize", {
     file,
     startTime,
     endTime,
