@@ -37,6 +37,16 @@ router.post("/", async (ctx) => {
   ctx.body = "success";
 });
 
+router.get("/get", async (ctx) => {
+  const key = ctx.query.key as string;
+  if (!key) {
+    ctx.body = "key is required";
+    return;
+  }
+  const value = appConfig.get(key);
+  ctx.body = value;
+});
+
 router.post("/set", async (ctx) => {
   const data = ctx.request.body;
   if (!data.key || !data.value) {
@@ -93,7 +103,7 @@ router.post("/verifyBiliKey", async (ctx) => {
   }
 });
 
-router.post("/resetBin", async (ctx) => {
+router.post("/reset-bin", async (ctx) => {
   const data = ctx.request.body;
   const type = data.type;
   if (!type) {
