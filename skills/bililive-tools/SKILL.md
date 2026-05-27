@@ -61,6 +61,12 @@ See [the reference guide](references/video.md) for details.
 - 视频切片(`/task/cut`)
 - 字幕识别(`/task/subtitle`)
 
+### 软件配置
+
+当涉及配置修改，查询时使用
+
+See [the reference guide](references/config.md) for details.
+
 ## 示例
 
 ### 开启录制
@@ -82,3 +88,13 @@ See [the reference guide](references/video.md) for details.
 ### 查询某个上传任务的审核状态
 
 仅支持`bili`类型的任务，调用 `/task/queryVideoStatus`
+
+### 配置xxx的webhook
+
+### 视频上传
+
+### 字幕识别
+
+### 字幕压制
+
+### 弹幕压制
