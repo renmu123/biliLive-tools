@@ -54,6 +54,94 @@ const providerIdsWithoutXHS = allProviderIds.filter(
   (providerId) => providerId !== providerForXHS.id,
 );
 
+const buildRecorders = (
+  providerIds: string[],
+  valueKey: string,
+  value: unknown,
+  noGlobalFollowFields: string[] = [],
+) => {
+  return providerIds.map((providerId) => ({
+    id: providerId,
+    providerId,
+    channelId: "123",
+    noGlobalFollowFields,
+    [valueKey]: value,
+  }));
+};
+
+const globalFollowCases = [
+  {
+    title: "转封装为MP4：convert2Mp4",
+    key: "convert2Mp4",
+    globalValue: true,
+    localValue: false,
+    providerIds: allProviderIds,
+  },
+  {
+    title: "分段：segment",
+    key: "segment",
+    globalValue: "120",
+    localValue: "60",
+    providerIds: allProviderIds,
+  },
+  {
+    title: "录制器：recorderType",
+    key: "recorderType",
+    globalValue: "streamlink",
+    localValue: "ffmpeg",
+    providerIds: allProviderIds,
+  },
+  {
+    title: "视频格式：format",
+    key: "videoFormat",
+    globalValue: "mp4",
+    localValue: "flv",
+    providerIds: allProviderIds,
+  },
+  {
+    title: "调试模式：debugLevel",
+    key: "debugLevel",
+    globalValue: "verbose",
+    localValue: "none",
+    providerIds: allProviderIds,
+  },
+  {
+    title: "保存封面：saveCover",
+    key: "saveCover",
+    globalValue: true,
+    localValue: false,
+    providerIds: allProviderIds,
+  },
+  {
+    title: "保存礼物：saveGiftDanma",
+    key: "saveGiftDanma",
+    globalValue: true,
+    localValue: false,
+    providerIds: allProviderIds,
+  },
+  {
+    title: "高能弹幕：saveSCDanma",
+    key: "saveSCDanma",
+    globalValue: false,
+    localValue: true,
+    providerIds: allProviderIds,
+  },
+  {
+    title: "服务端时间戳：useServerTimestamp",
+    key: "useServerTimestamp",
+    globalValue: false,
+    localValue: true,
+    providerIds: allProviderIds,
+  },
+  {
+    title: "弹幕录制：disableProvideCommentsWhenRecording",
+    key: "disableProvideCommentsWhenRecording",
+    globalValue: false,
+    localValue: true,
+    providerIds: providerIdsWithoutXHS,
+  },
+] as const;
+
 describe("RecorderConfig", () => {
   let recorderConfig: RecorderConfig;
   let mockAppConfig: any;
@@ -249,493 +337,49 @@ describe("RecorderConfig", () => {
       });
     });
 
-    describe("分段：segment", () => {
-      it("全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              segment: "120",
-            };
+    for (const testCase of globalFollowCases) {
+      describe(testCase.title, () => {
+        it("全局", () => {
+          mockAppConfig.get.mockImplementation((key: string) => {
+            if (key === "recorder") {
+              return {
+                [testCase.key]: testCase.globalValue,
+              };
+            }
+            if (key === "recorders") {
+              return buildRecorders(testCase.providerIds, testCase.key, testCase.localValue);
+            }
+            return null;
+          });
+
+          for (const id of testCase.providerIds) {
+            const result = recorderConfig.get(id);
+            expect(result?.[testCase.key]).toBe(testCase.globalValue);
           }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: [],
-              segment: "60",
-            }));
-          }
-          return null;
         });
 
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.segment).toBe("120");
-        }
-      });
+        it("非全局", () => {
+          mockAppConfig.get.mockImplementation((key: string) => {
+            if (key === "recorder") {
+              return {
+                [testCase.key]: testCase.globalValue,
+              };
+            }
+            if (key === "recorders") {
+              return buildRecorders(testCase.providerIds, testCase.key, testCase.localValue, [
+                testCase.key,
+              ]);
+            }
+            return null;
+          });
 
-      it("非全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              segment: "120",
-            };
+          for (const id of testCase.providerIds) {
+            const result = recorderConfig.get(id);
+            expect(result?.[testCase.key]).toBe(testCase.localValue);
           }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: ["segment"],
-              segment: "60",
-            }));
-          }
-          return null;
         });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.segment).toBe("60");
-        }
       });
-    });
-
-    describe("录制器：recorderType", () => {
-      it("全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              recorderType: "streamlink",
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: [],
-              recorderType: "ffmpeg",
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.recorderType).toBe("streamlink");
-        }
-      });
-
-      it("非全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              recorderType: "streamlink",
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: ["recorderType"],
-              recorderType: "ffmpeg",
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.recorderType).toBe("ffmpeg");
-        }
-      });
-    });
-
-    describe("视频格式：format", () => {
-      it("全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              videoFormat: "mp4",
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: [],
-              videoFormat: "flv",
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.videoFormat).toBe("mp4");
-        }
-      });
-
-      it("非全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              videoFormat: "mp4",
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: ["videoFormat"],
-              videoFormat: "flv",
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.videoFormat).toBe("flv");
-        }
-      });
-    });
-    describe("自动录制：disableAutoCheck", () => {
-      it("仅非全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: [],
-              disableAutoCheck: true,
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.disableAutoCheck).toBe(true);
-        }
-      });
-    });
-    describe("调试模式：debugLevel", () => {
-      it("全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              debugLevel: "verbose",
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: [],
-              debugLevel: "none",
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.debugLevel).toBe("verbose");
-        }
-      });
-
-      it("非全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              debugLevel: "verbose",
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: ["debugLevel"],
-              debugLevel: "none",
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.debugLevel).toBe("none");
-        }
-      });
-    });
-
-    describe("保存封面：saveCover", () => {
-      it("全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              saveCover: true,
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: [],
-              saveCover: false,
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.saveCover).toBe(true);
-        }
-      });
-
-      it("非全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              saveCover: true,
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: ["saveCover"],
-              saveCover: false,
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.saveCover).toBe(false);
-        }
-      });
-    });
-
-    describe("弹幕录制：disableProvideCommentsWhenRecording", () => {
-      it("全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              disableProvideCommentsWhenRecording: false,
-            };
-          }
-          if (key === "recorders") {
-            return providerIdsWithoutXHS.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: [],
-              disableProvideCommentsWhenRecording: true,
-            }));
-          }
-          return null;
-        });
-
-        for (const id of providerIdsWithoutXHS) {
-          const result = recorderConfig.get(id);
-          expect(result?.disableProvideCommentsWhenRecording).toBe(false);
-        }
-      });
-
-      it("非全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              disableProvideCommentsWhenRecording: false,
-            };
-          }
-          if (key === "recorders") {
-            return providerIdsWithoutXHS.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: ["disableProvideCommentsWhenRecording"],
-              disableProvideCommentsWhenRecording: true,
-            }));
-          }
-          return null;
-        });
-
-        for (const id of providerIdsWithoutXHS) {
-          const result = recorderConfig.get(id);
-          expect(result?.disableProvideCommentsWhenRecording).toBe(true);
-        }
-      });
-    });
-
-    describe("保存礼物：saveGiftDanma", () => {
-      it("全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              saveGiftDanma: true,
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: [],
-              saveGiftDanma: false,
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.saveGiftDanma).toBe(true);
-        }
-      });
-
-      it("非全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              saveGiftDanma: true,
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: ["saveGiftDanma"],
-              saveGiftDanma: false,
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.saveGiftDanma).toBe(false);
-        }
-      });
-    });
-
-    describe("高能弹幕：saveSCDanma", () => {
-      it("全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              saveSCDanma: false,
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: [],
-              saveSCDanma: true,
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.saveSCDanma).toBe(false);
-        }
-      });
-
-      it("非全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              saveSCDanma: false,
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: ["saveSCDanma"],
-              saveSCDanma: true,
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.saveSCDanma).toBe(true);
-        }
-      });
-    });
-
-    describe("服务端时间戳：useServerTimestamp", () => {
-      it("全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              useServerTimestamp: false,
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: [],
-              useServerTimestamp: true,
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.useServerTimestamp).toBe(false);
-        }
-      });
-
-      it("非全局", () => {
-        mockAppConfig.get.mockImplementation((key: string) => {
-          if (key === "recorder") {
-            return {
-              useServerTimestamp: false,
-            };
-          }
-          if (key === "recorders") {
-            return allProviderIds.map((providerId) => ({
-              id: providerId,
-              providerId,
-              channelId: "123",
-              noGlobalFollowFields: ["useServerTimestamp"],
-              useServerTimestamp: true,
-            }));
-          }
-          return null;
-        });
-
-        for (const id of allProviderIds) {
-          const result = recorderConfig.get(id);
-          expect(result?.useServerTimestamp).toBe(true);
-        }
-      });
-    });
+    }
   });
 
   describe("get", () => {

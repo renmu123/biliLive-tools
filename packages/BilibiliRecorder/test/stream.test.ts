@@ -240,101 +240,101 @@ describe("stream.ts", () => {
     });
   });
 
-  describe("getStream", () => {
-    // it("应该正确返回直播流信息", async () => {
-    //   const mockRoomInit = {
-    //     room_id: 12345,
-    //     short_id: 0,
-    //     uid: 12345,
-    //     live_status: 1 as LiveStatus,
-    //     live_time: 1704067200,
-    //     encrypted: false,
-    //     is_sp: 0 as 0 | 1,
-    //   };
-    //   const mockLiveInfo = {
-    //     current_qn: 10000,
-    //     accept_qn: [10000],
-    //     base_url: "/stream",
-    //     sources: [
-    //       {
-    //         host: "https://example.com/",
-    //         extra: "?key=value",
-    //         name: "主线",
-    //         stream_ttl: 300,
-    //       },
-    //     ],
-    //     name: "原画",
-    //   };
-    //   vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
-    //   vi.mocked(getRoomPlayInfo).mockResolvedValue({
-    //     uid: 12345,
-    //     room_id: 12345,
-    //     short_id: 0,
-    //     live_status: 1 as LiveStatus,
-    //     live_time: 1704067200,
-    //     playurl_info: {
-    //       conf_json: "{}",
-    //       playurl: {
-    //         g_qn_desc: [],
-    //         stream: [
-    //           {
-    //             protocol_name: "http_stream" as const,
-    //             format: [
-    //               {
-    //                 format_name: "flv",
-    //                 codec: [
-    //                   {
-    //                     codec_name: "avc",
-    //                     accept_qn: [10000],
-    //                     current_qn: 10000,
-    //                     url_info: [
-    //                       {
-    //                         host: "https://example.com/",
-    //                         extra: "?key=value",
-    //                         stream_ttl: 300,
-    //                       },
-    //                     ],
-    //                     base_url: "/stream",
-    //                   },
-    //                 ],
-    //               },
-    //             ],
-    //           },
-    //         ],
-    //       },
-    //     },
-    //   });
-    //   const stream = await getStream({
-    //     channelId: "12345",
-    //     quality: 10000,
-    //     formatName: "flv",
-    //     codecName: "avc",
-    //   });
-    //   expect(stream.currentStream).toEqual({
-    //     name: "原画",
-    //     source: "主线",
-    //     url: "https://example.com/stream?key=value",
-    //   });
-    // });
-    // it("当直播间未开播时应该抛出错误", async () => {
-    //   const mockRoomInit = {
-    //     room_id: 12345,
-    //     short_id: 0,
-    //     uid: 12345,
-    //     live_status: 0 as LiveStatus,
-    //     live_time: 1704067200,
-    //     encrypted: false,
-    //     is_sp: 0 as 0 | 1,
-    //   };
-    //   vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
-    //   await expect(
-    //     getStream({
-    //       channelId: "12345",
-    //       quality: 10000,
-    //       formatName: "flv",
-    //       codecName: "avc",
-    //     }),
-    //   ).rejects.toThrow("It must be called getStream when living");
-    // });
-  });
+  // describe("getStream", () => {
+  //   it("应该正确返回直播流信息", async () => {
+  //     const mockRoomInit = {
+  //       room_id: 12345,
+  //       short_id: 0,
+  //       uid: 12345,
+  //       live_status: 1 as LiveStatus,
+  //       live_time: 1704067200,
+  //       encrypted: false,
+  //       is_sp: 0 as 0 | 1,
+  //     };
+  //     const mockLiveInfo = {
+  //       current_qn: 10000,
+  //       accept_qn: [10000],
+  //       base_url: "/stream",
+  //       sources: [
+  //         {
+  //           host: "https://example.com/",
+  //           extra: "?key=value",
+  //           name: "主线",
+  //           stream_ttl: 300,
+  //         },
+  //       ],
+  //       name: "原画",
+  //     };
+  //     vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
+  //     vi.mocked(getRoomPlayInfo).mockResolvedValue({
+  //       uid: 12345,
+  //       room_id: 12345,
+  //       short_id: 0,
+  //       live_status: 1 as LiveStatus,
+  //       live_time: 1704067200,
+  //       playurl_info: {
+  //         conf_json: "{}",
+  //         playurl: {
+  //           g_qn_desc: [],
+  //           stream: [
+  //             {
+  //               protocol_name: "http_stream" as const,
+  //               format: [
+  //                 {
+  //                   format_name: "flv",
+  //                   codec: [
+  //                     {
+  //                       codec_name: "avc",
+  //                       accept_qn: [10000],
+  //                       current_qn: 10000,
+  //                       url_info: [
+  //                         {
+  //                           host: "https://example.com/",
+  //                           extra: "?key=value",
+  //                           stream_ttl: 300,
+  //                         },
+  //                       ],
+  //                       base_url: "/stream",
+  //                     },
+  //                   ],
+  //                 },
+  //               ],
+  //             },
+  //           ],
+  //         },
+  //       },
+  //     });
+  //     const stream = await getStream({
+  //       channelId: "12345",
+  //       quality: 10000,
+  //       formatName: "flv",
+  //       codecName: "avc",
+  //     });
+  //     expect(stream.currentStream).toEqual({
+  //       name: "原画",
+  //       source: "主线",
+  //       url: "https://example.com/stream?key=value",
+  //     });
+  //   });
+  //   it("当直播间未开播时应该抛出错误", async () => {
+  //     const mockRoomInit = {
+  //       room_id: 12345,
+  //       short_id: 0,
+  //       uid: 12345,
+  //       live_status: 0 as LiveStatus,
+  //       live_time: 1704067200,
+  //       encrypted: false,
+  //       is_sp: 0 as 0 | 1,
+  //     };
+  //     vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
+  //     await expect(
+  //       getStream({
+  //         channelId: "12345",
+  //         quality: 10000,
+  //         formatName: "flv",
+  //         codecName: "avc",
+  //       }),
+  //     ).rejects.toThrow("It must be called getStream when living");
+  //   });
+  // });
 });
