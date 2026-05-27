@@ -22,7 +22,11 @@ import { danmuService } from "../db/index.js";
 // import DanmuService from "../db/service/danmuService.js";
 import { getBinPath, readVideoMeta, transcode } from "../task/video.js";
 import logger from "../utils/log.js";
-import { replaceExtName, calculateFileQuickHash } from "../utils/index.js";
+import {
+  replaceExtName,
+  calculateFileQuickHash,
+  sendExternalEventRequest,
+} from "../utils/index.js";
 import RecorderConfig from "./config.js";
 import { sendBySystem, send } from "../notify.js";
 import { danmaReport, parseDanmu } from "../danmu/index.js";
@@ -38,6 +42,38 @@ export { RecorderConfig };
 
 // 缓存直播结束通知的最后触发时间，避免频繁通知
 const endLiveNotificationCache = new Map<string, number>();
+
+type RecorderExternalSource = {
+  channelId: string;
+  providerId: string;
+  liveInfo?: {
+    title?: string;
+    owner?: string;
+    liveId?: string;
+    avatar?: string;
+    cover?: string;
+  };
+  extra?: {
+    avatar?: string;
+  };
+};
+
+const getRecorderExternalBase = (recorder: RecorderExternalSource) => {
+  return {
+    roomId: String(recorder.channelId),
+    platform: recorder.providerId,
+    title: recorder.liveInfo?.title,
+    username: recorder.liveInfo?.owner,
+    time: new Date().toISOString(),
+    liveId: recorder.liveInfo?.liveId || "",
+    avatar: recorder.liveInfo?.avatar || recorder.extra?.avatar || "",
+    cover: recorder.liveInfo?.cover || "",
+  };
+};
+
+const sendRecorderExternalEvent = async (type: string, data: Record<string, unknown>) => {
+  await sendExternalEventRequest(type, data);
+};
 
 async function sendStartLiveNotification(
   appConfig: AppConfig,
@@ -296,9 +332,16 @@ export async function createRecorderManager(appConfig: AppConfig) {
     if (!recorder.extra) recorder.extra = {};
     const timestamp = Date.now();
     recorder.extra.lastRecordTime = timestamp;
+    void sendRecorderExternalEvent("record_start", {
+      ...getRecorderExternalBase(recorder),
+      time: new Date(timestamp).toISOString(),
+    });
   });
   manager.on("RecordStop", ({ recorder }) => {
     logger.info("Manager stop", recorder);
+    void sendRecorderExternalEvent("record_end", {
+      ...getRecorderExternalBase(recorder),
+    });
     // 录制结束通知，自动监听&开启推送时才会发送
     const config = recorderConfig.get(recorder.id);
     if (!config) return;
@@ -356,6 +399,12 @@ export async function createRecorderManager(appConfig: AppConfig) {
           proxy: false,
         },
       );
+
+    await sendRecorderExternalEvent("file_created", {
+      filePath: filename,
+      roomId: String(recorder.channelId),
+      platform: recorder.providerId,
+    });
 
     recordHistory.addWithStreamer({
       live_start_time: liveStartTime?.getTime(),
@@ -451,6 +500,12 @@ export async function createRecorderManager(appConfig: AppConfig) {
     } catch (error) {
       logger.error("Update live error", { recorder, filename, error });
     } finally {
+      await sendRecorderExternalEvent("file_completed", {
+        filePath: filename,
+        roomId: String(recorder.channelId),
+        platform: recorder.providerId,
+      });
+
       if (data?.sendToWebhook) {
         const webhookUrl = `http://127.0.0.1:${config.port}/webhook/custom`;
         const payload = {
