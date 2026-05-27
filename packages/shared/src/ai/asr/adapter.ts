@@ -131,11 +131,10 @@ export class BCutASRAdapter implements ASRProvider {
   ): StandardASRResult {
     let list = data.utterances;
     if (opts?.filterMusic) {
-      // @ts-expect-error
-      list = list.filter((s) => s.music <= 0.9); // 过滤掉标记为音乐的段落
+      list = list.filter((s: { music: number }) => s.music <= 0.9); // 过滤掉标记为音乐的段落
     }
 
-    let segments: StandardASRSegment[] = list.map((utterance, index: number) => ({
+    let segments: StandardASRSegment[] = list.map((utterance: { start_time: number; end_time: number; transcript: string }, index: number) => ({
       id: index,
       start: utterance.start_time / 1000,
       end: utterance.end_time / 1000,
