@@ -123,7 +123,7 @@ declare module Ffmpeg {
     avg_frame_rate?: string | undefined;
     time_base?: string | undefined;
     start_pts?: number | undefined;
-    start_time?: number | undefined;
+    start_time?: number | undefined | bigint;
     duration_ts?: string | undefined;
     duration?: string | undefined;
     bit_rate?: string | undefined;

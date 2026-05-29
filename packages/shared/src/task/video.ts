@@ -29,6 +29,17 @@ import { taskQueue, FFmpegTask, AbstractTask } from "./task.js";
 import { isEmptyDanmu, convertXml2Ass, genHotProgress } from "./danmu.js";
 import { recordHistoryService } from "../db/index.js";
 
+import {
+  AVMEDIA_TYPE_AUDIO,
+  AVMEDIA_TYPE_VIDEO,
+  Codec,
+  FormatContext,
+  avGetPixFmtName,
+  avGetSampleFmtName,
+} from "node-av";
+
+import type { AVPixelFormat, AVSampleFormat } from "node-av";
+
 import type {
   FfmpegOptions,
   VideoMergeOptions,
@@ -91,6 +102,314 @@ export const readVideoMeta = async (
       }
     });
   });
+};
+
+type NullableFfprobeFields<T> = {
+  [K in keyof T]: undefined extends T[K] ? Exclude<T[K], undefined> | null | undefined : T[K];
+};
+
+export type ReadVideoMetaByAVData = {
+  streams: Array<
+    NullableFfprobeFields<Ffmpeg.FfprobeStream> & {
+      tags?: Record<string, string | number> | null;
+      disposition?: Ffmpeg.FfprobeStreamDisposition | null;
+    }
+  >;
+  format: NullableFfprobeFields<Ffmpeg.FfprobeFormat>;
+  chapters: any[];
+};
+
+/**
+ * 返回结构尽量对齐 Ffmpeg.FfprobeData。
+ *
+ * NodeAV 无法稳定提供 ffprobe 的全部字段，因此缺失或无法可靠映射的值会返回 null。
+ */
+export const readVideoMetaByAV = async (inputFile: string): Promise<ReadVideoMetaByAVData> => {
+  const formatRate = (
+    rate?: {
+      num?: number;
+      den?: number;
+    } | null,
+  ): string | null => {
+    if (!rate?.num || !rate?.den) {
+      return null;
+    }
+    return `${rate.num}/${rate.den}`;
+  };
+
+  const parseCodecType = (codecType: number): string | null => {
+    if (codecType === AVMEDIA_TYPE_VIDEO) {
+      return "video";
+    }
+    if (codecType === AVMEDIA_TYPE_AUDIO) {
+      return "audio";
+    }
+    return null;
+  };
+
+  const parseDisposition = (
+    disposition?: number | null,
+  ): Ffmpeg.FfprobeStreamDisposition | null => {
+    if (disposition === undefined || disposition === null) {
+      return null;
+    }
+    return {
+      default: disposition & 0x0001 ? 1 : 0,
+      dub: disposition & 0x0002 ? 1 : 0,
+      original: disposition & 0x0004 ? 1 : 0,
+      comment: disposition & 0x0008 ? 1 : 0,
+      lyrics: disposition & 0x0010 ? 1 : 0,
+      karaoke: disposition & 0x0020 ? 1 : 0,
+      forced: disposition & 0x0040 ? 1 : 0,
+      hearing_impaired: disposition & 0x0080 ? 1 : 0,
+      visual_impaired: disposition & 0x0100 ? 1 : 0,
+      clean_effects: disposition & 0x0200 ? 1 : 0,
+      attached_pic: disposition & 0x0400 ? 1 : 0,
+      timed_thumbnails: disposition & 0x0800 ? 1 : 0,
+    };
+  };
+
+  /**
+   * Extract FourCC (Four Character Code) from codec tag
+   * @param codecTag - 32-bit codec tag value
+   * @returns FourCC as 4-character string
+   */
+  const extractFourCC = (codecTag: number): string => {
+    return String.fromCharCode(
+      (codecTag >> 24) & 0xff,
+      (codecTag >> 16) & 0xff,
+      (codecTag >> 8) & 0xff,
+      codecTag & 0xff,
+    );
+  };
+
+  // Create a FormatContext to read the media file
+  const formatContext = new FormatContext();
+
+  // Open the input file (similar to: ffprobe <file>)
+  await formatContext.openInput(inputFile, null, null);
+
+  // Read stream information (similar to: ffprobe -show_streams)
+  await formatContext.findStreamInfo(null);
+
+  // Display basic format information
+  // console.log(
+  //   `Input #0, ${formatContext.iformat?.longName ?? formatContext.iformat?.name ?? "unknown"}, from '${inputFile}':`,
+  // );
+
+  // Display format-level metadata
+  // if (formatContext.metadata) {
+  // console.log("  Metadata:");
+  // const metadata = formatContext.metadata.getAll();
+  // for (const [key, value] of Object.entries(metadata)) {
+  // console.log(`    ${key.padEnd(16)}: ${value}`);
+  // }
+  // }
+
+  // Display duration, start time, and bitrate
+  const duration =
+    formatContext.duration !== undefined && formatContext.duration !== null
+      ? Number(formatContext.duration) / 1000000
+      : null;
+  const bitrate =
+    formatContext.bitRate !== undefined && formatContext.bitRate !== null
+      ? Number(formatContext.bitRate)
+      : null;
+  const startTime =
+    formatContext.startTime !== undefined && formatContext.startTime !== null
+      ? Number(formatContext.startTime) / 1000000
+      : null;
+  const streamMetas: ReadVideoMetaByAVData["streams"] = [];
+  // console.log(
+  //   `  Duration: ${formatTime(duration ?? 0)}, start: ${(startTime ?? 0).toFixed(6)}, bitrate: ${Math.round((bitrate ?? 0) / 1000)} kb/s`,
+  // );
+
+  // Process each stream in the file
+  for (const stream of formatContext.streams ?? []) {
+    const codecParams = stream.codecpar;
+    const codec = Codec.findDecoder(codecParams.codecId);
+    const streamTags = stream.metadata?.getAll() ?? null;
+    const codecType = parseCodecType(codecParams.codecType);
+    const codecTagString = codecParams.codecTag ? extractFourCC(codecParams.codecTag) : null;
+    const displayAspectRatio =
+      codecParams.width && codecParams.height && codecParams.sampleAspectRatio
+        ? `${codecParams.width * codecParams.sampleAspectRatio.num}:${codecParams.height * codecParams.sampleAspectRatio.den}`
+        : codecParams.width && codecParams.height
+          ? `${codecParams.width}:${codecParams.height}`
+          : null;
+
+    streamMetas.push({
+      index: stream.index,
+      codec_name: codec?.name ?? null,
+      codec_long_name: codec?.longName ?? null,
+      codec_type: codecType,
+      codec_tag_string: codecTagString,
+      codec_tag: codecParams.codecTag
+        ? `0x${codecParams.codecTag.toString(16).toUpperCase().padStart(8, "0")}`
+        : null,
+      width: codecParams.width ?? null,
+      height: codecParams.height ?? null,
+      sample_aspect_ratio: codecParams.sampleAspectRatio
+        ? `${codecParams.sampleAspectRatio.num}:${codecParams.sampleAspectRatio.den}`
+        : null,
+      display_aspect_ratio: displayAspectRatio,
+      pix_fmt:
+        codecParams.codecType === AVMEDIA_TYPE_VIDEO
+          ? (avGetPixFmtName(codecParams.format as AVPixelFormat) ?? null)
+          : null,
+      id: stream.id !== undefined && stream.id !== null ? `0x${stream.id.toString(16)}` : null,
+      r_frame_rate: formatRate(stream.rFrameRate),
+      avg_frame_rate: formatRate(stream.avgFrameRate),
+      time_base: formatRate(stream.timeBase),
+      bit_rate:
+        codecParams.bitRate !== undefined && codecParams.bitRate !== null
+          ? String(codecParams.bitRate)
+          : null,
+      sample_fmt:
+        codecParams.codecType === AVMEDIA_TYPE_AUDIO
+          ? (avGetSampleFmtName(codecParams.format as AVSampleFormat) ?? null)
+          : null,
+      sample_rate: codecParams.sampleRate ?? null,
+      channels: codecParams.channels ?? null,
+      channel_layout:
+        codecParams.codecType === AVMEDIA_TYPE_AUDIO
+          ? codecParams.channels === 2
+            ? "stereo"
+            : codecParams.channels === 1
+              ? "mono"
+              : codecParams.channels
+                ? `${codecParams.channels} channels`
+                : null
+          : null,
+      disposition: parseDisposition(stream.disposition),
+      tags: streamTags,
+      duration: String(stream.duration),
+      start_time: stream.startTime,
+      nb_frames: String(stream.nbFrames),
+    });
+
+    //   if (codecParams.codecType === AVMEDIA_TYPE_VIDEO) {
+    //     // Video stream processing
+    //     const pixFmtName = avGetPixFmtName(codecParams.format as AVPixelFormat);
+    //     const dar =
+    //       codecParams.width && codecParams.height && codecParams.sampleAspectRatio
+    //         ? `${codecParams.width * codecParams.sampleAspectRatio.num}:${codecParams.height * codecParams.sampleAspectRatio.den}`
+    //         : `${codecParams.width}:${codecParams.height}`;
+
+    //     // Extract FourCC code
+    //     const fourcc = extractFourCC(codecParams.codecTag);
+
+    //     // Calculate frame rates
+    //     const fps = stream.avgFrameRate ? stream.avgFrameRate.num / stream.avgFrameRate.den : 0;
+    //     const tbr = stream.rFrameRate ? stream.rFrameRate.num / stream.rFrameRate.den : 0;
+
+    //     // Output video stream information (similar to ffprobe output format)
+    //     // prettier-ignore
+    //     console.log(
+    //     `  Stream #0:${stream.index}[0x${stream.id.toString(16)}](${stream.metadata?.get('language') ?? 'und'}): ` +
+    //     `Video: ${codec?.name ?? 'unknown'} (${codec?.longName ?? ''}) ` +
+    //     `(${fourcc} / 0x${codecParams.codecTag.toString(16).toUpperCase().padStart(8, '0')}), ` +
+    //     `${pixFmtName ?? 'unknown'}, ${codecParams.width}x${codecParams.height} ` +
+    //     `[SAR ${codecParams.sampleAspectRatio?.num ?? 1}:${codecParams.sampleAspectRatio?.den ?? 1} DAR ${dar}], ` +
+    //     `${Math.round(Number(codecParams.bitRate) / 1000)} kb/s, ${fps.toFixed(2)} fps, ${tbr.toFixed(2)} tbr, ` +
+    //     `${stream.timeBase.den} tbn${stream.disposition & 0x0001 ? ' (default)' : ''}`,
+    //     );
+    //   } else if (codecParams.codecType === AVMEDIA_TYPE_AUDIO) {
+    //     // Audio stream processing
+    //     const sampleFmtName = avGetSampleFmtName(codecParams.format as AVSampleFormat);
+
+    //     // Extract FourCC code
+    //     const fourcc = extractFourCC(codecParams.codecTag);
+
+    //     // Determine channel layout description
+    //     const channelLayout =
+    //       codecParams.channels === 2
+    //         ? "stereo"
+    //         : codecParams.channels === 1
+    //           ? "mono"
+    //           : `${codecParams.channels} channels`;
+
+    //     // Output audio stream information (similar to ffprobe output format)
+    //     // prettier-ignore
+    //     console.log(
+    //     `  Stream #0:${stream.index}[0x${stream.id.toString(16)}](${stream.metadata?.get('language') ?? 'und'}): ` +
+    //     `Audio: ${codec?.name ?? 'unknown'} (${codec?.longName ?? ''}) ` +
+    //     `(${fourcc} / 0x${codecParams.codecTag.toString(16).toUpperCase().padStart(8, '0')}), ` +
+    //     `${codecParams.sampleRate} Hz, ${channelLayout}, ${sampleFmtName ?? 'unknown'}, ` +
+    //     `${Math.round(Number(codecParams.bitRate) / 1000)} kb/s${stream.disposition & 0x0001 ? ' (default)' : ''}`,
+    //     );
+    //   }
+
+    //   // Display stream-level metadata
+    //   if (stream.metadata) {
+    //     console.log("      Metadata:");
+    //     const streamMeta = stream.metadata.getAll();
+    //     for (const [key, value] of Object.entries(streamMeta)) {
+    //       console.log(`        ${key.padEnd(16)}: ${value}`);
+    //     }
+    //   }
+  }
+
+  // Output FORMAT section (similar to: ffprobe -show_format)
+  // console.log("\n[FORMAT]");
+  // console.log(`filename=${inputFile}`);
+  // console.log(`nb_streams=${formatContext.nbStreams}`);
+  // console.log(`nb_programs=${formatContext.nbPrograms}`);
+  // console.log(`format_name=${formatContext.iformat?.name ?? "unknown"}`);
+  // console.log(`format_long_name=${formatContext.iformat?.longName ?? "unknown"}`);
+  // console.log(`start_time=${(startTime ?? 0).toFixed(6)}`);
+  // console.log(`duration=${(duration ?? 0).toFixed(6)}`);
+  // console.log(`size=${formatContext.pbBytes ?? 0}`);
+  // console.log(`bit_rate=${bitrate}`);
+  // console.log(`probe_score=${formatContext.probeScore}`);
+
+  // Output format metadata as TAGs
+  // if (formatContext.metadata) {
+  //   const metadata = formatContext.metadata.getAll();
+  //   for (const [key, value] of Object.entries(metadata)) {
+  //     console.log(`TAG:${key}=${value}`);
+  //   }
+  // }
+  // console.log("[/FORMAT]\n");
+
+  // This shows that NodeAV can access ALL codec parameters, not just the commonly used ones
+  // const audioStream = formatContext.streams.find(
+  //   (s) => s.codecpar.codecType === AVMEDIA_TYPE_AUDIO,
+  // );
+  // const videoStream = formatContext.streams.find(
+  //   (s) => s.codecpar.codecType === AVMEDIA_TYPE_VIDEO,
+  // );
+
+  // if (videoStream) {
+  // console.log("// Video stream codec parameters:");
+  // console.log(videoStream.codecpar.toJSON());
+  // }
+
+  // if (audioStream) {
+  // console.log("\n// Audio stream codec parameters:");
+  // console.log(audioStream.codecpar.toJSON());
+  // }
+
+  return {
+    streams: streamMetas,
+    format: {
+      filename: inputFile,
+      nb_streams: formatContext.nbStreams ?? null,
+      nb_programs: formatContext.nbPrograms ?? null,
+      format_name: formatContext.iformat?.name ?? null,
+      format_long_name: formatContext.iformat?.longName ?? null,
+      start_time: startTime,
+      duration: duration,
+      size:
+        formatContext.pbBytes !== undefined && formatContext.pbBytes !== null
+          ? Number(formatContext.pbBytes)
+          : null,
+      bit_rate: bitrate,
+      probe_score: formatContext.probeScore ?? null,
+      tags: formatContext.metadata?.getAll() ?? null,
+    },
+    chapters: [],
+  };
 };
 
 export const readNbFrames = async (input: string): Promise<number> => {

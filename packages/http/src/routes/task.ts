@@ -21,6 +21,7 @@ import {
   transcode,
   burn,
   readVideoMeta,
+  readVideoMetaByAV,
   cut,
   checkMergeVideos,
 } from "@biliLive-tools/shared/task/video.js";
@@ -138,6 +139,18 @@ router.post("/videoMeta", async (ctx) => {
     return;
   }
   const data = await readVideoMeta(file, {});
+  ctx.body = data;
+});
+
+router.post("/videoMeta2", async (ctx) => {
+  const { file } = ctx.request.body as { file: string };
+  console.log(ctx.params);
+  if (!file) {
+    ctx.status = 400;
+    ctx.body = "file is required";
+    return;
+  }
+  const data = await readVideoMetaByAV(file);
   ctx.body = data;
 });
 

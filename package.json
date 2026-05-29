@@ -48,7 +48,8 @@
       "trash": "patches/trash.patch"
     },
     "overrides": {
-      "node-abi": "3.78.0"
+      "node-abi": "3.78.0",
+      "@shinyoshiaki/binary-data": "npm:@seydx/binary-data@0.6.2"
     }
   }
 }

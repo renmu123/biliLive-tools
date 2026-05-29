@@ -13,6 +13,8 @@ files:
   - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
 asarUnpack:
   - resources/**
+  - node_modules/node-av/**
+  - node_modules/@seydx/**
 win:
   executableName: biliLive-tools
   target:
