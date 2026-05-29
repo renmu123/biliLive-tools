@@ -132,6 +132,9 @@ importers:
       music-segment-detector:
         specifier: ^0.3.1
         version: 0.3.1(rollup@4.52.4)
+      node-av:
+        specifier: ^5.2.4
+        version: 5.2.4
       ntsuspend:
         specifier: ^1.0.2
         version: 1.0.2
