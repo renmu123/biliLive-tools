@@ -31,6 +31,17 @@ router.post("/download", async (ctx) => {
   ctx.body = await downloadVideo(options);
 });
 
+router.get("/douyu/videoList", async (ctx) => {
+  const { subId, page, limit } = ctx.query;
+
+  const res = await douyu.getReplayList(String(subId), {
+    page: Number(page || 1),
+    limit: Number(limit || 20),
+  });
+  console.log(res);
+  ctx.body = res;
+});
+
 router.post("/sub/parse", async (ctx) => {
   let data = ctx.request.body;
   if (!data.url) {

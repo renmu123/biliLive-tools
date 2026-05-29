@@ -98,3 +98,5 @@ See [the reference guide](references/config.md) for details.
 ### 字幕压制
 
 ### 弹幕压制
+
+### 下载斗鱼录播
