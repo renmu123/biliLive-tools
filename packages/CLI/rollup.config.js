@@ -13,6 +13,8 @@ export default [
       "shazamio-core",
       "music-segment-detector",
       "fsevents",
+      "node-av",
+      "@seydx",
     ],
     input: "src/index.ts",
     output: [
