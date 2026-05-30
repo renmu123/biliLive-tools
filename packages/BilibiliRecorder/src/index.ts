@@ -160,12 +160,20 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       customHost: this.customHost,
     });
   } catch (err) {
-    if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
     this.emit("stateChange", {
       state: "check-error",
       msg: `检查失败，` + (err instanceof Error ? err.message : String(err)),
     });
     throw err;
+  }
+  if (!res.currentStream) {
+    if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
+    const message = `无法获取到预期的直播流，如果不是预期行为，请调整"qualityRetry(流匹配重试次数)"参数`;
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: message,
+    });
+    throw new Error(message);
   }
 
   this.emit("stateChange", { state: "recording" });
