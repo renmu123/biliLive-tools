@@ -58,8 +58,12 @@ See [the reference guide](references/preset.md) for details.
 See [the reference guide](references/video.md) for details.
 
 - 视频转码(`/task/transcode`)
-- 视频切片(`/task/cut`)
+- 视频切割(`/task/cut`)
 - 字幕识别(`/task/subtitle`)
+
+### 下载相关
+
+See [the reference guide](references/download.md) for details.
 
 ### 软件配置
 
@@ -100,3 +104,21 @@ See [the reference guide](references/config.md) for details.
 ### 弹幕压制
 
 ### 下载斗鱼录播
+
+#### 解析
+
+如果用户提供了url，类似`https://v.douyu.com/show/xxx`,使用接口解析后调用下载
+
+如果用户提供了直播间链接，类似`https://www.douyu.com/93589`,使用`/video/sub/parse`接口解析获取`subId`后再查询视频列表
+
+#### 视频列表查询
+
+使用`/douyu/videoList`接口查询视频列表，获取到视频id后进行进行解析
+
+#### 视频解析
+
+调用 `/video/parse` 进行解析，获取到下载链接后进行下载
+
+#### 视频下载
+
+调用 `/video/download` 进行下载
