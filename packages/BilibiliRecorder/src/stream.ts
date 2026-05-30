@@ -303,24 +303,12 @@ export async function getStream(
     codecName: opts.codecName,
     onlyAudio: opts.onlyAudio,
   });
-  // console.log(JSON.stringify(liveInfo, null, 2));
 
   if (liveInfo.current_qn !== qn && opts.strictQuality) {
     return {
       ...liveInfo,
       currentStream: null,
     };
-  }
-  if ((liveInfo?.accept_qn ?? []).length !== 0 && liveInfo.current_qn !== qn) {
-    // 当前流不是预期的流，需要切换。
-    const acceptQn = liveInfo.accept_qn[0];
-    liveInfo = await getLiveInfo(roomId, {
-      qn: acceptQn,
-      cookie: opts.cookie,
-      formatName: opts.formatName,
-      codecName: opts.codecName,
-      onlyAudio: opts.onlyAudio,
-    });
   }
 
   let expectSource = liveInfo.sources[0];
