@@ -31,8 +31,6 @@
       <n-spin :show="loading">
         <n-data-table :columns="columns" :data="items" :pagination="false" />
       </n-spin>
-
-      <n-empty v-if="!loading && items.length === 0" description="当前目录没有可展示的文件" />
     </n-space>
   </div>
 </template>
