@@ -125,6 +125,9 @@ export type ReadVideoMetaByAVData = {
  * NodeAV 无法稳定提供 ffprobe 的全部字段，因此缺失或无法可靠映射的值会返回 null。
  */
 export const readVideoMetaByAV = async (inputFile: string): Promise<ReadVideoMetaByAVData> => {
+  if (!(await pathExists(inputFile))) {
+    throw new Error(`File not found: ${inputFile}`);
+  }
   const formatRate = (
     rate?: {
       num?: number;
@@ -284,7 +287,7 @@ export const readVideoMetaByAV = async (inputFile: string): Promise<ReadVideoMet
       disposition: parseDisposition(stream.disposition),
       tags: streamTags,
       duration: String(stream.duration),
-      start_time: stream.startTime,
+      start_time: Number(String(stream.startTime)),
       nb_frames: String(stream.nbFrames),
     });
 
