@@ -44,6 +44,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   host: "127.0.0.1",
   passKey: "",
   https: false,
+  externalWebhook: "",
   webhook: {
     open: false,
     recoderFolder: "",

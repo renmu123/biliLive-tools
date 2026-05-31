@@ -93,6 +93,18 @@
               <template #label>
                 <span class="inline-flex">
                   <Tip
+                    text="事件订阅"
+                    :tip="`可以通过webhook接收本软件的事件，具体使用方法请查看文档`"
+                  ></Tip>
+                </span>
+              </template>
+              <n-input v-model:value="config.externalWebhook" placeholder="请输入地址" />
+            </n-form-item>
+
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  <Tip
                     text="自定义二进制文件"
                     :tip="`开启后，将无法自动使用项目内二进制文件，可能导致应用无法使用，请谨慎开启`"
                   ></Tip>
