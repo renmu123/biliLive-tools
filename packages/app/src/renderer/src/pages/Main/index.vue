@@ -1,7 +1,8 @@
 <template>
   <n-space vertical>
-    <n-layout has-sider class="layout" position="absolute">
+    <n-layout :has-sider="!isMobile" class="layout" position="absolute">
       <n-layout-sider
+        v-if="!isMobile"
         bordered
         collapse-mode="width"
         :collapsed-width="64"
@@ -35,7 +36,17 @@
         </n-layout-footer>
       </n-layout-sider>
 
-      <n-layout :class="['main-container', route.name]">
+      <n-layout :class="['main-container', route.name, { mobile: isMobile }]">
+        <div v-if="isMobile" class="mobile-header">
+          <n-button quaternary class="mobile-menu-trigger" @click="mobileMenuVisible = true">
+            <template #icon>
+              <n-icon>
+                <MenuOutline />
+              </n-icon>
+            </template>
+          </n-button>
+          <div class="mobile-header-title">biliLive-tools</div>
+        </div>
         <router-view v-slot="{ Component }">
           <keep-alive
             :include="[
@@ -61,6 +72,25 @@
       </n-layout>
     </n-layout>
   </n-space>
+  <n-drawer v-model:show="mobileMenuVisible" placement="left" :width="280">
+    <n-drawer-content
+      body-content-style="padding: 0; display: flex; flex-direction: column;"
+      class="mobile-drawer-content"
+    >
+      <n-menu
+        v-model:value="activeKey"
+        class="mobile-main-menu"
+        :options="menuOptions"
+        default-expand-all
+      />
+      <n-menu
+        v-model:value="activeKey"
+        class="mobile-footer-menu"
+        :options="footerMenuOptions"
+        default-expand-all
+      />
+    </n-drawer-content>
+  </n-drawer>
   <AppSettingDialog v-model="settingVisible" ref="settingDialogRef"></AppSettingDialog>
   <ChangelogModal v-model:visible="changelogVisible"></ChangelogModal>
   <logModal v-model:visible="logVisible"></logModal>
@@ -70,7 +100,7 @@
 defineOptions({
   name: "Main",
 });
-import { useStorage } from "@vueuse/core";
+import { useStorage, useWindowSize } from "@vueuse/core";
 import { NIcon } from "naive-ui";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
@@ -81,6 +111,7 @@ import {
   GitPullRequestOutline as QueueIcon,
   SettingsOutline as SettingIcon,
   LogOutOutline,
+  MenuOutline,
 } from "@vicons/ionicons5";
 import { DashboardOutlined as DashboardIcon, LiveTvRound } from "@vicons/material";
 import { VideoClip20Regular } from "@vicons/fluent";
@@ -105,9 +136,27 @@ const route = useRoute();
 const activeKey = ref("Home");
 activeKey.value = route.name as string;
 const collapsed = useStorage("collapsed", false);
+const mobileMenuVisible = ref(false);
+const { width } = useWindowSize();
+const isMobile = computed(() => width.value <= 768);
 
 appConfig.getAppConfig();
 quenuStore.init();
+
+watch(
+  () => route.fullPath,
+  () => {
+    activeKey.value = route.name as string;
+    mobileMenuVisible.value = false;
+  },
+  { immediate: true },
+);
+
+watch(isMobile, (value) => {
+  if (!value) {
+    mobileMenuVisible.value = false;
+  }
+});
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });
@@ -520,6 +569,10 @@ initChanglog();
 <style lang="less">
 @import "../../assets/css/styles.less";
 
+.layout {
+  inset: 0;
+}
+
 .main-container {
   margin: 15px;
   margin-right: 0px;
@@ -536,12 +589,68 @@ initChanglog();
     }
   }
 }
+
+.mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-secondary);
+  margin-bottom: 10px;
+}
+
+.mobile-menu-trigger {
+  flex: none;
+}
+
+.mobile-header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .main-menu {
   margin-bottom: 100px;
 }
+
 .footer-menu {
   position: relative;
   z-index: 10;
   background: var(--bg-primary);
+}
+
+.mobile-main-menu {
+  flex: 1;
+}
+
+.mobile-footer-menu {
+  border-top: 1px solid var(--border-secondary);
+}
+
+.mobile-drawer-content {
+  > .n-drawer-body {
+    overflow: initial;
+  }
+}
+
+// @media (max-width: 768px) {
+//   .main-container {
+//     margin: 10px;
+
+//     &.videoCut {
+//       margin: 0;
+//     }
+//   }
+// }
+
+&.mobile {
+  margin: 0;
+
+  & > .n-layout-scroll-container {
+    padding: 0 10px;
+  }
 }
 </style>
