@@ -1,6 +1,6 @@
 <template>
   <n-modal v-model:show="showModal" transform-origin="center" :auto-focus="false">
-    <n-card style="width: 800px" title="更新日志" :bordered="false">
+    <n-card style="max-width: 800px" title="更新日志" :bordered="false">
       <div>
         <p>
           <b

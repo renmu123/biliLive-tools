@@ -40,7 +40,7 @@
         <div v-if="isMobile" class="mobile-header">
           <n-button quaternary class="mobile-menu-trigger" @click="mobileMenuVisible = true">
             <template #icon>
-              <n-icon>
+              <n-icon size="36">
                 <MenuOutline />
               </n-icon>
             </template>
@@ -600,6 +600,7 @@ initChanglog();
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border-secondary);
   margin-bottom: 10px;
+  padding: 10px 0;
 }
 
 .mobile-menu-trigger {
@@ -607,8 +608,8 @@ initChanglog();
 }
 
 .mobile-header-title {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: bold;
   color: var(--text-primary);
 }
 

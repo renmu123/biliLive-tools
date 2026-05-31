@@ -351,12 +351,12 @@
             ></Tip>
           </span>
         </template>
-        <div class="inline-items" style="align-items: center">
+        <div class="inline-items" style="align-items: center; flex-wrap: wrap; width: 100%">
           <n-select
             v-model:value="options.config.seasonId"
             :options="seasonList"
             placeholder="请选择合集"
-            style="width: 250px; flex: none"
+            style="flex: 1; min-width: 100px; max-width: 250px"
             clearable
           />
           <n-select
@@ -366,7 +366,7 @@
             label-field="title"
             value-field="id"
             placeholder="请选择小节"
-            style="width: 250px; flex: none"
+            style="flex: 1; min-width: 100px; max-width: 250px"
             clearable
           />
           <n-checkbox
