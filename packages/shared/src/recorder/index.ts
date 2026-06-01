@@ -139,7 +139,9 @@ async function sendEndLiveNotification(
 
 async function convert2Mp4(videoFile: string): Promise<string> {
   const output = replaceExtName(videoFile, ".mp4");
-  if (await fs.pathExists(output)) return output;
+  if (await fs.pathExists(output)) {
+    throw new Error(`目标文件已存在: ${output}`);
+  }
 
   const name = path.basename(output);
   return new Promise((resolve, reject) => {
