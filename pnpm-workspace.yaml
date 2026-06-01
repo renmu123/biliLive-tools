@@ -20,7 +20,7 @@ patchedDependencies:
 
 overrides:
   "node-abi": "3.92.0"
-  "webworkify-webpack": "git+https://github.com/xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef"
+  "webworkify-webpack": "https://github.com/xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef"
 
 blockExoticSubdeps: false
 
