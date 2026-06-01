@@ -19,6 +19,12 @@
       "default": "./lib/*.js"
     }
   },
+  "dependencies": {
+    "arktype": "^2.1.2"
+  },
+  "devDependencies": {
+    "@renmu/bili-api": "2.14.0"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",

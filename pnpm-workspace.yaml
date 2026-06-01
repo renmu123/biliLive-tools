@@ -14,3 +14,33 @@ catalog:
   font-ls: 0.6.6
   ntsuspend: ^1.0.2
   mitt: ^3.0.1
+
+patchedDependencies:
+  "trash": "patches/trash.patch"
+
+overrides:
+  "node-abi": "3.92.0"
+
+blockExoticSubdeps: false
+
+allowBuilds:
+  better-sqlite3: true
+  bufferutil: true
+  electron: true
+  electron-builder: true
+  electron-winstaller: true
+  esbuild: true
+  font-ls: true
+  ntsuspend: true
+  prebuild-install: true
+  protobufjs: true
+  utf-8-validate: true
+
+minimumReleaseAgeExclude:
+  - app-builder-lib@26.13.0
+  - builder-util-runtime@9.6.3
+  - builder-util@26.13.0
+  - dmg-builder@26.13.0
+  - electron-builder-squirrel-windows@26.13.0
+  - electron-builder@26.13.0
+  - electron-publish@26.13.0

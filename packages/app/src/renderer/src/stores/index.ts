@@ -194,6 +194,7 @@ export const useQueueStore = defineStore("queue", () => {
     const res = await taskApi.list(params.value);
     // 为了web的兼容性考虑
     if (isArray(res)) {
+      // @ts-expect-error
       queue.value = res.reverse();
     } else {
       queue.value = res.list.reverse();

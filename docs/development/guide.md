@@ -27,7 +27,7 @@
 安装 pnpm：
 
 ```bash
-npm install -g pnpm@9.15.2
+npm install -g pnpm@11.5.0
 ```
 
 ## 克隆仓库
