@@ -5,6 +5,7 @@
     auto-focus
     :on-after-enter="handleOpen"
     class="setting-modal"
+    :class="breakpoint"
   >
     <n-card
       style="width: calc(100% - 60px)"
@@ -468,6 +469,7 @@ import { deepRaw } from "@renderer/utils";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
 import { useThemeStore } from "@renderer/stores/theme";
+import { useBreakpoints } from "@renderer/hooks/useBreakpoints";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig } from "@biliLive-tools/types";
 
@@ -475,6 +477,7 @@ const notice = useNotification();
 const appConfigStore = useAppConfig();
 const showModal = defineModel<boolean>({ required: true, default: false });
 const isWeb = computed(() => window.isWeb);
+const { breakpoint } = useBreakpoints();
 
 // @ts-ignore
 const config: Ref<AppConfig> = ref({
@@ -907,6 +910,9 @@ const navigate = (tab: string) => {
 .setting-modal > :deep(.n-card-content) {
   padding-bottom: 0 !important;
   padding-right: 0px !important;
+}
+.setting-modal.mobile > :deep(.n-card-content) {
+  padding-left: 0 !important;
 }
 .setting-tab > :deep(.n-tab-pane) {
   overflow: auto;

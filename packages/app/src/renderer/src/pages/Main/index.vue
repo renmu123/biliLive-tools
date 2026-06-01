@@ -100,7 +100,8 @@
 defineOptions({
   name: "Main",
 });
-import { useStorage, useWindowSize } from "@vueuse/core";
+import { useStorage } from "@vueuse/core";
+import { useBreakpoints } from "@renderer/hooks/useBreakpoints";
 import { NIcon } from "naive-ui";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
@@ -137,8 +138,7 @@ const activeKey = ref("Home");
 activeKey.value = route.name as string;
 const collapsed = useStorage("collapsed", false);
 const mobileMenuVisible = ref(false);
-const { width } = useWindowSize();
-const isMobile = computed(() => width.value <= 768);
+const { isMobile } = useBreakpoints();
 
 appConfig.getAppConfig();
 quenuStore.init();
@@ -651,7 +651,7 @@ initChanglog();
   margin: 0;
 
   & > .n-layout-scroll-container {
-    padding: 0 10px;
+    padding: 0 10px 10px 10px;
   }
 }
 </style>
