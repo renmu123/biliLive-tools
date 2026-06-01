@@ -42,13 +42,5 @@
     "typescript": "5.9.3",
     "vitest": "^3.2.4"
   },
-  "packageManager": "pnpm@11.5.0+sha512.dbfcc4f81cf48597afd4bc391ffdf12c11f1a9fb83a395bfa6b0a2d9cc2fd8ffebafdb1ccbd529632153f793904c2615b7f09fe1a345473fd1c35845172a8eb1",
-  "pnpm": {
-    "patchedDependencies": {
-      "trash": "patches/trash.patch"
-    },
-    "overrides": {
-      "node-abi": "3.78.0"
-    }
-  }
+  "packageManager": "pnpm@11.5.0+sha512.dbfcc4f81cf48597afd4bc391ffdf12c11f1a9fb83a395bfa6b0a2d9cc2fd8ffebafdb1ccbd529632153f793904c2615b7f09fe1a345473fd1c35845172a8eb1"
 }
