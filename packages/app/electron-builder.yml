@@ -32,6 +32,7 @@ portable:
   artifactName: ${productName}-${version}-${os}-${arch}-portable.${ext}
 
 mac:
+  identity: null
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
