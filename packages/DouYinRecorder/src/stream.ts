@@ -65,11 +65,8 @@ export async function getStream(
   },
 ) {
   let api = opts.api ?? "web";
-  if (api === "userHTML") {
-    // userHTML 接口只能用于状态检测
-    api = "web";
-  } else if (api === "random") {
-    api = selectRandomAPI(["userHTML"]);
+  if (api === "random") {
+    api = selectRandomAPI();
   }
   const info = await getRoomInfo(opts.channelId, {
     doubleScreen: opts.doubleScreen ?? true,

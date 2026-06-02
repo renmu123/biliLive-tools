@@ -171,7 +171,17 @@ export class APILoadBalancer {
           api: apiType,
         });
 
-        // 调用成功，记录成功状态
+        if (result.living && (!result.sources || result.sources.length === 0)) {
+          this.recordFailure(apiType, new Error("living but no stream url"));
+          console.warn(
+            `API ${apiType} detected live but no stream url (attempt ${attempt + 1}/${maxAttempts})`,
+          );
+          if (attempt === maxAttempts - 1) {
+            break;
+          }
+          continue;
+        }
+
         this.recordSuccess(apiType);
         return result;
       } catch (error) {

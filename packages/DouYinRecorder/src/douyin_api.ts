@@ -224,17 +224,22 @@ async function getRoomInfoByUserWeb(
     // console.log(roomData);
     // const roomInfo = data.state.roomStore.roomInfo;
     // const streamData = data.state.streamStore.streamData;
+    const roomData = userData?.user?.user?.roomData;
+    const streamUrl = roomData?.stream_url;
+
     return {
-      living: userData?.user?.user?.roomData?.status === 2,
+      living: roomData?.status === 2,
       nickname: userData?.user?.user?.nickname ?? "",
       sec_uid: userData?.user?.user?.secUid ?? "",
       avatar: userData?.user?.user?.avatar ?? "",
-      api: "webHTML",
+      api: "userHTML",
+      live_type_audio: roomData?.live_type_audio ?? false,
+      live_room_mode: roomData?.live_room_mode ?? 0,
       room: {
         title: "",
         cover: "",
         id_str: userData?.user?.user?.roomIdStr,
-        stream_url: null,
+        stream_url: streamUrl ?? null,
       },
     };
   } catch (e) {
@@ -384,11 +389,12 @@ async function getRoomInfoByWeb(
   const room = data?.data?.[0];
 
   return {
-    living: data?.room_status === 0,
+    living: data?.room_status === 0 || data?.room_status === 1,
     nickname: data?.user?.nickname ?? "",
     avatar: data?.user?.avatar_thumb?.url_list?.[0] ?? "",
     sec_uid: data?.user?.sec_uid ?? "",
     api: "web",
+    enter_mode: data?.enter_mode,
     room: {
       title: room?.title ?? "",
       cover: room?.cover?.url_list?.[0] ?? "",
@@ -492,8 +498,11 @@ export async function getRoomInfo(
     data = await getRoomInfoByWeb(webRoomId, opts);
   }
   // console.log(JSON.stringify(data, null, 2));
+
   const room = data.room;
-  if (api === "userHTML") {
+  assert(room, `No room data, id ${webRoomId}`);
+
+  if (room?.stream_url == null) {
     return {
       living: data.living,
       roomId: webRoomId,
@@ -508,26 +517,9 @@ export async function getRoomInfo(
       api: data.api,
     };
   }
-  assert(room, `No room data, id ${webRoomId}`);
-
-  if (room?.stream_url == null) {
-    return {
-      living: false,
-      roomId: webRoomId,
-      owner: data.nickname,
-      title: room?.title ?? data.nickname,
-      streams: [],
-      sources: [],
-      avatar: data.avatar,
-      cover: room.cover,
-      liveId: room.id_str,
-      uid: data.sec_uid,
-      api: data.api,
-    };
-  }
 
   let qualities: QualityInfo[] = [];
-  let stream_data: string = "";
+  let stream_data: string | null = "";
   if (opts.doubleScreen && !isEmpty(room.stream_url.pull_datas)) {
     const pull_data = Object.values(room.stream_url.pull_datas)[0] ?? {
       options: {
@@ -544,28 +536,68 @@ export async function getRoomInfo(
     qualities = room.stream_url.live_core_sdk_data.pull_data.options.qualities;
     stream_data = room.stream_url.live_core_sdk_data.pull_data.stream_data;
   }
-  const streamData =
-    typeof stream_data === "string" ? (JSON.parse(stream_data) as StreamData).data : stream_data;
+
+  let streamList: StreamInfo[];
+  let streamData: StreamData["data"];
+
+  if (stream_data && typeof stream_data === "string") {
+    streamData = (JSON.parse(stream_data) as StreamData).data;
+
+    streamList = Object.entries(streamData)
+      .map(([quality, info]) => {
+        const stream = info?.main;
+        const name = qualityList.find((item) => item.key === quality)?.desc;
+        return {
+          quality: quality,
+          name: name ?? "未知",
+          flv: stream?.flv,
+          hls: stream?.hls,
+        };
+      })
+      .filter((stream) => stream.flv || stream.hls);
+  } else {
+    const flvPullUrl: PullURLMap = room.stream_url.flv_pull_url ?? {};
+    const hlsPullUrlMap: PullURLMap = room.stream_url.hls_pull_url_map ?? {};
+
+    const firstFlvKey = Object.keys(flvPullUrl)[0];
+    const firstHlsKey = Object.keys(hlsPullUrlMap)[0];
+    const fallbackFlv = firstFlvKey ? flvPullUrl[firstFlvKey] : undefined;
+    const fallbackHls = firstHlsKey ? hlsPullUrlMap[firstHlsKey] : undefined;
+
+    if (qualities.length > 0) {
+      streamList = qualities
+        .map((info) => {
+          return {
+            quality: info.sdk_key,
+            name: info.name,
+            flv: flvPullUrl[firstFlvKey] ?? fallbackFlv,
+            hls: hlsPullUrlMap[firstHlsKey] ?? fallbackHls,
+          };
+        })
+        .filter((stream) => stream.flv || stream.hls);
+    } else {
+      const qualityKeys = new Set([...Object.keys(flvPullUrl), ...Object.keys(hlsPullUrlMap)]);
+      streamList = Array.from(qualityKeys)
+        .map((key) => {
+          const name = qualityList.find((item) => item.key === key)?.desc;
+          return {
+            quality: key,
+            name: name ?? "未知",
+            flv: flvPullUrl[key],
+            hls: hlsPullUrlMap[key],
+          };
+        })
+        .filter((stream) => stream.flv || stream.hls);
+    }
+
+    streamData = {};
+  }
 
   const streams: StreamProfile[] = qualities.map((info) => ({
     desc: info.name,
     key: info.sdk_key,
     bitRate: info.v_bit_rate,
   }));
-
-  // 转换流数据结构
-  const streamList: StreamInfo[] = Object.entries(streamData)
-    .map(([quality, info]) => {
-      const stream = info?.main;
-      const name = qualityList.find((item) => item.key === quality)?.desc;
-      return {
-        quality: quality,
-        name: name ?? "未知",
-        flv: stream?.flv,
-        hls: stream?.hls,
-      };
-    })
-    .filter((stream) => stream.flv || stream.hls);
 
   const aoStream = streamList.find((stream) => stream.quality === "ao");
   if (!!aoStream) {

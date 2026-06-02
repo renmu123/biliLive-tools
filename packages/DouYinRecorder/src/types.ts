@@ -34,4 +34,7 @@ export interface RoomInfo {
     id_str: string;
     stream_url: any | null;
   } | null;
+  enter_mode?: number;
+  live_type_audio?: boolean;
+  live_room_mode?: number;
 }
