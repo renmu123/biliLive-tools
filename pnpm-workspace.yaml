@@ -38,14 +38,10 @@ allowBuilds:
   utf-8-validate: true
 
 minimumReleaseAgeExclude:
-  - app-builder-lib@26.13.0
-  - builder-util-runtime@9.6.3
-  - builder-util@26.13.0
-  - dmg-builder@26.13.0
-  - electron-builder-squirrel-windows@26.13.0
-  - electron-builder@26.13.0
-  - electron-publish@26.13.0
-  - app-builder-lib@26.13.1
-  - dmg-builder@26.13.1
-  - electron-builder-squirrel-windows@26.13.1
-  - electron-builder@26.13.1
+  - builder-util-runtime
+  - builder-util
+  - electron-publish
+  - app-builder-lib
+  - dmg-builder
+  - electron-builder-squirrel-windows
+  - electron-builder
