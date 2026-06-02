@@ -45,3 +45,7 @@ minimumReleaseAgeExclude:
   - electron-builder-squirrel-windows@26.13.0
   - electron-builder@26.13.0
   - electron-publish@26.13.0
+  - app-builder-lib@26.13.1
+  - dmg-builder@26.13.1
+  - electron-builder-squirrel-windows@26.13.1
+  - electron-builder@26.13.1
