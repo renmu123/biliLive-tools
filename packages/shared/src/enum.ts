@@ -14,6 +14,7 @@ export enum TaskType {
   subtitleTranslate = "subtitleTranslate",
   sync = "sync",
   flvRepair = "flvRepair",
+  liveSummary = "liveSummary",
 }
 
 export enum NotificationType {
@@ -330,6 +331,26 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     subtitleRecognize: {
       modelId: "bcut",
+    },
+    liveSummary: {
+      enabled: false,
+      asrModelId: "bcut",
+      llmModelId: "ca277547-fabd-462b-99d2-cf76f56002e6",
+      prompt: `你是一个专业的直播内容总结助手。请基于直播语音转写内容，生成一份结构清晰、信息密度高的中文总结。
+
+请包含：
+1. 一句话概述
+2. 主要内容
+3. 关键观点或事件
+4. 时间线章节（如果转写中有时间信息，请尽量使用）
+5. 值得回看的片段建议
+
+要求：
+- 不要编造转写中没有的信息
+- 如果内容较少或识别质量差，请明确说明
+- 输出 Markdown`,
+      maxInputLength: 24000,
+      saveTranscript: true,
     },
   },
   biliUpload: {

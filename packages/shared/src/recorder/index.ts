@@ -21,6 +21,7 @@ import recordHistory from "./recordHistory.js";
 import { danmuService } from "../db/index.js";
 // import DanmuService from "../db/service/danmuService.js";
 import { getBinPath, readVideoMeta, transcode } from "../task/video.js";
+import { addLiveSummaryTask } from "../task/liveSummary.js";
 import logger from "../utils/log.js";
 import { replaceExtName, calculateFileQuickHash } from "../utils/index.js";
 import RecorderConfig from "./config.js";
@@ -221,6 +222,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     appConfig: AppConfig,
   ) {
     const config = appConfig.getAll();
+    let finalVideoFile = filename;
     const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
     const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
     const maxThreadCount = config?.recorder?.maxThreadCount ?? 3;
@@ -441,11 +443,32 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
       if (data?.convert2Mp4) {
         try {
-          await convert2Mp4(filename);
+          finalVideoFile = await convert2Mp4(filename);
           await fs.unlink(filename);
           logger.info("转换 mp4 成功，已删除原文件", { filename });
         } catch (error) {
           logger.error("convert2Mp4 error", error);
+        }
+      }
+
+      if (config.ai?.liveSummary?.enabled) {
+        try {
+          const history = recordHistory.getRecord({
+            file: filename,
+            live_id: liveId,
+          });
+          if (history) {
+            addLiveSummaryTask({
+              recordId: history.id,
+              videoFile: finalVideoFile,
+              title,
+              streamer: username,
+              roomId: channelId,
+              platform: recorder.providerId,
+            });
+          }
+        } catch (error) {
+          logger.error("添加直播总结任务失败", { filename: finalVideoFile, error });
         }
       }
     } catch (error) {

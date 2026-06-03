@@ -64,6 +64,11 @@ export function upadteLive(
     danma_num?: number;
     interact_num?: number;
     quick_hash?: string;
+    ai_summary_status?: LiveHistory["ai_summary_status"];
+    ai_summary?: string;
+    ai_summary_error?: string;
+    ai_transcript_file?: string;
+    ai_summary_time?: number;
   },
 ) {
   const live = recordHistoryService.query({ video_file: query.video_file, live_id: query.live_id });

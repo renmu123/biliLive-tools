@@ -200,6 +200,57 @@
               </n-form>
             </n-collapse-item>
           </n-collapse>
+          <n-collapse style="margin-top: 10px">
+            <n-collapse-item title="直播总结" name="liveSummary">
+              <n-form label-placement="left" :label-width="120">
+                <n-form-item label="启用">
+                  <n-switch v-model:value="config.ai.liveSummary.enabled" />
+                </n-form-item>
+                <n-form-item label="ASR模型">
+                  <n-select
+                    v-model:value="config.ai.liveSummary.asrModelId"
+                    :options="getModelOptionsByTag('asr')"
+                    placeholder="请选择ASR模型"
+                  />
+                </n-form-item>
+                <n-form-item label="LLM模型">
+                  <n-select
+                    v-model:value="config.ai.liveSummary.llmModelId"
+                    :options="getModelOptionsByTag('llm')"
+                    placeholder="请选择LLM模型"
+                  />
+                </n-form-item>
+                <n-form-item label="提示词">
+                  <n-input
+                    v-model:value="config.ai.liveSummary.prompt"
+                    type="textarea"
+                    placeholder="请输入总结提示词"
+                    :autosize="{
+                      minRows: 4,
+                      maxRows: 12,
+                    }"
+                  />
+                </n-form-item>
+                <n-form-item>
+                  <template #label>
+                    <Tip
+                      tip="限制送入LLM的转写文本长度，直播很长时会保留开头和结尾内容，避免上下文超限。"
+                      text="最大输入长度"
+                    />
+                  </template>
+                  <n-input-number
+                    v-model:value="config.ai.liveSummary.maxInputLength"
+                    :min="2000"
+                    :step="1000"
+                    style="width: 180px"
+                  />
+                </n-form-item>
+                <n-form-item label="保存转写">
+                  <n-switch v-model:value="config.ai.liveSummary.saveTranscript" />
+                </n-form-item>
+              </n-form>
+            </n-collapse-item>
+          </n-collapse>
         </n-tab-pane>
       </n-tabs>
     </n-form>
@@ -326,6 +377,14 @@ const config = defineModel<AppConfig>("data", {
     ai: {
       vendors: [],
       models: [],
+      liveSummary: {
+        enabled: false,
+        asrModelId: undefined,
+        llmModelId: undefined,
+        prompt: "",
+        maxInputLength: 24000,
+        saveTranscript: true,
+      },
     },
   }),
 });

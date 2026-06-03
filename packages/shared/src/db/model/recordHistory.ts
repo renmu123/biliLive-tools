@@ -23,6 +23,16 @@ const BaseLiveHistory = z.object({
   live_id: z.string().optional(),
   // 文件快速哈希值
   quick_hash: z.string().optional(),
+  // AI 总结状态
+  ai_summary_status: z.enum(["pending", "running", "completed", "error"]).optional(),
+  // AI 总结内容
+  ai_summary: z.string().optional(),
+  // AI 总结错误信息
+  ai_summary_error: z.string().optional(),
+  // ASR 转写文本保存路径
+  ai_transcript_file: z.string().optional(),
+  // AI 总结完成时间，毫秒时间戳
+  ai_summary_time: z.number().optional(),
 });
 
 const LiveHistory = BaseLiveHistory.extend({
@@ -60,6 +70,11 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
         danma_num INTEGER,                                   -- 弹幕数量
         interact_num INTEGER,                                 -- 互动人数
         quick_hash TEXT,                                     -- 文件快速哈希值
+        ai_summary_status TEXT CHECK(ai_summary_status IN ('pending', 'running', 'completed', 'error')),
+        ai_summary TEXT,
+        ai_summary_error TEXT,
+        ai_transcript_file TEXT,
+        ai_summary_time INTEGER,
         FOREIGN KEY (streamer_id) REFERENCES streamer(id)    -- 外键约束
       ) STRICT;
     `;
@@ -140,6 +155,16 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
       const hasQuickHashColumn = columns.some((col) => col.name === "quick_hash");
       // @ts-ignore
       const hasVideoFilenameColumn = columns.some((col) => col.name === "video_filename");
+      // @ts-ignore
+      const hasAiSummaryStatusColumn = columns.some((col) => col.name === "ai_summary_status");
+      // @ts-ignore
+      const hasAiSummaryColumn = columns.some((col) => col.name === "ai_summary");
+      // @ts-ignore
+      const hasAiSummaryErrorColumn = columns.some((col) => col.name === "ai_summary_error");
+      // @ts-ignore
+      const hasAiTranscriptFileColumn = columns.some((col) => col.name === "ai_transcript_file");
+      // @ts-ignore
+      const hasAiSummaryTimeColumn = columns.some((col) => col.name === "ai_summary_time");
 
       if (!hasVideoDurationColumn) {
         // 添加video_duration列
@@ -175,6 +200,35 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
         // 添加video_filename列
         this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN video_filename TEXT`).run();
         logger.info(`已为${this.tableName}表添加video_filename列`);
+      }
+
+      if (!hasAiSummaryStatusColumn) {
+        this.db
+          .prepare(
+            `ALTER TABLE ${this.tableName} ADD COLUMN ai_summary_status TEXT CHECK(ai_summary_status IN ('pending', 'running', 'completed', 'error'))`,
+          )
+          .run();
+        logger.info(`已为${this.tableName}表添加ai_summary_status列`);
+      }
+
+      if (!hasAiSummaryColumn) {
+        this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN ai_summary TEXT`).run();
+        logger.info(`已为${this.tableName}表添加ai_summary列`);
+      }
+
+      if (!hasAiSummaryErrorColumn) {
+        this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN ai_summary_error TEXT`).run();
+        logger.info(`已为${this.tableName}表添加ai_summary_error列`);
+      }
+
+      if (!hasAiTranscriptFileColumn) {
+        this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN ai_transcript_file TEXT`).run();
+        logger.info(`已为${this.tableName}表添加ai_transcript_file列`);
+      }
+
+      if (!hasAiSummaryTimeColumn) {
+        this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN ai_summary_time INTEGER`).run();
+        logger.info(`已为${this.tableName}表添加ai_summary_time列`);
       }
 
       return true;

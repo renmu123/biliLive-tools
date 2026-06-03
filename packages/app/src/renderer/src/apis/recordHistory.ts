@@ -28,6 +28,11 @@ export interface RecordHistoryItem {
   danma_num?: number;
   interact_num?: number;
   danma_density?: number | null; // 弹幕密度，弹幕数量/视频时长
+  ai_summary_status?: "pending" | "running" | "completed" | "error";
+  ai_summary?: string;
+  ai_summary_error?: string;
+  ai_transcript_file?: string;
+  ai_summary_time?: number;
 }
 
 export interface QueryRecordsResponse {
