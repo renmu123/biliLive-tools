@@ -579,6 +579,7 @@ initChanglog();
 
   & > .n-layout-scroll-container {
     padding-right: 10px;
+    overflow-x: auto;
   }
   &.videoCut {
     margin: 0px;
@@ -636,16 +637,6 @@ initChanglog();
     overflow: initial;
   }
 }
-
-// @media (max-width: 768px) {
-//   .main-container {
-//     margin: 10px;
-
-//     &.videoCut {
-//       margin: 0;
-//     }
-//   }
-// }
 
 &.mobile {
   margin: 0;

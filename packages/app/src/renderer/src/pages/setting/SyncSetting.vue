@@ -14,7 +14,7 @@
       </p>
     </div>
 
-    <n-form label-placement="left" :label-width="145">
+    <n-form label-placement="left" :label-width="labelWidth">
       <n-tabs type="segment" style="margin-top: 10px" class="tabs">
         <n-tab-pane class="tab-pane" name="syncConfig" tab="同步器" display-directive="show:lazy">
           <div class="sync-config-list">
@@ -51,12 +51,7 @@
             </n-card>
           </div>
         </n-tab-pane>
-        <n-tab-pane
-          class="tab-pane"
-          name="BaiduPCS"
-          tab="百度网盘(BaiduPCS-GO)"
-          display-directive="show:lazy"
-        >
+        <n-tab-pane class="tab-pane" name="BaiduPCS" tab="百度网盘" display-directive="show:lazy">
           <n-form-item>
             <template #label> 项目地址 </template>
             <a href="https://github.com/qjfoidnh/BaiduPCS-Go" class="external" target="_blank"
@@ -97,12 +92,7 @@
             </n-icon>
           </n-form-item>
         </n-tab-pane>
-        <n-tab-pane
-          class="tab-pane"
-          name="aliyunpan"
-          tab="阿里云盘(aliyunpan)"
-          display-directive="show:lazy"
-        >
+        <n-tab-pane class="tab-pane" name="aliyunpan" tab="阿里云盘" display-directive="show:lazy">
           <n-form-item>
             <template #label> 项目地址 </template>
             <a href="https://github.com/tickstep/aliyunpan" class="external" target="_blank"
@@ -188,6 +178,7 @@
                 align-items: center;
                 width: 100%;
               "
+              class="pan123-header"
             >
               <a
                 href="https://github.com/renmu123/123pan-uploader"
@@ -295,7 +286,7 @@
         <template #header>
           <n-text>{{ editingConfigIndex === null ? "添加" : "编辑" }}同步配置</n-text>
         </template>
-        <n-form label-placement="left" :label-width="100">
+        <n-form label-placement="left" :label-width="modalLabelWidth">
           <n-form-item label="配置名称">
             <n-input v-model:value="editingConfig.name" placeholder="请输入配置名称" />
           </n-form-item>
@@ -393,6 +384,7 @@
 
 <script setup lang="ts">
 import { FolderOpenOutline, Add } from "@vicons/ionicons5";
+import { useBreakpoints } from "@renderer/hooks";
 import { showFileDialog } from "@renderer/utils/fileSystem";
 import { uuid, sha256 } from "@renderer/utils";
 
@@ -409,6 +401,13 @@ const config = defineModel<AppConfig>("data", {
       syncConfigs: [],
     },
   }),
+});
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "145px";
+});
+const modalLabelWidth = computed(() => {
+  return isMobile.value ? "90px" : "100px";
 });
 
 const isWeb = computed(() => window.isWeb);
@@ -788,6 +787,12 @@ const saveSyncConfig = () => {
   }
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 750px) {
+  .pan123-header {
+    flex-wrap: wrap;
   }
 }
 </style>

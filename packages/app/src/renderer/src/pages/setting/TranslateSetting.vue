@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <n-form label-placement="left" :label-width="120">
+    <n-form label-placement="left" :label-width="labelWidth">
       <n-form-item label="llm类型">
         <n-select v-model:value="config.type" :options="typeOptions" placeholder="请选择" />
       </n-form-item>
@@ -116,6 +116,7 @@
 </template>
 
 <script setup lang="ts">
+import { useBreakpoints } from "@renderer/hooks";
 import { getModelList } from "@renderer/apis/llm";
 import { LLMType } from "@biliLive-tools/shared/enum.js";
 
@@ -134,6 +135,10 @@ interface Config {
 
 const config = defineModel<Config>("data", {
   default: () => {},
+});
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "120px";
 });
 
 const typeOptions = [{ value: LLMType.ollama, label: "ollama" }];

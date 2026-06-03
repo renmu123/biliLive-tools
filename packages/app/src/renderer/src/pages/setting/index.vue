@@ -8,16 +8,18 @@
     :class="breakpoint"
   >
     <n-card
-      style="width: calc(100% - 60px)"
       :bordered="false"
       size="huge"
       role="dialog"
       aria-modal="true"
       class="card"
+      :style="{
+        width: breakpoint === 'mobile' ? '100%' : 'calc(100% - 60px)',
+      }"
     >
       <n-tabs v-model:value="selectTab" type="bar" animated placement="left" class="setting-tab">
         <n-tab-pane name="common" tab="基本">
-          <n-form ref="formRef" label-placement="left" :label-width="160">
+          <n-form ref="formRef" label-placement="left" :label-width="labelWidth">
             <n-form-item>
               <template #label>
                 <Tip
@@ -307,7 +309,7 @@
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="webhook" tab="Webhook">
-          <n-form label-placement="left" :label-width="135">
+          <n-form label-placement="left" :label-width="labelWidth2">
             <n-form-item>
               <template #label>
                 <Tip
@@ -477,7 +479,14 @@ const notice = useNotification();
 const appConfigStore = useAppConfig();
 const showModal = defineModel<boolean>({ required: true, default: false });
 const isWeb = computed(() => window.isWeb);
-const { breakpoint } = useBreakpoints();
+const { breakpoint, isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "150px";
+});
+
+const labelWidth2 = computed(() => {
+  return isMobile.value ? "90px" : "135px";
+});
 
 // @ts-ignore
 const config: Ref<AppConfig> = ref({

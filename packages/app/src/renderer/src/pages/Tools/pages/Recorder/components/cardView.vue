@@ -163,7 +163,7 @@ const stateMap = {
   position: relative;
   // width: 288px;
   flex: 1 0 320px;
-  max-width: 400px;
+  max-width: 500px;
 
   .cover-container {
     position: relative;

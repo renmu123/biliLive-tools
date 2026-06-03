@@ -8,7 +8,7 @@
       aria-modal="true"
       class="card"
     >
-      <n-form label-placement="left" :label-width="150">
+      <n-form label-placement="left" :label-width="labelWidth">
         <n-form-item v-if="!isEdit">
           <template #label>
             <Tip
@@ -703,7 +703,7 @@ import {
   douyuStreamCodecOptions,
   douyuApiTypeOptions,
 } from "@renderer/enums/recorder";
-import { useConfirm } from "@renderer/hooks";
+import { useConfirm, useBreakpoints } from "@renderer/hooks";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
 import { cloneDeep } from "lodash-es";
 
@@ -721,6 +721,10 @@ const props = defineProps<Props>();
 const emits = defineEmits<{
   (event: "confirm"): void;
 }>();
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "100px" : "150px";
+});
 
 const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>[number], boolean>>(
   {

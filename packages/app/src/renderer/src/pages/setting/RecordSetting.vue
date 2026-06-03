@@ -5,7 +5,7 @@
       <p>此项大部分配置不即时生效，需重新开始一个录制方可生效</p>
     </div>
 
-    <n-form label-placement="left" :label-width="145">
+    <n-form label-placement="left" :label-width="labelWidth">
       <n-tabs type="segment" style="margin-top: 10px" class="tabs">
         <n-tab-pane
           class="tab-pane"
@@ -657,6 +657,7 @@
 <script setup lang="ts">
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { templateRef } from "@vueuse/core";
+import { useBreakpoints } from "@renderer/hooks";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { useUserInfoStore } from "@renderer/stores";
 import { useConfirm } from "@renderer/hooks";
@@ -685,6 +686,10 @@ import type { AppConfig } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},
+});
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "145px";
 });
 
 const { userList } = storeToRefs(useUserInfoStore());
