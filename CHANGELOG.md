@@ -1,6 +1,6 @@
 # Next
 
-**pnpm升级至11.5.0,node最低要求为node22,electron-builder升级至electron-builder**
+**pnpm升级至11.5.0,node最低要求为node22,electron-builder升级至26.14.0**
 
 ## 功能
 
