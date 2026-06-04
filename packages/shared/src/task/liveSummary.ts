@@ -10,8 +10,7 @@ import { TaskType } from "../enum.js";
 import { getModel } from "../musicDetector/utils.js";
 import { getTempPath } from "../utils/index.js";
 import logger from "../utils/log.js";
-import { getBinPath } from "./video.js";
-import { AbstractTask, taskQueue } from "./task.js";
+import { AbstractTask, taskQueue } from "./core/index.js";
 
 export interface LiveSummaryTaskOptions {
   recordId: number;
@@ -70,7 +69,7 @@ async function extractAudioToMp3(
   outputFile: string,
   signal: AbortSignal,
 ): Promise<void> {
-  const { ffmpegPath } = getBinPath();
+  const { ffmpegPath } = appConfig.getAll();
   if (!ffmpegPath) {
     throw new Error("未找到 ffmpeg 路径，请先完成 ffmpeg 配置");
   }
