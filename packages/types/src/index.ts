@@ -774,6 +774,15 @@ export interface AppConfig {
     subtitleRecognize: {
       modelId?: string;
     };
+    // 直播录像总结
+    liveSummary: {
+      enabled: boolean;
+      asrModelId?: string;
+      llmModelId?: string;
+      prompt: string;
+      maxInputLength: number;
+      saveTranscript: boolean;
+    };
   };
   /** 最大任务数 */
   task: {

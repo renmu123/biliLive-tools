@@ -53,13 +53,25 @@
     </div>
 
     <n-empty v-else-if="!loading && hasQueried" description="没有查询到相关记录" />
+
+    <n-modal v-model:show="summaryModalVisible">
+      <n-card
+        style="width: 720px; max-width: 90vw; max-height: 80vh"
+        title="AI总结"
+        :bordered="false"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="summary-content">{{ currentSummary }}</div>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
 import { recordHistoryApi } from "../../apis";
-import { NIcon } from "naive-ui";
+import { NButton, NIcon, NTag } from "naive-ui";
 import { FolderOpenOutline, DownloadOutline } from "@vicons/ionicons5";
 import { Delete20Regular, PlayCircle24Regular } from "@vicons/fluent";
 import { FileOpenOutlined } from "@vicons/material";
@@ -107,6 +119,11 @@ interface LiveRecord {
   interact_num?: number;
   video_duration?: number;
   danma_density?: number | null; // 弹幕密度，弹幕数量/视频时长
+  ai_summary_status?: "pending" | "running" | "completed" | "error";
+  ai_summary?: string;
+  ai_summary_error?: string;
+  ai_transcript_file?: string;
+  ai_summary_time?: number;
   [key: string]: any;
 }
 
@@ -147,6 +164,8 @@ const pagination = reactive<Pagination>({
 });
 const loading = ref<boolean>(false);
 const hasQueried = ref<boolean>(false);
+const summaryModalVisible = ref(false);
+const currentSummary = ref("");
 
 // 列配置
 const columnConfig: ColumnConfig[] = [
@@ -159,6 +178,7 @@ const columnConfig: ColumnConfig[] = [
   { value: "danma_num", label: "弹幕数量" },
   { value: "interact_num", label: "弹幕互动人数" },
   { value: "danma_density", label: "弹幕密度" },
+  { value: "ai_summary", label: "AI总结" },
   { value: "actions", label: "操作" },
 ];
 
@@ -218,6 +238,11 @@ const allColumns: {
       row.danma_density !== null && row.danma_density !== undefined
         ? `${row.danma_density}/秒`
         : "",
+  },
+  {
+    title: "AI总结",
+    key: "ai_summary",
+    render: (row: LiveRecord) => renderSummaryCell(row),
   },
   {
     title: "操作",
@@ -319,6 +344,37 @@ const allColumns: {
 const visibleTableColumns = computed(() => {
   return allColumns.filter((column) => visibleColumns.value.includes(column.key as string));
 });
+
+const renderSummaryCell = (row: LiveRecord) => {
+  if (row.ai_summary_status === "completed" && row.ai_summary) {
+    return h(
+      NButton,
+      {
+        size: "small",
+        text: true,
+        type: "primary",
+        onClick: () => showSummary(row.ai_summary || ""),
+      },
+      { default: () => "查看" },
+    );
+  }
+  if (row.ai_summary_status === "running" || row.ai_summary_status === "pending") {
+    return h(NTag, { size: "small", type: "info" }, { default: () => "生成中" });
+  }
+  if (row.ai_summary_status === "error") {
+    return h(
+      NTag,
+      { size: "small", type: "error", title: row.ai_summary_error || "" },
+      { default: () => "失败" },
+    );
+  }
+  return "";
+};
+
+const showSummary = (summary: string) => {
+  currentSummary.value = summary;
+  summaryModalVisible.value = true;
+};
 
 // 页面初始化
 onMounted(() => {
@@ -477,5 +533,12 @@ const previewVideo = async (id: number) => {
 
 .result-container {
   margin-top: 20px;
+}
+
+.summary-content {
+  max-height: 60vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  line-height: 1.7;
 }
 </style>
