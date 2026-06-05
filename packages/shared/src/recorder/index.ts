@@ -222,7 +222,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
     appConfig: AppConfig,
   ) {
     const config = appConfig.getAll();
-    let finalVideoFile = filename;
     const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
     const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
     const maxThreadCount = config?.recorder?.maxThreadCount ?? 3;
@@ -380,6 +379,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const channelId = recorder?.channelId;
     const liveId = recorder?.liveInfo?.liveId;
     const config = appConfig.getAll();
+    let finalVideoFile = filename;
 
     try {
       const xmlFile = replaceExtName(filename, ".xml");
