@@ -7,7 +7,13 @@
       <n-button type="primary" @click="sync" title="立即同步(ctrl+enter)"> 立即上传 </n-button>
     </div>
 
-    <FileSelect ref="fileSelect" v-model="fileList" :sort="false" :extensions="['*']"></FileSelect>
+    <FileSelect
+      ref="fileSelect"
+      v-model="fileList"
+      :sort="false"
+      :extensions="['*']"
+      areaPlaceholder="请选择文件"
+    ></FileSelect>
 
     <div class="flex align-center" style="margin-top: 10px; gap: 10px; justify-content: center">
       <n-select
