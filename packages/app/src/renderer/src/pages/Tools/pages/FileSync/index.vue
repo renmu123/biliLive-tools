@@ -30,7 +30,8 @@
         style="width: 140px; display: inline-block"
       />
       <n-input
-        v-model:value="options.targetPath"
+        v-model:value="targetPathDraft"
+        @blur="handleTargetPathBlur"
         placeholder="请输入目标路径"
         style="width: 200px"
       />
@@ -64,6 +65,23 @@ const options = toReactive(
     },
   }),
 );
+
+const targetPathDraft = ref("");
+
+watch(
+  () => options.targetPath,
+  (value) => {
+    targetPathDraft.value = value;
+  },
+  {
+    immediate: true,
+  },
+);
+
+const handleTargetPathBlur = () => {
+  if (targetPathDraft.value === options.targetPath) return;
+  options.targetPath = targetPathDraft.value;
+};
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
