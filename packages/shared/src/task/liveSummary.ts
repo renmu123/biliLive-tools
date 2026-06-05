@@ -208,7 +208,8 @@ export class LiveSummaryTask extends AbstractTask {
       })
       .catch((error) => {
         this.status = this.status === "canceled" ? "canceled" : "error";
-        this.error = error?.message || String(error);
+        const errorMessage = error?.message || String(error);
+        this.error = errorMessage;
         if (this.status === "canceled") {
           recordHistoryService.update({
             id: this.options.recordId,
@@ -222,10 +223,10 @@ export class LiveSummaryTask extends AbstractTask {
         recordHistoryService.update({
           id: this.options.recordId,
           ai_summary_status: "error",
-          ai_summary_error: this.error,
+          ai_summary_error: errorMessage,
           ai_summary_time: Date.now(),
         });
-        this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
+        this.emitter.emit("task-error", { taskId: this.taskId, error: errorMessage });
       })
       .finally(() => {
         this.endTime = Date.now();
