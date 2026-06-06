@@ -29,7 +29,7 @@ export interface RoomInfo {
   avatar: string;
   api: RealAPIType;
   // 是否为直播电台
-  isLiveRadio?: boolean;
+  isLiveRadio: boolean;
   room: {
     title: string;
     cover: string;

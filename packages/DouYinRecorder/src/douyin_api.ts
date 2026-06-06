@@ -184,6 +184,7 @@ async function getRoomInfoByUserWeb(
   if (!res.data.includes("直播中")) {
     return {
       living: false,
+      isLiveRadio: false,
       nickname: "",
       sec_uid: "",
       avatar: "",
@@ -309,8 +310,10 @@ async function getRoomInfoByHtml(
     const data = JSON.parse(jsonStr);
     const roomInfo = data.state.roomStore.roomInfo;
     const streamData = data.state.streamStore.streamData;
+    const isLiveRadio = res.data.includes("该直播类型或玩法电脑端暂未支持");
     return {
-      living: roomInfo?.room?.status === 2,
+      living: roomInfo?.room?.status === 2 || isLiveRadio,
+      isLiveRadio: isLiveRadio,
       nickname: roomInfo?.anchor?.nickname ?? "",
       sec_uid: roomInfo?.anchor?.sec_uid ?? "",
       avatar: roomInfo?.anchor?.avatar_thumb?.url_list?.[0] ?? "",
@@ -319,15 +322,17 @@ async function getRoomInfoByHtml(
         title: roomInfo?.room?.title ?? "",
         cover: roomInfo?.room?.cover?.url_list?.[0] ?? "",
         id_str: roomInfo?.room?.id_str ?? "",
-        stream_url: {
-          pull_datas: roomInfo?.room?.stream_url?.pull_datas,
-          live_core_sdk_data: {
-            pull_data: {
-              options: { qualities: streamData.H264_streamData?.options?.qualities ?? [] },
-              stream_data: streamData.H264_streamData?.stream ?? {},
-            },
-          },
-        },
+        stream_url: roomInfo?.room?.stream_url?.pull_datas
+          ? {
+              pull_datas: roomInfo?.room?.stream_url?.pull_datas,
+              live_core_sdk_data: {
+                pull_data: {
+                  options: { qualities: streamData.H264_streamData?.options?.qualities ?? [] },
+                  stream_data: streamData.H264_streamData?.stream ?? {},
+                },
+              },
+            }
+          : null,
       },
     };
   } catch (e) {
@@ -385,6 +390,7 @@ async function getRoomInfoByWeb(
     // 直播已结束
     return {
       living: false,
+      isLiveRadio: false,
       nickname: "",
       sec_uid: "",
       avatar: "",
@@ -406,7 +412,8 @@ async function getRoomInfoByWeb(
   const room = data?.data?.[0];
 
   return {
-    living: data?.room_status === 0,
+    living: data?.room_status === 0 || data?.room_status === 1,
+    isLiveRadio: data?.room_status === 1,
     nickname: data?.user?.nickname ?? "",
     avatar: data?.user?.avatar_thumb?.url_list?.[0] ?? "",
     sec_uid: data?.user?.sec_uid ?? "",
@@ -456,6 +463,7 @@ async function getRoomInfoByMobile(
   const room = res?.data?.data?.room;
   return {
     living: room?.status === 2,
+    isLiveRadio: room?.live_type_audio ?? false,
     nickname: room?.owner?.nickname,
     sec_uid: room?.owner?.sec_uid,
     avatar: room?.owner?.avatar_thumb?.url_list?.[0],
@@ -479,6 +487,8 @@ export async function getRoomInfo(
   } = {},
 ): Promise<{
   living: boolean;
+  // 是否为直播电台
+  isLiveRadio?: boolean;
   roomId: string;
   owner: string;
   title: string;
@@ -513,11 +523,15 @@ export async function getRoomInfo(
   } else {
     data = await getRoomInfoByWeb(webRoomId, opts);
   }
-  // console.log(JSON.stringify(data, null, 2));
+
   const room = data.room;
+
+  assert(room, `No room data, id ${webRoomId}`);
+
   if (!room?.stream_url) {
     return {
       living: data.living,
+      isLiveRadio: data.isLiveRadio,
       roomId: webRoomId,
       owner: data.nickname,
       title: room?.title ?? data.nickname,
@@ -526,23 +540,6 @@ export async function getRoomInfo(
       avatar: data.avatar,
       cover: room?.cover ?? "",
       liveId: room?.id_str ?? "",
-      uid: data.sec_uid,
-      api: data.api,
-    };
-  }
-  assert(room, `No room data, id ${webRoomId}`);
-
-  if (room?.stream_url == null) {
-    return {
-      living: false,
-      roomId: webRoomId,
-      owner: data.nickname,
-      title: room?.title ?? data.nickname,
-      streams: [],
-      sources: [],
-      avatar: data.avatar,
-      cover: room.cover,
-      liveId: room.id_str,
       uid: data.sec_uid,
       api: data.api,
     };
@@ -621,6 +618,7 @@ export async function getRoomInfo(
 
   return {
     living: data.living,
+    isLiveRadio: data.isLiveRadio,
     roomId: webRoomId,
     owner: data.nickname,
     title: room.title,
