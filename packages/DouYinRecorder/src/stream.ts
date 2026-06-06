@@ -70,11 +70,11 @@ export async function getStream(
   },
 ) {
   let api = opts.api ?? "web";
-  if (api === "userHTML") {
+  if (api === "userHTML" || api === "webHTML") {
     // userHTML 接口只能用于状态检测
     api = "web";
   } else if (api === "random") {
-    api = selectRandomAPI(["userHTML"]);
+    api = selectRandomAPI(["userHTML", "webHTML"]);
   }
   if (opts.isLiveRadio) {
     // 直播电台可能需要特殊处理，优先使用 userHTML 接口
