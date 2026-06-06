@@ -271,6 +271,11 @@ export class AliyunASR {
     });
   }
 
+  private isQwenASRFileTransModel(): boolean {
+    const model = this.model.toLowerCase();
+    return model.includes("qwen") && model.includes("asr");
+  }
+
   /**
    * 提交语音识别任务
    * @param params 任务参数
@@ -278,13 +283,16 @@ export class AliyunASR {
    */
   async submitTask(params: SubmitTaskParams): Promise<string> {
     try {
+      const isQwenASRFileTransModel = this.isQwenASRFileTransModel();
       const requestData = {
         model: this.model,
-        input: {
-          file_urls: [params.fileUrl],
-          // qwen3-ASR-Flash-Filetrans 兼容
-          file_url: params.fileUrl,
-        },
+        input: isQwenASRFileTransModel
+          ? {
+              file_url: params.fileUrl,
+            }
+          : {
+              file_urls: [params.fileUrl],
+            },
         parameters: {
           ...(params.vocabularyId && { vocabulary_id: params.vocabularyId }),
           ...(params.channelId && { channel_id: params.channelId }),
@@ -294,8 +302,7 @@ export class AliyunASR {
           }),
           ...(params.speakerCount && { speaker_count: params.speakerCount }),
           ...(params.languageHints && { language_hints: params.languageHints }),
-          // qwen3-ASR-Flash-Filetran 词级时间戳
-          enable_words: true,
+          ...(isQwenASRFileTransModel && { enable_words: true }),
         },
       };
 
@@ -327,15 +334,20 @@ export class AliyunASR {
    */
   async queryTask(taskId: string): Promise<TaskQueryResult> {
     try {
-      const response = await this.client.post(`/api/v1/tasks/${taskId}`, null, {
+      const response = await this.client.get(`/api/v1/tasks/${taskId}`, {
         headers: {
           "X-DashScope-Async": "enable",
         },
       });
       let results = response.data.output.results || [];
-      if (!results || results.length === 0) {
-        // qwen3-ASR-Flash-Filetrans 兼容
-        results = [{ ...response.data.output.result, subtask_status: "SUCCEEDED" }];
+      if ((!results || results.length === 0) && response.data.output.result) {
+        // qwen ASR file transcription returns a single result instead of results[].
+        results = [
+          {
+            ...response.data.output.result,
+            subtask_status: response.data.output.task_status,
+          },
+        ];
       }
       return {
         taskId: response.data.output.task_id,
