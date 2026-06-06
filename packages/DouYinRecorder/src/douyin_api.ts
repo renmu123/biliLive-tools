@@ -310,7 +310,7 @@ async function getRoomInfoByHtml(
     const data = JSON.parse(jsonStr);
     const roomInfo = data.state.roomStore.roomInfo;
     const streamData = data.state.streamStore.streamData;
-    const isLiveRadio = res.data.includes("该直播类型或玩法电脑端暂未支持");
+    const isLiveRadio = roomInfo.enter_mode == 1;
     return {
       living: roomInfo?.room?.status === 2 || isLiveRadio,
       isLiveRadio: isLiveRadio,

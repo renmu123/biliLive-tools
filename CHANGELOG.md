@@ -9,7 +9,7 @@
 - 文件浏览器：优化用户体验
 - 录制：为上次录制时间增加原始时间title
 - 录制：优化某些场景下“转换为mp4”的表现
-- 录制：优化抖音电台直播流获取
+- 录制：优化抖音电台直播流获取 [#469](https://github.com/renmu123/biliLive-tools/pull/469) [#466](https://github.com/renmu123/biliLive-tools/pull/466)
 
 ## Bug修复
 
