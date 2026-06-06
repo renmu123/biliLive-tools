@@ -500,9 +500,9 @@ export async function getRoomInfo(
   // console.log(JSON.stringify(data, null, 2));
 
   const room = data.room;
-  assert(room, `No room data, id ${webRoomId}`);
 
   if (room?.stream_url == null) {
+    console.log(room, `No stream_url in room data, id ${webRoomId}`);
     return {
       living: data.living,
       roomId: webRoomId,
