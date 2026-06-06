@@ -205,19 +205,40 @@ async function getRoomInfoByUserWeb(
     .replace(/\\"/g, '"')
     .replace(/"\$\w+"/g, "null");
 
-  // const roomRegex = /(\{\\"common\\":.*?)"\]\)/;
-  // const roomMatch = res.data.match(roomRegex);
-  // if (!roomMatch) {
-  //   throw new Error("No room match found in HTML");
-  // }
-  // let roomJsonStr = roomMatch[1];
-  // roomJsonStr = roomJsonStr
-  //   .replace(/\\"/g, '"')
-  //   .replace(/\\"/g, '"')
-  //   .replace(/"\$\w+"/g, "null");
   try {
-    // console.log(userJsonStr);
     const userData = JSON.parse(userJsonStr);
+    const roomData = userData?.user?.user?.roomData;
+    const streamUrl = roomData?.stream_url;
+
+    let liveCoreSdkData: any | string = null;
+    if (streamUrl) {
+      liveCoreSdkData = { live_core_sdk_data: streamUrl.live_core_sdk_data };
+      if (liveCoreSdkData?.live_core_sdk_data?.pull_data) {
+        const flvPullUrl = streamUrl.flv_pull_url;
+        let streamData: StreamData["data"] = {};
+        for (const quality of [{ key: "or4", desc: "原画" }, ...qualityList]) {
+          const flvUrls = Object.values(flvPullUrl) as string[];
+          if (flvUrls.some((url) => url.includes(`${quality.key}`))) {
+            const url = flvUrls.find((url) => url.includes(`${quality.key}`));
+            const convertedQuality = quality.key === "or4" ? "origin" : quality.key;
+            streamData[convertedQuality] = {
+              // @ts-ignore
+              main: {
+                flv: url,
+                hls: "",
+              },
+            };
+          }
+        }
+
+        liveCoreSdkData.live_core_sdk_data.pull_data.stream_data = streamData;
+      } else {
+        liveCoreSdkData = null;
+      }
+    }
+
+    // console.log("pppp", JSON.stringify(liveCoreSdkData, null, 2));
+    // console.log(JSON.stringify(streamUrl, null, 2));
     // console.log(JSON.stringify(userData, null, 2));
 
     // const roomData = JSON.parse(roomJsonStr);
@@ -226,15 +247,16 @@ async function getRoomInfoByUserWeb(
     // const streamData = data.state.streamStore.streamData;
     return {
       living: userData?.user?.user?.roomData?.status === 2,
+      isLiveRadio: roomData?.live_type_audio ?? false,
       nickname: userData?.user?.user?.nickname ?? "",
       sec_uid: userData?.user?.user?.secUid ?? "",
       avatar: userData?.user?.user?.avatar ?? "",
-      api: "webHTML",
+      api: "userHTML",
       room: {
         title: "",
         cover: "",
         id_str: userData?.user?.user?.roomIdStr,
-        stream_url: null,
+        stream_url: liveCoreSdkData,
       },
     };
   } catch (e) {
@@ -493,7 +515,7 @@ export async function getRoomInfo(
   }
   // console.log(JSON.stringify(data, null, 2));
   const room = data.room;
-  if (api === "userHTML") {
+  if (!room?.stream_url) {
     return {
       living: data.living,
       roomId: webRoomId,
