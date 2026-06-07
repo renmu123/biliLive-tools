@@ -1,5 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 
+import { chunkArray, parseMarkdownBlocks, type MarkdownBlock } from "./markdown.js";
+
 export interface FeishuDocConfig {
   appId: string;
   appSecret: string;
@@ -40,79 +42,24 @@ function textBlock(type: number, field: string, content: string): FeishuBlock {
   };
 }
 
-function stripMarkdownInline(text: string) {
-  return text
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/__([^_]+)__/g, "$1")
-    .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/_([^_]+)_/g, "$1")
-    .replace(/`([^`]+)`/g, "$1")
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .trim();
-}
-
-function markdownLineToBlock(line: string): FeishuBlock | null {
-  const trimmed = line.trim();
-  if (!trimmed) return null;
-  if (/^---+$/.test(trimmed)) {
+function markdownBlockToFeishuBlock(block: MarkdownBlock): FeishuBlock {
+  if (block.type === "divider") {
     return { block_type: 22, divider: {} };
   }
-
-  const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
-  if (heading) {
-    const level = Math.min(heading[1].length, 6);
-    return textBlock(2 + level, `heading${level}`, stripMarkdownInline(heading[2]));
+  if (block.type === "heading") {
+    return textBlock(2 + block.level, `heading${block.level}`, block.text);
   }
-
-  const bullet = trimmed.match(/^[-*+]\s+(.+)$/);
-  if (bullet) {
-    return textBlock(12, "bullet", stripMarkdownInline(bullet[1]));
+  if (block.type === "bullet") {
+    return textBlock(12, "bullet", block.text);
   }
-
-  const ordered = trimmed.match(/^\d+[.)]\s+(.+)$/);
-  if (ordered) {
-    return textBlock(13, "ordered", stripMarkdownInline(ordered[1]));
+  if (block.type === "ordered") {
+    return textBlock(13, "ordered", block.text);
   }
-
-  return textBlock(2, "text", stripMarkdownInline(trimmed));
+  return textBlock(2, "text", block.text);
 }
 
 export function markdownToFeishuBlocks(markdown: string): FeishuBlock[] {
-  const blocks: FeishuBlock[] = [];
-  let paragraph: string[] = [];
-
-  const flushParagraph = () => {
-    if (!paragraph.length) return;
-    blocks.push(textBlock(2, "text", stripMarkdownInline(paragraph.join("\n"))));
-    paragraph = [];
-  };
-
-  for (const line of markdown.split(/\r?\n/)) {
-    const block = markdownLineToBlock(line);
-    if (!block) {
-      flushParagraph();
-      continue;
-    }
-
-    if (block.block_type === 2 && typeof block.text === "object") {
-      paragraph.push(line.trim());
-      continue;
-    }
-
-    flushParagraph();
-    blocks.push(block);
-  }
-  flushParagraph();
-
-  return blocks;
-}
-
-function chunkArray<T>(items: T[], size: number) {
-  const chunks: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size));
-  }
-  return chunks;
+  return parseMarkdownBlocks(markdown).map(markdownBlockToFeishuBlock);
 }
 
 export class FeishuDocClient {

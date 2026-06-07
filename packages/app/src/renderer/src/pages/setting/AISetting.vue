@@ -253,26 +253,32 @@
                   <template #label>
                     <Tip
                       tip="启用后，直播总结生成完成会追加写入指定飞书云文档。需要在飞书开放平台创建企业自建应用，并给应用开通云文档读写权限。"
-                      text="写入飞书"
+                      text="导出到飞书"
                     />
                   </template>
-                  <n-switch v-model:value="config.ai.liveSummary.feishu.enabled" />
+                  <n-switch v-model:value="config.ai.liveSummary.exportTargets.feishu.enabled" />
                 </n-form-item>
-                <n-form-item v-if="config.ai.liveSummary.feishu.enabled" label="App ID">
+                <n-form-item
+                  v-if="config.ai.liveSummary.exportTargets.feishu.enabled"
+                  label="App ID"
+                >
                   <n-input
-                    v-model:value="config.ai.liveSummary.feishu.appId"
+                    v-model:value="config.ai.liveSummary.exportTargets.feishu.appId"
                     placeholder="请输入飞书应用 App ID"
                   />
                 </n-form-item>
-                <n-form-item v-if="config.ai.liveSummary.feishu.enabled" label="App Secret">
+                <n-form-item
+                  v-if="config.ai.liveSummary.exportTargets.feishu.enabled"
+                  label="App Secret"
+                >
                   <n-input
-                    v-model:value="config.ai.liveSummary.feishu.appSecret"
+                    v-model:value="config.ai.liveSummary.exportTargets.feishu.appSecret"
                     type="password"
                     show-password-on="click"
                     placeholder="请输入飞书应用 App Secret"
                   />
                 </n-form-item>
-                <n-form-item v-if="config.ai.liveSummary.feishu.enabled">
+                <n-form-item v-if="config.ai.liveSummary.exportTargets.feishu.enabled">
                   <template #label>
                     <Tip
                       tip="可以填写飞书 docx 文档链接，或直接填写链接中 /docx/ 后面的 Document ID。应用需要有该文档的访问权限。"
@@ -280,8 +286,40 @@
                     />
                   </template>
                   <n-input
-                    v-model:value="config.ai.liveSummary.feishu.documentId"
+                    v-model:value="config.ai.liveSummary.exportTargets.feishu.documentId"
                     placeholder="例如：https://xxx.feishu.cn/docx/xxxxxx"
+                  />
+                </n-form-item>
+                <n-form-item>
+                  <template #label>
+                    <Tip
+                      tip="启用后，直播总结生成完成会追加写入指定 Notion 页面。需要创建 Notion integration，并将目标页面分享给该 integration。"
+                      text="导出到 Notion"
+                    />
+                  </template>
+                  <n-switch v-model:value="config.ai.liveSummary.exportTargets.notion.enabled" />
+                </n-form-item>
+                <n-form-item
+                  v-if="config.ai.liveSummary.exportTargets.notion.enabled"
+                  label="Token"
+                >
+                  <n-input
+                    v-model:value="config.ai.liveSummary.exportTargets.notion.token"
+                    type="password"
+                    show-password-on="click"
+                    placeholder="请输入 Notion Internal Integration Token"
+                  />
+                </n-form-item>
+                <n-form-item v-if="config.ai.liveSummary.exportTargets.notion.enabled">
+                  <template #label>
+                    <Tip
+                      tip="可以填写 Notion 页面链接，也可以直接填写页面 ID。页面需要分享给对应 integration。"
+                      text="页面 ID/链接"
+                    />
+                  </template>
+                  <n-input
+                    v-model:value="config.ai.liveSummary.exportTargets.notion.pageId"
+                    placeholder="例如：https://www.notion.so/xxxxxx"
                   />
                 </n-form-item>
               </n-form>
@@ -420,11 +458,18 @@ const config = defineModel<AppConfig>("data", {
         prompt: "",
         maxInputLength: 24000,
         saveTranscript: true,
-        feishu: {
-          enabled: false,
-          appId: "",
-          appSecret: "",
-          documentId: "",
+        exportTargets: {
+          feishu: {
+            enabled: false,
+            appId: "",
+            appSecret: "",
+            documentId: "",
+          },
+          notion: {
+            enabled: false,
+            token: "",
+            pageId: "",
+          },
         },
       },
     },

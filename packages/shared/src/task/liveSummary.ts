@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 import fs from "fs-extra";
 
 import { createASRProvider, QwenLLM, type StandardASRResult } from "../ai/index.js";
-import { extractFeishuDocumentId, FeishuDocClient } from "../ai/feishu.js";
+import { exportSummaryToTargets, getEnabledSummaryExportTargetNames } from "../ai/summaryExport.js";
 import { appConfig } from "../config.js";
 import { recordHistoryService } from "../db/index.js";
 import { TaskType } from "../enum.js";
@@ -63,42 +63,6 @@ function throwIfAborted(signal: AbortSignal) {
   if (signal.aborted) {
     throw new Error("直播总结任务已取消");
   }
-}
-
-function buildSummaryDocument(summary: string, input: LiveSummaryTaskOptions) {
-  const meta = [
-    input.streamer ? `- 主播：${input.streamer}` : "",
-    input.title ? `- 直播标题：${input.title}` : "",
-    input.platform ? `- 平台：${input.platform}` : "",
-    input.roomId ? `- 房间号：${input.roomId}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  return [
-    input.title ? `# ${input.title}` : "# 直播总结",
-    meta,
-    summary,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
-}
-
-async function appendSummaryToFeishu(summary: string, options: LiveSummaryTaskOptions) {
-  const feishuConfig = appConfig.getAll().ai.liveSummary.feishu;
-  if (!feishuConfig?.enabled) return;
-
-  const documentId = extractFeishuDocumentId(feishuConfig.documentId);
-  if (!feishuConfig.appId || !feishuConfig.appSecret || !documentId) {
-    throw new Error("请先完整配置飞书 App ID、App Secret 和云文档 Document ID");
-  }
-
-  const client = new FeishuDocClient({
-    appId: feishuConfig.appId,
-    appSecret: feishuConfig.appSecret,
-    documentId,
-  });
-  await client.appendMarkdown(buildSummaryDocument(summary, options));
 }
 
 async function extractAudioToMp3(
@@ -329,25 +293,25 @@ export class LiveSummaryTask extends AbstractTask {
       });
       throwIfAborted(this.controller.signal);
 
-      if (summaryConfig.feishu?.enabled) {
-        this.custsomProgressMsg = "正在写入飞书文档";
+      const exportTargets = getEnabledSummaryExportTargetNames(summaryConfig);
+      if (exportTargets.length) {
+        this.custsomProgressMsg = `正在导出总结到${exportTargets.join("、")}`;
         this.progress = 90;
         this.emitter.emit("task-progress", { taskId: this.taskId });
 
         try {
-          await appendSummaryToFeishu(summary, this.options);
+          await exportSummaryToTargets(summary, this.options, summaryConfig);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
-          const summaryErrorMessage = `总结已生成，但写入飞书文档失败：${errorMessage}`;
           recordHistoryService.update({
             id: this.options.recordId,
             ai_summary_status: "error",
             ai_summary: summary,
-            ai_summary_error: summaryErrorMessage,
+            ai_summary_error: errorMessage,
             ...(transcriptFile ? { ai_transcript_file: transcriptFile } : {}),
             ai_summary_time: Date.now(),
           });
-          throw new Error(summaryErrorMessage);
+          throw error;
         }
       }
 
