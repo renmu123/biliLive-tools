@@ -166,6 +166,7 @@ const loading = ref<boolean>(false);
 const hasQueried = ref<boolean>(false);
 const summaryModalVisible = ref(false);
 const currentSummary = ref("");
+const summaryGeneratingIds = ref<number[]>([]);
 
 // 列配置
 const columnConfig: ColumnConfig[] = [
@@ -348,14 +349,36 @@ const visibleTableColumns = computed(() => {
 const renderSummaryCell = (row: LiveRecord) => {
   if (row.ai_summary_status === "completed" && row.ai_summary) {
     return h(
-      NButton,
+      "div",
       {
-        size: "small",
-        text: true,
-        type: "primary",
-        onClick: () => showSummary(row.ai_summary || ""),
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+        },
       },
-      { default: () => "查看" },
+      [
+        h(
+          NButton,
+          {
+            size: "small",
+            text: true,
+            type: "primary",
+            onClick: () => showSummary(row.ai_summary || ""),
+          },
+          { default: () => "查看" },
+        ),
+        h(
+          NButton,
+          {
+            size: "small",
+            text: true,
+            loading: summaryGeneratingIds.value.includes(row.id),
+            onClick: () => generateSummary(row),
+          },
+          { default: () => "重新生成" },
+        ),
+      ],
     );
   }
   if (row.ai_summary_status === "running" || row.ai_summary_status === "pending") {
@@ -363,17 +386,71 @@ const renderSummaryCell = (row: LiveRecord) => {
   }
   if (row.ai_summary_status === "error") {
     return h(
-      NTag,
-      { size: "small", type: "error", title: row.ai_summary_error || "" },
-      { default: () => "失败" },
+      "div",
+      {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+        },
+      },
+      [
+        h(
+          NTag,
+          { size: "small", type: "error", title: row.ai_summary_error || "" },
+          { default: () => "失败" },
+        ),
+        h(
+          NButton,
+          {
+            size: "small",
+            text: true,
+            type: "warning",
+            loading: summaryGeneratingIds.value.includes(row.id),
+            onClick: () => generateSummary(row),
+          },
+          { default: () => "重试" },
+        ),
+      ],
     );
   }
-  return "";
+  return h(
+    NButton,
+    {
+      size: "small",
+      text: true,
+      type: "primary",
+      loading: summaryGeneratingIds.value.includes(row.id),
+      onClick: () => generateSummary(row),
+    },
+    { default: () => "生成" },
+  );
 };
 
 const showSummary = (summary: string) => {
   currentSummary.value = summary;
   summaryModalVisible.value = true;
+};
+
+const generateSummary = async (row: LiveRecord) => {
+  if (summaryGeneratingIds.value.includes(row.id)) return;
+
+  summaryGeneratingIds.value = [...summaryGeneratingIds.value, row.id];
+  try {
+    await recordHistoryApi.generateLiveSummary(row.id);
+    row.ai_summary_status = "pending";
+    row.ai_summary_error = "";
+    notice.success({
+      title: "已添加直播总结任务",
+      duration: 1500,
+    });
+  } catch (error: any) {
+    notice.error({
+      title: error?.message || error,
+    });
+  } finally {
+    summaryGeneratingIds.value = summaryGeneratingIds.value.filter((id) => id !== row.id);
+  }
 };
 
 // 页面初始化

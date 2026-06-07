@@ -321,9 +321,14 @@ export class LiveSummaryTask extends AbstractTask {
   }
 }
 
-export function addLiveSummaryTask(options: LiveSummaryTaskOptions) {
+export function addLiveSummaryTask(
+  options: LiveSummaryTaskOptions,
+  extraOptions?: {
+    force?: boolean;
+  },
+) {
   const config = appConfig.getAll();
-  if (!config.ai.liveSummary.enabled) return null;
+  if (!extraOptions?.force && !config.ai.liveSummary.enabled) return null;
 
   const task = new LiveSummaryTask(options);
   recordHistoryService.update({

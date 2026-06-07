@@ -4,6 +4,8 @@ import fs from "fs-extra";
 import Router from "@koa/router";
 import { replaceExtName } from "@biliLive-tools/shared/utils/index.js";
 import recordHistory from "@biliLive-tools/shared/recorder/recordHistory.js";
+import { recordHistoryService } from "@biliLive-tools/shared/db/index.js";
+import { addLiveSummaryTask } from "@biliLive-tools/shared/task/liveSummary.js";
 import { fileCache } from "../index.js";
 
 const router = new Router({
@@ -219,6 +221,76 @@ router.get("/file/:id", async (ctx) => {
   ctx.body = {
     ...videoInfo,
     ...danmaInfo,
+  };
+});
+
+router.post("/:id/live-summary", async (ctx) => {
+  const { id } = ctx.params;
+  const recordId = parseInt(id);
+
+  if (!id || isNaN(recordId)) {
+    ctx.status = 400;
+    ctx.body = {
+      code: 400,
+      message: "记录ID不能为空且必须为数字",
+    };
+    return;
+  }
+
+  const record = recordHistoryService.query({
+    id: recordId,
+    include: {
+      streamer: true,
+    },
+  });
+  if (!record) {
+    ctx.status = 404;
+    ctx.body = {
+      code: 404,
+      message: "记录不存在",
+    };
+    return;
+  }
+
+  if (record.ai_summary_status === "pending" || record.ai_summary_status === "running") {
+    ctx.status = 409;
+    ctx.body = {
+      code: 409,
+      message: "直播总结任务已在队列中",
+    };
+    return;
+  }
+
+  const videoFile = await getVideoFile(recordId);
+  if (!videoFile) {
+    ctx.status = 400;
+    ctx.body = {
+      code: 400,
+      message: "视频文件不存在",
+    };
+    return;
+  }
+
+  const task = addLiveSummaryTask(
+    {
+      recordId,
+      videoFile,
+      title: record.title,
+      streamer: record.streamer?.name,
+      roomId: record.streamer?.room_id,
+      platform: record.streamer?.platform,
+    },
+    {
+      force: true,
+    },
+  );
+
+  ctx.body = {
+    code: 200,
+    data: {
+      taskId: task?.taskId,
+    },
+    message: "已添加直播总结任务",
   };
 });
 

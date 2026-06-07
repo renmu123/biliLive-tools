@@ -116,6 +116,17 @@ export async function getDanmaFileInfo(videoFilePath: string): Promise<{
   return res.data;
 }
 
+export async function generateLiveSummary(id: number): Promise<{
+  code: number;
+  data: {
+    taskId?: string;
+  };
+  message: string;
+}> {
+  const res = await request.post(`/record-history/${id}/live-summary`);
+  return res.data;
+}
+
 /**
  * 下载视频文件
  */
@@ -131,4 +142,5 @@ export default {
   downloadFile,
   getFileInfo,
   getDanmaFileInfo,
+  generateLiveSummary,
 };
