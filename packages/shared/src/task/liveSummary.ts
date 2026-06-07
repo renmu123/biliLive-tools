@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import fs from "fs-extra";
 
 import { createASRProvider, QwenLLM, type StandardASRResult } from "../ai/index.js";
+import { exportSummaryToTargets, getEnabledSummaryExportTargetNames } from "../ai/summaryExport.js";
 import { appConfig } from "../config.js";
 import { recordHistoryService } from "../db/index.js";
 import { TaskType } from "../enum.js";
@@ -291,6 +292,28 @@ export class LiveSummaryTask extends AbstractTask {
         platform: this.options.platform,
       });
       throwIfAborted(this.controller.signal);
+
+      const exportTargets = getEnabledSummaryExportTargetNames(summaryConfig);
+      if (exportTargets.length) {
+        this.custsomProgressMsg = `正在导出总结到${exportTargets.join("、")}`;
+        this.progress = 90;
+        this.emitter.emit("task-progress", { taskId: this.taskId });
+
+        try {
+          await exportSummaryToTargets(summary, this.options, summaryConfig);
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          recordHistoryService.update({
+            id: this.options.recordId,
+            ai_summary_status: "error",
+            ai_summary: summary,
+            ai_summary_error: errorMessage,
+            ...(transcriptFile ? { ai_transcript_file: transcriptFile } : {}),
+            ai_summary_time: Date.now(),
+          });
+          throw error;
+        }
+      }
 
       recordHistoryService.update({
         id: this.options.recordId,

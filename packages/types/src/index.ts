@@ -782,6 +782,21 @@ export interface AppConfig {
       prompt: string;
       maxInputLength: number;
       saveTranscript: boolean;
+      exportTargets: {
+        feishu: {
+          enabled: boolean;
+          appId: string;
+          appSecret: string;
+          documentId: string;
+        };
+        notion: {
+          enabled: boolean;
+          token: string;
+          pageId: string;
+        };
+      };
+      /** @deprecated use exportTargets.feishu */
+      feishu?: AppConfig["ai"]["liveSummary"]["exportTargets"]["feishu"];
     };
   };
   /** 最大任务数 */
