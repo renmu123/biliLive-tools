@@ -248,6 +248,42 @@
                 <n-form-item label="保存转写">
                   <n-switch v-model:value="config.ai.liveSummary.saveTranscript" />
                 </n-form-item>
+                <n-divider />
+                <n-form-item>
+                  <template #label>
+                    <Tip
+                      tip="启用后，直播总结生成完成会追加写入指定飞书云文档。需要在飞书开放平台创建企业自建应用，并给应用开通云文档读写权限。"
+                      text="写入飞书"
+                    />
+                  </template>
+                  <n-switch v-model:value="config.ai.liveSummary.feishu.enabled" />
+                </n-form-item>
+                <n-form-item v-if="config.ai.liveSummary.feishu.enabled" label="App ID">
+                  <n-input
+                    v-model:value="config.ai.liveSummary.feishu.appId"
+                    placeholder="请输入飞书应用 App ID"
+                  />
+                </n-form-item>
+                <n-form-item v-if="config.ai.liveSummary.feishu.enabled" label="App Secret">
+                  <n-input
+                    v-model:value="config.ai.liveSummary.feishu.appSecret"
+                    type="password"
+                    show-password-on="click"
+                    placeholder="请输入飞书应用 App Secret"
+                  />
+                </n-form-item>
+                <n-form-item v-if="config.ai.liveSummary.feishu.enabled">
+                  <template #label>
+                    <Tip
+                      tip="可以填写飞书 docx 文档链接，或直接填写链接中 /docx/ 后面的 Document ID。应用需要有该文档的访问权限。"
+                      text="文档 ID/链接"
+                    />
+                  </template>
+                  <n-input
+                    v-model:value="config.ai.liveSummary.feishu.documentId"
+                    placeholder="例如：https://xxx.feishu.cn/docx/xxxxxx"
+                  />
+                </n-form-item>
               </n-form>
             </n-collapse-item>
           </n-collapse>
@@ -384,6 +420,12 @@ const config = defineModel<AppConfig>("data", {
         prompt: "",
         maxInputLength: 24000,
         saveTranscript: true,
+        feishu: {
+          enabled: false,
+          appId: "",
+          appSecret: "",
+          documentId: "",
+        },
       },
     },
   }),

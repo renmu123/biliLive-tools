@@ -351,6 +351,12 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
 - 输出 Markdown`,
       maxInputLength: 24000,
       saveTranscript: true,
+      feishu: {
+        enabled: false,
+        appId: "",
+        appSecret: "",
+        documentId: "",
+      },
     },
   },
   biliUpload: {

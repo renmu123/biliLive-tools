@@ -782,6 +782,12 @@ export interface AppConfig {
       prompt: string;
       maxInputLength: number;
       saveTranscript: boolean;
+      feishu: {
+        enabled: boolean;
+        appId: string;
+        appSecret: string;
+        documentId: string;
+      };
     };
   };
   /** 最大任务数 */
