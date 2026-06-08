@@ -4,7 +4,7 @@ import { analyzeAudio, detectMusicSegments, DetectionConfig } from "music-segmen
 import { stringifySync } from "subtitle";
 
 import { addExtractAudioTask } from "../task/video.js";
-import { QwenLLM, recognize } from "../ai/index.js";
+import { OpenAICompatibleLLM, recognize } from "../ai/index.js";
 import { recognize as shazamRecognize } from "./shazam.js";
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
@@ -164,6 +164,19 @@ function getVendor(vendorId: string) {
   return vendor;
 }
 
+function createLLMClient(vendorId: string, model: string) {
+  const vendor = getVendor(vendorId);
+  if (vendor.provider === "ffmpeg") {
+    throw new Error("FFmpeg 供应商不能用于 LLM 模型");
+  }
+  return new OpenAICompatibleLLM({
+    provider: vendor.provider,
+    apiKey: vendor.apiKey,
+    model,
+    baseURL: vendor.baseURL,
+  });
+}
+
 /**
  * 歌词优化
  * @param lyrics - 原始歌词文本
@@ -176,12 +189,7 @@ export async function optimizeLyrics(
   offset: number,
 ): Promise<ASRWord[]> {
   const { vendorId, prompt, model, enableStructuredOutput } = getLyricOptimizeConfig();
-  const { apiKey, baseURL } = getVendor(vendorId);
-  const llm = new QwenLLM({
-    apiKey: apiKey,
-    model: model,
-    baseURL: baseURL,
-  });
+  const llm = createLLMClient(vendorId, model);
 
   const asrCleanedSentences: ASRWord[] = [];
   if (asrData.words && asrData.words.length !== 0) {
@@ -311,12 +319,7 @@ async function recognizeSongNameWithLLM(
   },
 ) {
   try {
-    const { apiKey, baseURL } = getVendor(vendorId);
-    const llm = new QwenLLM({
-      apiKey: apiKey,
-      model: options.model,
-      baseURL: baseURL,
-    });
+    const llm = createLLMClient(vendorId, options.model);
 
     const truncatedText = asrText.slice(0, options.maxInputLength);
     logger.info("使用 LLM 进行歌曲名称识别...", {

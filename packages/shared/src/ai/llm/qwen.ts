@@ -1,8 +1,11 @@
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import type { Stream } from "openai/streaming";
+import logger from "../../utils/log.js";
 
-export interface QwenConfig {
+export type OpenAICompatibleProvider = "aliyun" | "openai" | "openai-compatible";
+
+export interface OpenAICompatibleLLMConfig {
   /**
    * API Key，格式：sk-xxx
    */
@@ -14,13 +17,25 @@ export interface QwenConfig {
    */
   model?: string;
   /**
-   * 基础 URL，默认为阿里云的 OpenAI 兼容端点
+   * 供应商类型。aliyun 会默认使用阿里云 OpenAI 兼容端点；openai 默认使用 OpenAI 官方端点。
+   */
+  provider?: OpenAICompatibleProvider;
+  /**
+   * 基础 URL。OpenAI 兼容供应商一般需要配置为 https://xxxx/v1
    */
   baseURL?: string;
   /**
    * 请求超时时间（毫秒）
    */
   timeout?: number;
+}
+
+export interface QwenConfig extends Omit<OpenAICompatibleLLMConfig, "provider"> {}
+
+export function resolveOpenAICompatibleBaseURL(config: Pick<OpenAICompatibleLLMConfig, "provider" | "baseURL">) {
+  if (config.baseURL) return config.baseURL;
+  if (!config.provider || config.provider === "aliyun") return "https://dashscope.aliyuncs.com/compatible-mode/v1";
+  return undefined;
 }
 
 export interface ChatOptions {
@@ -86,14 +101,21 @@ export interface ChatResponse {
   finishReason: "stop" | "length" | "tool_calls" | "content_filter" | "function_call";
 }
 
-export class QwenLLM {
+export class OpenAICompatibleLLM {
   private client: OpenAI;
   private model: string;
+  private provider: OpenAICompatibleProvider;
+  private baseURL?: string;
 
-  constructor(config: QwenConfig) {
+  constructor(config: OpenAICompatibleLLMConfig) {
+    this.provider = config.provider || "openai-compatible";
+    this.baseURL = resolveOpenAICompatibleBaseURL(config);
+    if (this.provider === "openai-compatible" && !this.baseURL) {
+      throw new Error("OpenAI 兼容供应商需要配置 Base URL");
+    }
     this.client = new OpenAI({
       apiKey: config.apiKey,
-      baseURL: config.baseURL || "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      baseURL: this.baseURL,
       timeout: config.timeout || 60000,
     });
     this.model = config.model || "qwen-plus";
@@ -117,6 +139,15 @@ export class QwenLLM {
     messages: ChatMessage[],
     options: ChatOptions = {},
   ): Promise<ChatResponse | Stream<OpenAI.Chat.Completions.ChatCompletionChunk>> {
+    const startedAt = Date.now();
+    const logContext = {
+      provider: this.provider,
+      model: this.model,
+      baseURL: this.baseURL,
+      stream: options.stream === true,
+      messageCount: messages.length,
+      inputLength: messages.reduce((total, message) => total + message.content.length, 0),
+    };
     const params = {
       model: this.model,
       messages: messages as ChatCompletionMessageParam[],
@@ -138,21 +169,45 @@ export class QwenLLM {
       }),
     };
 
+    logger.info("开始请求 LLM", logContext);
     if (options.stream) {
-      return this.client.chat.completions.create({
-        ...params,
-        stream: true,
-      }) as unknown as Stream<OpenAI.Chat.Completions.ChatCompletionChunk>;
+      try {
+        const stream = (await this.client.chat.completions.create({
+          ...params,
+          stream: true,
+        })) as unknown as Stream<OpenAI.Chat.Completions.ChatCompletionChunk>;
+        logger.info("LLM 流式请求已建立", {
+          ...logContext,
+          durationMs: Date.now() - startedAt,
+        });
+        return stream;
+      } catch (error) {
+        logger.error("LLM 流式请求失败", error, logContext);
+        throw error;
+      }
     } else {
-      const completion = await this.client.chat.completions.create({
-        ...params,
-        stream: false,
-      });
-      return {
-        content: completion.choices[0].message.content || "",
-        usage: completion.usage,
-        finishReason: completion.choices[0].finish_reason,
-      };
+      try {
+        const completion = await this.client.chat.completions.create({
+          ...params,
+          stream: false,
+        });
+        const response = {
+          content: completion.choices[0].message.content || "",
+          usage: completion.usage,
+          finishReason: completion.choices[0].finish_reason,
+        };
+        logger.info("LLM 请求完成", {
+          ...logContext,
+          durationMs: Date.now() - startedAt,
+          finishReason: response.finishReason,
+          outputLength: response.content.length,
+          usage: response.usage,
+        });
+        return response;
+      } catch (error) {
+        logger.error("LLM 请求失败", error, logContext);
+        throw error;
+      }
     }
   }
 
@@ -192,5 +247,14 @@ export class QwenLLM {
     const messages: ChatMessage[] = [{ role: "user", content: prompt }];
     const result = await this.chat(messages, options);
     return result as ChatResponse;
+  }
+}
+
+export class QwenLLM extends OpenAICompatibleLLM {
+  constructor(config: QwenConfig) {
+    super({
+      ...config,
+      provider: "aliyun",
+    });
   }
 }

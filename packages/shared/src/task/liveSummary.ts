@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 
 import fs from "fs-extra";
 
-import { createASRProvider, QwenLLM, type StandardASRResult } from "../ai/index.js";
+import { createASRProvider, OpenAICompatibleLLM, type StandardASRResult } from "../ai/index.js";
 import { exportSummaryToTargets, getEnabledSummaryExportTargetNames } from "../ai/summaryExport.js";
 import { appConfig } from "../config.js";
 import { recordHistoryService } from "../db/index.js";
@@ -140,7 +140,11 @@ async function createSummary(input: {
 
   const model = getModel(llmModelId, config);
   const vendor = getVendor(model.vendorId);
-  const llm = new QwenLLM({
+  if (vendor.provider === "ffmpeg") {
+    throw new Error("FFmpeg 供应商不能用于 LLM 模型");
+  }
+  const llm = new OpenAICompatibleLLM({
+    provider: vendor.provider,
     apiKey: vendor.apiKey,
     baseURL: vendor.baseURL,
     model: model.modelName,
@@ -158,6 +162,17 @@ async function createSummary(input: {
     .filter(Boolean)
     .join("\n");
 
+  logger.info("开始生成直播总结", {
+    provider: vendor.provider,
+    vendorName: vendor.name,
+    model: model.modelName,
+    title: input.title,
+    streamer: input.streamer,
+    roomId: input.roomId,
+    platform: input.platform,
+    transcriptLength: input.transcript.length,
+    truncatedTranscriptLength: transcript.length,
+  });
   const response = await llm.sendMessage(
     `${meta}
 
@@ -174,6 +189,11 @@ ${transcript}`,
   if (!response.content) {
     throw new Error("LLM 未返回总结内容");
   }
+  logger.info("直播总结生成完成", {
+    model: model.modelName,
+    summaryLength: response.content.length,
+    usage: response.usage,
+  });
   return response.content;
 }
 
@@ -211,6 +231,11 @@ export class LiveSummaryTask extends AbstractTask {
         this.status = this.status === "canceled" ? "canceled" : "error";
         const errorMessage = error?.message || String(error);
         this.error = errorMessage;
+        logger.error("直播总结任务失败", error, {
+          taskId: this.taskId,
+          recordId: this.options.recordId,
+          status: this.status,
+        });
         if (this.status === "canceled") {
           recordHistoryService.update({
             id: this.options.recordId,
@@ -247,6 +272,13 @@ export class LiveSummaryTask extends AbstractTask {
       ai_summary_status: "running",
       ai_summary_error: "",
     });
+    logger.info("开始执行直播总结任务", {
+      taskId: this.taskId,
+      recordId: this.options.recordId,
+      videoFile: this.options.videoFile,
+      title: this.options.title,
+      streamer: this.options.streamer,
+    });
 
     this.custsomProgressMsg = "正在提取音频";
     this.progress = 10;
@@ -255,7 +287,16 @@ export class LiveSummaryTask extends AbstractTask {
     const workDir = path.join(getTempPath(), "live-summary", this.taskId);
     try {
       const audioFile = path.join(workDir, "audio.mp3");
+      logger.info("开始提取直播总结音频", {
+        taskId: this.taskId,
+        videoFile: this.options.videoFile,
+        audioFile,
+      });
       await extractAudioToMp3(this.options.videoFile, audioFile, this.controller.signal);
+      logger.info("直播总结音频提取完成", {
+        taskId: this.taskId,
+        audioFile,
+      });
       throwIfAborted(this.controller.signal);
 
       this.custsomProgressMsg = "正在识别语音";
@@ -263,7 +304,17 @@ export class LiveSummaryTask extends AbstractTask {
       this.emitter.emit("task-progress", { taskId: this.taskId });
 
       const asr = createASRProvider(asrModelId);
+      logger.info("开始识别直播总结语音", {
+        taskId: this.taskId,
+        asrModelId,
+        audioFile,
+      });
       const result = await asr.recognizeLocalFile(audioFile);
+      logger.info("直播总结语音识别完成", {
+        taskId: this.taskId,
+        textLength: result.text.length,
+        segmentCount: result.segments.length,
+      });
       throwIfAborted(this.controller.signal);
 
       const transcript = buildTranscript(result);
@@ -278,6 +329,11 @@ export class LiveSummaryTask extends AbstractTask {
           `${path.basename(this.options.videoFile, path.extname(this.options.videoFile))}.transcript.txt`,
         );
         await fs.writeFile(transcriptFile, transcript);
+        logger.info("直播总结转写文本已保存", {
+          taskId: this.taskId,
+          transcriptFile,
+          transcriptLength: transcript.length,
+        });
       }
 
       this.custsomProgressMsg = "正在生成总结";
@@ -301,6 +357,10 @@ export class LiveSummaryTask extends AbstractTask {
 
         try {
           await exportSummaryToTargets(summary, this.options, summaryConfig);
+          logger.info("直播总结导出完成", {
+            taskId: this.taskId,
+            targets: exportTargets,
+          });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
           recordHistoryService.update({
@@ -322,6 +382,10 @@ export class LiveSummaryTask extends AbstractTask {
         ai_summary_error: "",
         ...(transcriptFile ? { ai_transcript_file: transcriptFile } : {}),
         ai_summary_time: Date.now(),
+      });
+      logger.info("直播总结任务完成", {
+        taskId: this.taskId,
+        recordId: this.options.recordId,
       });
     } finally {
       await fs.remove(workDir);

@@ -2,6 +2,7 @@ import type { AppConfig } from "@biliLive-tools/types";
 
 import { extractFeishuDocumentId, FeishuDocClient } from "./feishu.js";
 import { extractNotionPageId, NotionClient } from "./notion.js";
+import logger from "../utils/log.js";
 
 export interface SummaryExportContext {
   title?: string;
@@ -59,8 +60,13 @@ export async function exportSummaryToTargets(
   const notionConfig = config.exportTargets?.notion;
 
   if (feishuConfig?.enabled) {
+    const documentId = extractFeishuDocumentId(feishuConfig.documentId);
+    logger.info("开始导出直播总结到飞书文档", {
+      ...input,
+      documentId,
+      markdownLength: markdown.length,
+    });
     try {
-      const documentId = extractFeishuDocumentId(feishuConfig.documentId);
       if (!feishuConfig.appId || !feishuConfig.appSecret || !documentId) {
         throw new Error("请先完整配置飞书 App ID、App Secret 和云文档 Document ID");
       }
@@ -69,14 +75,25 @@ export async function exportSummaryToTargets(
         appSecret: feishuConfig.appSecret,
         documentId,
       }).appendMarkdown(markdown);
+      logger.info("导出直播总结到飞书文档完成", {
+        ...input,
+        documentId,
+        markdownLength: markdown.length,
+      });
     } catch (error) {
+      logger.error("导出直播总结到飞书文档失败", error);
       errors.push(`飞书文档：${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   if (notionConfig?.enabled) {
+    const pageId = extractNotionPageId(notionConfig.pageId);
+    logger.info("开始导出直播总结到 Notion", {
+      ...input,
+      pageId,
+      markdownLength: markdown.length,
+    });
     try {
-      const pageId = extractNotionPageId(notionConfig.pageId);
       if (!notionConfig.token || !pageId) {
         throw new Error("请先完整配置 Notion Token 和页面 ID/链接");
       }
@@ -84,7 +101,13 @@ export async function exportSummaryToTargets(
         token: notionConfig.token,
         pageId,
       }).appendMarkdown(markdown);
+      logger.info("导出直播总结到 Notion 完成", {
+        ...input,
+        pageId,
+        markdownLength: markdown.length,
+      });
     } catch (error) {
+      logger.error("导出直播总结到 Notion 失败", error);
       errors.push(`Notion：${error instanceof Error ? error.message : String(error)}`);
     }
   }
