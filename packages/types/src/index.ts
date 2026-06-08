@@ -734,7 +734,7 @@ export interface AppConfig {
     vendors: {
       id: string;
       // 供应商
-      provider: "aliyun" | "openai" | "ffmpeg";
+      provider: "aliyun" | "openai" | "openai-compatible" | "ffmpeg";
       // 命名，不能重复
       name: string;
       // apiKey

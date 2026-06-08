@@ -510,6 +510,7 @@ const providerOptions = [
   { label: "FFmpeg", value: "ffmpeg" },
   { label: "阿里云", value: "aliyun" },
   { label: "OpenAI", value: "openai" },
+  { label: "OpenAI 兼容", value: "openai-compatible" },
   // { label: "百度", value: "baidu" },
 ];
 
@@ -522,6 +523,7 @@ const getProviderType = (provider: string) => {
   const typeMap: Record<string, any> = {
     aliyun: "success",
     openai: "info",
+    "openai-compatible": "info",
     baidu: "warning",
   };
   return typeMap[provider] || "default";
@@ -621,7 +623,7 @@ const saveVendor = () => {
 
   const vendorData = {
     id: editingVendorId.value || uuid(),
-    provider: editingVendor.value.provider as "aliyun",
+    provider: editingVendor.value.provider as AppConfig["ai"]["vendors"][number]["provider"],
     name: editingVendor.value.name,
     apiKey: editingVendor.value.apiKey,
     baseURL: editingVendor.value.baseURL || undefined,
