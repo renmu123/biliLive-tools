@@ -260,6 +260,16 @@
                 </n-form-item>
                 <n-form-item
                   v-if="config.ai.liveSummary.exportTargets.feishu.enabled"
+                  label="导出方式"
+                >
+                  <n-select
+                    v-model:value="config.ai.liveSummary.exportTargets.feishu.mode"
+                    :options="feishuExportModeOptions"
+                    style="width: 220px"
+                  />
+                </n-form-item>
+                <n-form-item
+                  v-if="config.ai.liveSummary.exportTargets.feishu.enabled"
                   label="App ID"
                 >
                   <n-input
@@ -278,7 +288,12 @@
                     placeholder="请输入飞书应用 App Secret"
                   />
                 </n-form-item>
-                <n-form-item v-if="config.ai.liveSummary.exportTargets.feishu.enabled">
+                <n-form-item
+                  v-if="
+                    config.ai.liveSummary.exportTargets.feishu.enabled &&
+                    (config.ai.liveSummary.exportTargets.feishu.mode || 'append') === 'append'
+                  "
+                >
                   <template #label>
                     <Tip
                       tip="可以填写飞书 docx 文档链接，或直接填写链接中 /docx/ 后面的 Document ID。应用需要有该文档的访问权限。"
@@ -288,6 +303,40 @@
                   <n-input
                     v-model:value="config.ai.liveSummary.exportTargets.feishu.documentId"
                     placeholder="例如：https://xxx.feishu.cn/docx/xxxxxx"
+                  />
+                </n-form-item>
+                <n-form-item
+                  v-if="
+                    config.ai.liveSummary.exportTargets.feishu.enabled &&
+                    config.ai.liveSummary.exportTargets.feishu.mode === 'create'
+                  "
+                >
+                  <template #label>
+                    <Tip
+                      tip="可以填写飞书云空间文件夹链接，或直接填写链接中 /drive/folder/ 后面的 folder token。总结生成后会在该文件夹中新建 docx 文档。"
+                      text="文件夹 Token/链接"
+                    />
+                  </template>
+                  <n-input
+                    v-model:value="config.ai.liveSummary.exportTargets.feishu.folderToken"
+                    placeholder="例如：https://xxx.feishu.cn/drive/folder/fldxxxxxx"
+                  />
+                </n-form-item>
+                <n-form-item
+                  v-if="
+                    config.ai.liveSummary.exportTargets.feishu.enabled &&
+                    config.ai.liveSummary.exportTargets.feishu.mode === 'create'
+                  "
+                >
+                  <template #label>
+                    <Tip
+                      tip="支持变量：{room}、{streamer}、{roomId}、{title}、{platform}、{time}。"
+                      text="文档标题模板"
+                    />
+                  </template>
+                  <n-input
+                    v-model:value="config.ai.liveSummary.exportTargets.feishu.titleTemplate"
+                    placeholder="{room} - {time}"
                   />
                 </n-form-item>
                 <n-form-item>
@@ -461,9 +510,12 @@ const config = defineModel<AppConfig>("data", {
         exportTargets: {
           feishu: {
             enabled: false,
+            mode: "append",
             appId: "",
             appSecret: "",
             documentId: "",
+            folderToken: "",
+            titleTemplate: "{room} - {time}",
           },
           notion: {
             enabled: false,
@@ -478,6 +530,17 @@ const config = defineModel<AppConfig>("data", {
 
 const notice = useNotice();
 const confirm = useConfirm();
+
+const feishuExportModeOptions = [
+  {
+    label: "追加到已有文档",
+    value: "append",
+  },
+  {
+    label: "在文件夹中新建文档",
+    value: "create",
+  },
+];
 
 // 供应商选择选项（用于下拉框）
 const vendorSelectOptions = computed(() => {

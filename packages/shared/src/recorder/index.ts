@@ -465,6 +465,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
               streamer: username,
               roomId: channelId,
               platform: recorder.providerId,
+              recordStartTime: history.record_start_time,
             });
           }
         } catch (error) {

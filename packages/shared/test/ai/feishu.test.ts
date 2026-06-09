@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { extractFeishuDocumentId, markdownToFeishuBlocks } from "../../src/ai/feishu.js";
+import { extractFeishuDocumentId, extractFeishuFolderToken, markdownToFeishuBlocks } from "../../src/ai/feishu.js";
 
 describe("feishu doc helpers", () => {
   it("extracts document id from docx url", () => {
@@ -8,6 +8,13 @@ describe("feishu doc helpers", () => {
       "AbCdEf123",
     );
     expect(extractFeishuDocumentId("AbCdEf123")).toBe("AbCdEf123");
+  });
+
+  it("extracts folder token from drive folder url", () => {
+    expect(extractFeishuFolderToken("https://example.feishu.cn/drive/folder/fldAbCdEf123?from=from_copylink")).toBe(
+      "fldAbCdEf123",
+    );
+    expect(extractFeishuFolderToken("fldAbCdEf123")).toBe("fldAbCdEf123");
   });
 
   it("converts common markdown lines to doc blocks", () => {

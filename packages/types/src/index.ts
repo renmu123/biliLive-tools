@@ -785,9 +785,12 @@ export interface AppConfig {
       exportTargets: {
         feishu: {
           enabled: boolean;
+          mode?: "append" | "create";
           appId: string;
           appSecret: string;
           documentId: string;
+          folderToken?: string;
+          titleTemplate?: string;
         };
         notion: {
           enabled: boolean;

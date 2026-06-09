@@ -279,6 +279,7 @@ router.post("/:id/live-summary", async (ctx) => {
       streamer: record.streamer?.name,
       roomId: record.streamer?.room_id,
       platform: record.streamer?.platform,
+      recordStartTime: record.record_start_time,
     },
     {
       force: true,
