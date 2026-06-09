@@ -20,6 +20,7 @@ export interface LiveSummaryTaskOptions {
   streamer?: string;
   roomId?: string;
   platform?: string;
+  recordStartTime?: number;
 }
 
 function getVendor(vendorId: string) {

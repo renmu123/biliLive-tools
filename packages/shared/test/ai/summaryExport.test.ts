@@ -11,7 +11,11 @@ vi.mock("../../src/utils/log.js", () => ({
   default: logger,
 }));
 
-import { buildSummaryExportMarkdown, getEnabledSummaryExportTargetNames } from "../../src/ai/summaryExport.js";
+import {
+  buildSummaryExportMarkdown,
+  buildSummaryExportTitle,
+  getEnabledSummaryExportTargetNames,
+} from "../../src/ai/summaryExport.js";
 
 describe("summary export helpers", () => {
   beforeEach(() => {
@@ -27,6 +31,19 @@ describe("summary export helpers", () => {
         roomId: "123",
       }),
     ).toContain("- 主播：主播");
+  });
+
+  it("builds export title from room and record time", () => {
+    expect(
+      buildSummaryExportTitle(
+        {
+          streamer: "主播",
+          roomId: "123",
+          recordStartTime: new Date("2026-06-09T13:30:00+08:00").getTime(),
+        },
+        "",
+      ),
+    ).toBe("主播 - 2026-06-09 13:30");
   });
 
   it("keeps legacy feishu config readable", () => {
@@ -71,13 +88,16 @@ describe("summary export helpers", () => {
           prompt: "",
           maxInputLength: 24000,
           saveTranscript: true,
-          exportTargets: {
-            feishu: {
-              enabled: true,
-              appId: "",
-              appSecret: "",
-              documentId: "",
-            },
+        exportTargets: {
+          feishu: {
+            enabled: true,
+            mode: "append",
+            appId: "",
+            appSecret: "",
+            documentId: "",
+            folderToken: "",
+            titleTemplate: "",
+          },
             notion: {
               enabled: false,
               token: "",
@@ -96,5 +116,38 @@ describe("summary export helpers", () => {
       "导出直播总结到飞书文档失败",
       expect.any(Error),
     );
+  });
+
+  it("validates feishu create mode folder token", async () => {
+    const { exportSummaryToTargets } = await import("../../src/ai/summaryExport.js");
+
+    await expect(
+      exportSummaryToTargets(
+        "总结内容",
+        { streamer: "主播", roomId: "123" },
+        {
+          enabled: true,
+          prompt: "",
+          maxInputLength: 24000,
+          saveTranscript: true,
+          exportTargets: {
+            feishu: {
+              enabled: true,
+              mode: "create",
+              appId: "cli_xxx",
+              appSecret: "secret",
+              documentId: "",
+              folderToken: "",
+              titleTemplate: "",
+            },
+            notion: {
+              enabled: false,
+              token: "",
+              pageId: "",
+            },
+          },
+        },
+      ),
+    ).rejects.toThrow("飞书云空间文件夹 Token");
   });
 });

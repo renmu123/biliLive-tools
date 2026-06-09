@@ -102,6 +102,28 @@ export function extractNotionPageId(input: string) {
   return "";
 }
 
+export function formatNotionError(error: unknown) {
+  if (axios.isAxiosError(error)) {
+    const status = error.response?.status;
+    if (status === 401) {
+      return "Notion Token 无效或已失效，请检查 Internal Integration Token";
+    }
+    if (status === 403) {
+      return "Notion integration 没有写入权限，请确认已将目标页面分享给该 integration";
+    }
+    if (status === 404) {
+      return "Notion 页面不存在或当前 integration 无访问权限，请检查页面 ID/链接，并确认已将目标页面分享给该 integration";
+    }
+
+    const message = error.response?.data && typeof error.response.data === "object"
+      ? (error.response.data as { message?: unknown }).message
+      : undefined;
+    if (typeof message === "string" && message) return message;
+  }
+
+  return error instanceof Error ? error.message : String(error);
+}
+
 export class NotionClient {
   private client: AxiosInstance;
 
@@ -121,10 +143,14 @@ export class NotionClient {
     const blocks = markdownToNotionBlocks(markdown);
     if (!blocks.length) return;
 
-    for (const children of chunkArray(blocks, 100)) {
-      await this.client.patch(`/blocks/${this.config.pageId}/children`, {
-        children,
-      });
+    try {
+      for (const children of chunkArray(blocks, 100)) {
+        await this.client.patch(`/blocks/${this.config.pageId}/children`, {
+          children,
+        });
+      }
+    } catch (error) {
+      throw new Error(formatNotionError(error));
     }
   }
 }

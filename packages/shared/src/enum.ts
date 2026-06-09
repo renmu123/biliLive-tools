@@ -354,9 +354,12 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       exportTargets: {
         feishu: {
           enabled: false,
+          mode: "append",
           appId: "",
           appSecret: "",
           documentId: "",
+          folderToken: "",
+          titleTemplate: "{room} - {time}",
         },
         notion: {
           enabled: false,

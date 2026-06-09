@@ -5,7 +5,7 @@ import { chunkArray, parseMarkdownBlocks, type MarkdownBlock } from "./markdown.
 export interface FeishuDocConfig {
   appId: string;
   appSecret: string;
-  documentId: string;
+  documentId?: string;
 }
 
 interface FeishuResponse<T = unknown> {
@@ -19,6 +19,12 @@ interface FeishuResponse<T = unknown> {
 type FeishuBlock = {
   block_type: number;
   [key: string]: unknown;
+};
+
+type FeishuCreatedDocument = {
+  document?: {
+    document_id?: string;
+  };
 };
 
 const FEISHU_BASE_URL = "https://open.feishu.cn/open-apis";
@@ -111,20 +117,44 @@ export class FeishuDocClient {
     return this.token;
   }
 
-  async appendMarkdown(markdown: string) {
+  async appendMarkdown(markdown: string, documentId = this.config.documentId) {
+    if (!documentId) {
+      throw new Error("请先配置飞书云文档 Document ID");
+    }
     const blocks = markdownToFeishuBlocks(markdown);
     if (!blocks.length) return;
 
     for (const children of chunkArray(blocks, 40)) {
       await this.request(
         "post",
-        `/docx/v1/documents/${this.config.documentId}/blocks/${this.config.documentId}/children`,
+        `/docx/v1/documents/${documentId}/blocks/${documentId}/children`,
         {
           children,
           index: -1,
         },
       );
     }
+  }
+
+  async createDocument(input: { folderToken: string; title: string }) {
+    const data = await this.request<FeishuCreatedDocument>("post", "/docx/v1/documents", {
+      folder_token: input.folderToken,
+      title: input.title,
+    });
+    const documentId = data?.document?.document_id;
+    if (!documentId) {
+      throw new Error("飞书创建文档失败：未返回 Document ID");
+    }
+    return documentId;
+  }
+
+  async createDocumentAndAppendMarkdown(input: { folderToken: string; title: string; markdown: string }) {
+    const documentId = await this.createDocument({
+      folderToken: input.folderToken,
+      title: input.title,
+    });
+    await this.appendMarkdown(input.markdown, documentId);
+    return documentId;
   }
 }
 
@@ -133,6 +163,15 @@ export function extractFeishuDocumentId(input: string) {
   if (!value) return "";
 
   const match = value.match(/\/docx\/([^/?#]+)/);
+  if (match?.[1]) return match[1];
+  return value;
+}
+
+export function extractFeishuFolderToken(input: string) {
+  const value = input.trim();
+  if (!value) return "";
+
+  const match = value.match(/\/drive\/folder\/([^/?#]+)/);
   if (match?.[1]) return match[1];
   return value;
 }

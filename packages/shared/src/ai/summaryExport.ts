@@ -1,6 +1,6 @@
 import type { AppConfig } from "@biliLive-tools/types";
 
-import { extractFeishuDocumentId, FeishuDocClient } from "./feishu.js";
+import { extractFeishuDocumentId, extractFeishuFolderToken, FeishuDocClient } from "./feishu.js";
 import { extractNotionPageId, NotionClient } from "./notion.js";
 import logger from "../utils/log.js";
 
@@ -9,6 +9,7 @@ export interface SummaryExportContext {
   streamer?: string;
   roomId?: string;
   platform?: string;
+  recordStartTime?: number;
 }
 
 type LiveSummaryConfig = AppConfig["ai"]["liveSummary"] & {
@@ -32,6 +33,40 @@ export function buildSummaryExportMarkdown(summary: string, input: SummaryExport
   ]
     .filter(Boolean)
     .join("\n\n");
+}
+
+function padTime(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function formatTitleTime(timestamp?: number) {
+  const date = new Date(timestamp || Date.now());
+  return [
+    date.getFullYear(),
+    padTime(date.getMonth() + 1),
+    padTime(date.getDate()),
+  ].join("-") + ` ${padTime(date.getHours())}:${padTime(date.getMinutes())}`;
+}
+
+function cleanExportTitle(title: string) {
+  return title.replace(/[\r\n\t]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+export function buildSummaryExportTitle(input: SummaryExportContext, template?: string) {
+  const time = formatTitleTime(input.recordStartTime);
+  const room = input.streamer || (input.roomId ? `房间${input.roomId}` : "直播房间");
+  const variables: Record<string, string> = {
+    streamer: input.streamer || "",
+    roomId: input.roomId || "",
+    room,
+    title: input.title || "",
+    platform: input.platform || "",
+    time,
+  };
+  const raw = template?.trim()
+    ? template.replace(/\{(streamer|roomId|room|title|platform|time)\}/g, (_, key: string) => variables[key] || "")
+    : `${room} - ${time}`;
+  return cleanExportTitle(raw) || `直播总结 - ${time}`;
 }
 
 function getFeishuConfig(config: LiveSummaryConfig) {
@@ -61,23 +96,47 @@ export async function exportSummaryToTargets(
 
   if (feishuConfig?.enabled) {
     const documentId = extractFeishuDocumentId(feishuConfig.documentId);
+    const folderToken = extractFeishuFolderToken(feishuConfig.folderToken || "");
+    const mode = feishuConfig.mode || "append";
+    const exportTitle = buildSummaryExportTitle(input, feishuConfig.titleTemplate);
     logger.info("开始导出直播总结到飞书文档", {
       ...input,
       documentId,
+      folderToken,
+      mode,
+      exportTitle,
       markdownLength: markdown.length,
     });
     try {
-      if (!feishuConfig.appId || !feishuConfig.appSecret || !documentId) {
-        throw new Error("请先完整配置飞书 App ID、App Secret 和云文档 Document ID");
+      if (!feishuConfig.appId || !feishuConfig.appSecret) {
+        throw new Error("请先完整配置飞书 App ID 和 App Secret");
       }
-      await new FeishuDocClient({
+      const feishuClient = new FeishuDocClient({
         appId: feishuConfig.appId,
         appSecret: feishuConfig.appSecret,
-        documentId,
-      }).appendMarkdown(markdown);
+        documentId: mode === "append" ? documentId : undefined,
+      });
+      if (mode === "create") {
+        if (!folderToken) {
+          throw new Error("请先配置飞书云空间文件夹 Token/链接");
+        }
+        await feishuClient.createDocumentAndAppendMarkdown({
+          folderToken,
+          title: exportTitle,
+          markdown,
+        });
+      } else {
+        if (!documentId) {
+          throw new Error("请先配置飞书云文档 Document ID/链接");
+        }
+        await feishuClient.appendMarkdown(markdown);
+      }
       logger.info("导出直播总结到飞书文档完成", {
         ...input,
         documentId,
+        folderToken,
+        mode,
+        exportTitle,
         markdownLength: markdown.length,
       });
     } catch (error) {

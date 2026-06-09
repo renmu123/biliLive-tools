@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { extractNotionPageId, markdownToNotionBlocks } from "../../src/ai/notion.js";
+import { extractNotionPageId, formatNotionError, markdownToNotionBlocks } from "../../src/ai/notion.js";
 
 describe("notion helpers", () => {
   it("extracts page id from notion url", () => {
@@ -36,5 +36,18 @@ describe("notion helpers", () => {
         },
       ],
     });
+  });
+
+  it("formats Notion 404 into an actionable message", () => {
+    const error = {
+      isAxiosError: true,
+      response: {
+        status: 404,
+      },
+    };
+
+    expect(formatNotionError(error)).toBe(
+      "Notion 页面不存在或当前 integration 无访问权限，请检查页面 ID/链接，并确认已将目标页面分享给该 integration",
+    );
   });
 });
