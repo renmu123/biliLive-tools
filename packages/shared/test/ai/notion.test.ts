@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { extractNotionPageId, formatNotionError, markdownToNotionBlocks } from "../../src/ai/notion.js";
+import {
+  buildNotionChildPagePayload,
+  extractNotionPageId,
+  formatNotionError,
+  markdownToNotionBlocks,
+} from "../../src/ai/notion.js";
 
 describe("notion helpers", () => {
   it("extracts page id from notion url", () => {
@@ -49,5 +54,25 @@ describe("notion helpers", () => {
     expect(formatNotionError(error)).toBe(
       "Notion 页面不存在或当前 integration 无访问权限，请检查页面 ID/链接，并确认已将目标页面分享给该 integration",
     );
+  });
+
+  it("builds child page payload with parent page and title", () => {
+    expect(buildNotionChildPagePayload("01234567-89ab-cdef-0123-456789abcdef", "主播 - 2026-06-09 13:30")).toEqual({
+      parent: {
+        page_id: "01234567-89ab-cdef-0123-456789abcdef",
+      },
+      properties: {
+        title: {
+          title: [
+            {
+              type: "text",
+              text: {
+                content: "主播 - 2026-06-09 13:30",
+              },
+            },
+          ],
+        },
+      },
+    });
   });
 });

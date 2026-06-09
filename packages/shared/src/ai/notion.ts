@@ -20,6 +20,10 @@ type NotionBlock = {
   [key: string]: unknown;
 };
 
+type NotionPageResponse = {
+  id?: string;
+};
+
 const NOTION_BASE_URL = "https://api.notion.com/v1";
 const NOTION_VERSION = "2026-03-11";
 const RICH_TEXT_CHUNK_SIZE = 1900;
@@ -124,6 +128,26 @@ export function formatNotionError(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
 
+export function buildNotionChildPagePayload(parentPageId: string, title: string) {
+  return {
+    parent: {
+      page_id: parentPageId,
+    },
+    properties: {
+      title: {
+        title: [
+          {
+            type: "text",
+            text: {
+              content: title,
+            },
+          },
+        ],
+      },
+    },
+  };
+}
+
 export class NotionClient {
   private client: AxiosInstance;
 
@@ -139,18 +163,47 @@ export class NotionClient {
     });
   }
 
-  async appendMarkdown(markdown: string) {
+  private async appendMarkdownToPage(pageId: string, markdown: string) {
     const blocks = markdownToNotionBlocks(markdown);
     if (!blocks.length) return;
 
+    for (const children of chunkArray(blocks, 100)) {
+      await this.client.patch(`/blocks/${pageId}/children`, {
+        children,
+      });
+    }
+  }
+
+  async appendMarkdown(markdown: string) {
     try {
-      for (const children of chunkArray(blocks, 100)) {
-        await this.client.patch(`/blocks/${this.config.pageId}/children`, {
-          children,
-        });
-      }
+      await this.appendMarkdownToPage(this.config.pageId, markdown);
     } catch (error) {
       throw new Error(formatNotionError(error));
     }
+  }
+
+  async createChildPage(input: { title: string }) {
+    try {
+      const response = await this.client.post<NotionPageResponse>(
+        "/pages",
+        buildNotionChildPagePayload(this.config.pageId, input.title),
+      );
+      if (!response.data.id) {
+        throw new Error("Notion 创建子页面失败：未返回页面 ID");
+      }
+      return response.data.id;
+    } catch (error) {
+      throw new Error(formatNotionError(error));
+    }
+  }
+
+  async createChildPageAndAppendMarkdown(input: { title: string; markdown: string }) {
+    const pageId = await this.createChildPage({ title: input.title });
+    try {
+      await this.appendMarkdownToPage(pageId, input.markdown);
+    } catch (error) {
+      throw new Error(formatNotionError(error));
+    }
+    return pageId;
   }
 }

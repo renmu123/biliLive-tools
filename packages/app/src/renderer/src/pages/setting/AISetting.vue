@@ -350,6 +350,16 @@
                 </n-form-item>
                 <n-form-item
                   v-if="config.ai.liveSummary.exportTargets.notion.enabled"
+                  label="导出方式"
+                >
+                  <n-select
+                    v-model:value="config.ai.liveSummary.exportTargets.notion.mode"
+                    :options="notionExportModeOptions"
+                    style="width: 220px"
+                  />
+                </n-form-item>
+                <n-form-item
+                  v-if="config.ai.liveSummary.exportTargets.notion.enabled"
                   label="Token"
                 >
                   <n-input
@@ -362,13 +372,30 @@
                 <n-form-item v-if="config.ai.liveSummary.exportTargets.notion.enabled">
                   <template #label>
                     <Tip
-                      tip="可以填写 Notion 页面链接，也可以直接填写页面 ID。页面需要分享给对应 integration。"
-                      text="页面 ID/链接"
+                      tip="可以填写 Notion 页面链接，也可以直接填写页面 ID。追加模式会写入该页面；新建子页面模式会把该页面作为父页面。页面需要分享给对应 integration。"
+                      text="页面 ID/父页面链接"
                     />
                   </template>
                   <n-input
                     v-model:value="config.ai.liveSummary.exportTargets.notion.pageId"
                     placeholder="例如：https://www.notion.so/xxxxxx"
+                  />
+                </n-form-item>
+                <n-form-item
+                  v-if="
+                    config.ai.liveSummary.exportTargets.notion.enabled &&
+                    config.ai.liveSummary.exportTargets.notion.mode === 'create_child_page'
+                  "
+                >
+                  <template #label>
+                    <Tip
+                      tip="支持变量：{room}、{streamer}、{roomId}、{title}、{platform}、{time}。"
+                      text="页面标题模板"
+                    />
+                  </template>
+                  <n-input
+                    v-model:value="config.ai.liveSummary.exportTargets.notion.titleTemplate"
+                    placeholder="{room} - {time}"
                   />
                 </n-form-item>
               </n-form>
@@ -519,8 +546,10 @@ const config = defineModel<AppConfig>("data", {
           },
           notion: {
             enabled: false,
+            mode: "append",
             token: "",
             pageId: "",
+            titleTemplate: "{room} - {time}",
           },
         },
       },
@@ -539,6 +568,17 @@ const feishuExportModeOptions = [
   {
     label: "在文件夹中新建文档",
     value: "create",
+  },
+];
+
+const notionExportModeOptions = [
+  {
+    label: "追加到已有页面",
+    value: "append",
+  },
+  {
+    label: "新建子页面",
+    value: "create_child_page",
   },
 ];
 

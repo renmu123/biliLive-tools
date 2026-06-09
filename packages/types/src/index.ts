@@ -794,8 +794,10 @@ export interface AppConfig {
         };
         notion: {
           enabled: boolean;
+          mode?: "append" | "create_child_page";
           token: string;
           pageId: string;
+          titleTemplate?: string;
         };
       };
       /** @deprecated use exportTargets.feishu */

@@ -147,22 +147,40 @@ export async function exportSummaryToTargets(
 
   if (notionConfig?.enabled) {
     const pageId = extractNotionPageId(notionConfig.pageId);
+    const mode = notionConfig.mode || "append";
+    const exportTitle = buildSummaryExportTitle(input, notionConfig.titleTemplate);
     logger.info("开始导出直播总结到 Notion", {
       ...input,
       pageId,
+      mode,
+      exportTitle,
       markdownLength: markdown.length,
     });
     try {
       if (!notionConfig.token || !pageId) {
-        throw new Error("请先完整配置 Notion Token 和页面 ID/链接");
+        throw new Error(
+          mode === "create_child_page"
+            ? "请先完整配置 Notion Token 和父页面 ID/链接"
+            : "请先完整配置 Notion Token 和页面 ID/链接",
+        );
       }
-      await new NotionClient({
+      const notionClient = new NotionClient({
         token: notionConfig.token,
         pageId,
-      }).appendMarkdown(markdown);
+      });
+      if (mode === "create_child_page") {
+        await notionClient.createChildPageAndAppendMarkdown({
+          title: exportTitle,
+          markdown,
+        });
+      } else {
+        await notionClient.appendMarkdown(markdown);
+      }
       logger.info("导出直播总结到 Notion 完成", {
         ...input,
         pageId,
+        mode,
+        exportTitle,
         markdownLength: markdown.length,
       });
     } catch (error) {

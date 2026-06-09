@@ -363,8 +363,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
         },
         notion: {
           enabled: false,
+          mode: "append",
           token: "",
           pageId: "",
+          titleTemplate: "{room} - {time}",
         },
       },
     },

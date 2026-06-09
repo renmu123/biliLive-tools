@@ -150,4 +150,39 @@ describe("summary export helpers", () => {
       ),
     ).rejects.toThrow("飞书云空间文件夹 Token");
   });
+
+  it("validates notion create child page mode parent page", async () => {
+    const { exportSummaryToTargets } = await import("../../src/ai/summaryExport.js");
+
+    await expect(
+      exportSummaryToTargets(
+        "总结内容",
+        { streamer: "主播", roomId: "123" },
+        {
+          enabled: true,
+          prompt: "",
+          maxInputLength: 24000,
+          saveTranscript: true,
+          exportTargets: {
+            feishu: {
+              enabled: false,
+              mode: "append",
+              appId: "",
+              appSecret: "",
+              documentId: "",
+              folderToken: "",
+              titleTemplate: "",
+            },
+            notion: {
+              enabled: true,
+              mode: "create_child_page",
+              token: "secret_xxx",
+              pageId: "",
+              titleTemplate: "",
+            },
+          },
+        },
+      ),
+    ).rejects.toThrow("Notion Token 和父页面 ID/链接");
+  });
 });

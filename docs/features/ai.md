@@ -149,11 +149,15 @@ flowchart TD
 
 配置项：
 
-1. `Token`：Notion Internal Integration Token。
-2. `页面 ID/链接`：可以填写 Notion 页面链接，也可以直接填写页面 ID。
+1. `导出方式`：
+   - `追加到已有页面`：总结会追加写入指定 Notion 页面。
+   - `新建子页面`：每次总结生成后，会在指定父页面下新建子页面，再写入总结。
+2. `Token`：Notion Internal Integration Token。
+3. `页面 ID/父页面链接`：可以填写 Notion 页面链接，也可以直接填写页面 ID。追加模式会写入该页面；新建子页面模式会把该页面作为父页面。
+4. `页面标题模板`：新建子页面模式使用。支持 `{room}`、`{streamer}`、`{roomId}`、`{title}`、`{platform}`、`{time}` 变量，默认 `{room} - {time}`。
 
 注意事项：
 
 1. 需要先创建 Notion integration，并将目标页面分享给该 integration。
-2. 写入内容会追加到目标页面末尾。
+2. 追加模式会把内容写到目标页面末尾；新建子页面模式会先创建子页面，再写入总结内容。
 3. 当前会把 Markdown 总结转换为 Notion blocks，支持标题、普通段落、无序列表、有序列表和分割线。
