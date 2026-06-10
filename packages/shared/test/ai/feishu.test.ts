@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { extractFeishuDocumentId, extractFeishuFolderToken, markdownToFeishuBlocks } from "../../src/ai/feishu.js";
+import {
+  extractFeishuDocumentId,
+  extractFeishuFolderToken,
+  formatFeishuError,
+  markdownToFeishuBlocks,
+} from "../../src/ai/feishu.js";
 
 describe("feishu doc helpers", () => {
   it("extracts document id from docx url", () => {
@@ -35,5 +40,20 @@ describe("feishu doc helpers", () => {
         },
       ],
     });
+  });
+
+  it("formats Feishu axios errors with status and response body", () => {
+    const error = {
+      isAxiosError: true,
+      response: {
+        status: 403,
+        data: {
+          code: 99991663,
+          msg: "Forbidden",
+        },
+      },
+    };
+
+    expect(formatFeishuError(error)).toBe("飞书 API 调用失败：HTTP 403，code 99991663，Forbidden");
   });
 });
