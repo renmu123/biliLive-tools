@@ -127,6 +127,14 @@ export async function generateLiveSummary(id: number): Promise<{
   return res.data;
 }
 
+export async function exportLiveSummary(id: number): Promise<{
+  code: number;
+  message: string;
+}> {
+  const res = await request.post(`/record-history/${id}/live-summary/export`);
+  return res.data;
+}
+
 /**
  * 下载视频文件
  */
@@ -143,4 +151,5 @@ export default {
   getFileInfo,
   getDanmaFileInfo,
   generateLiveSummary,
+  exportLiveSummary,
 };

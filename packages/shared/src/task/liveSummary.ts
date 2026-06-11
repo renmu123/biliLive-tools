@@ -409,6 +409,62 @@ export class LiveSummaryTask extends AbstractTask {
   }
 }
 
+export async function exportExistingLiveSummary(recordId: number) {
+  const record = recordHistoryService.query({
+    id: recordId,
+    include: {
+      streamer: true,
+    },
+  });
+  if (!record) {
+    throw new Error("记录不存在");
+  }
+  if (!record.ai_summary) {
+    throw new Error("该记录还没有已生成的总结");
+  }
+
+  const config = appConfig.getAll();
+  const summaryConfig = config.ai.liveSummary;
+  const exportTargets = getEnabledSummaryExportTargetNames(summaryConfig);
+  if (!exportTargets.length) {
+    throw new Error("请先在 AI 配置中启用飞书或 Notion 导出目标");
+  }
+
+  const input: LiveSummaryTaskOptions = {
+    recordId,
+    videoFile: record.video_file || "",
+    title: record.title,
+    streamer: record.streamer?.name,
+    roomId: record.streamer?.room_id,
+    platform: record.streamer?.platform,
+    recordStartTime: record.record_start_time,
+  };
+
+  try {
+    await exportSummaryToTargets(record.ai_summary, input, summaryConfig);
+    recordHistoryService.update({
+      id: recordId,
+      ai_summary_status: "completed",
+      ai_summary_error: "",
+      ai_summary_time: Date.now(),
+    });
+    logger.info("已重新导出直播总结", {
+      recordId,
+      targets: exportTargets,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    recordHistoryService.update({
+      id: recordId,
+      ai_summary_status: "error",
+      ai_summary: record.ai_summary,
+      ai_summary_error: errorMessage,
+      ai_summary_time: Date.now(),
+    });
+    throw error;
+  }
+}
+
 export function addLiveSummaryTask(
   options: LiveSummaryTaskOptions,
   extraOptions?: {

@@ -5,7 +5,7 @@ import Router from "@koa/router";
 import { replaceExtName } from "@biliLive-tools/shared/utils/index.js";
 import recordHistory from "@biliLive-tools/shared/recorder/recordHistory.js";
 import { recordHistoryService } from "@biliLive-tools/shared/db/index.js";
-import { addLiveSummaryTask } from "@biliLive-tools/shared/task/liveSummary.js";
+import { addLiveSummaryTask, exportExistingLiveSummary } from "@biliLive-tools/shared/task/liveSummary.js";
 import { fileCache } from "../index.js";
 
 const router = new Router({
@@ -293,6 +293,35 @@ router.post("/:id/live-summary", async (ctx) => {
     },
     message: "已添加直播总结任务",
   };
+});
+
+router.post("/:id/live-summary/export", async (ctx) => {
+  const { id } = ctx.params;
+  const recordId = parseInt(id);
+
+  if (!id || isNaN(recordId)) {
+    ctx.status = 400;
+    ctx.body = {
+      code: 400,
+      message: "记录ID不能为空且必须为数字",
+    };
+    return;
+  }
+
+  try {
+    await exportExistingLiveSummary(recordId);
+    ctx.body = {
+      code: 200,
+      message: "已重新导出直播总结",
+    };
+  } catch (error: any) {
+    const message = error?.message || String(error);
+    ctx.status = message === "记录不存在" ? 404 : 400;
+    ctx.body = {
+      code: ctx.status,
+      message,
+    };
+  }
 });
 
 router.get("/recent-clips", async (ctx) => {
