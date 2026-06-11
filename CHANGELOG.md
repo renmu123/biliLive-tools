@@ -9,6 +9,15 @@
 ## 优化
 
 - 文件浏览器：优化用户体验
+- 录制：为上次录制时间增加原始时间title
+- 录制：优化某些场景下“转换为mp4”的表现
+- 录制：优化抖音电台直播流获取 [#469](https://github.com/renmu123/biliLive-tools/pull/469) [#466](https://github.com/renmu123/biliLive-tools/pull/466)
+- 切片：增加了加速功能及相关快捷键 [#467](https://github.com/renmu123/biliLive-tools/issues/467)
+
+## Bug修复
+
+- 同步：修复文件无法拖拽的bug
+  录制：抖音 `直播html解析` 接口不再参与获取流，采用web接口
 
 # 3.15.0(2026.05.29)
 

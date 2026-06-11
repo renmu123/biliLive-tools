@@ -9,6 +9,7 @@ RUN corepack enable && corepack prepare pnpm@11.5.0 --activate
 WORKDIR /app
 COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm run build:base
 
 # ============================================
 # 前端构建阶段
@@ -18,13 +19,13 @@ ARG VITE_DEFAULT_SERVER=http://127.0.0.1:18010
 ARG VITE_FULLSTACK=false
 ENV VITE_DEFAULT_SERVER=${VITE_DEFAULT_SERVER}
 ENV VITE_FULLSTACK=${VITE_FULLSTACK}
-RUN pnpm run build:webui
+RUN pnpm run --filter biliLive-tools build:webui
 
 # ============================================
 # 后端构建阶段
 # ============================================
 FROM base AS backend-build
-RUN pnpm run build:base && pnpm run --filter bililive-cli build && cd packages/CLI && node ./scripts/removeDev.js
+RUN pnpm run --filter bililive-cli build && cd packages/CLI && node ./scripts/removeDev.js
 
 # 下载二进制依赖
 RUN pnpm run install:bin

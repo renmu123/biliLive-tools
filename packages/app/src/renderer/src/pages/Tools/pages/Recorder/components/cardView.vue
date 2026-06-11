@@ -24,6 +24,7 @@
           <div
             v-if="item?.extra?.lastRecordTime && isColumnVisible('lastRecordTime')"
             class="recording-container"
+            :title="formatTime(item.extra.lastRecordTime)"
           >
             <span>上次录制：{{ formatRecentRecordTime(item.extra.lastRecordTime) }}</span>
 
@@ -106,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatRecentRecordTime } from "@renderer/utils";
+import { formatRecentRecordTime, formatTime } from "@renderer/utils";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 import { Live24Regular, AccessTime24Regular } from "@vicons/fluent";
 import { AudiotrackRound } from "@vicons/material";
