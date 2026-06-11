@@ -32,6 +32,7 @@ export enum LLMType {
 
 export const APP_DEFAULT_CONFIG: AppConfig = {
   logLevel: "debug",
+  uploadCrashReport: false,
   autoUpdate: true,
   autoLaunch: false,
   trash: false,

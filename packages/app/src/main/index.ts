@@ -38,6 +38,24 @@ import type { Theme, GlobalConfig } from "@biliLive-tools/types";
 export let mainWin: BrowserWindow;
 export let container = createContainer();
 
+const SENTRY_CRASH_DSN =
+  "https://aa05399bf7cf8b619177be3284d28fc8@o4511547045576704.ingest.us.sentry.io/4511547052720128";
+
+const getSentryMinidumpSubmitURL = (dsn: string) => {
+  try {
+    const url = new URL(dsn);
+    const projectId = url.pathname.replace(/^\/+/, "");
+    if (!projectId || !url.username) {
+      throw new Error("Missing Sentry project id or public key.");
+    }
+
+    return `${url.protocol}//${url.host}/api/${projectId}/minidump/?sentry_key=${url.username}`;
+  } catch (error) {
+    log.warn("Failed to parse Sentry crash DSN.", error);
+    return undefined;
+  }
+};
+
 contextMenu({
   showSelectAll: false,
   showSearchWithGoogle: false,
@@ -552,8 +570,15 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
+  const sentryCrashSubmitURL = getSentryMinidumpSubmitURL(SENTRY_CRASH_DSN);
   crashReporter.start({
     uploadToServer: false,
+    submitURL: sentryCrashSubmitURL,
+    compress: true,
+    rateLimit: true,
+    globalExtra: {
+      product: "biliLive-tools",
+    },
   });
   app.whenReady().then(() => {
     electronApp.setAppUserModelId("com.electron");
@@ -733,6 +758,9 @@ const appInit = async () => {
     } catch (error) {
       log.error("自动更新检查失败:", error);
     }
+  }
+  if (appConfig.get("uploadCrashReport")) {
+    crashReporter.setUploadToServer(true);
   }
   // taskQueueListen(container);
 };

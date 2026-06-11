@@ -5,6 +5,7 @@
 ## 功能
 
 - 支持外部webhook事件订阅 [#458](https://github.com/renmu123/biliLive-tools/pull/458)
+- 支持新参数`上传崩溃报告`，用于将崩溃报告上传至Sentry服务器，默认关闭
 
 ## 优化
 

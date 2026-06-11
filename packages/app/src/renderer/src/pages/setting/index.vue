@@ -19,6 +19,12 @@
           <n-form ref="formRef" label-placement="left" :label-width="160">
             <n-form-item>
               <template #label>
+                <Tip text="上传崩溃报告" tip="上传崩溃报告至Sentry服务器"></Tip>
+              </template>
+              <n-switch v-model:value="config.uploadCrashReport" />
+            </n-form-item>
+            <n-form-item>
+              <template #label>
                 <Tip
                   text="删除至回收站"
                   tip="关闭后若使用“删除源文件”等选项，文件将被直接删除，不会进入回收站，如果使用的文件为smb等远程协议挂载，可能会删除失败"
