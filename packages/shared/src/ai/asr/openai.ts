@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 import fs from "fs-extra";
 import FormData from "form-data";
+import path from "node:path";
 import logger from "../../utils/log.js";
 
 /**
@@ -58,6 +59,13 @@ export interface OpenAITranscriptionResponse {
    * 分段转写结果
    */
   segments: OpenAISegment[];
+}
+
+export interface OpenRouterTranscriptionResponse {
+  text: string;
+  language?: string;
+  duration?: number;
+  segments?: OpenAISegment[];
 }
 
 /**
@@ -234,6 +242,77 @@ export class OpenAIWhisperASR {
       const errorMessage = error.response?.data?.error?.message || error.message || "未知错误";
       this.logger.error(`OpenAI Whisper 识别失败: ${errorMessage}`);
       throw new Error(`OpenAI Whisper 识别失败: ${errorMessage}`);
+    }
+  }
+}
+
+export class OpenRouterWhisperASR {
+  private client: AxiosInstance;
+  private model: string;
+  private logger: typeof logger;
+
+  constructor(options: OpenAIWhisperASROptions) {
+    const { apiKey, baseURL = "https://openrouter.ai/api/v1", model = "openai/whisper-1" } = options;
+
+    this.model = model;
+    this.logger = options.logger || logger;
+    this.client = axios.create({
+      baseURL,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      timeout: 300000,
+    });
+  }
+
+  async recognize(fileUrl: string): Promise<OpenRouterTranscriptionResponse> {
+    this.logger.info(`开始下载文件: ${fileUrl}`);
+
+    const response = await axios.get(fileUrl, {
+      responseType: "arraybuffer",
+    });
+
+    const tempFilePath = `/tmp/openrouter-whisper-temp-${Date.now()}.audio`;
+    await fs.writeFile(tempFilePath, response.data);
+
+    try {
+      return await this.recognizeLocalFile(tempFilePath);
+    } finally {
+      await fs.remove(tempFilePath).catch((err) => {
+        this.logger.warn(`清理临时文件失败: ${err.message}`);
+      });
+    }
+  }
+
+  async recognizeLocalFile(filePath: string): Promise<OpenRouterTranscriptionResponse> {
+    this.logger.info(`开始通过 OpenRouter 识别本地文件: ${filePath}`);
+
+    if (!(await fs.pathExists(filePath))) {
+      throw new Error(`文件不存在: ${filePath}`);
+    }
+
+    const audioBuffer = await fs.readFile(filePath);
+    const format = path.extname(filePath).replace(".", "") || "mp3";
+
+    try {
+      const response = await this.client.post<OpenRouterTranscriptionResponse>(
+        "/audio/transcriptions",
+        {
+          model: this.model,
+          input_audio: {
+            data: audioBuffer.toString("base64"),
+            format,
+          },
+        },
+      );
+
+      this.logger.info(`OpenRouter 识别完成，文本长度: ${response.data.text?.length || 0}`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error?.message || error.message || "未知错误";
+      this.logger.error(`OpenRouter Whisper 识别失败: ${errorMessage}`);
+      throw new Error(`OpenRouter Whisper 识别失败: ${errorMessage}`);
     }
   }
 }

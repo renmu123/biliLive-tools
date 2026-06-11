@@ -1,7 +1,12 @@
 import { BcutASR, type ASRDataResult as BCutASRDataResult } from "@renmu/bili-api";
 
 import { AliyunASR, type TranscriptionDetail } from "./aliyun.js";
-import { OpenAIWhisperASR, type OpenAITranscriptionResponse } from "./openai.js";
+import {
+  OpenAIWhisperASR,
+  OpenRouterWhisperASR,
+  type OpenAITranscriptionResponse,
+  type OpenRouterTranscriptionResponse,
+} from "./openai.js";
 import { FFmpegWhisperASR, type WhisperTranscriptionResult } from "./ffmpeg.js";
 import type { StandardASRResult, StandardASRSegment, StandardASRWord } from "./types.js";
 import { appConfig } from "../../config.js";
@@ -199,6 +204,47 @@ export class OpenAIASRAdapter implements ASRProvider {
   }
 }
 
+export class OpenRouterASRAdapter implements ASRProvider {
+  private client: OpenRouterWhisperASR;
+
+  constructor(config: { apiKey: string; baseURL?: string; model: string }) {
+    this.client = new OpenRouterWhisperASR({
+      apiKey: config.apiKey,
+      baseURL: config.baseURL,
+      model: config.model,
+      logger,
+    });
+  }
+
+  async recognize(fileUrl: string): Promise<StandardASRResult> {
+    const result = await this.client.recognize(fileUrl);
+    return this.transformOpenRouterResult(result);
+  }
+
+  async recognizeLocalFile(filePath: string): Promise<StandardASRResult> {
+    const result = await this.client.recognizeLocalFile(filePath);
+    return this.transformOpenRouterResult(result);
+  }
+
+  private transformOpenRouterResult(result: OpenRouterTranscriptionResponse): StandardASRResult {
+    const segments = (result.segments || []).map((segment) => ({
+      id: segment.id,
+      start: segment.start,
+      end: segment.end,
+      text: segment.text.trim(),
+      speaker: undefined,
+    }));
+
+    return {
+      text: result.text,
+      duration: result.duration ?? (segments.length > 0 ? segments[segments.length - 1].end : undefined),
+      language: result.language,
+      segments,
+      words: undefined,
+    };
+  }
+}
+
 /**
  * FFmpeg Whisper ASR 适配器
  */
@@ -295,6 +341,11 @@ export function createASRProvider(modelId: string): ASRProvider {
       return new AliyunASRAdapter(config);
     case "openai":
       return new OpenAIASRAdapter(config);
+    case "openai-compatible":
+      if (vendor.baseURL?.includes("openrouter.ai")) {
+        return new OpenRouterASRAdapter(config);
+      }
+      throw new Error("OpenAI 兼容 ASR 目前仅支持 OpenRouter，请将 Base URL 配置为 https://openrouter.ai/api/v1");
     case "ffmpeg":
       if (!vendor.baseURL) {
         throw new Error("FFmpeg provider 需要配置 baseURL（ffmpeg 执行文件路径）");
