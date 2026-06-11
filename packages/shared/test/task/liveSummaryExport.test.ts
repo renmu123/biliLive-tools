@@ -1,93 +1,76 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  getAll: vi.fn(),
-  query: vi.fn(),
-  update: vi.fn(),
-}));
+import { exportExistingLiveSummaryWithDeps, type LiveSummaryExportDeps } from "../../src/task/liveSummaryExport.js";
 
-vi.mock("../../src/config.js", () => ({
-  appConfig: {
-    getAll: mocks.getAll,
-  },
-}));
+const createDeps = (): LiveSummaryExportDeps => ({
+  getRecord: vi.fn().mockReturnValue({
+    id: 38,
+    title: "直播标题",
+    record_start_time: 1781105107602,
+    ai_summary: "已经生成的总结",
+    streamer: {
+      name: "主播",
+      room_id: "123",
+      platform: "Bilibili",
+    },
+  }),
+  getSummaryConfig: vi.fn().mockReturnValue({
+    enabled: true,
+    prompt: "",
+    maxInputLength: 24000,
+    saveTranscript: true,
+    exportTargets: {
+      feishu: {
+        enabled: true,
+        mode: "append",
+        appId: "",
+        appSecret: "",
+        documentId: "",
+        folderToken: "",
+        titleTemplate: "",
+      },
+      notion: {
+        enabled: false,
+        token: "",
+        pageId: "",
+      },
+    },
+  }),
+  getEnabledTargetNames: vi.fn().mockReturnValue(["飞书文档"]),
+  exportSummary: vi.fn().mockRejectedValue(new Error("总结已生成，但导出失败：飞书文档：no folder permission")),
+  updateRecord: vi.fn(),
+  logSuccess: vi.fn(),
+});
 
-vi.mock("../../src/db/index.js", () => ({
-  recordHistoryService: {
-    query: mocks.query,
-    update: mocks.update,
-  },
-}));
+describe("exportExistingLiveSummaryWithDeps", () => {
+  let deps: LiveSummaryExportDeps;
 
-vi.mock("../../src/utils/log.js", () => ({
-  default: {
-    info: vi.fn(),
-    error: vi.fn(),
-    warn: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
-describe("exportExistingLiveSummary", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.query.mockReturnValue({
-      id: 38,
-      title: "直播标题",
-      record_start_time: 1781105107602,
-      ai_summary: "已经生成的总结",
-      streamer: {
-        name: "主播",
-        room_id: "123",
-        platform: "Bilibili",
-      },
-    });
-    mocks.getAll.mockReturnValue({
-      ai: {
-        liveSummary: {
-          enabled: true,
-          prompt: "",
-          maxInputLength: 24000,
-          saveTranscript: true,
-          exportTargets: {
-            feishu: {
-              enabled: true,
-              mode: "append",
-              appId: "",
-              appSecret: "",
-              documentId: "",
-              folderToken: "",
-              titleTemplate: "",
-            },
-            notion: {
-              enabled: false,
-              token: "",
-              pageId: "",
-            },
-          },
-        },
-      },
-    });
+    deps = createDeps();
   });
 
   it("keeps an existing summary when re-export fails", async () => {
-    const { exportExistingLiveSummary } = await import("../../src/task/liveSummary.js");
+    await expect(exportExistingLiveSummaryWithDeps(38, deps)).rejects.toThrow("总结已生成，但导出失败");
 
-    await expect(exportExistingLiveSummary(38)).rejects.toThrow("总结已生成，但导出失败");
-
-    expect(mocks.query).toHaveBeenCalledWith({
-      id: 38,
-      include: {
-        streamer: true,
-      },
-    });
-    expect(mocks.update).toHaveBeenCalledWith(
+    expect(deps.getRecord).toHaveBeenCalledWith(38);
+    expect(deps.exportSummary).toHaveBeenCalledWith(
+      "已经生成的总结",
+      expect.objectContaining({
+        title: "直播标题",
+        streamer: "主播",
+        roomId: "123",
+        platform: "Bilibili",
+        recordStartTime: 1781105107602,
+      }),
+      expect.any(Object),
+    );
+    expect(deps.updateRecord).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 38,
         ai_summary_status: "error",
         ai_summary: "已经生成的总结",
       }),
     );
-    expect(mocks.update.mock.calls[0][0].ai_summary_error).toContain("总结已生成，但导出失败");
+    expect(vi.mocked(deps.updateRecord).mock.calls[0][0].ai_summary_error).toContain("总结已生成，但导出失败");
   });
 });
