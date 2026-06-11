@@ -43,7 +43,12 @@
     "multer": "1.4.5-lts.1",
     "subtitle": "^4.2.1",
     "ws": "^8.18.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@renmu/bili-api": "2.14.0",
+    "check-disk-space": "^3.4.0",
+    "semver": "^7.6.3",
+    "music-segment-detector": "^0.3.1",
+    "awilix": "^11.0.4"
   },
   "devDependencies": {
     "@types/cli-progress": "^3.11.6",

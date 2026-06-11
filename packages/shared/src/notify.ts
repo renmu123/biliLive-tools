@@ -89,7 +89,9 @@ export async function sendByTg(title: string, desp: string, options: Notificatio
  */
 export async function sendBySystem(title: string, desp: string) {
   // 非electron环境不触发
+  // @ts-ignore
   if (process.type !== "browser") return;
+  // @ts-ignore
   const { Notification } = await import("electron");
   const event = new Notification({
     title: title,

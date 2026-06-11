@@ -91,6 +91,7 @@ async function sendStartLiveNotification(
 
   if (notifyType === "system") {
     const event = await sendBySystem(title, `${recorder?.liveInfo?.title}\n点击打开直播间`);
+    // @ts-ignore
     const { shell } = await import("electron");
     event?.on("click", () => {
       const url = recorder.getChannelURL();
