@@ -167,6 +167,7 @@ const hasQueried = ref<boolean>(false);
 const summaryModalVisible = ref(false);
 const currentSummary = ref("");
 const summaryGeneratingIds = ref<number[]>([]);
+const summaryExportingIds = ref<number[]>([]);
 
 // 列配置
 const columnConfig: ColumnConfig[] = [
@@ -373,6 +374,16 @@ const renderSummaryCell = (row: LiveRecord) => {
           {
             size: "small",
             text: true,
+            loading: summaryExportingIds.value.includes(row.id),
+            onClick: () => exportSummary(row),
+          },
+          { default: () => "重新导出" },
+        ),
+        h(
+          NButton,
+          {
+            size: "small",
+            text: true,
             loading: summaryGeneratingIds.value.includes(row.id),
             onClick: () => generateSummary(row),
           },
@@ -385,6 +396,50 @@ const renderSummaryCell = (row: LiveRecord) => {
     return h(NTag, { size: "small", type: "info" }, { default: () => "生成中" });
   }
   if (row.ai_summary_status === "error") {
+    const actions: VNode[] = [
+      h(
+        NTag,
+        { size: "small", type: "error", title: row.ai_summary_error || "" },
+        { default: () => "失败" },
+      ),
+    ];
+    if (row.ai_summary) {
+      actions.push(
+        h(
+          NButton,
+          {
+            size: "small",
+            text: true,
+            type: "primary",
+            onClick: () => showSummary(row.ai_summary || ""),
+          },
+          { default: () => "查看" },
+        ),
+        h(
+          NButton,
+          {
+            size: "small",
+            text: true,
+            loading: summaryExportingIds.value.includes(row.id),
+            onClick: () => exportSummary(row),
+          },
+          { default: () => "重新导出" },
+        ),
+      );
+    }
+    actions.push(
+      h(
+        NButton,
+        {
+          size: "small",
+          text: true,
+          type: "warning",
+          loading: summaryGeneratingIds.value.includes(row.id),
+          onClick: () => generateSummary(row),
+        },
+        { default: () => (row.ai_summary ? "重新生成" : "重试") },
+      ),
+    );
     return h(
       "div",
       {
@@ -394,24 +449,7 @@ const renderSummaryCell = (row: LiveRecord) => {
           gap: "8px",
         },
       },
-      [
-        h(
-          NTag,
-          { size: "small", type: "error", title: row.ai_summary_error || "" },
-          { default: () => "失败" },
-        ),
-        h(
-          NButton,
-          {
-            size: "small",
-            text: true,
-            type: "warning",
-            loading: summaryGeneratingIds.value.includes(row.id),
-            onClick: () => generateSummary(row),
-          },
-          { default: () => "重试" },
-        ),
-      ],
+      actions,
     );
   }
   return h(
@@ -450,6 +488,31 @@ const generateSummary = async (row: LiveRecord) => {
     });
   } finally {
     summaryGeneratingIds.value = summaryGeneratingIds.value.filter((id) => id !== row.id);
+  }
+};
+
+const exportSummary = async (row: LiveRecord) => {
+  if (summaryExportingIds.value.includes(row.id)) return;
+
+  summaryExportingIds.value = [...summaryExportingIds.value, row.id];
+  try {
+    await recordHistoryApi.exportLiveSummary(row.id);
+    row.ai_summary_status = "completed";
+    row.ai_summary_error = "";
+    row.ai_summary_time = Date.now();
+    notice.success({
+      title: "已重新导出直播总结",
+      duration: 1500,
+    });
+  } catch (error: any) {
+    const errorMessage = error?.message || String(error);
+    row.ai_summary_status = "error";
+    row.ai_summary_error = errorMessage;
+    notice.error({
+      title: errorMessage,
+    });
+  } finally {
+    summaryExportingIds.value = summaryExportingIds.value.filter((id) => id !== row.id);
   }
 };
 
