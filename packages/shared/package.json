@@ -42,6 +42,7 @@
     "@renmu/node-shazam": "^2.0.3",
     "@renmu/throttle": "^1.0.3",
     "ass-compiler": "^0.1.14",
+    "atomically": "^2.1.1",
     "awilix": "^11.0.4",
     "better-sqlite3": "catalog:",
     "check-disk-space": "^3.4.0",
