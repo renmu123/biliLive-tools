@@ -183,6 +183,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
     throw err;
   }
+  if (!res.currentStream) {
+    if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
+    const message = `由于画质或流等相关设置，无法获取到预期的直播流，如果不是预期行为，请调整"qualityRetry(流匹配重试次数)"参数，预期画质：${this.quality}，实际画质：${(res.streams ?? []).map((s) => `${s?.desc}(${s?.key})`).join(",")}`;
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: message,
+    });
+    throw new Error(message);
+  }
   const { owner, title, liveStartTime, recordStartTime } = this.liveInfo;
 
   this.emit("stateChange", { state: "recording" });

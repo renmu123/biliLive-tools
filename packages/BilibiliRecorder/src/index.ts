@@ -168,7 +168,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
   if (!res.currentStream) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
-    const message = `无法获取到预期的直播流，如果不是预期行为，请调整"qualityRetry(流匹配重试次数)"参数`;
+    const message = `由于画质或流等相关设置，无法获取到预期的直播流，如果不是预期行为，请调整"qualityRetry(流匹配重试次数)"参数，预期画质：${this.quality}，实际可用：${(res?.streams ?? []).map((s) => `${s?.desc}(${s?.qn})`).join(",")}`;
     this.emit("stateChange", {
       state: "check-error",
       msg: message,

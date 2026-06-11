@@ -90,7 +90,10 @@ export async function getStream(
   let qualityName = targetStream?.name ?? "未知";
 
   if (!targetStream && opts.strictQuality) {
-    throw new Error("Can not get expect quality because of strictQuality");
+    return {
+      ...info,
+      currentStream: null,
+    };
   }
 
   // 如果找不到指定质量的流，按照流顺序选择第一个可用的流

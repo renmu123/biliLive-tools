@@ -80,7 +80,10 @@ export async function getStream(
   if (!liveInfo.living) throw new Error("It must be called getStream when living");
 
   if (liveInfo.currentStream.rate !== qn && opts.strictQuality) {
-    throw new Error("Can not get expect quality because of strictQuality");
+    return {
+      ...liveInfo,
+      currentStream: null,
+    };
   }
 
   let expectSource = liveInfo.sources[0];

@@ -124,7 +124,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!living) return null;
 
   // 检查标题是否包含关键词
-  console.log("检查标题关键词", { title, channelId: this.channelId, isManualStart });
   if (utils.checkTitleKeywordsBeforeRecord(title, this, isManualStart)) return null;
 
   const qualityRetryLeft = (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
@@ -147,12 +146,20 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       api: this.api,
     });
   } catch (err) {
-    if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
     this.emit("stateChange", {
       state: "check-error",
       msg: `检查失败，` + (err instanceof Error ? err.message : String(err)),
     });
     throw err;
+  }
+  if (!res.currentStream) {
+    if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
+    const message = `由于画质或流等相关设置，无法获取到预期的直播流，如果不是预期行为，请调整"qualityRetry(流匹配重试次数)"参数，预期画质：${this.quality}，实际画质：${(res.streams ?? []).map((s) => `${s?.name}(${s?.rate})`).join(",")}`;
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: message,
+    });
+    throw new Error(message);
   }
 
   this.emit("stateChange", { state: "recording" });
