@@ -14,7 +14,7 @@ export async function getInfo(
 ): Promise<{
   living: boolean;
   // 是否为直播电台
-  isLiveRadio?: boolean;
+  isLiveRadio: boolean;
   owner: string;
   title: string;
   roomId: string;

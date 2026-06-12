@@ -225,7 +225,7 @@ async function getRoomInfoByUserWeb(
             streamData[convertedQuality] = {
               // @ts-ignore
               main: {
-                flv: url,
+                flv: url!,
                 hls: "",
               },
             };
