@@ -40,7 +40,7 @@
     "semver": "^7.6.3",
     "trash": "^9.0.0",
     "undici": "^7.24.0",
-    "utf-8-validate": "^6.0.5",
+    "utf-8-validate": "^6.0.6",
     "wavesurfer.js": "^7.11.1",
     "awilix": "^11.0.4"
   },

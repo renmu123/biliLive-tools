@@ -105,7 +105,7 @@ importers:
         version: 1.15.0
       blive-message-listener:
         specifier: ^0.5.5
-        version: 0.5.5(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+        version: 0.5.5(bufferutil@4.0.8)(utf-8-validate@6.0.6)
       lodash-es:
         specifier: 'catalog:'
         version: 4.17.21
@@ -114,7 +114,7 @@ importers:
         version: 3.0.1
       tiny-bilibili-ws:
         specifier: ^1.0.2
-        version: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+        version: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.6)
 
   packages/CLI:
     dependencies:
@@ -178,7 +178,7 @@ importers:
         version: 2.1.0
       ws:
         specifier: ^8.18.0
-        version: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+        version: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.6)
     devDependencies:
       '@types/node':
         specifier: '*'
@@ -228,7 +228,7 @@ importers:
         version: 3.0.1
       ws:
         specifier: ^8.18.0
-        version: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+        version: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.6)
     devDependencies:
       '@types/ws':
         specifier: ^8.5.13
@@ -238,8 +238,8 @@ importers:
         specifier: ^4.0.8
         version: 4.0.8
       utf-8-validate:
-        specifier: ^6.0.5
-        version: 6.0.5
+        specifier: ^6.0.6
+        version: 6.0.6
 
   packages/HuYaRecorder:
     dependencies:
@@ -356,8 +356,8 @@ importers:
         specifier: ^7.24.0
         version: 7.24.3
       utf-8-validate:
-        specifier: ^6.0.5
-        version: 6.0.5
+        specifier: ^6.0.6
+        version: 6.0.6
       wavesurfer.js:
         specifier: ^7.11.1
         version: 7.11.1
@@ -577,7 +577,7 @@ importers:
         version: 4.2.1
       ws:
         specifier: ^8.18.0
-        version: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+        version: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.6)
       zod:
         specifier: ^3.23.8
         version: 3.23.8
@@ -737,7 +737,7 @@ importers:
         version: 0.5.9
       openai:
         specifier: ^4.73.0
-        version: 4.104.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.5))(zod@3.23.8)
+        version: 4.104.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.6))(zod@3.23.8)
       p-limit:
         specifier: ^6.1.0
         version: 6.1.0
@@ -5918,8 +5918,8 @@ packages:
     resolution: {integrity: sha512-KMWqdlOcjCYdtIJpicDSFBQ8nFwS2i9sslAd6f4+CBGcU4gist2REnr2fxj2YocvJFxSF3ZOHLYLVZnUxv4BZQ==}
     engines: {node: '>=0.10.0'}
 
-  utf-8-validate@6.0.5:
-    resolution: {integrity: sha512-EYZR+OpIXp9Y1eG1iueg8KRsY8TuT8VNgnanZ0uA3STqhHQTLwbl+WX76/9X5OY12yQubymBpaBSmMPkSTQcKA==}
+  utf-8-validate@6.0.6:
+    resolution: {integrity: sha512-q3l3P9UtEEiAHcsgsqTgf9PPjctrDWoIXW3NpOHFdRDbLvu4DLIcxHangJ4RLrWkBcKjmcs/6NkerI8T/rE4LA==}
     engines: {node: '>=6.14.2'}
 
   utf8-byte-length@1.0.5:
@@ -8252,10 +8252,10 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  blive-message-listener@0.5.5(bufferutil@4.0.8)(utf-8-validate@6.0.5):
+  blive-message-listener@0.5.5(bufferutil@4.0.8)(utf-8-validate@6.0.6):
     dependencies:
       protobufjs: 8.3.0
-      tiny-bilibili-ws: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+      tiny-bilibili-ws: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.6)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -10543,7 +10543,7 @@ snapshots:
 
   only@0.0.2: {}
 
-  openai@4.104.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.5))(zod@3.23.8):
+  openai@4.104.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.6))(zod@3.23.8):
     dependencies:
       '@types/node': 18.19.130
       '@types/node-fetch': 2.6.13
@@ -10553,7 +10553,7 @@ snapshots:
       formdata-node: 4.4.1
       node-fetch: 2.7.0(encoding@0.1.13)
     optionalDependencies:
-      ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+      ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.6)
       zod: 3.23.8
     transitivePeerDependencies:
       - encoding
@@ -11464,11 +11464,11 @@ snapshots:
     dependencies:
       semver: 5.7.2
 
-  tiny-bilibili-ws@1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.5):
+  tiny-bilibili-ws@1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.6):
     dependencies:
       eventemitter3: 5.0.1
       pako: 2.1.0
-      ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+      ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.6)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -11731,7 +11731,7 @@ snapshots:
     dependencies:
       os-homedir: 1.0.2
 
-  utf-8-validate@6.0.5:
+  utf-8-validate@6.0.6:
     dependencies:
       node-gyp-build: 4.8.2
 
@@ -11986,10 +11986,10 @@ snapshots:
     optionalDependencies:
       bufferutil: 4.0.8
 
-  ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.5):
+  ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.6):
     optionalDependencies:
       bufferutil: 4.0.8
-      utf-8-validate: 6.0.5
+      utf-8-validate: 6.0.6
 
   xdg-basedir@4.0.0: {}
 
