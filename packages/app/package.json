@@ -40,10 +40,10 @@
     "semver": "^7.6.3",
     "trash": "^9.0.0",
     "undici": "^7.24.0",
-    "node-av": "^5.2.4",
     "utf-8-validate": "^6.0.6",
     "wavesurfer.js": "^7.11.1",
-    "awilix": "^11.0.4"
+    "awilix": "^11.0.4",
+    "node-av": "^6.0.0"
   },
   "devDependencies": {
     "@biliLive-tools/http": "workspace:*",
