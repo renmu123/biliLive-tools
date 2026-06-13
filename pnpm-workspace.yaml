@@ -14,3 +14,34 @@ catalog:
   font-ls: 0.6.6
   ntsuspend: ^1.0.2
   mitt: ^3.0.1
+
+patchedDependencies:
+  "trash": "patches/trash.patch"
+
+overrides:
+  "node-abi": "3.92.0"
+  "webworkify-webpack": "https://github.com/xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef"
+
+blockExoticSubdeps: false
+
+allowBuilds:
+  better-sqlite3: true
+  bufferutil: true
+  electron: true
+  electron-builder: true
+  electron-winstaller: true
+  esbuild: true
+  font-ls: true
+  ntsuspend: true
+  prebuild-install: true
+  protobufjs: true
+  utf-8-validate: true
+
+minimumReleaseAgeExclude:
+  - builder-util-runtime
+  - builder-util
+  - electron-publish
+  - app-builder-lib
+  - dmg-builder
+  - electron-builder-squirrel-windows
+  - electron-builder

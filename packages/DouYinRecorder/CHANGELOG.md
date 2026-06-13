@@ -1,3 +1,8 @@
+# 1.17.1
+
+- 修复：`webHTML` 接口不再参与获取流
+- 优化电台直播流获取 [#469](https://github.com/renmu123/biliLive-tools/pull/469) [#466](https://github.com/renmu123/biliLive-tools/pull/466)
+
 # 1.17.0
 
 - 增加时间线的相关事件处理

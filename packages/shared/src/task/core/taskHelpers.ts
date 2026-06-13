@@ -4,6 +4,7 @@ import { sendNotify } from "../../notify.js";
 import { appConfig } from "../../config.js";
 import { TaskType } from "../../enum.js";
 import { TaskQueue } from "./TaskQueue.js";
+import { sendExternalTaskEvent } from "./externalTaskEvent.js";
 
 /**
  * 全局任务队列实例
@@ -71,6 +72,25 @@ taskQueue.on("task-end", ({ taskId }) => {
 });
 taskQueue.on("task-error", ({ taskId }) => {
   sendTaskNotify("failure", taskId);
+});
+
+taskQueue.on("task-start", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-start", payload);
+});
+taskQueue.on("task-end", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-end", payload);
+});
+taskQueue.on("task-error", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-error", payload);
+});
+taskQueue.on("task-pause", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-pause", payload);
+});
+taskQueue.on("task-resume", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-resume", payload);
+});
+taskQueue.on("task-cancel", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-cancel", payload);
 });
 
 /**

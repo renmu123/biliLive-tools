@@ -173,7 +173,7 @@ router.get("/export", async (ctx) => {
       .map((item) => item.config.cover)
       .filter((cover) => cover && !path.isAbsolute(cover));
 
-    const usedImageSet = new Set(usedImages);
+    const usedImageSet: Set<string | undefined> = new Set(usedImages);
     const tempDir = getTempPath();
     const backupPath = path.join(tempDir, "biliLive-tools");
     await fs.ensureDir(backupPath);

@@ -17,6 +17,12 @@
       <n-tabs v-model:value="selectTab" type="bar" animated placement="left" class="setting-tab">
         <n-tab-pane name="common" tab="基本">
           <n-form ref="formRef" label-placement="left" :label-width="160">
+            <n-form-item v-if="!isWeb">
+              <template #label>
+                <Tip text="上传崩溃报告" tip="上传崩溃报告至Sentry服务器"></Tip>
+              </template>
+              <n-switch v-model:value="config.uploadCrashReport" />
+            </n-form-item>
             <n-form-item>
               <template #label>
                 <Tip
@@ -89,6 +95,18 @@
               <n-input v-model:value="config.passKey" type="password" show-password-on="click">
               </n-input>
             </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  <Tip
+                    text="事件订阅"
+                    :tip="`可以通过webhook接收本软件的事件，具体使用方法请查看文档`"
+                  ></Tip>
+                </span>
+              </template>
+              <n-input v-model:value="config.externalWebhook" placeholder="请输入地址" />
+            </n-form-item>
+
             <n-form-item>
               <template #label>
                 <span class="inline-flex">

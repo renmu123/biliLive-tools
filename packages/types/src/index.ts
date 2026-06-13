@@ -607,6 +607,8 @@ export interface AppConfig {
   audiowaveformPath: string;
   /** 缓存文件夹 */
   cacheFolder: string;
+  /** 上传崩溃报告 */
+  uploadCrashReport: boolean;
   /** 保存到回收站 */
   trash: boolean;
   /** 自动检查更新 */
@@ -629,6 +631,8 @@ export interface AppConfig {
   requestInfoForRecord: boolean;
   biliUploadFileNameType: "ask" | "always" | "never";
   cutPageInNewWindow: boolean;
+  /** 外部Webhook地址 */
+  externalWebhook: string;
   webhook: {
     recoderFolder: string;
     blacklist: string;

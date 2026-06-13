@@ -118,6 +118,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   // 获取直播间信息
+  let isLiveRadio = false;
   try {
     const liveInfo = await getInfo(this.channelId, {
       auth: this.auth,
@@ -125,6 +126,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       uid: this.uid,
     });
     this.liveInfo = liveInfo;
+    isLiveRadio = liveInfo.isLiveRadio;
     this.emit("stateChange", { state: "idle" });
   } catch (error) {
     this.emit("stateChange", {
@@ -165,6 +167,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       doubleScreen: this.doubleScreen,
       api: this.api as APIType,
       uid: this.uid,
+      isLiveRadio: isLiveRadio,
     });
     this.liveInfo.owner = res.owner;
     this.liveInfo.title = res.title;
