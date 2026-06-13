@@ -1,3 +1,10 @@
+# 3.16.1(2026.06.13)
+
+## Bug修复
+
+- 修复docker编译后运行错误 [#479](https://github.com/renmu123/biliLive-tools/pull/479)
+- 修复cli单文件运行失败 [#480](https://github.com/renmu123/biliLive-tools/pull/480/)
+
 # 3.16.0(2026.06.13)
 
 **pnpm升级至11.5.0,node最低要求为node22,electron-builder升级至26.14.0**
