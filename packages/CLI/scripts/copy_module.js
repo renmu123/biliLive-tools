@@ -40,17 +40,36 @@ function resolvePackagePath(packageName) {
     }
   }
 
+  // pnpm 严格模式下，间接依赖可能只在 .pnpm 存储中
+  // 在 .pnpm 目录下搜索包含该包名的目录
+  const pnpmDir = path.join(pnpm_node_modules, ".pnpm");
+  if (fs.existsSync(pnpmDir)) {
+    const scopedName = packageName.replace("/", "+");
+    try {
+      for (const entry of fs.readdirSync(pnpmDir)) {
+        if (entry.startsWith(scopedName) || entry.startsWith(packageName)) {
+          const candidate = path.join(pnpmDir, entry, "node_modules", packageName);
+          if (fs.existsSync(candidate)) {
+            return candidate;
+          }
+        }
+      }
+    } catch {
+      console.log('未找到该包的 .pnpm 目录');
+    }
+  }
+
   return null;
 }
 
-function safeCpSync(packageName) {
+function safeCpSync(packageName, options = {}) {
   const src = resolvePackagePath(packageName);
   if (!src) {
     console.warn(`跳过复制 ${packageName}：未找到该包`);
     return;
   }
   const dest = path.join(cli_node_modules, packageName);
-  fs.cpSync(src, dest, { recursive: true });
+  fs.cpSync(src, dest, { recursive: true, ...options });
 }
 
 function main() {
@@ -58,8 +77,8 @@ function main() {
   if (!fs.existsSync(cli_node_modules)) {
     fs.mkdirSync(cli_node_modules);
   }
-  // 复制canvas相关文件
-  safeCpSync("@napi-rs/canvas");
+  // 复制@napi-rs相关文件，pnpm严格模式下@napi-rs目录内的子包是符号链接，需要dereference解引用复制实际文件
+  safeCpSync("@napi-rs", { dereference: true });
   // 复制ntsuspend相关文件，
   safeCpSync("ntsuspend");
   // 复制font-list相关文件，
