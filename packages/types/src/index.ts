@@ -147,6 +147,8 @@ export type CommonRoomConfig = {
   partTitleTemplate: string;
   /** 同步器配置ID */
   syncId?: string | null;
+  /** 同步器配置ID列表 */
+  syncIds?: string[];
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;

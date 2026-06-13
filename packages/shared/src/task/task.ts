@@ -1140,6 +1140,7 @@ export class SyncTask extends AbstractTask {
         policy?: "fail" | "newcopy" | "overwrite" | "skip" | "rsync";
       };
       name: string;
+      targetPath?: string;
     },
     callback?: {
       onStart?: () => void;
@@ -1154,6 +1155,10 @@ export class SyncTask extends AbstractTask {
     this.options = options.options;
     this.output = options.output;
     this.progress = 0;
+    this.extra = {
+      input: this.input,
+      output: options.targetPath ?? this.output,
+    };
     if (options.name) {
       this.name = options.name;
     }
@@ -1170,12 +1175,34 @@ export class SyncTask extends AbstractTask {
       callback?.onProgress && callback.onProgress(progress.percentage);
       this.progress = progress.percentage;
       this.custsomProgressMsg = `速度: ${progress.speed}`;
+      this.appendLog(
+        "info",
+        `同步进度 ${Math.round(progress.percentage ?? 0)}%`,
+        progress.speed ? `速度: ${progress.speed}` : undefined,
+      );
+    });
+    // @ts-expect-error
+    this.instance.on("success", (message: string) => {
+      this.appendLog("info", message);
+    });
+    // @ts-expect-error
+    this.instance.on("error", (error: Error) => {
+      this.appendLog("error", error.message || String(error));
+    });
+    // @ts-expect-error
+    this.instance.on("canceled", (message: string) => {
+      this.appendLog("warn", message);
     });
   }
   exec() {
     this.callback.onStart && this.callback.onStart();
     this.status = "running";
     this.progress = 0;
+    this.appendLog(
+      "info",
+      "同步任务开始",
+      `源文件: ${this.input}\n目标目录: ${this.extra?.output || "/"}`,
+    );
     this.emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
     this.instance
@@ -1187,6 +1214,7 @@ export class SyncTask extends AbstractTask {
         this.status = "completed";
         this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;
+        this.appendLog("info", "同步任务完成");
         this.emitter.emit("task-end", { taskId: this.taskId });
       })
       .catch((err) => {
@@ -1194,6 +1222,7 @@ export class SyncTask extends AbstractTask {
         this.status = "error";
         this.callback.onError && this.callback.onError(err);
         this.error = err;
+        this.appendLog("error", "同步任务失败", err?.message || String(err));
         this.emitter.emit("task-error", { taskId: this.taskId, error: err });
       })
       .finally(() => {
@@ -1216,6 +1245,7 @@ export class SyncTask extends AbstractTask {
       return;
     log.warn(`danmu task ${this.taskId} killed`);
     this.status = "canceled";
+    this.appendLog("warn", "同步任务已取消");
     this.instance.cancelUpload();
     return true;
   }

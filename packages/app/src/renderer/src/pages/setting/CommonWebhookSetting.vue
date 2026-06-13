@@ -210,10 +210,11 @@
       <Tip text="同步器" tip="选择要使用的同步器，用于将视频同步到网盘"></Tip>
     </template>
     <n-select
-      v-model:value="data.syncId"
+      v-model:value="selectedSyncIds"
       :options="props.syncConfigs"
       label-field="name"
       value-field="id"
+      multiple
       :disabled="globalFieldsObj.syncId"
       style="margin-right: 10px; width: 200px"
       clearable
@@ -230,9 +231,9 @@
         </n-icon>
       </template>
     </n-button>
-    <n-button v-if="data.syncId && !globalFieldsObj.syncId" text @click="data.syncId = null"
-      >清除</n-button
-    >
+    <n-button v-if="selectedSyncIds.length && !globalFieldsObj.syncId" text @click="clearSyncIds">
+      清除
+    </n-button>
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.syncId" class="global-checkbox"
       >全局</n-checkbox
     >
@@ -593,6 +594,7 @@ const emits = defineEmits<{
 const data = defineModel<AppRoomConfig>("data", {
   default: () => ({
     syncId: "",
+    syncIds: [],
     open: true,
     minSize: 0,
     title: "",
@@ -613,6 +615,21 @@ const globalFieldsObj = defineModel<{
   type: Object,
   default: () => {},
 });
+
+const selectedSyncIds = computed<string[]>({
+  get: () => {
+    if (data.value.syncIds?.length) return data.value.syncIds;
+    return data.value.syncId ? [data.value.syncId] : [];
+  },
+  set: (value) => {
+    data.value.syncIds = value;
+    data.value.syncId = value[0] ?? null;
+  },
+});
+
+const clearSyncIds = () => {
+  selectedSyncIds.value = [];
+};
 
 const notice = useNotification();
 const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());

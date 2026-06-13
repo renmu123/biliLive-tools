@@ -129,6 +129,7 @@ export class TaskQueue {
         endTime: task.endTime,
         custsomProgressMsg: task.custsomProgressMsg,
         error: task.error ? String(task.error) : "",
+        logs: task.logs,
         duration: task.getDuration(),
         extra: task.extra,
       };
