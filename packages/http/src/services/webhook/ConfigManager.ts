@@ -76,6 +76,8 @@ export interface RoomConfig {
   afterUploadDeletAction: "none" | "delete" | "deleteAfterCheck";
   /** 同步器 */
   syncId?: string | null;
+  /** 同步器列表 */
+  syncIds?: string[];
   /** 弹幕转换后是否要删除XML弹幕 */
   afterConvertRemoveXmlRaw: boolean;
   afterConvertRemoveVideoRaw: boolean;
@@ -163,7 +165,8 @@ export class ConfigManager {
       "00:00:00",
       "23:59:59",
     ];
-    const syncId = this.getRoomSetting("syncId", roomSetting);
+    const syncIds = this.getRoomSyncIds(roomSetting);
+    const syncId = syncIds[0] ?? null;
     const afterConvertAction = this.getRoomSetting("afterConvertAction", roomSetting) ?? [];
 
     const removeSourceAferrConvert2Mp4 = afterConvertAction.includes("removeAfterConvert2Mp4");
@@ -236,6 +239,7 @@ export class ConfigManager {
       partTitleTemplate: this.getRoomSetting("partTitleTemplate", roomSetting) || "{{filename}}",
       afterUploadDeletAction: this.getRoomSetting("afterUploadDeletAction", roomSetting) ?? "none",
       syncId,
+      syncIds,
       flvRepair,
       removeAfterFlvRepair: flvRepair ? afterConvertRemoveFlvRaw : false,
       removeSmallFile,
@@ -267,17 +271,41 @@ export class ConfigManager {
     }
   }
 
+  private getRoomSyncIds(roomSetting?: AppRoomConfig): string[] {
+    const appConfigAll = this.getAppConfigAll();
+    const source =
+      roomSetting?.noGlobal?.includes("syncId") || roomSetting?.noGlobal?.includes("syncIds" as any)
+        ? roomSetting
+        : appConfigAll.webhook;
+    const syncIds = (source as { syncIds?: string[] })?.syncIds?.filter(Boolean);
+    if (syncIds?.length) return syncIds;
+
+    const syncId = (source as { syncId?: string | null })?.syncId;
+    return syncId ? [syncId] : [];
+  }
+
   /**
    * 获取同步配置
    * @param roomId 房间ID
    * @returns 同步配置或undefined
    */
   getSyncConfig(roomId: string) {
-    const { syncId } = this.getConfig(roomId);
-    if (!syncId) return null;
+    return this.getSyncConfigs(roomId)[0] ?? null;
+  }
+
+  /**
+   * 获取同步配置列表
+   * @param roomId 房间ID
+   * @returns 同步配置列表
+   */
+  getSyncConfigs(roomId: string) {
+    const { syncIds } = this.getConfig(roomId);
+    if (!syncIds?.length) return [];
     const appConfig = this.getAppConfigAll();
-    const syncConfig = appConfig.sync?.syncConfigs?.find((cfg) => cfg.id === syncId);
-    if (!syncConfig) return null;
-    return syncConfig;
+    return (
+      appConfig.sync?.syncConfigs?.filter((cfg) => {
+        return syncIds.includes(cfg.id);
+      }) ?? []
+    );
   }
 }

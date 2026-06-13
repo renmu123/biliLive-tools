@@ -69,6 +69,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     convert2Mp4: false,
     flvRepair: false,
     syncId: undefined,
+    syncIds: [],
     uploadHandleTime: ["00:00:00", "23:59:59"],
     limitUploadTime: false,
     uploadNoDanmu: false,

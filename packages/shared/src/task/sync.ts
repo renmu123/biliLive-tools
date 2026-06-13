@@ -157,6 +157,7 @@ export const addSyncTask = async ({
         policy: policy,
       },
       name: `同步任务: ${parse(input).base}`,
+      targetPath: remotePath ?? "/",
     },
     {
       onEnd: () => {

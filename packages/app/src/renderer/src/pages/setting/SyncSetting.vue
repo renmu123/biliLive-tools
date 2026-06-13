@@ -705,9 +705,10 @@ const deleteSyncConfig = async (index: number) => {
   const isInUse =
     // 检查全局配置
     config.value.webhook?.syncId === configToDelete.id ||
+    config.value.webhook?.syncIds?.includes(configToDelete.id) ||
     // 检查房间配置
     Object.values(config.value.webhook?.rooms || {}).some(
-      (room) => room.syncId === configToDelete.id,
+      (room) => room.syncId === configToDelete.id || room.syncIds?.includes(configToDelete.id),
     );
 
   if (isInUse) {
