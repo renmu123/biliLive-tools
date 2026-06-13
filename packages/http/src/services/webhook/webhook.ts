@@ -156,14 +156,17 @@ export class WebhookHandler {
     fileType: "originVideo" | "xml" | "ass" | "cover" | "handledVideo",
     config: RoomConfig,
   ) {
-    const syncConfig = this.configManager.getSyncConfig(config.roomId);
+    const syncConfigs = this.configManager.getSyncConfigs(config.roomId);
     if (fileType === "originVideo") {
       // 原始视频，可能被转码、同步、上传非弹幕版
       const shouldRemove = config.afterConvertRemoveVideoRaw;
       if (config.videoPresetId) {
         this.fileRefManager.addRef(filePath, shouldRemove);
       }
-      if (syncConfig?.targetFiles.includes("source")) {
+      const syncTaskCount = syncConfigs.filter((item) =>
+        item.targetFiles.includes("source"),
+      ).length;
+      for (let i = 0; i < syncTaskCount; i++) {
         this.fileRefManager.addRef(filePath, shouldRemove);
       }
       if (config.uid) {
@@ -184,7 +187,8 @@ export class WebhookHandler {
       if (config.danmuPresetId) {
         this.fileRefManager.addRef(filePath, shouldRemove);
       }
-      if (syncConfig?.targetFiles.includes("xml")) {
+      const syncTaskCount = syncConfigs.filter((item) => item.targetFiles.includes("xml")).length;
+      for (let i = 0; i < syncTaskCount; i++) {
         this.fileRefManager.addRef(filePath, shouldRemove);
       }
     } else if (fileType === "ass") {
@@ -198,7 +202,8 @@ export class WebhookHandler {
       const shouldRemove =
         config.afterUploadDeletAction === "delete" ||
         config.afterUploadDeletAction === "deleteAfterCheck";
-      if (syncConfig?.targetFiles.includes("cover")) {
+      const syncTaskCount = syncConfigs.filter((item) => item.targetFiles.includes("cover")).length;
+      for (let i = 0; i < syncTaskCount; i++) {
         this.fileRefManager.addRef(filePath, shouldRemove);
 
         if (config.afterUploadDeletAction === "deleteAfterCheck") {
@@ -215,7 +220,10 @@ export class WebhookHandler {
       }
     } else if (fileType === "handledVideo") {
       // 处理后的视频文件，可能被上传、非弹幕上传、同步
-      if (syncConfig?.targetFiles.includes("danmaku")) {
+      const syncTaskCount = syncConfigs.filter((item) =>
+        item.targetFiles.includes("danmaku"),
+      ).length;
+      for (let i = 0; i < syncTaskCount; i++) {
         const shouldRemove = config.afterConvertRemoveVideoRaw;
         if (filePath.includes("后处理") || filePath.includes("弹幕版")) {
           this.fileRefManager.addRef(filePath, shouldRemove);
@@ -548,11 +556,12 @@ export class WebhookHandler {
       return;
     }
 
-    const syncConfig = this.configManager.getSyncConfig(roomId);
-    if (!syncConfig) return;
+    const syncConfigs = this.configManager
+      .getSyncConfigs(roomId)
+      .filter((syncConfig) => syncConfig.targetFiles.includes(fileType));
 
     // 检查是否需要同步该类型的文件
-    if (!syncConfig.targetFiles.includes(fileType)) return;
+    if (syncConfigs.length === 0) return;
 
     // 准备直播信息和分段信息
     const livePart = this.liveManager.findBy({ partId });
@@ -573,33 +582,35 @@ export class WebhookHandler {
 
     const liveStartTime = new Date(live.startTime);
 
-    // 格式化文件夹结构
-    const folderStructure = PathResolver.formatFolderStructure(syncConfig.folderStructure, {
-      platform,
-      user: username,
-      software: live.software,
-      liveStartTime,
-    });
-
-    try {
-      // 调用同步函数
-      const { addSyncTask } = await import("@biliLive-tools/shared/task/sync.js");
-      const task = await addSyncTask({
-        input: filePath,
-        remotePath: folderStructure,
-        retry: 3,
-        policy: "skip",
-        type: syncConfig.syncSource,
-        aliyunpanDriveType: syncConfig.aliyunpanDriveType,
+    const { addSyncTask } = await import("@biliLive-tools/shared/task/sync.js");
+    for (const syncConfig of syncConfigs) {
+      // 格式化文件夹结构
+      const folderStructure = PathResolver.formatFolderStructure(syncConfig.folderStructure, {
+        platform,
+        user: username,
+        software: live.software,
+        liveStartTime,
       });
-      log.info(`开始同步${fileType}文件: ${filePath}`);
 
-      task.on("task-end", async () => {
-        log.info(`同步 ${filePath} 文件成功`);
-        await this.fileRefManager.releaseRef(filePath);
-      });
-    } catch (error) {
-      log.error(`同步${fileType}文件失败: ${filePath}`, error);
+      try {
+        // 调用同步函数
+        const task = await addSyncTask({
+          input: filePath,
+          remotePath: folderStructure,
+          retry: 3,
+          policy: "skip",
+          type: syncConfig.syncSource,
+          aliyunpanDriveType: syncConfig.aliyunpanDriveType,
+        });
+        log.info(`开始同步${fileType}文件到${syncConfig.name}: ${filePath}`);
+
+        task.on("task-end", async () => {
+          log.info(`同步 ${filePath} 文件到${syncConfig.name}成功`);
+          await this.fileRefManager.releaseRef(filePath);
+        });
+      } catch (error) {
+        log.error(`同步${fileType}文件到${syncConfig.name}失败: ${filePath}`, error);
+      }
     }
   }
 

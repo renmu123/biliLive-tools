@@ -507,6 +507,39 @@ describe("ConfigManager", () => {
       expect(result).toEqual(syncConfig);
     });
 
+    it("should return multiple sync configs when syncIds are configured", () => {
+      const syncConfigs = [
+        {
+          id: "sync-123",
+          name: "Baidu Sync",
+          syncSource: "baiduPCS",
+          targetFiles: ["source"],
+        },
+        {
+          id: "sync-456",
+          name: "Aliyun Sync",
+          syncSource: "aliyunpan",
+          targetFiles: ["source"],
+        },
+      ];
+      const appConfig = {
+        getAll: vi.fn().mockReturnValue({
+          webhook: {
+            open: true,
+            autoPartMerge: false,
+            syncIds: ["sync-123", "sync-456"],
+          },
+          sync: {
+            syncConfigs,
+          },
+        }),
+      };
+      // @ts-ignore
+      const configManager = new ConfigManager(appConfig);
+      const result = configManager.getSyncConfigs("123");
+      expect(result).toEqual(syncConfigs);
+    });
+
     it("should return sync config from room setting when noGlobal includes syncId", () => {
       const syncConfig = {
         id: "sync-room",

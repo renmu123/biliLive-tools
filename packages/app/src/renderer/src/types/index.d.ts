@@ -17,4 +17,10 @@ export interface Task {
   children?: Task[];
   duration: number;
   extra?: Record<string, any>;
+  logs?: {
+    time: number;
+    level: "info" | "warn" | "error";
+    message: string;
+    detail?: string;
+  }[];
 }
