@@ -70,6 +70,33 @@ function safeCpSync(packageName, options = {}) {
   }
   const dest = path.join(cli_node_modules, packageName);
   fs.cpSync(src, dest, { recursive: true, ...options });
+
+  // 对于作用域包（如 @napi-rs），pnpm 严格模式下 optionalDependencies
+  // 可能不在 node_modules/@scope/ 目录下，而是存在于 .pnpm 存储中，需要额外搜索并复制
+  if (packageName.startsWith("@")) {
+    const scopePrefix = packageName + "+";
+    const pnpmDir = path.join(pnpm_node_modules, ".pnpm");
+    if (fs.existsSync(pnpmDir)) {
+      try {
+        for (const entry of fs.readdirSync(pnpmDir)) {
+          if (entry.startsWith(scopePrefix)) {
+            const pkgPath = path.join(pnpmDir, entry, "node_modules", packageName);
+            if (fs.existsSync(pkgPath)) {
+              for (const subPkg of fs.readdirSync(pkgPath)) {
+                const subSrc = path.join(pkgPath, subPkg);
+                const subDest = path.join(dest, subPkg);
+                if (!fs.existsSync(subDest)) {
+                  fs.cpSync(subSrc, subDest, { recursive: true, dereference: options.dereference ?? false });
+                }
+              }
+            }
+          }
+        }
+      } catch {
+        console.log(`未找到 .pnpm 目录中的 ${packageName} 相关包`);
+      }
+    }
+  }
 }
 
 function main() {
