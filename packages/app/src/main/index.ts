@@ -391,7 +391,18 @@ function createWindow(): void {
 }
 
 function createMenu(): void {
-  const menu = Menu.buildFromTemplate([
+  const isMac = process.platform === "darwin";
+
+  const template: Electron.MenuItemConstructorOptions[] = [];
+
+  // macOS 需要 appMenu 才能让 Cmd+Q 等系统快捷键正常工作
+  if (isMac) {
+    template.push({
+      role: "appMenu",
+    });
+  }
+
+  template.push(
     {
       label: "文件",
       submenu: [
@@ -422,13 +433,19 @@ function createMenu(): void {
             shell.openPath(app.getPath("logs"));
           },
         },
+        { type: "separator" },
         {
           label: "退出",
+          accelerator: isMac ? "Cmd+Q" : "Alt+F4",
           click: async () => {
             quit();
           },
         },
       ],
+    },
+    // Edit 菜单提供 Cmd+C / Cmd+V / Cmd+A 等标准快捷键
+    {
+      role: "editMenu",
     },
     {
       label: "开发者工具",
@@ -481,7 +498,16 @@ function createMenu(): void {
         },
       ],
     },
-  ]);
+  );
+
+  // macOS 需要 windowMenu 来提供窗口管理功能
+  if (isMac) {
+    template.push({
+      role: "windowMenu",
+    });
+  }
+
+  const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 }
 
