@@ -25,6 +25,8 @@ export enum NotificationType {
   ntfy = "ntfy",
   allInOne = "allInOne",
   customHttp = "customHttp",
+  feishuBot = "feishuBot",
+  wecomBot = "wecomBot",
 }
 
 export enum LLMType {
@@ -224,6 +226,12 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
         method: "GET",
         body: "",
         headers: "",
+      },
+      feishuBot: {
+        webhookUrl: "",
+      },
+      wecomBot: {
+        webhookUrl: "",
       },
     },
     taskNotificationType: {

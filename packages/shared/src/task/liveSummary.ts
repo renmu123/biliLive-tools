@@ -4,11 +4,17 @@ import { spawn } from "node:child_process";
 import fs from "fs-extra";
 
 import { createASRProvider, OpenAICompatibleLLM, type StandardASRResult } from "../ai/index.js";
-import { exportSummaryToTargets, getEnabledSummaryExportTargetNames } from "../ai/summaryExport.js";
+import {
+  buildLiveSummaryNotification,
+  exportSummaryToTargets,
+  getEnabledSummaryExportTargetNames,
+  type SummaryExportResult,
+} from "../ai/summaryExport.js";
 import { appConfig } from "../config.js";
 import { recordHistoryService } from "../db/index.js";
 import { TaskType } from "../enum.js";
 import { getModel } from "../musicDetector/utils.js";
+import { sendNotify } from "../notify.js";
 import { getTempPath } from "../utils/index.js";
 import logger from "../utils/log.js";
 import { AbstractTask, taskQueue } from "./core/index.js";
@@ -351,16 +357,18 @@ export class LiveSummaryTask extends AbstractTask {
       throwIfAborted(this.controller.signal);
 
       const exportTargets = getEnabledSummaryExportTargetNames(summaryConfig);
+      let exportResults: SummaryExportResult[] = [];
       if (exportTargets.length) {
         this.custsomProgressMsg = `正在导出总结到${exportTargets.join("、")}`;
         this.progress = 90;
         this.emitter.emit("task-progress", { taskId: this.taskId });
 
         try {
-          await exportSummaryToTargets(summary, this.options, summaryConfig);
+          exportResults = await exportSummaryToTargets(summary, this.options, summaryConfig);
           logger.info("直播总结导出完成", {
             taskId: this.taskId,
             targets: exportTargets,
+            links: exportResults.map((item) => item.url),
           });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
@@ -373,6 +381,23 @@ export class LiveSummaryTask extends AbstractTask {
             ai_summary_time: Date.now(),
           });
           throw error;
+        }
+      }
+
+      if (exportResults.some((item) => item.url)) {
+        const notification = buildLiveSummaryNotification(this.options, exportResults);
+        try {
+          await sendNotify(notification.title, notification.desp);
+          logger.info("直播总结通知发送完成", {
+            taskId: this.taskId,
+            recordId: this.options.recordId,
+            targets: exportResults.map((item) => item.target),
+          });
+        } catch (error) {
+          logger.error("直播总结通知发送失败", error, {
+            taskId: this.taskId,
+            recordId: this.options.recordId,
+          });
         }
       }
 

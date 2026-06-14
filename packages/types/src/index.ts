@@ -366,6 +366,20 @@ export interface NotificationCustomHttpConfig {
   headers?: string;
 }
 
+/**
+ * 飞书群机器人通知配置
+ */
+export interface NotificationFeishuBotConfig {
+  webhookUrl: string;
+}
+
+/**
+ * 企业微信群机器人通知配置
+ */
+export interface NotificationWeComBotConfig {
+  webhookUrl: string;
+}
+
 export type Theme = "system" | "light" | "dark";
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
@@ -677,7 +691,16 @@ export interface AppConfig {
     /** 通知配置项 */
     setting: {
       // 通知类型，支持server酱和邮件
-      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne" | "customHttp";
+      type?:
+        | "server"
+        | "mail"
+        | "tg"
+        | "system"
+        | "ntfy"
+        | "allInOne"
+        | "customHttp"
+        | "feishuBot"
+        | "wecomBot";
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
@@ -685,6 +708,8 @@ export interface AppConfig {
       ntfy: NotificationNtfyConfig;
       allInOne: NotificationPushAllInAllConfig;
       customHttp: NotificationCustomHttpConfig;
+      feishuBot: NotificationFeishuBotConfig;
+      wecomBot: NotificationWeComBotConfig;
     };
     taskNotificationType: {
       liveStart: AppConfig["notification"]["setting"]["type"];

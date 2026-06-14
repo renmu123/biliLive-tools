@@ -12,6 +12,22 @@ export interface SummaryExportContext {
   recordStartTime?: number;
 }
 
+export type SummaryExportResult =
+  | {
+      target: "feishu";
+      name: "飞书文档";
+      documentId: string;
+      url: string;
+      mode: "append" | "create";
+    }
+  | {
+      target: "notion";
+      name: "Notion";
+      pageId: string;
+      url: string;
+      mode: "append" | "create_child_page";
+    };
+
 type LiveSummaryConfig = AppConfig["ai"]["liveSummary"] & {
   feishu?: AppConfig["ai"]["liveSummary"]["exportTargets"]["feishu"];
 };
@@ -26,11 +42,7 @@ export function buildSummaryExportMarkdown(summary: string, input: SummaryExport
     .filter(Boolean)
     .join("\n");
 
-  return [
-    input.title ? `# ${input.title}` : "# 直播总结",
-    meta,
-    summary,
-  ]
+  return [input.title ? `# ${input.title}` : "# 直播总结", meta, summary]
     .filter(Boolean)
     .join("\n\n");
 }
@@ -41,15 +53,17 @@ function padTime(value: number) {
 
 function formatTitleTime(timestamp?: number) {
   const date = new Date(timestamp || Date.now());
-  return [
-    date.getFullYear(),
-    padTime(date.getMonth() + 1),
-    padTime(date.getDate()),
-  ].join("-") + ` ${padTime(date.getHours())}:${padTime(date.getMinutes())}`;
+  return (
+    [date.getFullYear(), padTime(date.getMonth() + 1), padTime(date.getDate())].join("-") +
+    ` ${padTime(date.getHours())}:${padTime(date.getMinutes())}`
+  );
 }
 
 function cleanExportTitle(title: string) {
-  return title.replace(/[\r\n\t]/g, " ").replace(/\s+/g, " ").trim();
+  return title
+    .replace(/[\r\n\t]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function buildSummaryExportTitle(input: SummaryExportContext, template?: string) {
@@ -64,15 +78,47 @@ export function buildSummaryExportTitle(input: SummaryExportContext, template?: 
     time,
   };
   const raw = template?.trim()
-    ? template.replace(/\{(streamer|roomId|room|title|platform|time)\}/g, (_, key: string) => variables[key] || "")
+    ? template.replace(
+        /\{(streamer|roomId|room|title|platform|time)\}/g,
+        (_, key: string) => variables[key] || "",
+      )
     : `${room} - ${time}`;
   return cleanExportTitle(raw) || `直播总结 - ${time}`;
+}
+
+export function buildFeishuDocumentUrl(documentId: string) {
+  return documentId ? `https://feishu.cn/docx/${documentId}` : "";
+}
+
+export function buildNotionPageUrl(pageId: string) {
+  const compact = pageId.replace(/-/g, "");
+  return compact ? `https://www.notion.so/${compact}` : "";
+}
+
+export function buildLiveSummaryNotification(
+  input: SummaryExportContext,
+  results: SummaryExportResult[],
+) {
+  const title = `直播总结已生成${input.title ? `：${input.title}` : ""}`;
+  const meta = [
+    input.streamer ? `主播：${input.streamer}` : "",
+    input.title ? `直播标题：${input.title}` : "",
+    input.platform ? `平台：${input.platform}` : "",
+    input.roomId ? `房间号：${input.roomId}` : "",
+  ].filter(Boolean);
+  const links = results.filter((item) => item.url).map((item) => `${item.name}：${item.url}`);
+
+  return {
+    title,
+    desp: [meta.join("\n"), links.join("\n")].filter(Boolean).join("\n\n"),
+  };
 }
 
 function getFeishuConfig(config: LiveSummaryConfig) {
   const current = config.exportTargets?.feishu;
   if (!config.feishu) return current;
-  if (current?.enabled || current?.appId || current?.appSecret || current?.documentId) return current;
+  if (current?.enabled || current?.appId || current?.appSecret || current?.documentId)
+    return current;
   return config.feishu;
 }
 
@@ -91,6 +137,7 @@ export async function exportSummaryToTargets(
 ) {
   const markdown = buildSummaryExportMarkdown(summary, input);
   const errors: string[] = [];
+  const results: SummaryExportResult[] = [];
   const feishuConfig = getFeishuConfig(config);
   const notionConfig = config.exportTargets?.notion;
 
@@ -120,16 +167,30 @@ export async function exportSummaryToTargets(
         if (!folderToken) {
           throw new Error("请先配置飞书云空间文件夹 Token/链接");
         }
-        await feishuClient.createDocumentAndAppendMarkdown({
+        const createdDocumentId = await feishuClient.createDocumentAndAppendMarkdown({
           folderToken,
           title: exportTitle,
           markdown,
+        });
+        results.push({
+          target: "feishu",
+          name: "飞书文档",
+          documentId: createdDocumentId,
+          url: buildFeishuDocumentUrl(createdDocumentId),
+          mode,
         });
       } else {
         if (!documentId) {
           throw new Error("请先配置飞书云文档 Document ID/链接");
         }
         await feishuClient.appendMarkdown(markdown);
+        results.push({
+          target: "feishu",
+          name: "飞书文档",
+          documentId,
+          url: buildFeishuDocumentUrl(documentId),
+          mode,
+        });
       }
       logger.info("导出直播总结到飞书文档完成", {
         ...input,
@@ -169,12 +230,26 @@ export async function exportSummaryToTargets(
         pageId,
       });
       if (mode === "create_child_page") {
-        await notionClient.createChildPageAndAppendMarkdown({
+        const createdPageId = await notionClient.createChildPageAndAppendMarkdown({
           title: exportTitle,
           markdown,
         });
+        results.push({
+          target: "notion",
+          name: "Notion",
+          pageId: createdPageId,
+          url: buildNotionPageUrl(createdPageId),
+          mode,
+        });
       } else {
         await notionClient.appendMarkdown(markdown);
+        results.push({
+          target: "notion",
+          name: "Notion",
+          pageId,
+          url: buildNotionPageUrl(pageId),
+          mode,
+        });
       }
       logger.info("导出直播总结到 Notion 完成", {
         ...input,
@@ -192,4 +267,5 @@ export async function exportSummaryToTargets(
   if (errors.length) {
     throw new Error(`总结已生成，但导出失败：${errors.join("；")}`);
   }
+  return results;
 }
