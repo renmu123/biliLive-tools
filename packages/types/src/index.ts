@@ -147,6 +147,8 @@ export type CommonRoomConfig = {
   partTitleTemplate: string;
   /** 同步器配置ID */
   syncId?: string | null;
+  /** 同步器配置ID列表 */
+  syncIds?: string[];
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
@@ -362,6 +364,20 @@ export interface NotificationCustomHttpConfig {
   body?: string;
   /** 请求头，每行一个，格式为key: value */
   headers?: string;
+}
+
+/**
+ * 飞书群机器人通知配置
+ */
+export interface NotificationFeishuBotConfig {
+  webhookUrl: string;
+}
+
+/**
+ * 企业微信群机器人通知配置
+ */
+export interface NotificationWeComBotConfig {
+  webhookUrl: string;
 }
 
 export type Theme = "system" | "light" | "dark";
@@ -675,7 +691,16 @@ export interface AppConfig {
     /** 通知配置项 */
     setting: {
       // 通知类型，支持server酱和邮件
-      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne" | "customHttp";
+      type?:
+        | "server"
+        | "mail"
+        | "tg"
+        | "system"
+        | "ntfy"
+        | "allInOne"
+        | "customHttp"
+        | "feishuBot"
+        | "wecomBot";
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
@@ -683,6 +708,8 @@ export interface AppConfig {
       ntfy: NotificationNtfyConfig;
       allInOne: NotificationPushAllInAllConfig;
       customHttp: NotificationCustomHttpConfig;
+      feishuBot: NotificationFeishuBotConfig;
+      wecomBot: NotificationWeComBotConfig;
     };
     taskNotificationType: {
       liveStart: AppConfig["notification"]["setting"]["type"];

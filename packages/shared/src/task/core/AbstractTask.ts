@@ -4,6 +4,13 @@ import type { Status } from "@biliLive-tools/types";
 import { uuid } from "../../utils/index.js";
 import type { TaskEvents } from "./types.js";
 
+export type TaskLogItem = {
+  time: number;
+  level: "info" | "warn" | "error";
+  message: string;
+  detail?: string;
+};
+
 /**
  * 任务抽象基类
  * 所有任务类型都应继承此类
@@ -26,6 +33,7 @@ export abstract class AbstractTask {
   emitter = new TypedEmitter<TaskEvents>();
   limitTime?: [] | [string, string];
   extra?: Record<string, any>;
+  logs: TaskLogItem[];
   on: TypedEmitter<TaskEvents>["on"];
   emit: TypedEmitter<TaskEvents>["emit"];
 
@@ -42,8 +50,18 @@ export abstract class AbstractTask {
     this.progress = 0;
     this.action = ["pause", "kill"];
     this.custsomProgressMsg = "";
+    this.logs = [];
     this.on = this.emitter.on.bind(this.emitter);
     this.emit = this.emitter.emit.bind(this.emitter);
+  }
+
+  protected appendLog(level: TaskLogItem["level"], message: string, detail?: string): void {
+    this.logs.push({
+      time: Date.now(),
+      level,
+      message,
+      detail,
+    });
   }
 
   /**

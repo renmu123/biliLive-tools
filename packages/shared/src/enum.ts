@@ -25,6 +25,8 @@ export enum NotificationType {
   ntfy = "ntfy",
   allInOne = "allInOne",
   customHttp = "customHttp",
+  feishuBot = "feishuBot",
+  wecomBot = "wecomBot",
 }
 
 export enum LLMType {
@@ -69,6 +71,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     convert2Mp4: false,
     flvRepair: false,
     syncId: undefined,
+    syncIds: [],
     uploadHandleTime: ["00:00:00", "23:59:59"],
     limitUploadTime: false,
     uploadNoDanmu: false,
@@ -223,6 +226,12 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
         method: "GET",
         body: "",
         headers: "",
+      },
+      feishuBot: {
+        webhookUrl: "",
+      },
+      wecomBot: {
+        webhookUrl: "",
       },
     },
     taskNotificationType: {

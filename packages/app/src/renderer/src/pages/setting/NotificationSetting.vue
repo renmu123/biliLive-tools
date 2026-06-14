@@ -208,6 +208,32 @@
         ></n-input>
       </n-form-item>
     </template>
+    <template v-else-if="config.notification.setting.type === NotificationType.feishuBot">
+      <n-form-item>
+        <template #label>
+          <Tip tip="飞书群聊中添加自定义机器人后复制 Webhook 地址" text="Webhook 地址"></Tip>
+        </template>
+        <n-input
+          v-model:value="config.notification.setting.feishuBot.webhookUrl"
+          type="password"
+          placeholder="请输入飞书机器人 Webhook 地址"
+          show-password-on="click"
+        ></n-input>
+      </n-form-item>
+    </template>
+    <template v-else-if="config.notification.setting.type === NotificationType.wecomBot">
+      <n-form-item>
+        <template #label>
+          <Tip tip="企业微信群聊中添加群机器人后复制 Webhook 地址" text="Webhook 地址"></Tip>
+        </template>
+        <n-input
+          v-model:value="config.notification.setting.wecomBot.webhookUrl"
+          type="password"
+          placeholder="请输入企业微信机器人 Webhook 地址"
+          show-password-on="click"
+        ></n-input>
+      </n-form-item>
+    </template>
 
     <n-divider />
 
@@ -320,6 +346,8 @@ const typeOptions = [
   { value: NotificationType.ntfy, label: "ntfy" },
   { value: NotificationType.allInOne, label: "push all in cloud" },
   { value: NotificationType.customHttp, label: "自定义HTTP" },
+  { value: NotificationType.feishuBot, label: "飞书机器人" },
+  { value: NotificationType.wecomBot, label: "企业微信机器人" },
 ];
 
 const notice = useNotification();

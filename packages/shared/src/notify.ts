@@ -11,6 +11,8 @@ import type {
   NotificationNtfyConfig,
   NotificationPushAllInAllConfig,
   NotificationCustomHttpConfig,
+  NotificationFeishuBotConfig,
+  NotificationWeComBotConfig,
 } from "@biliLive-tools/types";
 
 /**
@@ -189,6 +191,78 @@ export async function sendByCustomHttp(
   }
 }
 
+function buildBotText(title: string, desp: string) {
+  return [title, desp].filter(Boolean).join("\n\n");
+}
+
+/**
+ * 通过飞书群机器人发送通知
+ */
+export async function sendByFeishuBot(
+  title: string,
+  desp: string,
+  options: NotificationFeishuBotConfig,
+) {
+  if (!options.webhookUrl) {
+    throw new Error("飞书机器人 Webhook 地址不能为空");
+  }
+
+  const data = {
+    msg_type: "text",
+    content: {
+      text: buildBotText(title, desp),
+    },
+  };
+
+  try {
+    const res = await fetch(options.webhookUrl, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    log.info("sendByFeishuBot res", res);
+  } catch (e) {
+    log.error("sendByFeishuBot error", e);
+    throw e;
+  }
+}
+
+/**
+ * 通过企业微信群机器人发送通知
+ */
+export async function sendByWeComBot(
+  title: string,
+  desp: string,
+  options: NotificationWeComBotConfig,
+) {
+  if (!options.webhookUrl) {
+    throw new Error("企业微信机器人 Webhook 地址不能为空");
+  }
+
+  const data = {
+    msgtype: "text",
+    text: {
+      content: buildBotText(title, desp),
+    },
+  };
+
+  try {
+    const res = await fetch(options.webhookUrl, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    log.info("sendByWeComBot res", res);
+  } catch (e) {
+    log.error("sendByWeComBot error", e);
+    throw e;
+  }
+}
+
 type TaskType =
   | "liveStart"
   | "ffmpeg"
@@ -240,6 +314,12 @@ export async function _send(
       break;
     case "customHttp":
       await sendByCustomHttp(title, desp, appConfig?.notification?.setting?.customHttp);
+      break;
+    case "feishuBot":
+      await sendByFeishuBot(title, desp, appConfig?.notification?.setting?.feishuBot);
+      break;
+    case "wecomBot":
+      await sendByWeComBot(title, desp, appConfig?.notification?.setting?.wecomBot);
       break;
   }
 }

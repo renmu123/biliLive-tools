@@ -39,6 +39,15 @@
           <Refresh />
         </n-icon>
         <n-icon
+          v-if="item.logs?.length"
+          :size="20"
+          class="btn pointer"
+          title="任务日志"
+          @click="logVisible = true"
+        >
+          <DocumentTextOutline />
+        </n-icon>
+        <n-icon
           v-if="
             ['pending', 'running', 'paused'].includes(item.status) && item.type === TaskType.bili
           "
@@ -196,6 +205,24 @@
       </span>
       <span>{{ item.custsomProgressMsg }}</span>
     </div>
+    <n-modal v-model:show="logVisible">
+      <n-card
+        style="width: 720px; max-width: 90vw; max-height: 70vh"
+        :bordered="false"
+        role="dialog"
+        aria-modal="true"
+        title="任务日志"
+      >
+        <div class="task-logs">
+          <div v-for="logItem in item.logs" :key="`${logItem.time}-${logItem.message}`">
+            <span class="log-time">{{ new Date(logItem.time).toLocaleString() }}</span>
+            <span class="log-level" :class="`level-${logItem.level}`">{{ logItem.level }}</span>
+            <span>{{ logItem.message }}</span>
+            <pre v-if="logItem.detail">{{ logItem.detail }}</pre>
+          </div>
+        </div>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
@@ -211,6 +238,7 @@ import {
   DownloadOutline,
   PencilOutline,
   Refresh,
+  DocumentTextOutline,
 } from "@vicons/ionicons5";
 import { FileOpenOutlined, FolderOpenOutlined, LiveTvOutlined } from "@vicons/material";
 // import { SearchInfo24Regular } from "@vicons/fluent";
@@ -237,6 +265,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const item = computed(() => props.item);
 const isWeb = computed(() => window.isWeb);
+const logVisible = ref(false);
 
 const confirm = useConfirm();
 const store = useQueueStore();
@@ -448,6 +477,45 @@ const editVideoPartName = async (taskId: string, item: Task) => {
       background: var(--bg-hover);
       border-radius: 50%;
       // padding: 5px;
+    }
+  }
+  .task-logs {
+    max-height: calc(70vh - 100px);
+    overflow: auto;
+    font-size: 13px;
+    line-height: 1.7;
+
+    .log-time {
+      color: #888;
+      margin-right: 8px;
+    }
+
+    .log-level {
+      display: inline-block;
+      width: 42px;
+      margin-right: 8px;
+      text-transform: uppercase;
+    }
+
+    .level-error {
+      color: #d03050;
+    }
+
+    .level-warn {
+      color: #f0a020;
+    }
+
+    .level-info {
+      color: #2080f0;
+    }
+
+    pre {
+      margin: 4px 0 8px;
+      padding: 8px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      background: var(--bg-hover);
+      border-radius: 4px;
     }
   }
 }
