@@ -1,3 +1,9 @@
+# Next
+
+## Bug修复
+
+- 修复ffmpeg录制器分段录制开启时，如果不存在会失败的bug [#482](https://github.com/renmu123/biliLive-tools/issues/482)
+
 # 3.16.1(2026.06.13)
 
 ## Bug修复
