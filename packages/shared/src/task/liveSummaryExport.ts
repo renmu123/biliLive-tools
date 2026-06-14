@@ -1,6 +1,6 @@
 import type { AppConfig } from "@biliLive-tools/types";
 
-import type { SummaryExportContext } from "../ai/summaryExport.js";
+import type { SummaryExportContext, SummaryExportResult } from "../ai/summaryExport.js";
 
 type LiveSummaryConfig = AppConfig["ai"]["liveSummary"];
 
@@ -21,7 +21,11 @@ export interface LiveSummaryExportDeps {
   getRecord(recordId: number): LiveSummaryExportRecord | undefined;
   getSummaryConfig(): LiveSummaryConfig;
   getEnabledTargetNames(config: LiveSummaryConfig): string[];
-  exportSummary(summary: string, input: SummaryExportContext, config: LiveSummaryConfig): Promise<void>;
+  exportSummary(
+    summary: string,
+    input: SummaryExportContext,
+    config: LiveSummaryConfig,
+  ): Promise<void | SummaryExportResult[]>;
   updateRecord(data: {
     id: number;
     ai_summary_status: "completed" | "error";
@@ -32,7 +36,10 @@ export interface LiveSummaryExportDeps {
   logSuccess?(data: { recordId: number; targets: string[] }): void;
 }
 
-export async function exportExistingLiveSummaryWithDeps(recordId: number, deps: LiveSummaryExportDeps) {
+export async function exportExistingLiveSummaryWithDeps(
+  recordId: number,
+  deps: LiveSummaryExportDeps,
+) {
   const record = deps.getRecord(recordId);
   if (!record) {
     throw new Error("记录不存在");
