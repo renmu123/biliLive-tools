@@ -18,6 +18,7 @@ import { sendNotify } from "../notify.js";
 import { getTempPath } from "../utils/index.js";
 import logger from "../utils/log.js";
 import { AbstractTask, taskQueue } from "./core/index.js";
+import { exportExistingLiveSummaryWithDeps } from "./liveSummaryExport.js";
 
 export interface LiveSummaryTaskOptions {
   recordId: number;
@@ -432,6 +433,29 @@ export class LiveSummaryTask extends AbstractTask {
     this.status = "canceled";
     return true;
   }
+}
+
+export async function exportExistingLiveSummary(recordId: number) {
+  return exportExistingLiveSummaryWithDeps(recordId, {
+    getRecord: (id) => {
+      const record = recordHistoryService.query({
+        id,
+        include: {
+          streamer: true,
+        },
+      });
+      if (!record) return undefined;
+      return {
+        ...record,
+        streamer: record.streamer || undefined,
+      };
+    },
+    getSummaryConfig: () => appConfig.getAll().ai.liveSummary,
+    getEnabledTargetNames: getEnabledSummaryExportTargetNames,
+    exportSummary: exportSummaryToTargets,
+    updateRecord: (data) => recordHistoryService.update(data),
+    logSuccess: (data) => logger.info("已重新导出直播总结", data),
+  });
 }
 
 export function addLiveSummaryTask(

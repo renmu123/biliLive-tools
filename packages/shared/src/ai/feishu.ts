@@ -29,6 +29,30 @@ type FeishuCreatedDocument = {
 
 const FEISHU_BASE_URL = "https://open.feishu.cn/open-apis";
 
+function formatFeishuResponseError(data: unknown, status?: number) {
+  const parts: string[] = [];
+  if (status) parts.push(`HTTP ${status}`);
+  if (data && typeof data === "object") {
+    const response = data as { code?: unknown; msg?: unknown; message?: unknown };
+    if (response.code !== undefined) parts.push(`code ${response.code}`);
+    const message = typeof response.msg === "string" && response.msg
+      ? response.msg
+      : typeof response.message === "string" && response.message
+        ? response.message
+        : "";
+    if (message) parts.push(message);
+  }
+  return parts.join("，") || "未知错误";
+}
+
+export function formatFeishuError(error: unknown) {
+  if (axios.isAxiosError(error)) {
+    return `飞书 API 调用失败：${formatFeishuResponseError(error.response?.data, error.response?.status)}`;
+  }
+
+  return error instanceof Error ? error.message : String(error);
+}
+
 function textElements(content: string) {
   return [
     {
@@ -82,18 +106,23 @@ export class FeishuDocClient {
 
   private async request<T>(method: "get" | "post", url: string, data?: unknown) {
     const token = await this.getTenantAccessToken();
-    const response = await this.client.request<FeishuResponse<T>>({
-      method,
-      url,
-      data,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    });
+    let response;
+    try {
+      response = await this.client.request<FeishuResponse<T>>({
+        method,
+        url,
+        data,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      });
+    } catch (error) {
+      throw new Error(formatFeishuError(error));
+    }
 
     if (response.data.code !== 0) {
-      throw new Error(`飞书 API 调用失败：${response.data.msg || response.data.code}`);
+      throw new Error(`飞书 API 调用失败：${formatFeishuResponseError(response.data)}`);
     }
     return response.data.data as T;
   }
@@ -103,13 +132,18 @@ export class FeishuDocClient {
       return this.token;
     }
 
-    const response = await this.client.post<FeishuResponse>("/auth/v3/tenant_access_token/internal", {
-      app_id: this.config.appId,
-      app_secret: this.config.appSecret,
-    });
+    let response;
+    try {
+      response = await this.client.post<FeishuResponse>("/auth/v3/tenant_access_token/internal", {
+        app_id: this.config.appId,
+        app_secret: this.config.appSecret,
+      });
+    } catch (error) {
+      throw new Error(formatFeishuError(error));
+    }
 
     if (response.data.code !== 0 || !response.data.tenant_access_token) {
-      throw new Error(`获取飞书 tenant_access_token 失败：${response.data.msg || response.data.code}`);
+      throw new Error(`获取飞书 tenant_access_token 失败：${formatFeishuResponseError(response.data)}`);
     }
 
     this.token = response.data.tenant_access_token;
