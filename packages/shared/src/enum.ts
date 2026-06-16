@@ -228,6 +228,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     taskNotificationType: {
       liveStart: "system",
+      chargeLive: "system",
     },
   },
   sync: {
@@ -861,6 +862,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  chargeLiveNotification: true,
   liveEndNotification: false,
   weight: 10,
   source: "auto",

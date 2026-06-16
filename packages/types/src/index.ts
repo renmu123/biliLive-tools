@@ -49,6 +49,7 @@ export const recorderNoGlobalFollowFields: Array<
     | "line"
     | "titleKeywords"
     | "liveStartNotification"
+    | "chargeLiveNotification"
     | "liveEndNotification"
     | "onlyAudio"
     | "handleTime"
@@ -551,6 +552,8 @@ export interface Recorder {
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;
+  /** 充电直播(付费/DRM 加密直播)检测推送 */
+  chargeLiveNotification?: boolean;
   /** 录制结束通知 */
   liveEndNotification?: boolean;
   /** 权重 */
@@ -690,6 +693,7 @@ export interface AppConfig {
     };
     taskNotificationType: {
       liveStart: AppConfig["notification"]["setting"]["type"];
+      chargeLive?: AppConfig["notification"]["setting"]["type"];
     };
   };
   // 同步

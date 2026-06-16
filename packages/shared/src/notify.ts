@@ -193,6 +193,7 @@ export async function sendByCustomHttp(
 
 type TaskType =
   | "liveStart"
+  | "chargeLive"
   | "ffmpeg"
   | "danmu"
   | "upload"

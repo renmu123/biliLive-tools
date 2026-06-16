@@ -117,6 +117,7 @@ export type UpdateRecorderArgs = Pick<
   | "codecName"
   | "titleKeywords"
   | "liveStartNotification"
+  | "chargeLiveNotification"
   | "liveEndNotification"
   | "source"
   | "videoFormat"

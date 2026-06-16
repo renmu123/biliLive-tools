@@ -102,6 +102,37 @@ async function sendStartLiveNotification(
   }
 }
 
+async function sendChargeLiveNotification(
+  appConfig: AppConfig,
+  recorder: Recorder,
+  config: RecorderConfigType,
+) {
+  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+  // 通知会触发于付费/大航海权限/密码房等所有不可录类型，用 liveInfo 的类型提示精确措辞，
+  // 取不到时回退为通用「特殊直播」，不写死「付费直播(DRM)」以免对 guard/密码房误导。
+  const typeDesc = recorder?.liveInfo?.liveTypeDesc ?? "特殊直播";
+  const title = `${name}(${config.channelId}) 正在进行${typeDesc}`;
+
+  const globalConfig = appConfig.getAll();
+  let notifyType = globalConfig?.notification?.setting?.type;
+  if (globalConfig?.notification?.taskNotificationType["chargeLive"]) {
+    notifyType = globalConfig?.notification?.taskNotificationType["chargeLive"];
+  }
+
+  const desp = `标题：${recorder?.liveInfo?.title}\n该直播为${typeDesc}，无法自动录制`;
+  if (notifyType === "system") {
+    const event = await sendBySystem(title, `${desp}\n点击打开直播间`);
+    // @ts-ignore
+    const { shell } = await import("electron");
+    event?.on("click", () => {
+      const url = recorder.getChannelURL();
+      shell.openExternal(url);
+    });
+  } else {
+    await send(title, desp, { type: "chargeLive" });
+  }
+}
+
 async function sendEndLiveNotification(
   appConfig: AppConfig,
   recorder: Recorder,
@@ -369,6 +400,18 @@ export async function createRecorderManager(appConfig: AppConfig) {
     if (!config) return;
     if (config?.liveStartNotification && !config?.disableAutoCheck) {
       sendStartLiveNotification(appConfig, recorder, config);
+    }
+  });
+  manager.on("RecoderChargeLive", async ({ recorder }) => {
+    // 充电直播检测通知，默认开启(仅显式设为 false 时关闭)，自动监听时才发送
+    const config = recorderConfig.get(recorder.id);
+    if (!config) return;
+    const enabled = config?.chargeLiveNotification !== false && !config?.disableAutoCheck;
+    logger.info(
+      `RecoderChargeLive: ${config.remarks}(${config.channelId}) notify=${enabled} chargeLiveNotification=${config.chargeLiveNotification}`,
+    );
+    if (enabled) {
+      sendChargeLiveNotification(appConfig, recorder, config);
     }
   });
   // manager.on("RecordSegment", (debug) => {

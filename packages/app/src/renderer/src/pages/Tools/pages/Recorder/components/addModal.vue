@@ -560,6 +560,15 @@
             <n-form-item v-if="!config.disableAutoCheck">
               <template #label>
                 <Tip
+                  text="付费直播推送"
+                  tip="检测到付费直播(DRM 加密直播)时推送通知。此类直播为 DRM 加密，无法自动录制，仅作提醒。"
+                ></Tip>
+              </template>
+              <n-switch v-model:value="config.chargeLiveNotification" />
+            </n-form-item>
+            <n-form-item v-if="!config.disableAutoCheck">
+              <template #label>
+                <Tip
                   text="录制结束通知"
                   tip="默认使用系统通知，具体前往设置通知中修改，会在一次录制结束后三分钟检查录制状态，如果为不在录制中状态，则进行通知"
                 ></Tip>
@@ -796,6 +805,10 @@ const getRecordSetting = async () => {
   }
   if (!config.value.weight) {
     config.value.weight = 10;
+  }
+  // 充电直播推送默认开启：旧录制器无该字段时按开启显示
+  if (config.value.chargeLiveNotification === undefined) {
+    config.value.chargeLiveNotification = true;
   }
 };
 const isEdit = computed(() => !!props.id);
