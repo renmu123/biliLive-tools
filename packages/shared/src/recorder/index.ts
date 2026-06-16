@@ -25,7 +25,7 @@ import { addLiveSummaryTask } from "../task/liveSummary.js";
 import logger from "../utils/log.js";
 import { replaceExtName, calculateFileQuickHash } from "../utils/index.js";
 import RecorderConfig from "./config.js";
-import { sendBySystem, send } from "../notify.js";
+import { _send, sendBySystem } from "../notify.js";
 import { danmaReport, parseDanmu } from "../danmu/index.js";
 
 import type { AppConfig } from "../config.js";
@@ -40,6 +40,24 @@ export { RecorderConfig };
 // 缓存直播结束通知的最后触发时间，避免频繁通知
 const endLiveNotificationCache = new Map<string, number>();
 
+type NotifyType = NonNullable<AppConfigType["notification"]["setting"]["type"]>;
+
+function normalizeNotifyTypes(notifyType?: NotifyType | NotifyType[]): NotifyType[] {
+  if (Array.isArray(notifyType)) return notifyType.filter(Boolean);
+  return notifyType ? [notifyType] : [];
+}
+
+function getLiveNotifyTypes(globalConfig: AppConfigType): NotifyType[] {
+  const taskNotifyType = globalConfig?.notification?.taskNotificationType["liveStart"];
+  const taskNotifyTypes = normalizeNotifyTypes(taskNotifyType);
+  if (taskNotifyTypes.length) return taskNotifyTypes;
+
+  const setting = globalConfig?.notification?.setting;
+  return normalizeNotifyTypes(setting?.types).length
+    ? normalizeNotifyTypes(setting?.types)
+    : normalizeNotifyTypes(setting?.type);
+}
+
 async function sendStartLiveNotification(
   appConfig: AppConfig,
   recorder: Recorder,
@@ -49,20 +67,20 @@ async function sendStartLiveNotification(
   const title = `${name}(${config.channelId}) 正在直播`;
 
   const globalConfig = appConfig.getAll();
-  let notifyType = globalConfig?.notification?.setting?.type;
-  if (globalConfig?.notification?.taskNotificationType["liveStart"]) {
-    notifyType = globalConfig?.notification?.taskNotificationType["liveStart"];
-  }
+  const notifyTypes = getLiveNotifyTypes(globalConfig);
 
-  if (notifyType === "system") {
+  if (notifyTypes.includes("system")) {
     const event = await sendBySystem(title, `${recorder?.liveInfo?.title}\n点击打开直播间`);
     const { shell } = await import("electron");
     event?.on("click", () => {
       const url = recorder.getChannelURL();
       shell.openExternal(url);
     });
-  } else {
-    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+  }
+
+  const nonSystemNotifyTypes = notifyTypes.filter((type) => type !== "system");
+  if (nonSystemNotifyTypes.length) {
+    await _send(title, `标题：${recorder?.liveInfo?.title}`, globalConfig, nonSystemNotifyTypes);
   }
 }
 
@@ -87,15 +105,15 @@ async function sendEndLiveNotification(
   const title = `${name}(${config.channelId}) 录制已停止`;
 
   const globalConfig = appConfig.getAll();
-  let notifyType = globalConfig?.notification?.setting?.type;
-  if (globalConfig?.notification?.taskNotificationType["liveStart"]) {
-    notifyType = globalConfig?.notification?.taskNotificationType["liveStart"];
+  const notifyTypes = getLiveNotifyTypes(globalConfig);
+
+  if (notifyTypes.includes("system")) {
+    sendBySystem(title, "");
   }
 
-  if (notifyType === "system") {
-    sendBySystem(title, "");
-  } else {
-    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+  const nonSystemNotifyTypes = notifyTypes.filter((type) => type !== "system");
+  if (nonSystemNotifyTypes.length) {
+    await _send(title, `标题：${recorder?.liveInfo?.title}`, globalConfig, nonSystemNotifyTypes);
   }
 
   // 更新最后通知时间

@@ -701,6 +701,8 @@ export interface AppConfig {
         | "customHttp"
         | "feishuBot"
         | "wecomBot";
+      /** 通知类型，支持同时配置多个；未配置时回退到 type */
+      types?: Array<NonNullable<AppConfig["notification"]["setting"]["type"]>>;
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
@@ -712,7 +714,9 @@ export interface AppConfig {
       wecomBot: NotificationWeComBotConfig;
     };
     taskNotificationType: {
-      liveStart: AppConfig["notification"]["setting"]["type"];
+      liveStart:
+        | AppConfig["notification"]["setting"]["type"]
+        | Array<NonNullable<AppConfig["notification"]["setting"]["type"]>>;
     };
   };
   // 同步
