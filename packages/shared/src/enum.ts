@@ -197,6 +197,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     setting: {
       type: undefined,
+      types: [],
       server: {
         key: "",
       },
@@ -235,7 +236,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       },
     },
     taskNotificationType: {
-      liveStart: "system",
+      liveStart: ["system"],
     },
   },
   sync: {

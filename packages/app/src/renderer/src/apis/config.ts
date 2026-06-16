@@ -2,6 +2,8 @@ import type { AppConfig } from "@biliLive-tools/types";
 
 import request from "./request";
 
+type NotifyType = AppConfig["notification"]["setting"]["type"];
+
 export interface VerifyBiliKeyResponse {
   configured: boolean;
   valid: boolean;
@@ -51,7 +53,7 @@ export const notifyTest = async (
   title: string,
   desp: string,
   options: AppConfig,
-  notifyType: AppConfig["notification"]["setting"]["type"],
+  notifyType: NotifyType | NonNullable<NotifyType>[],
 ): Promise<void> => {
   const res = await request.post(`/config/notifyTest`, { title, desp, options, notifyType });
   return res.data;

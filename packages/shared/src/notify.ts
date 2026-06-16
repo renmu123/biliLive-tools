@@ -274,24 +274,46 @@ type TaskType =
   | "diskSpaceCheck"
   | "sync";
 
+type NotifyType = AppConfig["notification"]["setting"]["type"];
+type NotifyTypeSetting = NotifyType | NotifyType[];
+
+function normalizeNotifyTypes(notifyType?: NotifyTypeSetting): NotifyType[] {
+  if (Array.isArray(notifyType)) {
+    return notifyType.filter(Boolean);
+  }
+  return notifyType ? [notifyType] : [];
+}
+
+function getDefaultNotifyTypes(config: AppConfig): NotifyType[] {
+  const setting = config?.notification?.setting;
+  const types = normalizeNotifyTypes(setting?.types);
+  if (types.length) return types;
+  return normalizeNotifyTypes(setting?.type);
+}
+
 export function send(title: string, desp: string, options?: { type?: TaskType }) {
   const config = appConfig.getAll();
-  let notifyType = config?.notification?.setting?.type;
+  let notifyType: NotifyTypeSetting | undefined;
 
   if (options?.type) {
     if (config?.notification?.taskNotificationType[options.type]) {
       notifyType = config?.notification?.taskNotificationType[options.type];
     }
   }
-  log.debug("send notify", { title, desp, notifyType });
+  const notifyTypes = normalizeNotifyTypes(notifyType);
+  log.debug("send notify", {
+    title,
+    desp,
+    notifyTypes: notifyTypes.length ? notifyTypes : getDefaultNotifyTypes(config),
+  });
   return _send(title, desp, config, notifyType);
 }
 
-export async function _send(
+async function sendToType(
   title: string,
   desp: string,
   appConfig: AppConfig,
-  notifyType: AppConfig["notification"]["setting"]["type"],
+  notifyType: NotifyType,
 ): Promise<any | void> {
   switch (notifyType) {
     case "server":
@@ -322,6 +344,33 @@ export async function _send(
       await sendByWeComBot(title, desp, appConfig?.notification?.setting?.wecomBot);
       break;
   }
+}
+
+export async function _send(
+  title: string,
+  desp: string,
+  appConfig: AppConfig,
+  notifyType?: NotifyTypeSetting,
+): Promise<any[] | void> {
+  const notifyTypes = normalizeNotifyTypes(notifyType);
+  const targetTypes = notifyTypes.length ? notifyTypes : getDefaultNotifyTypes(appConfig);
+  const results: any[] = [];
+  const errors: Array<{ type: NotifyType; error: unknown }> = [];
+
+  for (const type of targetTypes) {
+    try {
+      results.push(await sendToType(title, desp, appConfig, type));
+    } catch (error) {
+      log.error("send notify error", { type, error });
+      errors.push({ type, error });
+    }
+  }
+
+  if (errors.length) {
+    throw new Error(`通知发送失败：${errors.map((item) => item.type).join(", ")}`);
+  }
+
+  return results;
 }
 
 export const sendNotify = send;

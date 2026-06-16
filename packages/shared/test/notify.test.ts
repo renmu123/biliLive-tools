@@ -15,7 +15,8 @@ vi.mock("../src/utils/log.js", () => ({
   default: logger,
 }));
 
-import { sendByFeishuBot, sendByWeComBot } from "../src/notify.js";
+import { APP_DEFAULT_CONFIG } from "../src/enum.js";
+import { _send, sendByFeishuBot, sendByWeComBot } from "../src/notify.js";
 
 describe("notify bot senders", () => {
   beforeEach(() => {
@@ -58,6 +59,74 @@ describe("notify bot senders", () => {
           },
         }),
       }),
+    );
+  });
+});
+
+describe("notify dispatch", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fetchMock.mockResolvedValue({ ok: true });
+  });
+
+  it("sends one notification to every configured notification type", async () => {
+    const config = {
+      ...APP_DEFAULT_CONFIG,
+      notification: {
+        ...APP_DEFAULT_CONFIG.notification,
+        setting: {
+          ...APP_DEFAULT_CONFIG.notification.setting,
+          feishuBot: {
+            webhookUrl: "https://open.feishu.cn/open-apis/bot/v2/hook/token",
+          },
+          wecomBot: {
+            webhookUrl: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=token",
+          },
+        },
+      },
+    };
+
+    await _send("标题", "内容", config, ["feishuBot", "wecomBot"]);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "https://open.feishu.cn/open-apis/bot/v2/hook/token",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=token",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("attempts later notification types when an earlier one fails", async () => {
+    const config = {
+      ...APP_DEFAULT_CONFIG,
+      notification: {
+        ...APP_DEFAULT_CONFIG.notification,
+        setting: {
+          ...APP_DEFAULT_CONFIG.notification.setting,
+          feishuBot: {
+            webhookUrl: "https://open.feishu.cn/open-apis/bot/v2/hook/token",
+          },
+          wecomBot: {
+            webhookUrl: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=token",
+          },
+        },
+      },
+    };
+    fetchMock.mockRejectedValueOnce(new Error("feishu failed")).mockResolvedValueOnce({ ok: true });
+
+    await expect(_send("标题", "内容", config, ["feishuBot", "wecomBot"])).rejects.toThrow(
+      "通知发送失败：feishuBot",
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=token",
+      expect.objectContaining({ method: "POST" }),
     );
   });
 });
