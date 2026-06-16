@@ -11,12 +11,18 @@ import type {
   NotificationNtfyConfig,
   NotificationPushAllInAllConfig,
   NotificationCustomHttpConfig,
+  NotificationFeishuBotConfig,
+  NotificationWeComBotConfig,
 } from "@biliLive-tools/types";
 
 /**
  * 通过Server酱发送通知
  */
-export function sendByServer(title: string, desp: string, options: NotificationServerConfig) {
+export function sendByServer(
+  title: string,
+  desp: string,
+  options: NotificationServerConfig,
+) {
   if (!options.key) {
     throw new Error("Server酱key不能为空");
   }
@@ -26,8 +32,18 @@ export function sendByServer(title: string, desp: string, options: NotificationS
 /**
  * 通过邮件发送通知
  */
-export async function sendByMail(title: string, desp: string, options: NotificationMailConfig) {
-  if (!options.host || !options.port || !options.user || !options.pass || !options.to) {
+export async function sendByMail(
+  title: string,
+  desp: string,
+  options: NotificationMailConfig,
+) {
+  if (
+    !options.host ||
+    !options.port ||
+    !options.user ||
+    !options.pass ||
+    !options.to
+  ) {
     throw new Error("mail host、port、user、pass、to不能为空");
   }
   const transporter = nodemailer.createTransport({
@@ -54,7 +70,11 @@ export async function sendByMail(title: string, desp: string, options: Notificat
 /**
  * 通过tg发送通知
  */
-export async function sendByTg(title: string, desp: string, options: NotificationTgConfig) {
+export async function sendByTg(
+  title: string,
+  desp: string,
+  options: NotificationTgConfig,
+) {
   if (!options.key || !options.chat_id) {
     throw new Error("tg key或chat_id不能为空");
   }
@@ -104,7 +124,11 @@ export async function sendBySystem(title: string, desp: string) {
 /**
  * ntfy发送通知
  */
-export async function sendByNtfy(title: string, desp: string, options: NotificationNtfyConfig) {
+export async function sendByNtfy(
+  title: string,
+  desp: string,
+  options: NotificationNtfyConfig,
+) {
   const url = `${options.url}`;
   const data = {
     topic: options.topic,
@@ -191,6 +215,78 @@ export async function sendByCustomHttp(
   }
 }
 
+function buildBotText(title: string, desp: string) {
+  return [title, desp].filter(Boolean).join("\n\n");
+}
+
+/**
+ * 通过飞书群机器人发送通知
+ */
+export async function sendByFeishuBot(
+  title: string,
+  desp: string,
+  options: NotificationFeishuBotConfig,
+) {
+  if (!options.webhookUrl) {
+    throw new Error("飞书机器人 Webhook 地址不能为空");
+  }
+
+  const data = {
+    msg_type: "text",
+    content: {
+      text: buildBotText(title, desp),
+    },
+  };
+
+  try {
+    const res = await fetch(options.webhookUrl, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    log.info("sendByFeishuBot res", res);
+  } catch (e) {
+    log.error("sendByFeishuBot error", e);
+    throw e;
+  }
+}
+
+/**
+ * 通过企业微信群机器人发送通知
+ */
+export async function sendByWeComBot(
+  title: string,
+  desp: string,
+  options: NotificationWeComBotConfig,
+) {
+  if (!options.webhookUrl) {
+    throw new Error("企业微信机器人 Webhook 地址不能为空");
+  }
+
+  const data = {
+    msgtype: "text",
+    text: {
+      content: buildBotText(title, desp),
+    },
+  };
+
+  try {
+    const res = await fetch(options.webhookUrl, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    log.info("sendByWeComBot res", res);
+  } catch (e) {
+    log.error("sendByWeComBot error", e);
+    throw e;
+  }
+}
+
 type TaskType =
   | "liveStart"
   | "ffmpeg"
@@ -202,24 +298,52 @@ type TaskType =
   | "diskSpaceCheck"
   | "sync";
 
-export function send(title: string, desp: string, options?: { type?: TaskType }) {
+type NotifyType = AppConfig["notification"]["setting"]["type"];
+type NotifyTypeSetting = NotifyType | NotifyType[];
+
+function normalizeNotifyTypes(notifyType?: NotifyTypeSetting): NotifyType[] {
+  if (Array.isArray(notifyType)) {
+    return notifyType.filter(Boolean);
+  }
+  return notifyType ? [notifyType] : [];
+}
+
+function getDefaultNotifyTypes(config: AppConfig): NotifyType[] {
+  const setting = config?.notification?.setting;
+  const types = normalizeNotifyTypes(setting?.types);
+  if (types.length) return types;
+  return normalizeNotifyTypes(setting?.type);
+}
+
+export function send(
+  title: string,
+  desp: string,
+  options?: { type?: TaskType },
+) {
   const config = appConfig.getAll();
-  let notifyType = config?.notification?.setting?.type;
+  let notifyType: NotifyTypeSetting | undefined;
 
   if (options?.type) {
     if (config?.notification?.taskNotificationType[options.type]) {
       notifyType = config?.notification?.taskNotificationType[options.type];
     }
   }
-  log.debug("send notify", { title, desp, notifyType });
+  const notifyTypes = normalizeNotifyTypes(notifyType);
+  log.debug("send notify", {
+    title,
+    desp,
+    notifyTypes: notifyTypes.length
+      ? notifyTypes
+      : getDefaultNotifyTypes(config),
+  });
   return _send(title, desp, config, notifyType);
 }
 
-export async function _send(
+async function sendToType(
   title: string,
   desp: string,
   appConfig: AppConfig,
-  notifyType: AppConfig["notification"]["setting"]["type"],
+  notifyType: NotifyType,
 ): Promise<any | void> {
   switch (notifyType) {
     case "server":
@@ -238,12 +362,65 @@ export async function _send(
       await sendByNtfy(title, desp, appConfig?.notification?.setting?.ntfy);
       break;
     case "allInOne":
-      await sendByAllInOne(title, desp, appConfig?.notification?.setting?.allInOne);
+      await sendByAllInOne(
+        title,
+        desp,
+        appConfig?.notification?.setting?.allInOne,
+      );
       break;
     case "customHttp":
-      await sendByCustomHttp(title, desp, appConfig?.notification?.setting?.customHttp);
+      await sendByCustomHttp(
+        title,
+        desp,
+        appConfig?.notification?.setting?.customHttp,
+      );
+      break;
+    case "feishuBot":
+      await sendByFeishuBot(
+        title,
+        desp,
+        appConfig?.notification?.setting?.feishuBot,
+      );
+      break;
+    case "wecomBot":
+      await sendByWeComBot(
+        title,
+        desp,
+        appConfig?.notification?.setting?.wecomBot,
+      );
       break;
   }
+}
+
+export async function _send(
+  title: string,
+  desp: string,
+  appConfig: AppConfig,
+  notifyType?: NotifyTypeSetting,
+): Promise<any[] | void> {
+  const notifyTypes = normalizeNotifyTypes(notifyType);
+  const targetTypes = notifyTypes.length
+    ? notifyTypes
+    : getDefaultNotifyTypes(appConfig);
+  const results: any[] = [];
+  const errors: Array<{ type: NotifyType; error: unknown }> = [];
+
+  for (const type of targetTypes) {
+    try {
+      results.push(await sendToType(title, desp, appConfig, type));
+    } catch (error) {
+      log.error("send notify error", { type, error });
+      errors.push({ type, error });
+    }
+  }
+
+  if (errors.length) {
+    throw new Error(
+      `通知发送失败：${errors.map((item) => item.type).join(", ")}`,
+    );
+  }
+
+  return results;
 }
 
 export const sendNotify = send;

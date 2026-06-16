@@ -28,7 +28,7 @@ import {
   sendExternalEventRequest,
 } from "../utils/index.js";
 import RecorderConfig from "./config.js";
-import { sendBySystem, send } from "../notify.js";
+import { _send, sendBySystem } from "../notify.js";
 import { danmaReport, parseDanmu } from "../danmu/index.js";
 
 import type { AppConfig } from "../config.js";
@@ -71,34 +71,68 @@ const getRecorderExternalBase = (recorder: RecorderExternalSource) => {
   };
 };
 
-const sendRecorderExternalEvent = async (type: string, data: Record<string, unknown>) => {
+const sendRecorderExternalEvent = async (
+  type: string,
+  data: Record<string, unknown>,
+) => {
   await sendExternalEventRequest(type, data);
 };
+
+type NotifyType = NonNullable<AppConfigType["notification"]["setting"]["type"]>;
+
+function normalizeNotifyTypes(
+  notifyType?: NotifyType | NotifyType[],
+): NotifyType[] {
+  if (Array.isArray(notifyType)) return notifyType.filter(Boolean);
+  return notifyType ? [notifyType] : [];
+}
+
+function getLiveNotifyTypes(globalConfig: AppConfigType): NotifyType[] {
+  const taskNotifyType =
+    globalConfig?.notification?.taskNotificationType["liveStart"];
+  const taskNotifyTypes = normalizeNotifyTypes(taskNotifyType);
+  if (taskNotifyTypes.length) return taskNotifyTypes;
+
+  const setting = globalConfig?.notification?.setting;
+  return normalizeNotifyTypes(setting?.types).length
+    ? normalizeNotifyTypes(setting?.types)
+    : normalizeNotifyTypes(setting?.type);
+}
 
 async function sendStartLiveNotification(
   appConfig: AppConfig,
   recorder: Recorder,
   config: RecorderConfigType,
 ) {
-  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+  const name = recorder?.liveInfo?.owner
+    ? recorder.liveInfo.owner
+    : config.remarks;
   const title = `${name}(${config.channelId}) 正在直播`;
 
   const globalConfig = appConfig.getAll();
-  let notifyType = globalConfig?.notification?.setting?.type;
-  if (globalConfig?.notification?.taskNotificationType["liveStart"]) {
-    notifyType = globalConfig?.notification?.taskNotificationType["liveStart"];
-  }
+  const notifyTypes = getLiveNotifyTypes(globalConfig);
 
-  if (notifyType === "system") {
-    const event = await sendBySystem(title, `${recorder?.liveInfo?.title}\n点击打开直播间`);
+  if (notifyTypes.includes("system")) {
+    const event = await sendBySystem(
+      title,
+      `${recorder?.liveInfo?.title}\n点击打开直播间`,
+    );
     // @ts-ignore
     const { shell } = await import("electron");
     event?.on("click", () => {
       const url = recorder.getChannelURL();
       shell.openExternal(url);
     });
-  } else {
-    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+  }
+
+  const nonSystemNotifyTypes = notifyTypes.filter((type) => type !== "system");
+  if (nonSystemNotifyTypes.length) {
+    await _send(
+      title,
+      `标题：${recorder?.liveInfo?.title}`,
+      globalConfig,
+      nonSystemNotifyTypes,
+    );
   }
 }
 
@@ -119,19 +153,26 @@ async function sendEndLiveNotification(
     return;
   }
 
-  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+  const name = recorder?.liveInfo?.owner
+    ? recorder.liveInfo.owner
+    : config.remarks;
   const title = `${name}(${config.channelId}) 录制已停止`;
 
   const globalConfig = appConfig.getAll();
-  let notifyType = globalConfig?.notification?.setting?.type;
-  if (globalConfig?.notification?.taskNotificationType["liveStart"]) {
-    notifyType = globalConfig?.notification?.taskNotificationType["liveStart"];
+  const notifyTypes = getLiveNotifyTypes(globalConfig);
+
+  if (notifyTypes.includes("system")) {
+    sendBySystem(title, "");
   }
 
-  if (notifyType === "system") {
-    sendBySystem(title, "");
-  } else {
-    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+  const nonSystemNotifyTypes = notifyTypes.filter((type) => type !== "system");
+  if (nonSystemNotifyTypes.length) {
+    await _send(
+      title,
+      `标题：${recorder?.liveInfo?.title}`,
+      globalConfig,
+      nonSystemNotifyTypes,
+    );
   }
 
   // 更新最后通知时间
@@ -192,7 +233,10 @@ export async function createRecorderManager(appConfig: AppConfig) {
    * 构建manager配置项
    */
   async function buildManagerOptions(config: AppConfigType) {
-    const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
+    const savePathRule = path.join(
+      config?.recorder?.savePath,
+      config?.recorder?.nameRule,
+    );
     const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
     const maxThreadCount = config?.recorder?.maxThreadCount ?? 3;
     const waitTime = config?.recorder?.waitTime ?? 0;
@@ -207,27 +251,36 @@ export async function createRecorderManager(appConfig: AppConfig) {
       }
     > = {
       [providerForBiliBili.id]: {
-        autoCheckInterval: (config?.recorder?.bilibili.checkInterval ?? autoCheckInterval) * 1000,
-        maxThreadCount: config?.recorder?.bilibili.maxThreadCount ?? maxThreadCount,
+        autoCheckInterval:
+          (config?.recorder?.bilibili.checkInterval ?? autoCheckInterval) *
+          1000,
+        maxThreadCount:
+          config?.recorder?.bilibili.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.bilibili.waitTime ?? waitTime,
       },
       [providerForDouYu.id]: {
-        autoCheckInterval: (config?.recorder?.douyu.checkInterval ?? autoCheckInterval) * 1000,
-        maxThreadCount: config?.recorder?.douyu.maxThreadCount ?? maxThreadCount,
+        autoCheckInterval:
+          (config?.recorder?.douyu.checkInterval ?? autoCheckInterval) * 1000,
+        maxThreadCount:
+          config?.recorder?.douyu.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.douyu.waitTime ?? waitTime,
       },
       [providerForHuYa.id]: {
-        autoCheckInterval: (config?.recorder?.huya.checkInterval ?? autoCheckInterval) * 1000,
+        autoCheckInterval:
+          (config?.recorder?.huya.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.huya.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.huya.waitTime ?? waitTime,
       },
       [providerForDouYin.id]: {
-        autoCheckInterval: (config?.recorder?.douyin.checkInterval ?? autoCheckInterval) * 1000,
-        maxThreadCount: config?.recorder?.douyin.maxThreadCount ?? maxThreadCount,
+        autoCheckInterval:
+          (config?.recorder?.douyin.checkInterval ?? autoCheckInterval) * 1000,
+        maxThreadCount:
+          config?.recorder?.douyin.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.douyin.waitTime ?? waitTime,
       },
       [providerForXHS.id]: {
-        autoCheckInterval: (config?.recorder?.xhs.checkInterval ?? autoCheckInterval) * 1000,
+        autoCheckInterval:
+          (config?.recorder?.xhs.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.xhs.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.xhs.waitTime ?? waitTime,
       },
@@ -260,7 +313,10 @@ export async function createRecorderManager(appConfig: AppConfig) {
     appConfig: AppConfig,
   ) {
     const config = appConfig.getAll();
-    const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
+    const savePathRule = path.join(
+      config?.recorder?.savePath,
+      config?.recorder?.nameRule,
+    );
     const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
     const maxThreadCount = config?.recorder?.maxThreadCount ?? 3;
     const waitTime = config?.recorder?.waitTime ?? 0;
@@ -271,7 +327,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
     manager.waitTime = waitTime;
     manager.savePathRule = savePathRule;
     manager.biliBatchQuery = config?.recorder?.bilibili.useBatchQuery ?? false;
-    manager.recordRetryImmediately = config?.recorder?.recordRetryImmediately ?? false;
+    manager.recordRetryImmediately =
+      config?.recorder?.recordRetryImmediately ?? false;
 
     const managerOptions = await buildManagerOptions(config);
 
@@ -290,7 +347,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
     for (const recorderOpts of recorderConfig.list()) {
       try {
-        const recorder = manager.recorders.find((item) => item.id === recorderOpts.id);
+        const recorder = manager.recorders.find(
+          (item) => item.id === recorderOpts.id,
+        );
         if (recorder == null) continue;
 
         await updateRecorder(recorder, recorderOpts);
@@ -374,52 +433,63 @@ export async function createRecorderManager(appConfig: AppConfig) {
   // manager.on("RecordSegment", (debug) => {
   //   console.error("Manager segment", debug);
   // });
-  manager.on("videoFileCreated", async ({ recorder, filename, rawFilename }) => {
-    logger.info("Manager videoFileCreated", { recorder, filename, rawFilename });
-    const videoStartTime = new Date();
-    const liveStartTime = recorder.liveInfo?.liveStartTime;
+  manager.on(
+    "videoFileCreated",
+    async ({ recorder, filename, rawFilename }) => {
+      logger.info("Manager videoFileCreated", {
+        recorder,
+        filename,
+        rawFilename,
+      });
+      const videoStartTime = new Date();
+      const liveStartTime = recorder.liveInfo?.liveStartTime;
 
-    if (!recorder.liveInfo) {
-      logger.error("Manager videoFileCreated Error", { recorder, filename, rawFilename });
-      return;
-    }
-    const data = recorderConfig.get(recorder.id);
+      if (!recorder.liveInfo) {
+        logger.error("Manager videoFileCreated Error", {
+          recorder,
+          filename,
+          rawFilename,
+        });
+        return;
+      }
+      const data = recorderConfig.get(recorder.id);
 
-    data?.sendToWebhook &&
-      axios.post(
-        `http://127.0.0.1:${config.port}/webhook/custom`,
-        {
-          event: "FileOpening",
-          filePath: filename,
-          roomId: recorder.channelId,
-          time: videoStartTime.toISOString(),
-          title: recorder.liveInfo.title,
-          username: recorder.liveInfo.owner,
-          platform: recorder.providerId.toLowerCase(),
-          software: "biliLive-tools",
-        },
-        {
-          proxy: false,
-        },
-      );
+      data?.sendToWebhook &&
+        axios.post(
+          `http://127.0.0.1:${config.port}/webhook/custom`,
+          {
+            event: "FileOpening",
+            filePath: filename,
+            roomId: recorder.channelId,
+            time: videoStartTime.toISOString(),
+            title: recorder.liveInfo.title,
+            username: recorder.liveInfo.owner,
+            platform: recorder.providerId.toLowerCase(),
+            software: "biliLive-tools",
+          },
+          {
+            proxy: false,
+          },
+        );
 
-    await sendRecorderExternalEvent("file_created", {
-      filePath: filename,
-      roomId: String(recorder.channelId),
-      platform: recorder.providerId,
-    });
+      await sendRecorderExternalEvent("file_created", {
+        filePath: filename,
+        roomId: String(recorder.channelId),
+        platform: recorder.providerId,
+      });
 
-    recordHistory.addWithStreamer({
-      live_start_time: liveStartTime?.getTime(),
-      live_id: recorder?.liveInfo?.liveId,
-      record_start_time: videoStartTime.getTime(),
-      room_id: recorder.channelId,
-      title: recorder.liveInfo.title,
-      video_file: filename,
-      name: recorder.liveInfo.owner,
-      platform: recorder.providerId,
-    });
-  });
+      recordHistory.addWithStreamer({
+        live_start_time: liveStartTime?.getTime(),
+        live_id: recorder?.liveInfo?.liveId,
+        record_start_time: videoStartTime.getTime(),
+        room_id: recorder.channelId,
+        title: recorder.liveInfo.title,
+        video_file: filename,
+        name: recorder.liveInfo.owner,
+        platform: recorder.providerId,
+      });
+    },
+  );
   manager.on("videoFileCompleted", async ({ recorder, filename, stats }) => {
     logger.info("Manager videoFileCompleted", { recorder, filename, stats });
 
@@ -565,14 +635,20 @@ export async function createRecorderManager(appConfig: AppConfig) {
     }
 
     const xmlFile = replaceExtName(filename, ".xml");
-    if (config.recorder.saveDanma2DB && xmlFile && (await fs.pathExists(xmlFile))) {
+    if (
+      config.recorder.saveDanma2DB &&
+      xmlFile &&
+      (await fs.pathExists(xmlFile))
+    ) {
       const history = recordHistory.getRecord({
         file: filename,
         live_id: liveId,
       });
       if (!history) return;
       logger.info("写入弹幕文件：", xmlFile);
-      const { danmu, sc, gift, guard } = await parseDanmu(replaceExtName(filename, ".xml"));
+      const { danmu, sc, gift, guard } = await parseDanmu(
+        replaceExtName(filename, ".xml"),
+      );
       const result: {
         record_id: number;
         ts: number;
@@ -660,12 +736,17 @@ export async function createRecorderManager(appConfig: AppConfig) {
   setTimeout(() => {
     // 转异步，避免阻塞
     const data = recordHistory.getLastRecordTimesByChannels(
-      manager.recorders.map((r) => ({ channelId: r.channelId, providerId: r.providerId })),
+      manager.recorders.map((r) => ({
+        channelId: r.channelId,
+        providerId: r.providerId,
+      })),
     );
     // console.log("获取上次录制时间完成：", data);
     for (const recorder of manager.recorders) {
       const record = data.find(
-        (item) => item.channelId === recorder.channelId && item.providerId === recorder.providerId,
+        (item) =>
+          item.channelId === recorder.channelId &&
+          item.providerId === recorder.providerId,
       );
       if (record && record.lastRecordTime) {
         if (!recorder.extra) recorder.extra = {};
@@ -682,7 +763,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
       if (
         recorders.findIndex(
           (item) =>
-            item.channelId === recorder.channelId && item.providerId === recorder.providerId,
+            item.channelId === recorder.channelId &&
+            item.providerId === recorder.providerId,
         ) !== -1
       ) {
         return null;
@@ -704,7 +786,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
       }
       return recoder;
     },
-    updateRecorder: async (args: Omit<RecorderConfigType, "channelId" | "providerId">) => {
+    updateRecorder: async (
+      args: Omit<RecorderConfigType, "channelId" | "providerId">,
+    ) => {
       const { id } = args;
       const recorder = manager.recorders.find((item) => item.id === id);
       if (recorder == null) return null;

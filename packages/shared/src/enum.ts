@@ -195,6 +195,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     setting: {
       type: undefined,
+      types: [],
       server: {
         key: "",
       },
@@ -225,9 +226,15 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
         body: "",
         headers: "",
       },
+      feishuBot: {
+        webhookUrl: "",
+      },
+      wecomBot: {
+        webhookUrl: "",
+      },
     },
     taskNotificationType: {
-      liveStart: "system",
+      liveStart: ["system"],
     },
   },
   sync: {
@@ -348,7 +355,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   },
   recorder: {
     savePath: "",
-    nameRule: "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec}-{ms} {title}",
+    nameRule:
+      "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec}-{ms} {title}",
     autoRecord: true,
     quality: "highest",
     line: undefined,

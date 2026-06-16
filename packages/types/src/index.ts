@@ -364,8 +364,29 @@ export interface NotificationCustomHttpConfig {
   headers?: string;
 }
 
+/**
+ * 飞书群机器人通知配置
+ */
+export interface NotificationFeishuBotConfig {
+  webhookUrl: string;
+}
+
+/**
+ * 企业微信群机器人通知配置
+ */
+export interface NotificationWeComBotConfig {
+  webhookUrl: string;
+}
+
 export type Theme = "system" | "light" | "dark";
-type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
+type FormatName =
+  | "auto"
+  | "flv"
+  | "hls"
+  | "fmp4"
+  | "flv_only"
+  | "hls_only"
+  | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
 
 interface RecorderCheckConfig {
@@ -568,7 +589,10 @@ export interface Recorder {
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
   /** API类型，仅抖音 */
-  api: HuyaRecorderConfig["api"] | DouyinRecorderConfig["api"] | DouyuRecorderConfig["api"];
+  api:
+    | HuyaRecorderConfig["api"]
+    | DouyinRecorderConfig["api"]
+    | DouyuRecorderConfig["api"];
   /** 自定义host */
   customHost?: string;
   // 不跟随全局配置字段
@@ -679,7 +703,18 @@ export interface AppConfig {
     /** 通知配置项 */
     setting: {
       // 通知类型，支持server酱和邮件
-      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne" | "customHttp";
+      type?:
+        | "server"
+        | "mail"
+        | "tg"
+        | "system"
+        | "ntfy"
+        | "allInOne"
+        | "customHttp"
+        | "feishuBot"
+        | "wecomBot";
+      /** 通知类型，支持同时配置多个；未配置时回退到 type */
+      types?: Array<NonNullable<AppConfig["notification"]["setting"]["type"]>>;
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
@@ -687,9 +722,13 @@ export interface AppConfig {
       ntfy: NotificationNtfyConfig;
       allInOne: NotificationPushAllInAllConfig;
       customHttp: NotificationCustomHttpConfig;
+      feishuBot: NotificationFeishuBotConfig;
+      wecomBot: NotificationWeComBotConfig;
     };
     taskNotificationType: {
-      liveStart: AppConfig["notification"]["setting"]["type"];
+      liveStart:
+        | AppConfig["notification"]["setting"]["type"]
+        | Array<NonNullable<AppConfig["notification"]["setting"]["type"]>>;
     };
   };
   // 同步
@@ -890,7 +929,13 @@ export interface Progress {
 // export interface OpenDialogOptions extends ElectronOpenDialogOptions {
 //   multi?: boolean;
 // }
-export type audioCodec = "copy" | "aac" | "ac3" | "flac" | "libopus" | "libmp3lame";
+export type audioCodec =
+  | "copy"
+  | "aac"
+  | "ac3"
+  | "flac"
+  | "libopus"
+  | "libmp3lame";
 export type VideoCodec =
   | "copy"
   | "libx264"

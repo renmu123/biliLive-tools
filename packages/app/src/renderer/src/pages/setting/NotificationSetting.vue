@@ -2,13 +2,14 @@
   <n-form label-placement="left" :label-width="120">
     <n-form-item label="通知类型">
       <n-select
-        v-model:value="config.notification.setting.type"
+        v-model:value="notificationTypes"
         :options="typeOptions"
+        multiple
         placeholder="请选择通知类型"
         clearable
       />
       <n-button
-        v-if="config.notification.setting.type"
+        v-if="notificationTypes.length"
         type="primary"
         style="margin-left: 10px"
         @click="notifyTest"
@@ -17,7 +18,7 @@
       </n-button>
     </n-form-item>
 
-    <template v-if="config.notification.setting.type === NotificationType.mail">
+    <template v-if="hasNotificationType(NotificationType.mail)">
       <n-form-item>
         <template #label>
           <span class="inline-flex">
@@ -42,7 +43,9 @@
         <template #label>
           <span class="inline-flex"> TLS </span>
         </template>
-        <n-switch v-model:value="config.notification.setting.mail.secure" /> </n-form-item
+        <n-switch
+          v-model:value="config.notification.setting.mail.secure"
+        /> </n-form-item
       ><n-form-item>
         <template #label>
           <span class="inline-flex"> 邮箱账户 </span>
@@ -70,7 +73,7 @@
           placeholder="请输入收件人邮箱"
         ></n-input> </n-form-item
     ></template>
-    <template v-else-if="config.notification.setting.type === NotificationType.server">
+    <template v-if="hasNotificationType(NotificationType.server)">
       <n-form-item>
         <template #label>
           <span class="inline-flex">
@@ -85,7 +88,7 @@
           show-password-on="click"
         ></n-input> </n-form-item
     ></template>
-    <template v-else-if="config.notification.setting.type === NotificationType.tg">
+    <template v-if="hasNotificationType(NotificationType.tg)">
       <n-form-item>
         <template #label>
           <span class="inline-flex"> token </span>
@@ -119,7 +122,7 @@
         ></n-input>
       </n-form-item>
     </template>
-    <template v-else-if="config.notification.setting.type === NotificationType.ntfy">
+    <template v-if="hasNotificationType(NotificationType.ntfy)">
       <n-form-item>
         <template #label>
           <span class="inline-flex"> 服务器地址 </span>
@@ -137,7 +140,7 @@
           placeholder="请输入topic"
         ></n-input> </n-form-item
     ></template>
-    <template v-else-if="config.notification.setting.type === NotificationType.allInOne">
+    <template v-if="hasNotificationType(NotificationType.allInOne)">
       <n-form-item>
         <template #label>
           <Tip
@@ -160,10 +163,13 @@
           show-password-on="click"
         ></n-input> </n-form-item
     ></template>
-    <template v-else-if="config.notification.setting.type === NotificationType.customHttp">
+    <template v-if="hasNotificationType(NotificationType.customHttp)">
       <n-form-item>
         <template #label>
-          <Tip tip="支持{{title}}和{{desc}}占位符，GET请求会自动URL编码" text="请求URL"></Tip>
+          <Tip
+            tip="支持{{title}}和{{desc}}占位符，GET请求会自动URL编码"
+            text="请求URL"
+          ></Tip>
         </template>
         <n-input
           v-model:value="config.notification.setting.customHttp.url"
@@ -199,12 +205,47 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip tip="自定义请求头，每行一个，格式为key: value" text="请求头"></Tip>
+          <Tip
+            tip="自定义请求头，每行一个，格式为key: value"
+            text="请求头"
+          ></Tip>
         </template>
         <n-input
           v-model:value="config.notification.setting.customHttp.headers"
           type="textarea"
           placeholder="请输入请求头"
+        ></n-input>
+      </n-form-item>
+    </template>
+    <template v-if="hasNotificationType(NotificationType.feishuBot)">
+      <n-form-item>
+        <template #label>
+          <Tip
+            tip="飞书群聊中添加自定义机器人后复制 Webhook 地址"
+            text="Webhook 地址"
+          ></Tip>
+        </template>
+        <n-input
+          v-model:value="config.notification.setting.feishuBot.webhookUrl"
+          type="password"
+          placeholder="请输入飞书机器人 Webhook 地址"
+          show-password-on="click"
+        ></n-input>
+      </n-form-item>
+    </template>
+    <template v-if="hasNotificationType(NotificationType.wecomBot)">
+      <n-form-item>
+        <template #label>
+          <Tip
+            tip="企业微信群聊中添加群机器人后复制 Webhook 地址"
+            text="Webhook 地址"
+          ></Tip>
+        </template>
+        <n-input
+          v-model:value="config.notification.setting.wecomBot.webhookUrl"
+          type="password"
+          placeholder="请输入企业微信机器人 Webhook 地址"
+          show-password-on="click"
         ></n-input>
       </n-form-item>
     </template>
@@ -252,7 +293,9 @@
       </n-checkbox-group>
     </n-form-item>
     <n-form-item label="稿件审核状态">
-      <n-checkbox-group v-model:value="config.notification.task.mediaStatusCheck">
+      <n-checkbox-group
+        v-model:value="config.notification.task.mediaStatusCheck"
+      >
         <n-space item-style="display: flex;">
           <n-checkbox value="success" label="通过" />
           <n-checkbox value="failure" label="失败" />
@@ -269,11 +312,12 @@
     </n-form-item>
     <n-form-item label="直播通知">
       <n-select
-        v-model:value="config.notification.taskNotificationType.liveStart"
+        v-model:value="liveNotificationTypes"
         :options="typeOptions"
+        multiple
         placeholder="请选择通知类型，不选则使用全局通知类型"
         clearable
-        style="width: 200px"
+        style="width: 360px"
       />
     </n-form-item>
     <n-form-item>
@@ -283,7 +327,9 @@
           text="硬盘容量检测"
         ></Tip>
       </template>
-      <n-checkbox-group v-model:value="config.notification.task.diskSpaceCheck.values">
+      <n-checkbox-group
+        v-model:value="config.notification.task.diskSpaceCheck.values"
+      >
         <n-space item-style="display: flex;">
           <n-checkbox value="bilirecorder" label="录播姬工作目录" />
           <n-checkbox value="bililiveTools" label="直播录制目录" />
@@ -304,9 +350,12 @@
 <script setup lang="ts">
 import { configApi } from "@renderer/apis";
 import { cloneDeep } from "lodash-es";
+import { computed } from "vue";
 import { NotificationType } from "@biliLive-tools/shared/enum.js";
 
 import type { AppConfig } from "@biliLive-tools/types";
+
+type NotifyType = NonNullable<AppConfig["notification"]["setting"]["type"]>;
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},
@@ -320,16 +369,51 @@ const typeOptions = [
   { value: NotificationType.ntfy, label: "ntfy" },
   { value: NotificationType.allInOne, label: "push all in cloud" },
   { value: NotificationType.customHttp, label: "自定义HTTP" },
+  { value: NotificationType.feishuBot, label: "飞书机器人" },
+  { value: NotificationType.wecomBot, label: "企业微信机器人" },
 ];
 
 const notice = useNotification();
+
+const normalizeNotifyTypes = (
+  value?: NotifyType | NotifyType[],
+): NotifyType[] => {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  return value ? [value] : [];
+};
+
+const notificationTypes = computed<NotifyType[]>({
+  get() {
+    const types = normalizeNotifyTypes(config.value.notification.setting.types);
+    if (types.length) return types;
+    return normalizeNotifyTypes(config.value.notification.setting.type);
+  },
+  set(value) {
+    config.value.notification.setting.types = value;
+    config.value.notification.setting.type = value[0];
+  },
+});
+
+const liveNotificationTypes = computed<NotifyType[]>({
+  get() {
+    return normalizeNotifyTypes(
+      config.value.notification.taskNotificationType.liveStart,
+    );
+  },
+  set(value) {
+    config.value.notification.taskNotificationType.liveStart = value;
+  },
+});
+
+const hasNotificationType = (type: NotifyType) =>
+  notificationTypes.value.includes(type);
 
 const notifyTest = async () => {
   await configApi.notifyTest(
     "我是一条测试信息",
     "我是一条测试信息",
     cloneDeep(config.value),
-    config.value.notification.setting.type,
+    notificationTypes.value,
   );
   notice.info({
     title: "已尝试发送测试信息，请注意查收",

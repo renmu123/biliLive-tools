@@ -2,6 +2,8 @@ import type { AppConfig } from "@biliLive-tools/types";
 
 import request from "./request";
 
+type NotifyType = AppConfig["notification"]["setting"]["type"];
+
 export interface VerifyBiliKeyResponse {
   configured: boolean;
   valid: boolean;
@@ -33,7 +35,9 @@ export const set = async <K extends keyof AppConfig>(
   }
 };
 
-export const save = async <K extends keyof AppConfig>(data: AppConfig[K]): Promise<void> => {
+export const save = async <K extends keyof AppConfig>(
+  data: AppConfig[K],
+): Promise<void> => {
   if (window.isWeb) {
     const res = await request.post(`/config`, data);
     return res.data;
@@ -42,7 +46,9 @@ export const save = async <K extends keyof AppConfig>(data: AppConfig[K]): Promi
   }
 };
 
-export const resetBin = async (type: "ffmpeg" | "ffprobe" | "danmakuFactory"): Promise<string> => {
+export const resetBin = async (
+  type: "ffmpeg" | "ffprobe" | "danmakuFactory",
+): Promise<string> => {
   const res = await request.post(`/config/resetBin`, { type });
   return res.data;
 };
@@ -51,9 +57,14 @@ export const notifyTest = async (
   title: string,
   desp: string,
   options: AppConfig,
-  notifyType: AppConfig["notification"]["setting"]["type"],
+  notifyType: NotifyType | NonNullable<NotifyType>[],
 ): Promise<void> => {
-  const res = await request.post(`/config/notifyTest`, { title, desp, options, notifyType });
+  const res = await request.post(`/config/notifyTest`, {
+    title,
+    desp,
+    options,
+    notifyType,
+  });
   return res.data;
 };
 
@@ -75,7 +86,9 @@ export const importConfig = async (file: File): Promise<void> => {
   return res.data;
 };
 
-export const verifyBiliKey = async (key: string): Promise<VerifyBiliKeyResponse> => {
+export const verifyBiliKey = async (
+  key: string,
+): Promise<VerifyBiliKeyResponse> => {
   const res = await request.post(`/config/verifyBiliKey`, { key });
   return res.data;
 };
