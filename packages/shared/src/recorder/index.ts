@@ -98,7 +98,20 @@ async function sendStartLiveNotification(
       shell.openExternal(url);
     });
   } else {
-    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+    await send(title, `标题：${recorder?.liveInfo?.title}`, {
+      type: "liveStart",
+      context: {
+        event: "live_start",
+        eventLabel: "开播",
+        roomId: String(recorder.channelId),
+        platform: recorder.providerId,
+        username: name,
+        liveTitle: recorder?.liveInfo?.title,
+        liveId: recorder?.liveInfo?.liveId,
+        roomUrl: recorder.getChannelURL(),
+        startedAt: new Date().toISOString(),
+      },
+    });
   }
 }
 
@@ -131,7 +144,20 @@ async function sendEndLiveNotification(
   if (notifyType === "system") {
     sendBySystem(title, "");
   } else {
-    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+    await send(title, `标题：${recorder?.liveInfo?.title}`, {
+      type: "liveStart",
+      context: {
+        event: "live_end",
+        eventLabel: "下播",
+        roomId: String(recorder.channelId),
+        platform: recorder.providerId,
+        username: name,
+        liveTitle: recorder?.liveInfo?.title,
+        liveId: recorder?.liveInfo?.liveId,
+        roomUrl: recorder.getChannelURL(),
+        endedAt: new Date().toISOString(),
+      },
+    });
   }
 
   // 更新最后通知时间
