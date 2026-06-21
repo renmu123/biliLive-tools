@@ -274,8 +274,8 @@ importers:
         specifier: ^0.4.1
         version: 0.4.1
       undici:
-        specifier: ^7.24.0
-        version: 7.24.3
+        specifier: ^8.5.0
+        version: 8.5.0
       xhshow-js:
         specifier: ^1.0.0
         version: 1.0.0
@@ -5826,6 +5826,10 @@ packages:
     resolution: {integrity: sha512-eJdUmK/Wrx2d+mnWWmwwLRyA7OQCkLap60sk3dOK4ViZR7DKwwptwuIvFBg2HaiP9ESaEdhtpSymQPvytpmkCA==}
     engines: {node: '>=20.18.1'}
 
+  undici@8.5.0:
+    resolution: {integrity: sha512-xamtWoB1EshgjpmlXd7GGm2VfdDtw1+rD8uhry8pSNW3If6S8E0m2T2+orSKeZXEn/aPJMviCpDBA65WJt8zhg==}
+    engines: {node: '>=22.19.0'}
+
   unimport@5.5.0:
     resolution: {integrity: sha512-/JpWMG9s1nBSlXJAQ8EREFTFy3oy6USFd8T6AoBaw1q2GGcF4R9yp3ofg32UODZlYEO5VD0EWE1RpI9XDWyPYg==}
     engines: {node: '>=18.12.0'}
@@ -6090,8 +6094,8 @@ packages:
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
 
-  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef}
+  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
+    resolution: {commit: 24d1e719b4a6cac37a518b2bb10fe124527ef4ef, repo: git@github.com:xqq/webworkify-webpack.git, type: git}
     version: 2.1.5
 
   whatwg-fetch@3.6.20:
@@ -9379,7 +9383,7 @@ snapshots:
   flv.js@1.6.2:
     dependencies:
       es6-promise: 4.2.8
-      webworkify-webpack: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef
+      webworkify-webpack: git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef
 
   follow-redirects@1.15.11: {}
 
@@ -10369,7 +10373,7 @@ snapshots:
   mpegts.js@1.8.0:
     dependencies:
       es6-promise: 4.2.8
-      webworkify-webpack: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef
+      webworkify-webpack: git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef
 
   ms@2.0.0: {}
 
@@ -11616,6 +11620,8 @@ snapshots:
 
   undici@7.24.3: {}
 
+  undici@8.5.0: {}
+
   unimport@5.5.0:
     dependencies:
       acorn: 8.15.0
@@ -11933,7 +11939,7 @@ snapshots:
 
   webpack-virtual-modules@0.6.2: {}
 
-  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
+  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
 
   whatwg-fetch@3.6.20: {}
 
