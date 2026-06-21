@@ -1,8 +1,13 @@
 # Next
 
+## 功能
+
+- 通知：自定义通知及push-all-in-cloud支持更多上下文变量[#489](https://github.com/renmu123/biliLive-tools/pull/489)
+
 ## Bug修复
 
 - 修复ffmpeg录制器分段录制开启时，如果不存在会失败的bug [#482](https://github.com/renmu123/biliLive-tools/issues/482)
+- 通知：修复某些情况下自定义通知body转义失败的bug
 
 # 3.16.1(2026.06.13)
 

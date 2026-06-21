@@ -83,10 +83,13 @@ const buildTemplateContext = (title: string, desp: string, context: Notification
 const renderTemplate = (
   template: string,
   templateContext: Record<string, string>,
-  options: { encode?: boolean } = {},
+  options: { encode?: boolean; jsonStringify?: boolean } = {},
 ) => {
   return template.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => {
     const value = templateContext[key] || "";
+    if (options.jsonStringify) {
+      return JSON.stringify(String(value)).slice(1, -1);
+    }
     return options.encode ? encodeURIComponent(value) : value;
   });
 };
@@ -256,7 +259,7 @@ export async function sendByCustomHttp(
 
   // 替换占位符
   url = renderTemplate(url, templateContext, { encode: true });
-  body = renderTemplate(body, templateContext);
+  body = renderTemplate(body, templateContext, { jsonStringify: true });
 
   try {
     const res = await fetch(url, {
@@ -311,10 +314,20 @@ export async function _send(
       await sendByNtfy(title, desp, appConfig?.notification?.setting?.ntfy);
       break;
     case "allInOne":
-      await sendByAllInOne(title, desp, appConfig?.notification?.setting?.allInOne, options?.context);
+      await sendByAllInOne(
+        title,
+        desp,
+        appConfig?.notification?.setting?.allInOne,
+        options?.context,
+      );
       break;
     case "customHttp":
-      await sendByCustomHttp(title, desp, appConfig?.notification?.setting?.customHttp, options?.context);
+      await sendByCustomHttp(
+        title,
+        desp,
+        appConfig?.notification?.setting?.customHttp,
+        options?.context,
+      );
       break;
   }
 }
