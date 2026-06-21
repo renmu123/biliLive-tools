@@ -6,6 +6,7 @@ tsconfig.json
 tsconfig.*.json
 components.d.ts
 auto-imports.d.ts
+packages/huya-danmu/test_data_20210626.html
 
 packages/HuYaRecorder/src/anticode.ts
 packages/DouYinDanma/src/webmssdk.js
