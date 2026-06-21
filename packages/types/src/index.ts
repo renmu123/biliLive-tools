@@ -354,13 +354,13 @@ export interface NotificationPushAllInAllConfig {
  * 自定义HTTP通知配置
  */
 export interface NotificationCustomHttpConfig {
-  /** 请求URL */
+  /** 请求URL，支持{{title}}、{{desc}}以及上下文占位符 */
   url: string;
   /** 请求方法 */
   method?: "GET" | "POST" | "PUT";
-  /** 请求体，支持{{title}}和{{desc}}占位符 */
+  /** 请求体，支持{{title}}、{{desc}}以及上下文占位符 */
   body?: string;
-  /** 请求头，每行一个，格式为key: value */
+  /** 请求头，每行一个，格式为key: value，支持占位符 */
   headers?: string;
 }
 

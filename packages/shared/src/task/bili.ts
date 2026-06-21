@@ -41,7 +41,7 @@ async function sendNotifyWithThrottle(
   title: string,
   desp: string,
   aid: number,
-  options?: { type?: "mediaStatusCheck" },
+  options?: Parameters<typeof sendNotify>[2],
 ) {
   const now = Date.now();
   const lastNotificationTime = notificationCache.get(aid);
@@ -445,7 +445,17 @@ async function biliMediaAction(
             `《${media.title}》稿件审核通过`,
             `请前往B站创作中心查看详情\n稿件名：${media.title}`,
             options.aid!,
-            { type: "mediaStatusCheck" },
+            {
+              type: "mediaStatusCheck",
+              context: {
+                event: "media_status_success",
+                eventLabel: "稿件审核通过",
+                aid: options.aid,
+                mediaTitle: media.title,
+                mediaStatus: status,
+                uid: options.uid,
+              },
+            },
           );
         } catch (error) {
           log.error("发送通知失败", error);
@@ -488,7 +498,18 @@ async function biliMediaAction(
             `《${media.title}》稿件审核未通过`,
             `请前往B站创作中心查看详情\n稿件名：${media.title}\n状态：${media.state_desc}\n状态码：${media.state}`,
             options.aid!,
-            { type: "mediaStatusCheck" },
+            {
+              type: "mediaStatusCheck",
+              context: {
+                event: "media_status_failure",
+                eventLabel: "稿件审核未通过",
+                aid: options.aid,
+                mediaTitle: media.title,
+                mediaStatus: media.state_desc,
+                mediaStateCode: media.state,
+                uid: options.uid,
+              },
+            },
           );
         } catch (error) {
           log.error("发送通知失败", error);
