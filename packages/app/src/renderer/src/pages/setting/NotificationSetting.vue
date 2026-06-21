@@ -163,7 +163,10 @@
     <template v-else-if="config.notification.setting.type === NotificationType.customHttp">
       <n-form-item>
         <template #label>
-          <Tip tip="支持{{title}}和{{desc}}占位符，GET请求会自动URL编码" text="请求URL"></Tip>
+          <Tip
+            tip="支持{{title}}、{{desc}}以及上下文占位符（如{{roomId}}、{{username}}、{{platform}}、{{liveTitle}}、{{taskType}}等），GET请求会自动URL编码"
+            text="请求URL"
+          ></Tip>
         </template>
         <n-input
           v-model:value="config.notification.setting.customHttp.url"
@@ -187,7 +190,7 @@
       <n-form-item>
         <template #label>
           <Tip
-            tip="POST/PUT请求的请求体，默认为json，支持{{title}}和{{desc}}占位符"
+            tip="POST/PUT请求的请求体，默认为json，支持{{title}}、{{desc}}以及上下文占位符"
             text="请求体"
           ></Tip>
         </template>

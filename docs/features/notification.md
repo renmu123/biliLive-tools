@@ -233,6 +233,25 @@ Server酱支持免费推送信息到手机微信，免费账户有限制。
 | API地址 | push-all-in-cloud的API地址 |
 | 密钥    | 访问密钥                   |
 
+### 上下文变量
+
+使用 push-all-in-cloud 时，软件会额外发送一个 `context` 对象，方便服务端做进一步模板渲染或路由。
+
+常见变量包括：
+
+- `title` / `desc` / `desp`
+- `event` / `eventLabel`
+- `roomId` / `platform` / `username` / `liveTitle` / `liveId` / `roomUrl`
+- `taskName` / `taskType` / `taskStatus` / `taskId`
+- `startedAt` / `endedAt` / `durationMs`
+- `filePath` / `filename`
+- `mediaTitle` / `aid`
+- `error` / `output`
+
+::: tip 提示
+如果你使用的是支持模板变量的自建 push-all-in-cloud 服务，可以直接读取这些变量生成更精细的通知，例如区分不同主播、房间号、任务类型等。
+:::
+
 ### 故障排除
 
 **无法推送**
@@ -241,6 +260,98 @@ Server酱支持免费推送信息到手机微信，免费账户有限制。
 2. 检查 API 地址是否正确
 3. 检查密钥是否正确
 4. 检查在服务中配置的推送平台是否正常
+
+## 自定义HTTP
+
+自定义HTTP适合将通知接入自己的 Webhook、自动化服务或中转网关。
+
+### 配置项
+
+| 配置项   | 说明 |
+| -------- | ---- |
+| 请求URL  | 支持模板变量，GET 请求会自动对变量进行 URL 编码 |
+| 请求方法 | 支持 `GET`、`POST`、`PUT` |
+| 请求体   | 支持模板变量 |
+| 请求头   | 每行一个 `key: value`，支持模板变量 |
+
+### 支持的模板变量
+
+#### 基础变量
+
+- `{{title}}`
+- `{{desc}}`
+- `{{desp}}`
+- `{{event}}`
+- `{{eventLabel}}`
+
+#### 直播相关
+
+- `{{roomId}}`
+- `{{platform}}`
+- `{{username}}`
+- `{{liveTitle}}`
+- `{{liveId}}`
+- `{{roomUrl}}`
+
+#### 任务相关
+
+- `{{taskName}}`
+- `{{taskType}}`
+- `{{taskStatus}}`
+- `{{taskId}}`
+- `{{startedAt}}`
+- `{{endedAt}}`
+- `{{durationMs}}`
+- `{{error}}`
+- `{{output}}`
+
+#### 文件/稿件相关
+
+- `{{filePath}}`
+- `{{filename}}`
+- `{{mediaTitle}}`
+- `{{aid}}`
+
+::: tip 提示
+为了便于与其他系统对接，以上变量同时支持驼峰和下划线两种写法，例如 `{{roomId}}` 与 `{{room_id}}` 都可以使用。
+:::
+
+### 示例
+
+#### 1. 发送到自建 push-all-in-cloud
+
+- 请求方法：`POST`
+- 请求URL：`https://example.com/push`
+- 请求体：
+
+```json
+{"title":"[{{platform}}] {{title}}","message":"{{desc}}"}
+```
+
+- 请求头：
+
+```text
+Authorization: Bearer your-token
+Content-Type: application/json
+```
+
+#### 2. 发送到自定义 Webhook
+
+- 请求方法：`POST`
+- 请求URL：`https://example.com/webhook`
+- 请求体：
+
+```json
+{
+  "event": "{{event}}",
+  "eventLabel": "{{eventLabel}}",
+  "roomId": "{{roomId}}",
+  "username": "{{username}}",
+  "taskType": "{{taskType}}",
+  "title": "{{title}}",
+  "desc": "{{desc}}"
+}
+```
 
 ## 通知事件
 
