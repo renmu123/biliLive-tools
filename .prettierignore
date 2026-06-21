@@ -6,3 +6,9 @@ tsconfig.json
 tsconfig.*.json
 components.d.ts
 auto-imports.d.ts
+
+packages/HuYaRecorder/src/anticode.ts
+packages/DouYinDanma/src/webmssdk.js
+packages/DouYinDanma/src/webmssdk.js
+packages/huya-danmu/lib.js
+packages/HuYaRecorder/src/anticode.ts

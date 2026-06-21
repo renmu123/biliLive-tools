@@ -55,7 +55,7 @@ function resolvePackagePath(packageName) {
         }
       }
     } catch {
-      console.log('未找到该包的 .pnpm 目录');
+      console.log("未找到该包的 .pnpm 目录");
     }
   }
 
@@ -86,7 +86,10 @@ function safeCpSync(packageName, options = {}) {
                 const subSrc = path.join(pkgPath, subPkg);
                 const subDest = path.join(dest, subPkg);
                 if (!fs.existsSync(subDest)) {
-                  fs.cpSync(subSrc, subDest, { recursive: true, dereference: options.dereference ?? false });
+                  fs.cpSync(subSrc, subDest, {
+                    recursive: true,
+                    dereference: options.dereference ?? false,
+                  });
                 }
               }
             }
