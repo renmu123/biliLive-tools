@@ -117,6 +117,7 @@ function getStateTimelineText(state: RecorderState, msg?: string) {
     "stopping-record": "停止录制中",
     "check-error": "检查失败",
     "title-blocked": "标题命中过滤规则",
+    "charge-skipped": "特殊直播(付费/权限/加密)，无法录制，已跳过",
   };
 
   return stateTextMap[state];
@@ -160,6 +161,8 @@ export interface RecorderManager<
     };
     RecorderProgress: { recorder: SerializedRecorder<E>; progress: Progress };
     RecoderLiveStart: { recorder: Recorder<E> };
+    // 检测到充电直播(付费/DRM 加密直播)
+    RecoderChargeLive: { recorder: Recorder<E> };
 
     RecordStop: { recorder: SerializedRecorder<E>; recordHandle: RecordHandle; reason?: string };
     Message: { recorder: SerializedRecorder<E>; message: Message };
@@ -332,6 +335,9 @@ export function createRecorderManager<
   // 用于是否触发LiveStart事件，不要重复触发
   const liveStartObj: Record<string, boolean> = {};
 
+  // 用于是否触发ChargeLive(充电直播)事件，按场次去重，不要每个检查周期重复触发
+  const chargeLiveObj: Record<string, boolean> = {};
+
   // 用于记录触发重试直播场次的次数
   const retryCountObj: Record<string, number> = {};
 
@@ -459,6 +465,15 @@ export function createRecorderManager<
 
         this.emit("RecoderLiveStart", { recorder: recorder });
       });
+      recorder.on("ChargeLive", () => {
+        // 充电直播按场次去重，避免每个检查周期重复推送
+        const liveId = recorder.liveInfo?.liveId;
+        const key = `${recorder.channelId}-${liveId ?? ""}`;
+        if (chargeLiveObj[key]) return;
+        chargeLiveObj[key] = true;
+
+        this.emit("RecoderChargeLive", { recorder: recorder });
+      });
       recorder.on("stateChange", ({ state, msg }) => {
         recorder.state = state;
         if (state !== "idle") {
@@ -481,6 +496,14 @@ export function createRecorderManager<
       this.recorders.splice(idx, 1);
 
       delete tempBanObj[recorder.channelId];
+      // 清理该房间的 liveStart/chargeLive 去重标记，否则删除后重新添加同一场直播不会再次推送通知
+      const keyPrefix = `${recorder.channelId}-`;
+      Object.keys(liveStartObj).forEach((k) => {
+        if (k.startsWith(keyPrefix)) delete liveStartObj[k];
+      });
+      Object.keys(chargeLiveObj).forEach((k) => {
+        if (k.startsWith(keyPrefix)) delete chargeLiveObj[k];
+      });
       this.emit("RecorderRemoved", recorder.toJSON());
     },
     getRecorder(id) {

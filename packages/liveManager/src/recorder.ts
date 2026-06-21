@@ -122,13 +122,14 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     // | "recordHandle"
   >;
 
-/** 录制状态，idle: 空闲中，recording: 录制中，stopping-record: 停止录制中，check-error: 检查错误，title-blocked: 标题黑名单 */
+/** 录制状态，idle: 空闲中，recording: 录制中，stopping-record: 停止录制中，check-error: 检查错误，title-blocked: 标题黑名单，charge-skipped: 充电直播(DRM加密)已跳过 */
 export type RecorderState =
   | "idle"
   | "recording"
   | "stopping-record"
   | "check-error"
-  | "title-blocked";
+  | "title-blocked"
+  | "charge-skipped";
 export type Progress = { time: string | null };
 
 export interface RecorderTimelineItem {
@@ -187,6 +188,8 @@ export interface Recorder<E extends AnyObject = UnknownObject>
       Updated: (string | keyof Recorder)[];
       Message: Message;
       DebugLog: DebugLog;
+      // 检测到充电直播(付费/DRM 加密直播)
+      ChargeLive: { channelId: string };
     }>,
     RecorderCreateOpts<E> {
   // 这里 id 设计成 string 而不是 string | number，主要是为了方便调用方少做一些类型处理，
@@ -214,6 +217,11 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     liveId?: string;
     recordStartTime: Date;
     area?: string;
+    // 直播类型(各平台可选填，目前仅 B站)：normal/paid/guard/password 等
+    liveType?: string;
+    liveTypeDesc?: string;
+    // 能否录制(在播 && 普通直播 && 可拿到非加密流)
+    canRecord?: boolean;
   };
   tempStopIntervalCheck?: boolean;
   timeline?: RecorderTimelineItem[];

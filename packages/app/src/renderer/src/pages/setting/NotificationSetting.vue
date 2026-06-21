@@ -279,6 +279,15 @@
         style="width: 200px"
       />
     </n-form-item>
+    <n-form-item label="付费直播通知">
+      <n-select
+        v-model:value="config.notification.taskNotificationType.chargeLive"
+        :options="typeOptions"
+        placeholder="请选择通知类型，不选则使用全局通知类型"
+        clearable
+        style="width: 200px"
+      />
+    </n-form-item>
     <n-form-item>
       <template #label>
         <Tip

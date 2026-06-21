@@ -28,6 +28,7 @@ export type NotificationContext = Record<string, NotificationContextValue>;
  */
 type TaskType =
   | "liveStart"
+  | "chargeLive"
   | "ffmpeg"
   | "danmu"
   | "upload"
