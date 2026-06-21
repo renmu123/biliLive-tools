@@ -278,10 +278,6 @@ const stateMap = {
   color: var(--text-muted);
 }
 
-.icon-live {
-  color: #ff4d4f;
-}
-
 .link {
   text-decoration: none;
   color: inherit;

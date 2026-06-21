@@ -2,7 +2,8 @@
 
 ## 功能
 
-- 通知：自定义通知及push-all-in-cloud支持更多上下文变量[#489](https://github.com/renmu123/biliLive-tools/pull/489)
+- 通知：自定义通知及push-all-in-cloud支持更多上下文变量 [#489](https://github.com/renmu123/biliLive-tools/pull/489)
+- 录制：识别 B 站不可录制的特殊直播及添加相关通知 [#485](https://github.com/renmu123/biliLive-tools/pull/485/)
 
 ## Bug修复
 
