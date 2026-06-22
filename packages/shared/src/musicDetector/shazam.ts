@@ -226,6 +226,9 @@ async function shazamRecognizeWithSampling(file: string) {
   // 获取文件时长
   const meta = await readVideoMeta(file);
   const duration = Number(meta.format.duration || 0);
+  if (duration === 0 || isNaN(duration)) {
+    throw new Error("视频无法读取到时间，无法处理");
+  }
 
   if (duration < 10) {
     // 如果文件时长小于10秒，直接识别
