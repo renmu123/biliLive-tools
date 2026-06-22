@@ -64,7 +64,11 @@ class DanmaClient extends EventEmitter {
   private roomId: number;
   private auth: string | undefined;
   private uid: number | undefined;
-  private retryCount: number = 10;
+  private readonly maxRetryCount = 10;
+  private retryCount = this.maxRetryCount;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private connectionGeneration = 0;
+  private stopped = true;
   private useServerTimestamp: boolean;
 
   constructor(
@@ -83,10 +87,17 @@ class DanmaClient extends EventEmitter {
   }
 
   async start() {
+    const connectionGeneration = ++this.connectionGeneration;
+    this.stopped = false;
+    this.retryCount = this.maxRetryCount;
+
     const info = await getCachedBuvidConf();
+    if (this.stopped || connectionGeneration !== this.connectionGeneration) return;
+
     const buvid3 = info.data.b_3;
     const handler: MsgHandler = {
       onOpen: () => {
+        this.retryCount = this.maxRetryCount;
         this.emit("open");
       },
       onClose: () => {
@@ -191,29 +202,62 @@ class DanmaClient extends EventEmitter {
       }
     }
 
-    this.client = startListen(this.roomId, handler, {
-      ws: {
-        headers: {
-          Cookie: lastAuth,
-        },
-        uid: this.uid ?? 0,
-      },
-    });
+    const connect = () => {
+      if (this.stopped || connectionGeneration !== this.connectionGeneration) return;
 
-    this.client.live.on("error", (err) => {
-      console.error("DanmaClient error", err);
-      this.retryCount -= 1;
-      if (this.retryCount > 0) {
-        setTimeout(() => {
-          this.client && this.client.reconnect();
+      const client = startListen(this.roomId, handler, {
+        ws: {
+          headers: {
+            Cookie: lastAuth,
+          },
+          uid: this.uid ?? 0,
+          // 在本层控制重连次数，避免底层无限重连。
+          keepalive: false,
+        },
+      });
+      this.client = client;
+
+      client.live.on("close", () => {
+        if (
+          this.stopped ||
+          connectionGeneration !== this.connectionGeneration ||
+          this.client !== client ||
+          this.reconnectTimer
+        ) {
+          return;
+        }
+
+        if (this.retryCount <= 0) {
+          console.error(`DanmaClient reconnect failed after ${this.maxRetryCount} attempts`);
+          return;
+        }
+
+        const attempt = this.maxRetryCount - this.retryCount + 1;
+        this.retryCount -= 1;
+        this.emit("reconnect", { retryCount: attempt, maxRetry: this.maxRetryCount });
+        this.reconnectTimer = setTimeout(() => {
+          this.reconnectTimer = null;
+          connect();
         }, 2000);
-      }
-      this.emit("error", err);
-    });
+      });
+
+      client.live.on("error", (err) => {
+        console.error("DanmaClient error", err);
+      });
+    };
+
+    connect();
   }
 
   stop() {
+    this.stopped = true;
+    this.connectionGeneration += 1;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     this.client?.close();
+    this.client = null;
   }
 }
 

@@ -5,6 +5,10 @@
 - 通知：自定义通知及push-all-in-cloud支持更多上下文变量 [#489](https://github.com/renmu123/biliLive-tools/pull/489)
 - 录制：识别 B 站不可录制的特殊直播及添加相关通知 [#485](https://github.com/renmu123/biliLive-tools/pull/485/)
 
+## 优化
+
+- 录制：B站关闭弹幕库默认重试，业务层面实现重试，可能处理了某些情况的内存溢出问题
+
 ## Bug修复
 
 - 修复ffmpeg录制器分段录制开启时，如果不存在会失败的bug [#482](https://github.com/renmu123/biliLive-tools/issues/482)

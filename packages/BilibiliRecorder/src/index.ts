@@ -356,16 +356,23 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       text: "弹幕连接已关闭",
     });
   });
+  danmaClient.on("reconnect", ({ retryCount, maxRetry }) => {
+    this.appendTimeline({
+      text: `弹幕连接已断开，正在尝试重连... (重试次数: ${retryCount}/${maxRetry})`,
+    });
+    this.emit("DebugLog", {
+      type: "common",
+      text: `弹幕连接已断开，正在尝试重连... (重试次数: ${retryCount}/${maxRetry})`,
+    });
+  });
 
   if (enableDanmaListen) {
-    try {
-      danmaClient.start();
-    } catch (err) {
+    void danmaClient.start().catch((err) => {
       this.emit("DebugLog", {
         type: "error",
         text: `弹幕连接失败，错误信息: ${String(err)}`,
       });
-    }
+    });
   }
 
   const downloaderArgs = downloader.getArguments();
