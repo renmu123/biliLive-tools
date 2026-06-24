@@ -49,6 +49,7 @@ export const recorderNoGlobalFollowFields: Array<
     | "line"
     | "titleKeywords"
     | "liveStartNotification"
+    | "chargeLiveNotification"
     | "liveEndNotification"
     | "onlyAudio"
     | "handleTime"
@@ -62,6 +63,7 @@ export const recorderNoGlobalFollowFields: Array<
   "segment",
   "uid",
   "saveCover",
+  "convert2Mp4",
   "qualityRetry",
   "formatName",
   "useM3U8Proxy",
@@ -149,6 +151,8 @@ export type CommonRoomConfig = {
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
+  // 将处理版和非弹幕版上传到同一稿件
+  uploadToSameMedia?: boolean;
   // 上传非视频版预设
   noDanmuVideoPreset?: string;
 };
@@ -280,6 +284,10 @@ export type ToolConfig = {
     ignoreDanmu: boolean;
     /** 字幕导出 */
     exportSubtitle: boolean;
+    /** 忽略字幕 */
+    ignoreSubtitle: boolean;
+    /** 字幕样式ID */
+    subtitleStyleId?: string;
   };
   /** 文件同步 */
   fileSync: {
@@ -347,13 +355,13 @@ export interface NotificationPushAllInAllConfig {
  * 自定义HTTP通知配置
  */
 export interface NotificationCustomHttpConfig {
-  /** 请求URL */
+  /** 请求URL，支持{{title}}、{{desc}}以及上下文占位符 */
   url: string;
   /** 请求方法 */
   method?: "GET" | "POST" | "PUT";
-  /** 请求体，支持{{title}}和{{desc}}占位符 */
+  /** 请求体，支持{{title}}、{{desc}}以及上下文占位符 */
   body?: string;
-  /** 请求头，每行一个，格式为key: value */
+  /** 请求头，每行一个，格式为key: value，支持占位符 */
   headers?: string;
 }
 
@@ -390,6 +398,9 @@ interface DouyuRecorderConfig extends RecorderCheckConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
   quality: 0 | 2 | 3 | 4 | 8;
   source: string;
+  /** 流编码 */
+  codecName: CodecName;
+  api: "auto" | "newAPI" | "oldAPI";
 }
 
 interface HuyaRecorderConfig extends RecorderCheckConfig {
@@ -456,6 +467,8 @@ export interface GlobalRecorder {
   uid?: number;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 转封装为 mp4 */
+  convert2Mp4?: boolean;
   /** 画质匹配重试次数 */
   qualityRetry: number;
   /** 视频格式 */
@@ -521,6 +534,8 @@ export interface Recorder {
   uid?: number | string;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 转封装为 mp4 */
+  convert2Mp4?: boolean;
   /** 视频格式 */
   videoFormat: GlobalRecorder["videoFormat"];
   /** 录制器类型 */
@@ -537,6 +552,8 @@ export interface Recorder {
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;
+  /** 充电直播(付费/DRM 加密直播)检测推送 */
+  chargeLiveNotification?: boolean;
   /** 录制结束通知 */
   liveEndNotification?: boolean;
   /** 权重 */
@@ -554,7 +571,7 @@ export interface Recorder {
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
   /** API类型，仅抖音 */
-  api: HuyaRecorderConfig["api"] | DouyinRecorderConfig["api"];
+  api: HuyaRecorderConfig["api"] | DouyinRecorderConfig["api"] | DouyuRecorderConfig["api"];
   /** 自定义host */
   customHost?: string;
   // 不跟随全局配置字段
@@ -593,6 +610,8 @@ export interface AppConfig {
   audiowaveformPath: string;
   /** 缓存文件夹 */
   cacheFolder: string;
+  /** 上传崩溃报告 */
+  uploadCrashReport: boolean;
   /** 保存到回收站 */
   trash: boolean;
   /** 自动检查更新 */
@@ -615,6 +634,8 @@ export interface AppConfig {
   requestInfoForRecord: boolean;
   biliUploadFileNameType: "ask" | "always" | "never";
   cutPageInNewWindow: boolean;
+  /** 外部Webhook地址 */
+  externalWebhook: string;
   webhook: {
     recoderFolder: string;
     blacklist: string;
@@ -672,6 +693,7 @@ export interface AppConfig {
     };
     taskNotificationType: {
       liveStart: AppConfig["notification"]["setting"]["type"];
+      chargeLive?: AppConfig["notification"]["setting"]["type"];
     };
   };
   // 同步
@@ -891,12 +913,43 @@ export type VideoCodec =
   | "hevc_videotoolbox"
   | "av1_videotoolbox";
 
+export interface SubtitleOptions {
+  // 字体名称
+  fontName?: string | null;
+  // 字幕字体大小
+  fontSize?: number;
+  // 主颜色 (文字颜色，格式: &HBBGGRR& 或 #RRGGBB)
+  primaryColour?: string;
+  // 边框颜色 (格式: &HBBGGRR& 或 #RRGGBB)
+  outlineColour?: string;
+  // 阴影颜色 (格式: &HBBGGRR& 或 #RRGGBB)
+  backColour?: string;
+  // 粗体 (0=关闭, -1=开启)
+  bold?: number;
+  // 斜体 (0=关闭, -1=开启)
+  italic?: number;
+  // 下划线 (0=关闭, -1=开启)
+  underline?: number;
+  // 边框宽度
+  outline?: number;
+  // 阴影距离
+  shadow?: number;
+  // 对齐方式 (1=左下, 2=居中下, 3=右下, 5=左上, 6=居中上, 7=右上, 9=左中, 10=居中, 11=右中)
+  alignment?: number;
+  // 左边距
+  marginL?: number;
+  // 右边距
+  marginR?: number;
+  // 垂直边距
+  marginV?: number;
+}
+
 export interface FfmpegOptions {
   encoder: VideoCodec;
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
   crf?: number;
   bitrate?: number;
-  audioCodec?: audioCodec;
+  audioCodec?: audioCodec | null;
   preset?:
     | "ultrafast"
     | "superfast"
@@ -937,6 +990,8 @@ export interface FfmpegOptions {
   decode?: boolean;
   /** 是否重缩放分辨率 */
   resetResolution?: boolean;
+  /** 输出帧率，使用 fps 滤镜实现 */
+  fps?: number;
   /** 重缩放的分辨率 */
   resolutionWidth?: number;
   resolutionHeight?: number;
@@ -977,6 +1032,7 @@ export interface FfmpegOptions {
   timestampFollowDanmu?: boolean;
   /** pk优化 */
   pkOptimize?: boolean;
+  subtitleOptions?: SubtitleOptions;
 }
 
 export interface BiliupConfig {
@@ -988,9 +1044,10 @@ export interface BiliupConfig {
   desc?: string;
   dolby: 0 | 1; // 杜比
   hires: 0 | 1; // Hi-Res
-  copyright: 1 | 2; // 1：自制，2：转载
+  copyright: 1 | 2 | 3; // 1：自制，2：转载，3：其他创作声明
   tag: string[]; // 标签，不能为空，不能超过10个，调用接口验证
-  tid: number; // 174 投稿分区
+  // @deprecated，174 投稿分区
+  tid: number;
   source?: string; // 转载来源
   dynamic?: string; // 空间动态
   /** 封面，可能为文件名也有可能是绝对路径 */
@@ -1032,6 +1089,10 @@ export interface BiliupConfig {
   human_type2?: number;
   /** 定时发布：10位秒级时间戳。必须距离提交时间>7200秒 */
   dtime?: number;
+  // 表示按照cid顺序上传，编辑接口会根据这个参数对pathArray进行排序后上传，如果没有这个参数，则按照pathArray的顺序上传
+  sortByCid?: Array<number>;
+  // 创作声明，仅当copyright=1、3时有效，// -1: 内容无需标注，1: 含AI生成内容，2：含虚构演绎内容，3：内容含营销信息，4：个人观点，仅供参考
+  creationStatement?: -1 | 1 | 2 | 3 | 4 | null;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

@@ -20,9 +20,13 @@ import {
 import recordHistory from "./recordHistory.js";
 import { danmuService } from "../db/index.js";
 // import DanmuService from "../db/service/danmuService.js";
-import { getBinPath, readVideoMeta } from "../task/video.js";
+import { getBinPath, readVideoMeta, transcode } from "../task/video.js";
 import logger from "../utils/log.js";
-import { replaceExtName, calculateFileQuickHash } from "../utils/index.js";
+import {
+  replaceExtName,
+  calculateFileQuickHash,
+  sendExternalEventRequest,
+} from "../utils/index.js";
 import RecorderConfig from "./config.js";
 import { sendBySystem, send } from "../notify.js";
 import { danmaReport, parseDanmu } from "../danmu/index.js";
@@ -35,6 +39,41 @@ import type {
 import type { Recorder } from "@bililive-tools/manager";
 
 export { RecorderConfig };
+
+// 缓存直播结束通知的最后触发时间，避免频繁通知
+const endLiveNotificationCache = new Map<string, number>();
+
+type RecorderExternalSource = {
+  channelId: string;
+  providerId: string;
+  liveInfo?: {
+    title?: string;
+    owner?: string;
+    liveId?: string;
+    avatar?: string;
+    cover?: string;
+  };
+  extra?: {
+    avatar?: string;
+  };
+};
+
+const getRecorderExternalBase = (recorder: RecorderExternalSource) => {
+  return {
+    roomId: String(recorder.channelId),
+    platform: recorder.providerId,
+    title: recorder.liveInfo?.title,
+    username: recorder.liveInfo?.owner,
+    time: new Date().toISOString(),
+    liveId: recorder.liveInfo?.liveId || "",
+    avatar: recorder.liveInfo?.avatar || recorder.extra?.avatar || "",
+    cover: recorder.liveInfo?.cover || "",
+  };
+};
+
+const sendRecorderExternalEvent = async (type: string, data: Record<string, unknown>) => {
+  await sendExternalEventRequest(type, data);
+};
 
 async function sendStartLiveNotification(
   appConfig: AppConfig,
@@ -52,13 +91,58 @@ async function sendStartLiveNotification(
 
   if (notifyType === "system") {
     const event = await sendBySystem(title, `${recorder?.liveInfo?.title}\n点击打开直播间`);
+    // @ts-ignore
     const { shell } = await import("electron");
     event?.on("click", () => {
       const url = recorder.getChannelURL();
       shell.openExternal(url);
     });
   } else {
-    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+    await send(title, `标题：${recorder?.liveInfo?.title}`, {
+      type: "liveStart",
+      context: {
+        event: "live_start",
+        eventLabel: "开播",
+        roomId: String(recorder.channelId),
+        platform: recorder.providerId,
+        username: name,
+        liveTitle: recorder?.liveInfo?.title,
+        liveId: recorder?.liveInfo?.liveId,
+        roomUrl: recorder.getChannelURL(),
+        startedAt: new Date().toISOString(),
+      },
+    });
+  }
+}
+
+async function sendChargeLiveNotification(
+  appConfig: AppConfig,
+  recorder: Recorder,
+  config: RecorderConfigType,
+) {
+  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+  // 通知会触发于付费/大航海权限/密码房等所有不可录类型，用 liveInfo 的类型提示精确措辞，
+  // 取不到时回退为通用「特殊直播」，不写死「付费直播(DRM)」以免对 guard/密码房误导。
+  const typeDesc = recorder?.liveInfo?.liveTypeDesc ?? "特殊直播";
+  const title = `${name}(${config.channelId}) 正在进行${typeDesc}`;
+
+  const globalConfig = appConfig.getAll();
+  let notifyType = globalConfig?.notification?.setting?.type;
+  if (globalConfig?.notification?.taskNotificationType["chargeLive"]) {
+    notifyType = globalConfig?.notification?.taskNotificationType["chargeLive"];
+  }
+
+  const desp = `标题：${recorder?.liveInfo?.title}\n该直播为${typeDesc}，无法自动录制`;
+  if (notifyType === "system") {
+    const event = await sendBySystem(title, `${desp}\n点击打开直播间`);
+    // @ts-ignore
+    const { shell } = await import("electron");
+    event?.on("click", () => {
+      const url = recorder.getChannelURL();
+      shell.openExternal(url);
+    });
+  } else {
+    await send(title, desp, { type: "chargeLive" });
   }
 }
 
@@ -67,6 +151,18 @@ async function sendEndLiveNotification(
   recorder: Recorder,
   config: RecorderConfigType,
 ) {
+  const cacheKey = `${recorder.providerId}_${recorder.id}`;
+  const now = Date.now();
+  const lastNotificationTime = endLiveNotificationCache.get(cacheKey);
+
+  // 如果距离上次通知不到10分钟，跳过
+  if (lastNotificationTime && now - lastNotificationTime < 10 * 60 * 1000) {
+    logger.info(
+      `跳过直播结束通知，距离上次通知不到10分钟：${config.remarks} (${config.channelId})`,
+    );
+    return;
+  }
+
   const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
   const title = `${name}(${config.channelId}) 录制已停止`;
 
@@ -79,8 +175,56 @@ async function sendEndLiveNotification(
   if (notifyType === "system") {
     sendBySystem(title, "");
   } else {
-    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+    await send(title, `标题：${recorder?.liveInfo?.title}`, {
+      type: "liveStart",
+      context: {
+        event: "live_end",
+        eventLabel: "下播",
+        roomId: String(recorder.channelId),
+        platform: recorder.providerId,
+        username: name,
+        liveTitle: recorder?.liveInfo?.title,
+        liveId: recorder?.liveInfo?.liveId,
+        roomUrl: recorder.getChannelURL(),
+        endedAt: new Date().toISOString(),
+      },
+    });
   }
+
+  // 更新最后通知时间
+  endLiveNotificationCache.set(cacheKey, now);
+}
+
+async function convert2Mp4(videoFile: string): Promise<string> {
+  const output = replaceExtName(videoFile, ".mp4");
+  if (await fs.pathExists(output)) {
+    throw new Error(`目标文件已存在: ${output}`);
+  }
+
+  const name = path.basename(output);
+  return new Promise((resolve, reject) => {
+    transcode(
+      videoFile,
+      name,
+      {
+        encoder: "copy",
+        audioCodec: "copy",
+      },
+      {
+        saveType: 1,
+        savePath: ".",
+        override: false,
+        removeOrigin: false,
+      },
+    ).then((task) => {
+      task.on("task-end", () => {
+        resolve(output);
+      });
+      task.on("task-error", () => {
+        reject();
+      });
+    });
+  });
 }
 
 export async function createRecorderManager(appConfig: AppConfig) {
@@ -120,27 +264,27 @@ export async function createRecorderManager(appConfig: AppConfig) {
       }
     > = {
       [providerForBiliBili.id]: {
-        autoCheckInterval: config?.recorder?.bilibili.checkInterval ?? autoCheckInterval,
+        autoCheckInterval: (config?.recorder?.bilibili.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.bilibili.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.bilibili.waitTime ?? waitTime,
       },
       [providerForDouYu.id]: {
-        autoCheckInterval: config?.recorder?.douyu.checkInterval ?? autoCheckInterval,
+        autoCheckInterval: (config?.recorder?.douyu.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.douyu.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.douyu.waitTime ?? waitTime,
       },
       [providerForHuYa.id]: {
-        autoCheckInterval: config?.recorder?.huya.checkInterval ?? autoCheckInterval,
+        autoCheckInterval: (config?.recorder?.huya.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.huya.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.huya.waitTime ?? waitTime,
       },
       [providerForDouYin.id]: {
-        autoCheckInterval: config?.recorder?.douyin.checkInterval ?? autoCheckInterval,
+        autoCheckInterval: (config?.recorder?.douyin.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.douyin.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.douyin.waitTime ?? waitTime,
       },
       [providerForXHS.id]: {
-        autoCheckInterval: config?.recorder?.xhs.checkInterval ?? autoCheckInterval,
+        autoCheckInterval: (config?.recorder?.xhs.checkInterval ?? autoCheckInterval) * 1000,
         maxThreadCount: config?.recorder?.xhs.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.xhs.waitTime ?? waitTime,
       },
@@ -224,8 +368,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
   const managerOptions = await buildManagerOptions(config);
   const manager = createManager(managerOptions);
-  // TODO:需要删除
-  console.log("managerOptions", managerOptions);
 
   manager.on("RecorderDebugLog", ({ recorder, ...log }) => {
     if (log.type !== "ffmpeg") {
@@ -239,7 +381,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
         `${recorder.recordHandle.savePath}_${recorder.id}`,
         ".recorder.log",
       );
-      fs.appendFileSync(logFilePath, log.text + "\n");
+      fs.appendFile(logFilePath, log.text + "\n").catch(() => {});
       return;
     } else {
       logger.info(`recorder: ${log.text}`);
@@ -250,9 +392,16 @@ export async function createRecorderManager(appConfig: AppConfig) {
     if (!recorder.extra) recorder.extra = {};
     const timestamp = Date.now();
     recorder.extra.lastRecordTime = timestamp;
+    void sendRecorderExternalEvent("record_start", {
+      ...getRecorderExternalBase(recorder),
+      time: new Date(timestamp).toISOString(),
+    });
   });
   manager.on("RecordStop", ({ recorder }) => {
     logger.info("Manager stop", recorder);
+    void sendRecorderExternalEvent("record_end", {
+      ...getRecorderExternalBase(recorder),
+    });
     // 录制结束通知，自动监听&开启推送时才会发送
     const config = recorderConfig.get(recorder.id);
     if (!config) return;
@@ -277,6 +426,18 @@ export async function createRecorderManager(appConfig: AppConfig) {
     if (!config) return;
     if (config?.liveStartNotification && !config?.disableAutoCheck) {
       sendStartLiveNotification(appConfig, recorder, config);
+    }
+  });
+  manager.on("RecoderChargeLive", async ({ recorder }) => {
+    // 充电直播检测通知，默认开启(仅显式设为 false 时关闭)，自动监听时才发送
+    const config = recorderConfig.get(recorder.id);
+    if (!config) return;
+    const enabled = config?.chargeLiveNotification !== false && !config?.disableAutoCheck;
+    logger.info(
+      `RecoderChargeLive: ${config.remarks}(${config.channelId}) notify=${enabled} chargeLiveNotification=${config.chargeLiveNotification}`,
+    );
+    if (enabled) {
+      sendChargeLiveNotification(appConfig, recorder, config);
     }
   });
   // manager.on("RecordSegment", (debug) => {
@@ -311,6 +472,12 @@ export async function createRecorderManager(appConfig: AppConfig) {
         },
       );
 
+    await sendRecorderExternalEvent("file_created", {
+      filePath: filename,
+      roomId: String(recorder.channelId),
+      platform: recorder.providerId,
+    });
+
     recordHistory.addWithStreamer({
       live_start_time: liveStartTime?.getTime(),
       live_id: recorder?.liveInfo?.liveId,
@@ -322,8 +489,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
       platform: recorder.providerId,
     });
   });
-  manager.on("videoFileCompleted", async ({ recorder, filename }) => {
-    logger.info("Manager videoFileCompleted", { recorder, filename });
+  manager.on("videoFileCompleted", async ({ recorder, filename, stats }) => {
+    logger.info("Manager videoFileCompleted", { recorder, filename, stats });
 
     const endTime = new Date();
     const data = recorderConfig.get(recorder.id);
@@ -335,8 +502,14 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
     try {
       const xmlFile = replaceExtName(filename, ".xml");
-      const videoMeta = await readVideoMeta(filename);
-      const duration = videoMeta?.format?.duration ?? 0;
+
+      let duration = 0;
+      try {
+        const videoMeta = await readVideoMeta(filename);
+        duration = videoMeta?.format?.duration ?? 0;
+      } catch (error) {
+        logger.error("读取视频元信息失败", { filename, error });
+      }
 
       // 提取文件名（不含后缀）
       const videoFilename = path.basename(filename, path.extname(filename));
@@ -362,7 +535,18 @@ export async function createRecorderManager(appConfig: AppConfig) {
         },
       );
 
-      if (xmlFile && (await fs.pathExists(xmlFile))) {
+      if (stats) {
+        recordHistory.upadteLive(
+          {
+            video_file: filename,
+            live_id: liveId,
+          },
+          {
+            danma_num: stats.danmaNum,
+            interact_num: stats.uniqMember,
+          },
+        );
+      } else if (xmlFile && (await fs.pathExists(xmlFile))) {
         const { uniqMember, danmaNum } = await danmaReport(xmlFile);
         recordHistory.upadteLive(
           {
@@ -375,9 +559,25 @@ export async function createRecorderManager(appConfig: AppConfig) {
           },
         );
       }
+
+      if (data?.convert2Mp4) {
+        try {
+          await convert2Mp4(filename);
+          await fs.unlink(filename);
+          logger.info("转换 mp4 成功，已删除原文件", { filename });
+        } catch (error) {
+          logger.error("convert2Mp4 error", error);
+        }
+      }
     } catch (error) {
       logger.error("Update live error", { recorder, filename, error });
     } finally {
+      await sendRecorderExternalEvent("file_completed", {
+        filePath: filename,
+        roomId: String(recorder.channelId),
+        platform: recorder.providerId,
+      });
+
       if (data?.sendToWebhook) {
         const webhookUrl = `http://127.0.0.1:${config.port}/webhook/custom`;
         const payload = {

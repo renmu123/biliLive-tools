@@ -8,6 +8,7 @@ import request from "./request";
 export interface QueryRecordsParams {
   room_id: string;
   platform: string;
+  liveId?: string;
   page?: number;
   pageSize?: number;
   startTime?: number;
@@ -39,6 +40,25 @@ export interface QueryRecordsResponse {
   };
 }
 
+export interface RecentRecordClipItem {
+  id: number;
+  title: string;
+  liveStartTime?: number;
+  recordStartTime: number;
+  recordEndTime?: number;
+  videoDuration?: number;
+  videoFilePath: string;
+  videoFileId: string;
+  videoFileExt: string;
+  videoFileSize: number;
+  videoFileUpdatedAt: number;
+}
+
+export interface QueryRecentClipsResponse {
+  code: number;
+  data: RecentRecordClipItem[];
+}
+
 /**
  * 查询直播记录
  */
@@ -47,6 +67,15 @@ export async function queryRecords(params: QueryRecordsParams) {
     params,
   });
   return res.data;
+}
+
+export async function queryRecentClips(
+  params: Pick<QueryRecordsParams, "room_id" | "platform" | "liveId">,
+) {
+  const res = await request.get("/record-history/recent-clips", {
+    params,
+  });
+  return res.data as QueryRecentClipsResponse;
 }
 
 /**
@@ -71,18 +100,30 @@ export async function getFileInfo(id: number): Promise<{
   return res.data;
 }
 
+export async function getDanmaFileInfo(videoFilePath: string): Promise<{
+  danmaFileId: string | null;
+  danmaFileExt: string | null;
+  danmaFilePath: string | null;
+}> {
+  const res = await request.post(`/record-history/danma-file`, {
+    videoFilePath,
+  });
+  return res.data;
+}
+
 /**
  * 下载视频文件
  */
 export async function downloadFile(id: number): Promise<string> {
   const { videoFileId } = await getFileInfo(id);
-  const fileUrl = `${request.defaults.baseURL}/assets/download/${videoFileId}`;
-  return fileUrl;
+  return `${request.defaults.baseURL}/assets/download/${videoFileId}`;
 }
 
 export default {
   queryRecords,
+  queryRecentClips,
   removeRecord,
   downloadFile,
   getFileInfo,
+  getDanmaFileInfo,
 };

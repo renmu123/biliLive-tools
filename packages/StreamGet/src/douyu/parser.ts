@@ -1,10 +1,5 @@
 import { PlatformParser } from "../types.js";
-import type {
-  RequestOptions,
-  LiveInfo,
-  SourceInfo,
-  // StreamInfo
-} from "../types.js";
+import type { RequestOptions, LiveInfo, SourceInfo } from "../types.js";
 import { ParseError } from "../errors.js";
 import { HttpClient } from "../http.js";
 import { getLiveInfo, getRoomInfo } from "./api.js";
@@ -23,7 +18,7 @@ export class DouyuParser extends PlatformParser<number> {
   }
 
   async extractRoomId(url: string) {
-    // 支持：https://www.douyu.com/123456
+    // 支持：https://www.douyu.com/2140934
     url = url.trim();
 
     // 从 URL 参数中获取 rid
@@ -67,58 +62,79 @@ export class DouyuParser extends PlatformParser<number> {
     throw new ParseError(`无法从 URL 提取房间 ID: ${url}`, this.platform);
   }
 
+  async getRoomInfo(roomId: string): Promise<LiveInfo> {
+    const roomInfo = await getRoomInfo(this.httpClient, Number(roomId));
+    const room = roomInfo.room;
+    const liveStartTime = new Date(room.show_time * 1000);
+
+    return {
+      platform: this.platform,
+      roomId,
+      living: room.show_status == 1 && room.videoLoop !== 1,
+      title: room.room_name,
+      owner: room.nickname,
+      avatar: room.owner_avatar,
+      cover: room.room_pic,
+      area: room.second_lvl_name,
+      liveStartTime,
+    };
+  }
   async getLiveInfo(
     roomId: string,
     opts: {
-      raw?: boolean;
+      onlyAudio?: boolean;
+      cdn?: string;
+      rate?: number;
+      oldApi?: boolean;
+      hevc?: boolean;
     } = {},
-  ): Promise<LiveInfo> {
+  ) {
     const mergedOpts = {
-      raw: false,
+      onlyAudio: false,
+      cdn: undefined,
+      rate: 0,
+      oldApi: false,
+      hevc: false,
       ...opts,
     };
-
-    try {
-      const roomInfo = await getRoomInfo(this.httpClient, Number(roomId));
-      const room = roomInfo.room;
-
-      const liveStartTime = new Date(room.show_time * 1000);
-
-      return {
-        platform: this.platform,
-        roomId,
-        living: room.status === "1" && room.videoLoop !== 1,
-        title: room.room_name,
-        owner: room.nickname,
-        avatar: room.avatar.big,
-        cover: room.room_pic,
-        liveStartTime,
-        raw: mergedOpts.raw ? roomInfo : undefined,
-      };
-    } catch (error) {
-      throw new ParseError(`获取直播间信息失败: ${(error as Error).message}`, this.platform);
-    }
+    const liveInfo = await getLiveInfo(this.httpClient, {
+      channelId: roomId,
+      cdn: mergedOpts.cdn,
+      rate: mergedOpts.rate ?? 0,
+      onlyAudio: mergedOpts.onlyAudio,
+      oldApi: mergedOpts.oldApi,
+      hevc: mergedOpts.hevc,
+    });
+    return liveInfo;
   }
 
   async getStreams(
     roomId: string,
-    opts: { raw?: boolean; onlyAudio?: boolean; cdn?: string; rate?: number } = {},
+    opts: {
+      onlyAudio?: boolean;
+      cdn?: string;
+      rate?: number;
+      oldApi?: boolean;
+      hevc?: boolean;
+    } = {},
   ): Promise<SourceInfo<number>[]> {
     const mergedOpts = {
-      raw: false,
       onlyAudio: false,
       cdn: undefined,
       rate: 0,
+      oldApi: false,
+      hevc: false,
       ...opts,
     };
 
     try {
       // 获取直播信息（包含流地址）
-      const liveInfo = await getLiveInfo(this.httpClient, {
-        channelId: roomId,
+      const liveInfo = await this.getLiveInfo(roomId, {
         cdn: mergedOpts.cdn,
         rate: mergedOpts.rate ?? 0,
         onlyAudio: mergedOpts.onlyAudio,
+        oldApi: mergedOpts.oldApi,
+        hevc: mergedOpts.hevc,
       });
 
       if (!liveInfo.living) {
@@ -137,7 +153,6 @@ export class DouyuParser extends PlatformParser<number> {
               quality: liveInfo.currentStream.rate,
               qualityDesc: liveInfo.currentStream.name,
               format: "flv",
-              onlyAudio: liveInfo.currentStream.onlyAudio,
             },
           ],
           cdn: liveInfo.currentStream.source,

@@ -1,6 +1,6 @@
 {
   "name": "biliLive-tools",
-  "version": "3.11.0",
+  "version": "3.16.1",
   "description": "B站直播录制处理工具",
   "main": "./out/main/index.js",
   "author": "renmu123",
@@ -27,6 +27,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@imengyu/vue3-context-menu": "^1.5.2",
     "@napi-rs/canvas": "^0.1.60",
+    "@renmu/node-shazam": "^2.0.3",
     "better-sqlite3": "catalog:",
     "bufferutil": "^4.0.8",
     "electron-context-menu": "4.1.1",
@@ -34,14 +35,14 @@
     "electron-store": "^10.0.0",
     "electron-updater": "^6.3.9",
     "font-ls": "catalog:",
-    "@renmu/node-shazam": "^2.0.3",
+    "music-segment-detector": "^0.3.1",
     "ntsuspend": "catalog:",
     "semver": "^7.6.3",
     "trash": "^9.0.0",
-    "utf-8-validate": "^6.0.5",
+    "undici": "^7.24.0",
+    "utf-8-validate": "^6.0.6",
     "wavesurfer.js": "^7.11.1",
-    "music-segment-detector": "^0.3.1",
-    "undici": "^7.24.0"
+    "awilix": "^11.0.4"
   },
   "devDependencies": {
     "@biliLive-tools/http": "workspace:*",
@@ -68,7 +69,7 @@
     "crypto-js": "^4.2.0",
     "driver.js": "^1.3.1",
     "electron": "40.8.0",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "^26.14.0",
     "electron-devtools-installer": "^4.0.0",
     "electron-vite": "^5.0.0",
     "eslint": "^8.57.1",
@@ -85,14 +86,16 @@
     "mpegts.js": "^1.8.0",
     "naive-ui": "^2.44.1",
     "path-unified": "^0.2.0",
-    "pinia": "^3.0.1",
+    "pinia": "^3.0.4",
     "sortablejs": "^1.15.6",
+    "srt-parser-2": "^1.2.3",
     "unplugin-auto-import": "^20.2.0",
     "unplugin-vue-components": "^30.0.0",
     "vite": "^7.1.10",
     "vue": "^3.5.13",
     "vue-router": "^5.0.3",
     "vue-tsc": "^3.1.1",
-    "vuedraggable": "^4.1.0"
+    "vuedraggable": "^4.1.0",
+    "dayjs": "^1.11.18"
   }
 }

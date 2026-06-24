@@ -1,21 +1,7 @@
 import fs from "fs/promises";
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { StreamManager, Segment } from "../../src/downloader/streamManager";
-
-vi.mock("../../src/record_extra_data_controller", () => ({
-  createRecordExtraDataController: () => ({
-    data: {
-      meta: {
-        recordStartTimestamp: Date.now(),
-      },
-      messages: [],
-    },
-    addMessage: vi.fn(),
-    setMeta: vi.fn(),
-    flush: vi.fn(),
-  }),
-}));
 
 vi.mock("../../src/xml_stream_controller", () => ({
   createRecordExtraDataController: () => ({
@@ -23,11 +9,17 @@ vi.mock("../../src/xml_stream_controller", () => ({
       meta: {
         recordStartTimestamp: Date.now(),
       },
-      messages: [],
+      pendingMessages: [],
     },
     addMessage: vi.fn(),
     setMeta: vi.fn(),
     flush: vi.fn(),
+    getStats: vi.fn().mockReturnValue({
+      danmaNum: 3,
+      uniqMember: 2,
+      scNum: 1,
+      guardNum: 0,
+    }),
   }),
 }));
 // vi.mock("../src/utils");
@@ -35,11 +27,17 @@ vi.mock("../../src/xml_stream_controller", () => ({
 describe("StreamManager", () => {
   let getSavePathMock: any;
   let streamManager: StreamManager;
+  let dateNowSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     getSavePathMock = vi.fn().mockReturnValue("mocked/path");
     streamManager = new StreamManager(getSavePathMock, true, false, "ffmpeg", "ts");
     vi.spyOn(streamManager, "emit");
+    dateNowSpy = vi.spyOn(Date, "now");
+  });
+
+  afterEach(() => {
+    dateNowSpy.mockRestore();
   });
 
   it("should initialize StreamManager with Segment", () => {
@@ -60,6 +58,29 @@ describe("StreamManager", () => {
     });
   });
 
+  it("should keep the initial timestamp for the first segment", async () => {
+    dateNowSpy.mockReturnValueOnce(1000).mockReturnValueOnce(2000);
+    getSavePathMock = vi.fn(({ startTime, extraMs }) =>
+      extraMs ? `mocked/path-${startTime}-extra` : `mocked/path-${startTime}`,
+    );
+    streamManager = new StreamManager(getSavePathMock, true, false, "ffmpeg", "ts");
+    vi.spyOn(streamManager, "emit");
+
+    await streamManager.handleVideoStarted("Opening 'mockedFilename.ts' for writing");
+
+    expect(getSavePathMock).toHaveBeenNthCalledWith(1, { startTime: 1000 });
+    expect(getSavePathMock).toHaveBeenNthCalledWith(2, {
+      startTime: 1000,
+      title: undefined,
+    });
+    expect(streamManager.emit).toHaveBeenCalledWith("videoFileCreated", {
+      filename: "mocked/path-1000.ts",
+      cover: "",
+      title: "",
+      rawFilename: "mockedFilename.ts",
+    });
+  });
+
   it("should handle video completed with segment", async () => {
     vi.spyOn(fs, "rename").mockResolvedValue();
     const stderrLine = "Opening 'mockedFilename.ts' for writing";
@@ -68,6 +89,12 @@ describe("StreamManager", () => {
     await streamManager.handleVideoCompleted();
     expect(streamManager.emit).toHaveBeenCalledWith("videoFileCompleted", {
       filename: "mocked/path.ts",
+      stats: {
+        danmaNum: 3,
+        uniqMember: 2,
+        scNum: 1,
+        guardNum: 0,
+      },
     });
   });
 
@@ -95,12 +122,18 @@ describe("StreamManager", () => {
 describe("Segment", () => {
   let segmentManager: Segment;
   let getSavePathMock: any;
+  let dateNowSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     getSavePathMock = vi.fn().mockReturnValue("mocked/path");
 
     segmentManager = new Segment(getSavePathMock, false, "ts");
     vi.spyOn(segmentManager, "emit");
+    dateNowSpy = vi.spyOn(Date, "now");
+  });
+
+  afterEach(() => {
+    dateNowSpy.mockRestore();
   });
 
   it("should initialize Segment", () => {
@@ -114,6 +147,12 @@ describe("Segment", () => {
     await segmentManager.handleSegmentEnd();
     expect(segmentManager.emit).toHaveBeenCalledWith("videoFileCompleted", {
       filename: "mocked/path.ts",
+      stats: {
+        danmaNum: 3,
+        uniqMember: 2,
+        scNum: 1,
+        guardNum: 0,
+      },
     });
   });
   it("should handle segment manual end", async () => {
@@ -122,6 +161,12 @@ describe("Segment", () => {
     await segmentManager.onSegmentStart("'mockedFilename.ts'");
     expect(segmentManager.emit).toHaveBeenCalledWith("videoFileCompleted", {
       filename: "mocked/path.ts",
+      stats: {
+        danmaNum: 3,
+        uniqMember: 2,
+        scNum: 1,
+        guardNum: 0,
+      },
     });
   });
 
@@ -135,5 +180,24 @@ describe("Segment", () => {
       rawFilename: "mockedFilename.ts",
     });
     expect(segmentManager.init).toBe(false);
+  });
+
+  it("should use provided firstStartTime for the first segment only", async () => {
+    dateNowSpy.mockReturnValueOnce(3000).mockReturnValueOnce(4000);
+    getSavePathMock = vi.fn(({ startTime }) => `mocked/path-${startTime}`);
+    segmentManager = new Segment(getSavePathMock, false, "ts", { firstStartTime: 1000 });
+    vi.spyOn(segmentManager, "emit");
+
+    await segmentManager.onSegmentStart("'first.ts'");
+    await segmentManager.onSegmentStart("'second.ts'");
+
+    expect(getSavePathMock).toHaveBeenNthCalledWith(1, {
+      startTime: 1000,
+      title: undefined,
+    });
+    expect(getSavePathMock).toHaveBeenNthCalledWith(2, {
+      startTime: 4000,
+      title: undefined,
+    });
   });
 });

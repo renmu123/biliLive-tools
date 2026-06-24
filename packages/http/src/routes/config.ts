@@ -16,6 +16,15 @@ const router = new Router({
 
 const upload = multer({ dest: os.tmpdir() });
 
+type VerifyBiliKeyReason = "missing" | "mismatch" | "error" | "ok";
+
+interface VerifyBiliKeyResponse {
+  configured: boolean;
+  valid: boolean;
+  matched: boolean;
+  reason: VerifyBiliKeyReason;
+}
+
 router.get("/", async (ctx) => {
   const config = appConfig.getAll();
   ctx.body = config;
@@ -37,6 +46,51 @@ router.post("/set", async (ctx) => {
   // @ts-ignore
   appConfig.set(data.key, data.value);
   ctx.body = "success";
+});
+
+router.post("/verifyBiliKey", async (ctx) => {
+  try {
+    const serverKey = process.env.BILILIVE_TOOLS_BILIKEY;
+    const configured = typeof serverKey === "string" && serverKey.trim().length > 0;
+
+    const requestBody = ctx.request.body as { key?: unknown };
+    const rawInput = typeof requestBody?.key === "string" ? requestBody.key : "";
+    const inputKey = rawInput.trim();
+
+    let response: VerifyBiliKeyResponse;
+    if (!configured) {
+      response = {
+        configured: false,
+        valid: false,
+        matched: false,
+        reason: "missing",
+      };
+    } else if (inputKey === serverKey) {
+      response = {
+        configured: true,
+        valid: true,
+        matched: true,
+        reason: "ok",
+      };
+    } else {
+      response = {
+        configured: true,
+        valid: false,
+        matched: false,
+        reason: "mismatch",
+      };
+    }
+
+    ctx.body = response;
+  } catch {
+    const response: VerifyBiliKeyResponse = {
+      configured: false,
+      valid: false,
+      matched: false,
+      reason: "error",
+    };
+    ctx.body = response;
+  }
 });
 
 router.post("/resetBin", async (ctx) => {
@@ -119,7 +173,7 @@ router.get("/export", async (ctx) => {
       .map((item) => item.config.cover)
       .filter((cover) => cover && !path.isAbsolute(cover));
 
-    const usedImageSet = new Set(usedImages);
+    const usedImageSet: Set<string | undefined> = new Set(usedImages);
     const tempDir = getTempPath();
     const backupPath = path.join(tempDir, "biliLive-tools");
     await fs.ensureDir(backupPath);
@@ -214,7 +268,31 @@ router.post("/import", upload.single("file"), async (ctx) => {
 
 router.post("/notifyTest", async (ctx) => {
   const { title, desp, options, notifyType } = ctx.request.body;
-  await _send(title, desp, options, notifyType);
+  await _send(title, desp, options, notifyType, {
+    context: {
+      event: "notify_test",
+      eventLabel: "测试通知",
+      roomId: "123456",
+      platform: "Bilibili",
+      username: "测试主播",
+      liveTitle: "这是一条测试直播标题",
+      liveId: "live_test_001",
+      roomUrl: "https://live.bilibili.com/123456",
+      taskName: "上传视频：测试文件.mp4",
+      taskType: "upload",
+      taskStatus: "success",
+      taskId: "task_test_001",
+      filename: "test-file.mp4",
+      filePath: "D:/record/test-file.mp4",
+      mediaTitle: "测试稿件",
+      aid: 123456789,
+      startedAt: new Date().toISOString(),
+      endedAt: new Date().toISOString(),
+      durationMs: 3000,
+      error: "",
+      output: "测试输出内容",
+    },
+  });
   ctx.body = "success";
 });
 

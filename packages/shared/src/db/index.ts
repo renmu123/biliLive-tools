@@ -12,6 +12,7 @@ export let videoSubService: Container["videoSubService"];
 export let recordHistoryService: Container["recordHistoryService"];
 export let uploadPartService: Container["uploadPartService"];
 export let danmuService: Container["danmuService"];
+export let subtitleStyleService: Container["subtitleStyleService"];
 
 export const initDB = (dbRootPath: string): void => {
   // 依赖注入容器
@@ -46,6 +47,7 @@ const setExportServices = (dbContainer: ReturnType<typeof setupContainer>) => {
   recordHistoryService = dbContainer.resolve("recordHistoryService");
   uploadPartService = dbContainer.resolve("uploadPartService");
   danmuService = dbContainer.resolve("danmuService");
+  subtitleStyleService = dbContainer.resolve("subtitleStyleService");
 };
 
 export const getMainDb = (): DatabaseType => dbContainer.resolve("db");

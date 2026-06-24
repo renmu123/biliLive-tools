@@ -9,8 +9,6 @@
       class="card"
     >
       <n-form label-placement="left" :label-width="150">
-        <h4>支持斗鱼、虎牙、B站、抖音、小红书，请做好踩坑的准备</h4>
-
         <n-form-item v-if="!isEdit">
           <template #label>
             <Tip
@@ -118,6 +116,22 @@
                 placeholder="请输入分段参数"
               />
               <n-checkbox v-model:checked="globalFieldsObj.segment" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+
+            <n-form-item>
+              <template #label>
+                <Tip
+                  :text="textInfo.common.convert2Mp4.text"
+                  :tip="textInfo.common.convert2Mp4.tip"
+                ></Tip>
+              </template>
+              <n-switch
+                v-model:value="config.convert2Mp4"
+                :disabled="globalFieldsObj.convert2Mp4"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
                 >全局</n-checkbox
               >
             </n-form-item>
@@ -237,16 +251,16 @@
                 >全局</n-checkbox
               >
             </n-form-item>
-            <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+            <n-form-item>
               <template #label>
                 <Tip
-                  :text="textInfo.common.titleKeywords.text"
-                  :tip="textInfo.common.titleKeywords.tip"
+                  :text="textInfo.bili.titleKeywords.text"
+                  :tip="textInfo.bili.titleKeywords.tip"
                 ></Tip>
               </template>
               <n-input
                 v-model:value="config.titleKeywords"
-                :placeholder="textInfo.common.titleKeywords.placeholder"
+                :placeholder="textInfo.bili.titleKeywords.placeholder"
                 clearable
               />
             </n-form-item>
@@ -275,6 +289,35 @@
                 :disabled="globalFieldsObj.source"
               />
               <n-checkbox v-model:checked="globalFieldsObj.source" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip :text="textInfo.douyu.api.text" :tip="textInfo.douyu.api.tip"></Tip>
+              </template>
+              <n-select
+                v-model:value="config.api"
+                :options="douyuApiTypeOptions"
+                :disabled="globalFieldsObj.api"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.api" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item v-if="config.api !== 'oldAPI'">
+              <template #label>
+                <Tip
+                  :text="textInfo.douyu.codecName.text"
+                  :tip="textInfo.douyu.codecName.tip"
+                ></Tip>
+              </template>
+              <n-select
+                v-model:value="config.codecName"
+                :options="douyuStreamCodecOptions"
+                :disabled="globalFieldsObj.codecName"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.codecName" class="global-checkbox"
                 >全局</n-checkbox
               >
             </n-form-item>
@@ -491,7 +534,7 @@
               >全局</n-checkbox
             >
           </n-form-item>
-          <n-form-item>
+          <n-form-item v-if="!config.disableAutoCheck">
             <template #label>
               <Tip
                 text="监控时间段"
@@ -513,6 +556,15 @@
                 ></Tip>
               </template>
               <n-switch v-model:value="config.liveStartNotification" />
+            </n-form-item>
+            <n-form-item v-if="!config.disableAutoCheck">
+              <template #label>
+                <Tip
+                  text="付费直播推送"
+                  tip="检测到付费直播(DRM 加密直播)时推送通知。此类直播为 DRM 加密，无法自动录制，仅作提醒。"
+                ></Tip>
+              </template>
+              <n-switch v-model:value="config.chargeLiveNotification" />
             </n-form-item>
             <n-form-item v-if="!config.disableAutoCheck">
               <template #label>
@@ -657,6 +709,8 @@ import {
   recorderDebugLevelOptions,
   douyinApiTypeOptions,
   huyaApiTypeOptions,
+  douyuStreamCodecOptions,
+  douyuApiTypeOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
@@ -686,6 +740,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     segment: true,
     uid: true,
     saveCover: true,
+    convert2Mp4: true,
     qualityRetry: true,
     formatName: true,
     useM3U8Proxy: true,
@@ -751,6 +806,10 @@ const getRecordSetting = async () => {
   if (!config.value.weight) {
     config.value.weight = 10;
   }
+  // 充电直播推送默认开启：旧录制器无该字段时按开启显示
+  if (config.value.chargeLiveNotification === undefined) {
+    config.value.chargeLiveNotification = true;
+  }
 };
 const isEdit = computed(() => !!props.id);
 
@@ -783,6 +842,7 @@ const initGlobalFields = () => {
     segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
     uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
     saveCover: !(config.value?.noGlobalFollowFields ?? []).includes("saveCover"),
+    convert2Mp4: !(config.value?.noGlobalFollowFields ?? []).includes("convert2Mp4"),
     qualityRetry: !(config.value?.noGlobalFollowFields ?? []).includes("qualityRetry"),
     formatName: !(config.value?.noGlobalFollowFields ?? []).includes("formatName"),
     useM3U8Proxy: !(config.value?.noGlobalFollowFields ?? []).includes("useM3U8Proxy"),
@@ -859,6 +919,9 @@ watch(
     if (val.saveCover) {
       config.value.saveCover = appConfig.value.recorder.saveCover;
     }
+    if (val.convert2Mp4) {
+      config.value.convert2Mp4 = appConfig.value.recorder.convert2Mp4;
+    }
     if (val.qualityRetry) {
       config.value.qualityRetry = appConfig.value.recorder.qualityRetry;
     }
@@ -869,6 +932,8 @@ watch(
     if (val.codecName) {
       if (config.value.providerId === "Bilibili") {
         config.value.codecName = appConfig.value.recorder.bilibili.codecName;
+      } else if (config.value.providerId === "DouYu") {
+        config.value.codecName = appConfig.value.recorder.douyu.codecName;
       }
     }
     if (val.source) {
@@ -907,6 +972,8 @@ watch(
         config.value.api = appConfig.value.recorder.douyin.api;
       } else if (config.value.providerId === "HuYa") {
         config.value.api = appConfig.value.recorder.huya.api;
+      } else if (config.value.providerId === "DouYu") {
+        config.value.api = appConfig.value.recorder.douyu.api;
       }
     }
     if (val.customHost) {
@@ -940,7 +1007,7 @@ watch(
 
 .card {
   :deep(.n-form-item-feedback-wrapper) {
-    --n-feedback-height: 20px;
+    --n-feedback-height: 15px;
   }
 }
 h2 {

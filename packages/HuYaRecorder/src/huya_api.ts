@@ -111,6 +111,7 @@ export async function getRoomInfo(
     startTime,
     liveId: utils.md5(`${roomIdOrShortId}-${startTime?.getTime()}`),
     gid: data.gameLiveInfo.gid,
+    area: data.gameLiveInfo.gameFullName,
   };
 }
 

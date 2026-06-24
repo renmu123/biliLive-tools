@@ -6,7 +6,7 @@ import { default as checkDiskSpace } from "check-disk-space";
 export * from "./presets/index.js";
 import { taskQueue, TaskQueue } from "./task/task.js";
 import { appConfig, AppConfig } from "./config.js";
-import { DanmuPreset, VideoPreset, FFmpegPreset } from "./presets/index.js";
+import { DanmuPreset, VideoPreset, FFmpegPreset, SubtitleStylePreset } from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import logger, { initLogger, setLogLevel } from "./utils/log.js";
 import { migrateBiliUser, checkAccountLoop } from "./task/bili.js";
@@ -31,6 +31,7 @@ export interface GlobalContainer {
   danmuPreset: DanmuPreset;
   videoPreset: VideoPreset;
   ffmpegPreset: FFmpegPreset;
+  subtitleStylePreset: SubtitleStylePreset;
   recorderManager: Awaited<ReturnType<typeof createRecorderManager>>;
 }
 
@@ -63,6 +64,7 @@ const init = async (config: GlobalConfig) => {
     danmuPreset: asClass(DanmuPreset).singleton(),
     videoPreset: asClass(VideoPreset).singleton(),
     ffmpegPreset: asClass(FFmpegPreset).singleton(),
+    subtitleStylePreset: asClass(SubtitleStylePreset).singleton(),
   });
   const recorderManager = await createRecorderManager(appConfig);
   container.register({
@@ -108,7 +110,16 @@ const checkDiskSpaceLoop = async () => {
           const diskInfo = await checkDiskSpace(config?.webhook?.recoderFolder);
           if (diskInfo.free < threshold * 1024 * 1024 * 1024) {
             console.warn("录播姬磁盘空间不足，请及时处理");
-            sendNotify("空间不足", "录播姬磁盘空间不足，请及时处理");
+            sendNotify("空间不足", "录播姬磁盘空间不足，请及时处理", {
+              type: "diskSpaceCheck",
+              context: {
+                event: "disk_space_low",
+                eventLabel: "磁盘空间不足",
+                diskTarget: "bilirecorder",
+                thresholdGb: threshold,
+                path: config?.webhook?.recoderFolder,
+              },
+            });
           }
         }
       }
@@ -118,7 +129,16 @@ const checkDiskSpaceLoop = async () => {
           const diskInfo = await checkDiskSpace(config?.recorder?.savePath);
           if (diskInfo.free < threshold * 1024 * 1024 * 1024) {
             console.warn("biliLiveTools录制磁盘空间不足，请及时处理");
-            sendNotify("空间不足", "biliLiveTools录制磁盘空间不足，请及时处理");
+            sendNotify("空间不足", "biliLiveTools录制磁盘空间不足，请及时处理", {
+              type: "diskSpaceCheck",
+              context: {
+                event: "disk_space_low",
+                eventLabel: "磁盘空间不足",
+                diskTarget: "bililiveTools",
+                thresholdGb: threshold,
+                path: config?.recorder?.savePath,
+              },
+            });
           }
         }
       }

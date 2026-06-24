@@ -541,6 +541,75 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
+  it("无弹幕+帧率", async () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: undefined,
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+      audioCodec: "copy",
+      fps: 60,
+    };
+
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-filter_complex",
+      "[0:v]fps=60[0:video]",
+      "-map",
+      "[0:video]",
+      "-map",
+      "0:a",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
+  it("弹幕+时间戳+帧率", async () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: "/path/to/subtitle.ass",
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+      audioCodec: "copy",
+      addTimestamp: true,
+      fps: 60,
+    };
+
+    const command = await genMergeAssMp4Command(files, ffmpegOptions, {
+      startTimestamp: 1633831810,
+    });
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-filter_complex",
+      "[0:v]fps=60[0:video];[0:video]subtitles=/path/to/subtitle.ass[1:video];[1:video]drawtext=text='%{pts\\:localtime\\:1633831810\\:%Y-%m-%d %T}':fontcolor=white:fontsize=24:x=10:y=10[2:video]",
+      "-map",
+      "[2:video]",
+      "-map",
+      "0:a",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
   it("无弹幕+缩放", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
@@ -605,6 +674,40 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "[0:v]hflip[0:video];[0:video]subtitles=/path/to/subtitle.ass[1:video];[1:video]transpose=1[2:video]",
       "-map",
       "[2:video]",
+      "-map",
+      "0:a",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
+  it("自定义视频滤镜包含$origin时保留帧率", async () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: "/path/to/subtitle.ass",
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+      audioCodec: "copy",
+      fps: 60,
+      vf: "hflip;$origin;transpose=1",
+    };
+
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-filter_complex",
+      "[0:v]hflip[0:video];[0:video]fps=60[1:video];[1:video]subtitles=/path/to/subtitle.ass[2:video];[2:video]transpose=1[3:video]",
+      "-map",
+      "[3:video]",
       "-map",
       "0:a",
       "-c:v",

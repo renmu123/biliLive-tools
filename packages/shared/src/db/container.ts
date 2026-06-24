@@ -9,6 +9,7 @@ import StreamerModel from "./model/streamer.js";
 import VideoSubModel from "./model/videoSub.js";
 import RecordHistoryModel from "./model/recordHistory.js";
 import UploadPartModel from "./model/uploadPart.js";
+import SubtitleStyleModel from "./model/subtitleStyle.js";
 
 import StatisticsService from "./service/statisticsService.js";
 import VirtualRecordService from "./service/virtualRecordService.js";
@@ -18,6 +19,7 @@ import VideoSubService from "./service/videoSubService.js";
 import RecordHistoryService from "./service/recordHistoryService.js";
 import UploadPartService from "./service/uploadPartService.js";
 import DanmuService from "./service/danmuService.js";
+import SubtitleStyleService from "./service/subtitleStyleService.js";
 
 import type { Database as DatabaseType } from "better-sqlite3";
 
@@ -36,6 +38,7 @@ export interface Container {
   videoSubModel: VideoSubModel;
   recordHistoryModel: RecordHistoryModel;
   uploadPartModel: UploadPartModel;
+  subtitleStyleModel: SubtitleStyleModel;
 
   statisticsService: StatisticsService;
   virtualRecordService: VirtualRecordService;
@@ -45,6 +48,7 @@ export interface Container {
   recordHistoryService: RecordHistoryService;
   uploadPartService: UploadPartService;
   danmuService: DanmuService;
+  subtitleStyleService: SubtitleStyleService;
 }
 
 /**
@@ -98,6 +102,7 @@ export function setupContainer(dbRootPath: string) {
     videoSubModel: asClass(VideoSubModel).singleton(),
     recordHistoryModel: asClass(RecordHistoryModel).singleton(),
     uploadPartModel: asClass(UploadPartModel).singleton(),
+    subtitleStyleModel: asClass(SubtitleStyleModel).singleton(),
   });
 
   // Register all Services
@@ -110,6 +115,7 @@ export function setupContainer(dbRootPath: string) {
     recordHistoryService: asClass(RecordHistoryService).singleton(),
     uploadPartService: asClass(UploadPartService).singleton(),
     danmuService: asClass(DanmuService).singleton(),
+    subtitleStyleService: asClass(SubtitleStyleService).singleton(),
   });
 
   return container;

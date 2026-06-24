@@ -128,6 +128,7 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
   readonly disableDanma: boolean = false;
   readonly url: string;
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
+  readonly proxy?: string;
   readonly headers:
     | {
         [key: string]: string | undefined;
@@ -145,6 +146,7 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
     this.hasSegment = hasSegment;
     this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
+    this.proxy = opts.proxy;
     let videoFormat: "flv" = "flv";
 
     this.streamManager = new StreamManager(
@@ -180,8 +182,8 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
     this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename, title }) => {
       this.emit("videoFileCreated", { filename, cover, rawFilename, title });
     });
-    this.streamManager.on("videoFileCompleted", ({ filename }) => {
-      this.emit("videoFileCompleted", { filename });
+    this.streamManager.on("videoFileCompleted", (data) => {
+      this.emit("videoFileCompleted", data);
     });
     this.streamManager.on("DebugLog", (data) => {
       this.emit("DebugLog", data);
@@ -193,6 +195,9 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
     const inputOptions = [...this.inputOptions, "--disable-log-file", "true"];
     if (this.debugLevel === "verbose") {
       inputOptions.push("-l", "Debug");
+    }
+    if (this.proxy) {
+      inputOptions.push(...["--proxy", this.proxy]);
     }
 
     if (this.headers) {
@@ -237,6 +242,12 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
     const timeMatch = line.match(/录制时长:\s*([0-9:]+)\s/);
     if (timeMatch) {
       time = timeMatch[1];
+    }
+
+    const spaceMath = line.match(/下载进度:\s*([\d.]+\s*MB)\s*/);
+    if (spaceMath) {
+      const space = spaceMath[1];
+      time = time ? `${time} ${space}` : space;
     }
 
     return {

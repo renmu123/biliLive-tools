@@ -38,6 +38,24 @@ import type { Theme, GlobalConfig } from "@biliLive-tools/types";
 export let mainWin: BrowserWindow;
 export let container = createContainer();
 
+const SENTRY_CRASH_DSN =
+  "https://aa05399bf7cf8b619177be3284d28fc8@o4511547045576704.ingest.us.sentry.io/4511547052720128";
+
+const getSentryMinidumpSubmitURL = (dsn: string) => {
+  try {
+    const url = new URL(dsn);
+    const projectId = url.pathname.replace(/^\/+/, "");
+    if (!projectId || !url.username) {
+      throw new Error("Missing Sentry project id or public key.");
+    }
+
+    return `${url.protocol}//${url.host}/api/${projectId}/minidump/?sentry_key=${url.username}`;
+  } catch (error) {
+    log.warn("Failed to parse Sentry crash DSN.", error);
+    return undefined;
+  }
+};
+
 contextMenu({
   showSelectAll: false,
   showSearchWithGoogle: false,
@@ -90,7 +108,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:setTheme", setTheme);
   ipcMain.handle("common:setMenuBarVisible", setMenuBarVisible);
-  ipcMain.handle("common:createSubWindow", createCutWindow);
+  ipcMain.handle("common:createSubWindow", createSubWindow);
   ipcMain.handle("common:checkUpdate", manualCheckUpdate);
 
   registerHandlers(ipcMain, ffmpegHandlers);
@@ -99,13 +117,25 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, cookieHandlers);
 };
 
-function createCutWindow() {
+function createSubWindow(
+  _event: IpcMainInvokeEvent,
+  options: {
+    routeName: string;
+    hideAside?: boolean;
+    hideMenuBar?: boolean;
+    maximized?: boolean;
+    query?: Record<string, string>;
+  },
+) {
   const css = `
   .layout>div>aside {
     display: none;
-  }`;
-  const appConfig = container.resolve("appConfig");
-  const menuBarVisible = appConfig.get("menuBarVisible");
+  }
+  .main-container{
+    margin: 0 !important;
+  }  
+  `;
+  const hideMenuBar = !!options.hideMenuBar;
 
   const subWindow = new BrowserWindow({
     webPreferences: {
@@ -113,22 +143,34 @@ function createCutWindow() {
       sandbox: false,
       webSecurity: false,
     },
-    autoHideMenuBar: !menuBarVisible,
+    autoHideMenuBar: hideMenuBar,
   });
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-    subWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/#/videoCut");
+    let url = process.env["ELECTRON_RENDERER_URL"] + `/#/${options.routeName}`;
+    if (options.query) {
+      let queryString = Object.keys(options.query).map(
+        (key) => `${key}=${encodeURIComponent(options.query![key])}`,
+      );
+      url += `?${queryString.join("&")}`;
+    }
+    subWindow.loadURL(url.toString());
   } else {
     subWindow.loadFile(join(__dirname2, "../renderer/index.html"), {
-      hash: "videoCut",
+      hash: options.routeName,
+      query: options.query,
     });
   }
 
   subWindow.webContents.on("did-finish-load", () => {
-    subWindow.webContents.insertCSS(css);
+    if (options.hideAside) {
+      subWindow.webContents.insertCSS(css);
+    }
   });
   // subWindow.webContents.openDevTools();
-  subWindow.maximize();
+  if (options.maximized) {
+    subWindow.maximize();
+  }
   return true;
   return subWindow;
 }
@@ -349,7 +391,18 @@ function createWindow(): void {
 }
 
 function createMenu(): void {
-  const menu = Menu.buildFromTemplate([
+  const isMac = process.platform === "darwin";
+
+  const template: Electron.MenuItemConstructorOptions[] = [];
+
+  // macOS 需要 appMenu 才能让 Cmd+Q 等系统快捷键正常工作
+  if (isMac) {
+    template.push({
+      role: "appMenu",
+    });
+  }
+
+  template.push(
     {
       label: "文件",
       submenu: [
@@ -380,13 +433,19 @@ function createMenu(): void {
             shell.openPath(app.getPath("logs"));
           },
         },
+        { type: "separator" },
         {
           label: "退出",
+          accelerator: isMac ? "Cmd+Q" : "Alt+F4",
           click: async () => {
             quit();
           },
         },
       ],
+    },
+    // Edit 菜单提供 Cmd+C / Cmd+V / Cmd+A 等标准快捷键
+    {
+      role: "editMenu",
     },
     {
       label: "开发者工具",
@@ -439,7 +498,16 @@ function createMenu(): void {
         },
       ],
     },
-  ]);
+  );
+
+  // macOS 需要 windowMenu 来提供窗口管理功能
+  if (isMac) {
+    template.push({
+      role: "windowMenu",
+    });
+  }
+
+  const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 }
 
@@ -457,15 +525,17 @@ const canQuit = async () => {
   if (isRunningTask || isRecordingTask) {
     const confirm = await dialog.showMessageBox(mainWin, {
       message: "检测到有未完成的任务或录制，是否退出？",
-      buttons: ["取消", "退出"],
+      buttons: ["取消", "强制退出", "退出"],
     });
-    if (confirm.response === 1) {
+    if (confirm.response === 2) {
       // 手动停止正在录制的直播
       for (const recorder of recorderManager.manager.recorders) {
         if (recorder.state === "recording") {
           await recorderManager.manager.stopRecord(recorder.id);
         }
       }
+      return true;
+    } else if (confirm.response === 1) {
       return true;
     } else {
       return false;
@@ -517,8 +587,17 @@ export const relaunch = async () => {
 };
 
 export const setOpenAtLogin = (_event: IpcMainInvokeEvent, openAtLogin: boolean) => {
+  if (process.platform === "win32") {
+    // 兼容性清理
+    app.setLoginItemSettings({
+      openAtLogin: false,
+      name: "com.electron",
+    });
+  }
+
   app.setLoginItemSettings({
     openAtLogin,
+    args: ["--hidden"],
   });
 };
 
@@ -526,11 +605,18 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
+  const sentryCrashSubmitURL = getSentryMinidumpSubmitURL(SENTRY_CRASH_DSN);
   crashReporter.start({
     uploadToServer: false,
+    submitURL: sentryCrashSubmitURL,
+    compress: true,
+    rateLimit: true,
+    globalExtra: {
+      product: "biliLive-tools",
+    },
   });
   app.whenReady().then(() => {
-    electronApp.setAppUserModelId("com.electron");
+    electronApp.setAppUserModelId("com.electron.biliLiveTools");
     installExtension("nhdogjmejiglipccpnnnanhbledajbpd")
       .then(({ name }) => log.debug(`Added Extension:  ${name}`))
       .catch((err) => log.debug("An error occurred: ", err));
@@ -707,6 +793,9 @@ const appInit = async () => {
     } catch (error) {
       log.error("自动更新检查失败:", error);
     }
+  }
+  if (appConfig.get("uploadCrashReport")) {
+    crashReporter.setUploadToServer(true);
   }
   // taskQueueListen(container);
 };

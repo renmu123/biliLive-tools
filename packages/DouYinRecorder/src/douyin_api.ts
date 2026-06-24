@@ -178,9 +178,13 @@ async function getRoomInfoByUserWeb(
   if (res.data.includes("验证码")) {
     throw new Error("需要验证码，请在浏览器中打开链接获取" + url);
   }
+  if (!res.data.includes("抖音号")) {
+    throw new Error("userHTML页面没有正常加载" + String(res.data));
+  }
   if (!res.data.includes("直播中")) {
     return {
       living: false,
+      isLiveRadio: false,
       nickname: "",
       sec_uid: "",
       avatar: "",
@@ -202,19 +206,40 @@ async function getRoomInfoByUserWeb(
     .replace(/\\"/g, '"')
     .replace(/"\$\w+"/g, "null");
 
-  // const roomRegex = /(\{\\"common\\":.*?)"\]\)/;
-  // const roomMatch = res.data.match(roomRegex);
-  // if (!roomMatch) {
-  //   throw new Error("No room match found in HTML");
-  // }
-  // let roomJsonStr = roomMatch[1];
-  // roomJsonStr = roomJsonStr
-  //   .replace(/\\"/g, '"')
-  //   .replace(/\\"/g, '"')
-  //   .replace(/"\$\w+"/g, "null");
   try {
-    // console.log(userJsonStr);
     const userData = JSON.parse(userJsonStr);
+    const roomData = userData?.user?.user?.roomData;
+    const streamUrl = roomData?.stream_url;
+
+    let liveCoreSdkData: any | string = null;
+    if (streamUrl) {
+      liveCoreSdkData = { live_core_sdk_data: streamUrl.live_core_sdk_data };
+      if (liveCoreSdkData?.live_core_sdk_data?.pull_data) {
+        const flvPullUrl = streamUrl.flv_pull_url;
+        let streamData: StreamData["data"] = {};
+        for (const quality of [{ key: "or4", desc: "原画" }, ...qualityList]) {
+          const flvUrls = Object.values(flvPullUrl) as string[];
+          if (flvUrls.some((url) => url.includes(`${quality.key}`))) {
+            const url = flvUrls.find((url) => url.includes(`${quality.key}`));
+            const convertedQuality = quality.key === "or4" ? "origin" : quality.key;
+            streamData[convertedQuality] = {
+              // @ts-ignore
+              main: {
+                flv: url!,
+                hls: "",
+              },
+            };
+          }
+        }
+
+        liveCoreSdkData.live_core_sdk_data.pull_data.stream_data = streamData;
+      } else {
+        liveCoreSdkData = null;
+      }
+    }
+
+    // console.log("pppp", JSON.stringify(liveCoreSdkData, null, 2));
+    // console.log(JSON.stringify(streamUrl, null, 2));
     // console.log(JSON.stringify(userData, null, 2));
 
     // const roomData = JSON.parse(roomJsonStr);
@@ -223,15 +248,16 @@ async function getRoomInfoByUserWeb(
     // const streamData = data.state.streamStore.streamData;
     return {
       living: userData?.user?.user?.roomData?.status === 2,
+      isLiveRadio: roomData?.live_type_audio ?? false,
       nickname: userData?.user?.user?.nickname ?? "",
       sec_uid: userData?.user?.user?.secUid ?? "",
       avatar: userData?.user?.user?.avatar ?? "",
-      api: "webHTML",
+      api: "userHTML",
       room: {
         title: "",
         cover: "",
         id_str: userData?.user?.user?.roomIdStr,
-        stream_url: null,
+        stream_url: liveCoreSdkData,
       },
     };
   } catch (e) {
@@ -284,8 +310,10 @@ async function getRoomInfoByHtml(
     const data = JSON.parse(jsonStr);
     const roomInfo = data.state.roomStore.roomInfo;
     const streamData = data.state.streamStore.streamData;
+    const isLiveRadio = roomInfo.enter_mode == 1;
     return {
-      living: roomInfo?.room?.status === 2,
+      living: roomInfo?.room?.status === 2 || isLiveRadio,
+      isLiveRadio: isLiveRadio,
       nickname: roomInfo?.anchor?.nickname ?? "",
       sec_uid: roomInfo?.anchor?.sec_uid ?? "",
       avatar: roomInfo?.anchor?.avatar_thumb?.url_list?.[0] ?? "",
@@ -294,15 +322,17 @@ async function getRoomInfoByHtml(
         title: roomInfo?.room?.title ?? "",
         cover: roomInfo?.room?.cover?.url_list?.[0] ?? "",
         id_str: roomInfo?.room?.id_str ?? "",
-        stream_url: {
-          pull_datas: roomInfo?.room?.stream_url?.pull_datas,
-          live_core_sdk_data: {
-            pull_data: {
-              options: { qualities: streamData.H264_streamData?.options?.qualities ?? [] },
-              stream_data: streamData.H264_streamData?.stream ?? {},
-            },
-          },
-        },
+        stream_url: roomInfo?.room?.stream_url?.pull_datas
+          ? {
+              pull_datas: roomInfo?.room?.stream_url?.pull_datas,
+              live_core_sdk_data: {
+                pull_data: {
+                  options: { qualities: streamData.H264_streamData?.options?.qualities ?? [] },
+                  stream_data: streamData.H264_streamData?.stream ?? {},
+                },
+              },
+            }
+          : null,
       },
     };
   } catch (e) {
@@ -360,6 +390,7 @@ async function getRoomInfoByWeb(
     // 直播已结束
     return {
       living: false,
+      isLiveRadio: false,
       nickname: "",
       sec_uid: "",
       avatar: "",
@@ -381,7 +412,8 @@ async function getRoomInfoByWeb(
   const room = data?.data?.[0];
 
   return {
-    living: data?.room_status === 0,
+    living: data?.room_status === 0 || data?.room_status === 1,
+    isLiveRadio: data?.room_status === 1,
     nickname: data?.user?.nickname ?? "",
     avatar: data?.user?.avatar_thumb?.url_list?.[0] ?? "",
     sec_uid: data?.user?.sec_uid ?? "",
@@ -402,6 +434,7 @@ async function getRoomInfoByMobile(
   } = {},
 ): Promise<RoomInfo> {
   if (!secUserId) {
+    console.error(opts);
     throw new Error("Mobile API need secUserId, please set uid field");
   }
   if (typeof secUserId === "number") {
@@ -421,7 +454,7 @@ async function getRoomInfoByMobile(
     {
       params,
       headers: {
-        cookie: opts.auth,
+        // cookie: opts.auth,
       },
     },
   );
@@ -430,6 +463,7 @@ async function getRoomInfoByMobile(
   const room = res?.data?.data?.room;
   return {
     living: room?.status === 2,
+    isLiveRadio: room?.live_type_audio ?? false,
     nickname: room?.owner?.nickname,
     sec_uid: room?.owner?.sec_uid,
     avatar: room?.owner?.avatar_thumb?.url_list?.[0],
@@ -453,6 +487,8 @@ export async function getRoomInfo(
   } = {},
 ): Promise<{
   living: boolean;
+  // 是否为直播电台
+  isLiveRadio?: boolean;
   roomId: string;
   owner: string;
   title: string;
@@ -487,11 +523,15 @@ export async function getRoomInfo(
   } else {
     data = await getRoomInfoByWeb(webRoomId, opts);
   }
-  // console.log(JSON.stringify(data, null, 2));
+
   const room = data.room;
-  if (api === "userHTML") {
+
+  assert(room, `No room data, id ${webRoomId}`);
+
+  if (!room?.stream_url) {
     return {
       living: data.living,
+      isLiveRadio: data.isLiveRadio,
       roomId: webRoomId,
       owner: data.nickname,
       title: room?.title ?? data.nickname,
@@ -500,23 +540,6 @@ export async function getRoomInfo(
       avatar: data.avatar,
       cover: room?.cover ?? "",
       liveId: room?.id_str ?? "",
-      uid: data.sec_uid,
-      api: data.api,
-    };
-  }
-  assert(room, `No room data, id ${webRoomId}`);
-
-  if (room?.stream_url == null) {
-    return {
-      living: false,
-      roomId: webRoomId,
-      owner: data.nickname,
-      title: room?.title ?? data.nickname,
-      streams: [],
-      sources: [],
-      avatar: data.avatar,
-      cover: room.cover,
-      liveId: room.id_str,
       uid: data.sec_uid,
       api: data.api,
     };
@@ -595,6 +618,7 @@ export async function getRoomInfo(
 
   return {
     living: data.living,
+    isLiveRadio: data.isLiveRadio,
     roomId: webRoomId,
     owner: data.nickname,
     title: room.title,

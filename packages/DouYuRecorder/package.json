@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/douyu-recorder",
-  "version": "1.12.0",
+  "version": "1.17.1",
   "description": "bililive-tools douyu recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
@@ -39,19 +39,16 @@
   "license": "LGPL",
   "dependencies": {
     "@bililive-tools/manager": "workspace:^",
+    "@bililive-tools/stream-get": "workspace:*",
     "mitt": "catalog:",
-    "query-string": "^9.1.1",
-    "safe-eval": "^0.4.1",
     "ws": "^8.18.0",
-    "lodash-es": "catalog:",
-    "axios": "catalog:",
-    "douyu-api": "^0.2.1"
+    "lodash-es": "catalog:"
   },
   "devDependencies": {
     "@types/ws": "^8.5.13"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
-    "utf-8-validate": "^6.0.5"
+    "utf-8-validate": "^6.0.6"
   }
 }

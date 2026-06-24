@@ -32,9 +32,10 @@ export async function getInfo(channelId: string): Promise<{
   liveStartTime: Date;
   liveId: string;
   recordStartTime: Date;
+  area: string;
 }> {
   const parser = new XhsParser();
-  const info = await parser.getLiveInfo(channelId);
+  const info = await parser.getRoomInfo(channelId);
   const recordStartTime = new Date();
   return {
     living: info.living,
@@ -46,6 +47,7 @@ export async function getInfo(channelId: string): Promise<{
     liveStartTime: recordStartTime,
     liveId: info.roomId,
     recordStartTime: recordStartTime,
+    area: "",
   };
 }
 

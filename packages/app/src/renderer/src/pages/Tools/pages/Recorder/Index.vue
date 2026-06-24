@@ -68,11 +68,19 @@
         @sort="handleSort"
         @startRecord="startRecord"
         @stopRecord="stopRecord"
+        @showDetail="viewStreamerDetail"
       >
+        <template #cornerAction="{ item }">
+          <div class="card-corner-action" @click.stop="viewStreamerDetail(item)">
+            <span class="card-corner-action__label">详情</span>
+          </div>
+        </template>
         <template #action="{ item }">
           <div style="margin-top: 10px" class="section-container">
             <div class="section" @click="startRecord(item.id)">开始录制</div>
-            <div class="section" @click="stopRecord(item.id)">停止录制</div>
+            <div v-if="item.recordHandle" class="section" @click="stopRecord(item.id)">
+              停止录制
+            </div>
             <div
               class="section"
               @click="cut(item.id)"
@@ -97,15 +105,16 @@
               打开直播
             </div>
             <div
-              v-if="!isWeb && item.recordHandle?.savePath"
+              v-if="!isWeb"
               class="section"
-              @click="openSavePath(item.recordHandle?.savePath)"
+              @click="openSavePath(item.id, item.recordHandle?.savePath)"
             >
               打开录制文件夹
             </div>
 
             <div class="section" @click="toWebhook(item.channelId)">Webhook配置</div>
-            <div class="section" @click="viewHistory(item)">录制历史</div>
+            <div class="section" @click="viewStreamerDetail(item)">录制详情</div>
+            <div class="section" @click="viewHistory(item)" style="display: none">录制历史</div>
             <div class="section section-danger" @click="remove(item.id)">删除房间</div>
           </div>
         </template>
@@ -119,7 +128,7 @@
           v-model:page-size="recorderLocalParams.pageSize"
           :item-count="pagination.itemCount"
           show-size-picker
-          :page-sizes="[10, 20, 30, 40, 50, 100]"
+          :page-sizes="[10, 20, 30, 40, 50]"
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
         />
@@ -173,6 +182,15 @@ defineOptions({
 });
 
 type SortField = "living" | "state" | "monitorStatus";
+type LiveInfoItem = RecorderAPI["getLiveInfo"]["Resp"][number];
+type RecorderItem = RecorderAPI["getRecorders"]["Resp"]["data"][number];
+type LiveInfoCacheEntry = {
+  data: LiveInfoItem;
+  expiresAt: number;
+};
+
+const LIVE_INFO_CACHE_TTL = 20 * 60 * 1000;
+const LIVE_INFO_CACHE_STORAGE_KEY = "recorder-live-info-cache";
 
 // 列配置
 const columnConfig = [
@@ -183,7 +201,7 @@ const columnConfig = [
   { value: "living", label: "直播状态" },
   { value: "state", label: "录制状态" },
   { value: "recordParams", label: "录制参数" },
-  { value: "lastRecordTime", label: "最近录制时间" },
+  { value: "lastRecordTime", label: "上次录制" },
   { value: "monitorStatus", label: "监听状态" },
   { value: "actions", label: "操作" },
 ];
@@ -297,6 +315,72 @@ const pagination = ref({
   itemCount: 0,
 });
 
+const readLiveInfoCache = (): Record<string, LiveInfoCacheEntry> => {
+  const rawValue = localStorage.getItem(LIVE_INFO_CACHE_STORAGE_KEY);
+  if (!rawValue) return {};
+
+  try {
+    const parsedValue = JSON.parse(rawValue);
+    return parsedValue && typeof parsedValue === "object" ? parsedValue : {};
+  } catch {
+    localStorage.removeItem(LIVE_INFO_CACHE_STORAGE_KEY);
+    return {};
+  }
+};
+
+const writeLiveInfoCache = (cache: Record<string, LiveInfoCacheEntry>) => {
+  localStorage.setItem(LIVE_INFO_CACHE_STORAGE_KEY, JSON.stringify(cache));
+};
+
+const getValidCachedLiveInfo = (recorderId: string) => {
+  const liveInfoCache = readLiveInfoCache();
+  const cacheEntry = liveInfoCache[recorderId];
+  if (!cacheEntry) return undefined;
+  if (cacheEntry.expiresAt > Date.now()) {
+    return cacheEntry.data;
+  }
+
+  const nextCache = { ...liveInfoCache };
+  delete nextCache[recorderId];
+  writeLiveInfoCache(nextCache);
+  return undefined;
+};
+
+const updateLiveInfoCache = (recorders: RecorderItem[], items: LiveInfoItem[]) => {
+  if (recorders.length === 0 || items.length === 0) return;
+
+  const itemsByChannelId = new Map(items.map((item) => [item.channelId, item]));
+  const nextCache = { ...readLiveInfoCache() };
+  const expiresAt = Date.now() + LIVE_INFO_CACHE_TTL;
+  let changed = false;
+
+  recorders.forEach((recorder) => {
+    const liveInfo = itemsByChannelId.get(recorder.channelId);
+    if (!liveInfo) return;
+    nextCache[recorder.id] = {
+      data: liveInfo,
+      expiresAt,
+    };
+    changed = true;
+  });
+
+  if (changed) {
+    writeLiveInfoCache(nextCache);
+  }
+};
+
+const mergeLiveInfos = (recorders: RecorderItem[], ...sources: LiveInfoItem[][]) => {
+  const liveInfoByChannelId = new Map<string, LiveInfoItem>();
+
+  sources.flat().forEach((item) => {
+    liveInfoByChannelId.set(item.channelId, item);
+  });
+
+  return recorders
+    .map((recorder) => liveInfoByChannelId.get(recorder.channelId))
+    .filter((item): item is LiveInfoItem => Boolean(item));
+};
+
 const list = computed(() => {
   // 后端已经处理了排序，前端只需要合并直播信息
   const mappedList = recorderList.value.map((item) => {
@@ -308,6 +392,7 @@ const list = computed(() => {
       avatar: item?.liveInfo?.avatar || liveInfo?.avatar || item?.extra?.avatar,
       roomTitle: item?.liveInfo?.title || liveInfo?.title,
       living: item?.liveInfo?.living ?? liveInfo?.living,
+      area: item?.liveInfo?.area || liveInfo?.area,
     };
   });
 
@@ -434,20 +519,64 @@ const open = async (id: string, streamUrl: string) => {
 };
 
 const getLiveInfo = async (forceRequest: boolean = false) => {
-  if (recorderList.value.length === 0) return;
-  const ids = recorderList.value.map((item) => item.id);
-  liveInfos.value = await recoderApi.getLiveInfo(ids, forceRequest);
+  if (recorderList.value.length === 0) {
+    liveInfos.value = [];
+    return;
+  }
+
+  const currentRecorders = recorderList.value;
+
+  if (forceRequest) {
+    const fetchedInfos = await recoderApi.getLiveInfo(
+      currentRecorders.map((item) => item.id),
+      true,
+    );
+    updateLiveInfoCache(currentRecorders, fetchedInfos);
+    liveInfos.value = mergeLiveInfos(currentRecorders, fetchedInfos);
+    return;
+  }
+
+  const cachedInfos: LiveInfoItem[] = [];
+  const missingRecorders: RecorderItem[] = [];
+
+  currentRecorders.forEach((recorder) => {
+    const cachedLiveInfo = getValidCachedLiveInfo(recorder.id);
+    if (cachedLiveInfo) {
+      cachedInfos.push(cachedLiveInfo);
+      return;
+    }
+    missingRecorders.push(recorder);
+  });
+
+  let fetchedInfos: LiveInfoItem[] = [];
+  if (missingRecorders.length > 0) {
+    fetchedInfos = await recoderApi.getLiveInfo(
+      missingRecorders.map((item) => item.id),
+      false,
+    );
+    updateLiveInfoCache(missingRecorders, fetchedInfos);
+  }
+
+  liveInfos.value = mergeLiveInfos(currentRecorders, cachedInfos, fetchedInfos);
 };
 
 // 刷新单个直播间信息
 const refresh = async (id: string) => {
+  const recorder = recorderList.value.find((item) => item.id === id);
+  if (!recorder) return;
+
   const data = await recoderApi.getLiveInfo([id], true);
-  liveInfos.value = liveInfos.value.map((item) => {
-    if (item.channelId === id) {
-      return data[0];
-    }
-    return item;
-  });
+  const refreshedLiveInfo = data.find((item) => item.channelId === recorder.channelId) || data[0];
+
+  if (refreshedLiveInfo) {
+    updateLiveInfoCache([recorder], [refreshedLiveInfo]);
+    liveInfos.value = mergeLiveInfos(
+      recorderList.value,
+      liveInfos.value.filter((item) => item.channelId !== recorder.channelId),
+      [refreshedLiveInfo],
+    );
+  }
+
   notice.success({
     title: "刷新成功",
   });
@@ -477,7 +606,7 @@ const handleBatchOperateCompleted = async () => {
 
 const init = async () => {
   await getList();
-  await getLiveInfo();
+  getLiveInfo(false);
 };
 
 init();
@@ -497,20 +626,13 @@ function cleanInterval() {
   intervalId = null;
 }
 
-// 十分钟更新一次直播间信息
-setInterval(
-  () => {
-    getLiveInfo();
-  },
-  10 * 60 * 1000,
-);
-
 onDeactivated(() => {
   cleanInterval();
 });
 
 onActivated(() => {
   createInterval();
+  getLiveInfo(false);
 });
 
 // 在模块失活时清除定时器
@@ -536,10 +658,23 @@ const isWeb = ref(window.isWeb);
 
 /**
  * 打开录制文件夹
- * @param path
+ * @param id 录制器ID
+ * @param recordingPath 录制文件路径
  */
-const openSavePath = (path: string) => {
-  window.api.openPath(window.path.dirname(path));
+const openSavePath = async (id: string, recordingPath?: string) => {
+  if (recordingPath) {
+    await window.api.openPath(window.path.dirname(recordingPath));
+    return;
+  }
+
+  try {
+    const { folderPath } = await recoderApi.getRecentRecordFolder(id);
+    await window.api.openPath(folderPath);
+  } catch (error: any) {
+    notice.error({
+      title: error?.message,
+    });
+  }
 };
 
 const toWebhook = (channelId: string) => {
@@ -562,6 +697,16 @@ const viewHistory = (item: any) => {
       id: item.id,
       channelId: item.channelId,
       platform: item.providerId,
+      name: item.owner,
+    },
+  });
+};
+
+const viewStreamerDetail = (item: any) => {
+  router.push({
+    path: "/streamerDetail",
+    query: {
+      recorderId: item.id,
       name: item.owner,
     },
   });

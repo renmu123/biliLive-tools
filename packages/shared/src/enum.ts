@@ -32,6 +32,7 @@ export enum LLMType {
 
 export const APP_DEFAULT_CONFIG: AppConfig = {
   logLevel: "debug",
+  uploadCrashReport: false,
   autoUpdate: true,
   autoLaunch: false,
   trash: false,
@@ -44,6 +45,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   host: "127.0.0.1",
   passKey: "",
   https: false,
+  externalWebhook: "",
   webhook: {
     open: false,
     recoderFolder: "",
@@ -66,12 +68,12 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     hotProgressColor: "#f9f5f3",
     hotProgressFillColor: "#333333",
     convert2Mp4: false,
-    removeSourceAferrConvert2Mp4: true,
     flvRepair: false,
     syncId: undefined,
     uploadHandleTime: ["00:00:00", "23:59:59"],
     limitUploadTime: false,
     uploadNoDanmu: false,
+    uploadToSameMedia: false,
     noDanmuVideoPreset: undefined,
     limitVideoConvertTime: false,
     videoHandleTime: ["00:00:00", "23:59:59"],
@@ -163,6 +165,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       danmuPresetId: "default",
       ignoreDanmu: false,
       exportSubtitle: true,
+      ignoreSubtitle: false,
     },
   },
   task: {
@@ -225,6 +228,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     taskNotificationType: {
       liveStart: "system",
+      chargeLive: "system",
     },
   },
   sync: {
@@ -277,7 +281,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       },
     ],
     songRecognizeAsr: {
-      modelId: "",
+      modelId: "bcut",
     },
     songRecognizeLlm: {
       modelId: "",
@@ -328,7 +332,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       enableStructuredOutput: true,
     },
     subtitleRecognize: {
-      modelId: "",
+      modelId: "bcut",
     },
   },
   biliUpload: {
@@ -383,6 +387,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       checkInterval: undefined,
       maxThreadCount: undefined,
       waitTime: undefined,
+      codecName: "auto",
+      api: "auto",
     },
     huya: {
       quality: 0,
@@ -848,6 +854,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   sendToWebhook: false,
   noGlobalFollowFields: [],
   saveCover: false,
+  convert2Mp4: false,
   extra: {},
   qualityRetry: 0,
   formatName: "auto",
@@ -855,6 +862,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  chargeLiveNotification: true,
   liveEndNotification: false,
   weight: 10,
   source: "auto",

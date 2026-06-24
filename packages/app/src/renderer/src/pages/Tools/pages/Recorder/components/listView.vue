@@ -33,7 +33,7 @@
           </n-icon>
         </th>
         <td v-if="isColumnVisible('recordParams')">录制参数</td>
-        <th v-if="isColumnVisible('lastRecordTime')">最近录制时间</th>
+        <th v-if="isColumnVisible('lastRecordTime')">上次录制</th>
         <th
           v-if="isColumnVisible('monitorStatus')"
           @click="handleSort('monitorStatus')"
@@ -76,14 +76,21 @@
             recording: item.state === 'recording',
             error: item.state === 'check-error',
             'title-blocked': item.state === 'title-blocked',
+            'charge-skipped': item.state === 'charge-skipped',
           }"
         >
-          {{ stateMap[item.state] }}
+          {{
+            item.state === "charge-skipped"
+              ? ["paid", "guard"].includes(item.liveInfo?.liveType ?? "")
+                ? "付费直播 / 无法录制"
+                : "无法录制"
+              : stateMap[item.state]
+          }}
         </td>
         <td v-if="isColumnVisible('recordParams')" :title="item?.recordHandle?.url">
           {{
             item.state === "recording"
-              ? `${item.usedSource}/${item.usedStream}/${item?.recordHandle?.recorderType}`
+              ? `${item.area}/${item.usedSource}/${item.usedStream}/${item?.recordHandle?.recorderType}`
               : ""
           }}
         </td>
@@ -173,6 +180,7 @@ const stateMap = {
   "check-error": "检查错误",
   "stopping-record": "停止中",
   "title-blocked": "标题屏蔽",
+  "charge-skipped": "无法录制",
 };
 </script>
 

@@ -10,7 +10,6 @@ import {
 import { XhsParser } from "@bililive-tools/stream-get";
 
 import { getInfo, getStream, check } from "./stream.js";
-import { ensureFolderExist } from "./utils.js";
 
 import type {
   Recorder,
@@ -29,6 +28,8 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     ...mitt(),
     ...opts,
     cache: null as any,
+    appendTimeline: null as any,
+
     availableStreams: [],
     availableSources: [],
     qualityRetry: opts.qualityRetry ?? 0,
@@ -136,9 +137,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       this.liveInfo!.liveStartTime = liveStartTimeFromSearch;
     }
 
-    this.state = "idle";
+    this.emit("stateChange", { state: "idle" });
   } catch (error) {
-    this.state = "check-error";
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: `检查失败，` + (error instanceof Error ? error.message : String(error)),
+    });
     throw error;
   }
 
@@ -176,11 +180,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
 
-    this.state = "check-error";
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: `检查失败，` + (err instanceof Error ? err.message : String(err)),
+    });
     throw err;
   }
 
-  this.state = "recording";
+  this.emit("stateChange", { state: "recording" });
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
   this.availableStreams = availableStreams.map((s) => s.desc);
   this.availableSources = availableSources.map((s) => s.name);
@@ -213,6 +220,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           startTime: opts.startTime,
           liveStartTime,
           recordStartTime,
+          extraMs: opts.extraMs,
         }),
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
@@ -224,21 +232,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       return info;
     },
   );
-
-  const savePath = getSavePath({
-    owner,
-    title,
-    startTime: Date.now(),
-    liveStartTime,
-    recordStartTime,
-  });
-
-  try {
-    ensureFolderExist(savePath);
-  } catch (err) {
-    this.state = "idle";
-    throw err;
-  }
 
   const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
     this.emit("videoFileCreated", { filename, cover, rawFilename });
@@ -260,8 +253,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
   };
   downloader.on("videoFileCreated", handleVideoCreated);
-  downloader.on("videoFileCompleted", ({ filename }) => {
-    this.emit("videoFileCompleted", { filename });
+  downloader.on("videoFileCompleted", (data) => {
+    this.emit("videoFileCompleted", data);
   });
   downloader.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
@@ -284,7 +277,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
 
-    this.state = "stopping-record";
+    this.emit("stateChange", { state: "stopping-record" });
 
     try {
       await downloader.stop();
@@ -299,7 +292,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.liveInfo = undefined;
-    this.state = "idle";
+    this.emit("stateChange", { state: "idle" });
     this.cache.set("qualityRetryLeft", this.qualityRetry);
   });
 
@@ -310,7 +303,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     recorderType: downloader.type,
     url: stream.url,
     downloaderArgs,
-    savePath: savePath,
+    savePath: downloader.videoFilePath,
     stop,
     cut,
   };
@@ -336,7 +329,7 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     if (!uid) {
       throw new Error(`无法从 URL 提取用户 ID: ${channelURL}`);
     }
-    const info = await parser.getLiveInfo(roomId);
+    const info = await parser.getRoomInfo(roomId);
 
     // 小红书ID用于基于cookie的自动监听
     const data = await parser.getUserInfo(uid);

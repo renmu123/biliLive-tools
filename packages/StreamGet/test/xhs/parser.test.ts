@@ -21,7 +21,7 @@ describe("xhs链接解析", () => {
   });
   it("数据解析", async () => {
     const parser = new XhsParser();
-    const liveInfo = await parser.getLiveInfo("570180068897685033");
+    const liveInfo = await parser.getRoomInfo("570180068897685033");
     console.log(liveInfo);
     // expect(liveInfo).toHaveProperty("anchor_name");
     // expect(liveInfo).toHaveProperty("is_live");

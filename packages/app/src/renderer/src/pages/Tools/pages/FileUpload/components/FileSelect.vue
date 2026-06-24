@@ -37,6 +37,7 @@ interface File {
   title: string;
   path: string;
   visible: boolean;
+  ext?: string;
 }
 
 const fileList = defineModel<File[]>({ required: true });
@@ -97,6 +98,7 @@ const select = async () => {
       title: window.path.parse(file).name,
       path: file,
       visible: false,
+      ext: window.path.parse(file).ext,
     }));
   fileList.value = fileList.value.concat(newFiles);
 };
@@ -114,11 +116,16 @@ function onDrop(files: globalThis.File[] | null) {
   if (window.isWeb) return;
 
   if (files) {
+    console.log("拖拽文件：", files);
     const filePaths = Array.from(files).map((file) => window.api.common.getPathForFile(file));
     const newFiles = filePaths
       .filter((file) => {
         // 过滤已存在的文件
         if (fileList.value.some((item) => item.path === file)) return false;
+        // 如果扩展名列表包含 "*"，则接受所有文件
+        if (props.extensions && Array.isArray(props.extensions) && props.extensions.includes("*")) {
+          return true;
+        }
         // 过滤不符合扩展名的文件
         const ext = window.path.extname(file).slice(1).toLowerCase();
         return props.extensions.some((allowedExt) => allowedExt.toLowerCase() === ext);
@@ -128,6 +135,7 @@ function onDrop(files: globalThis.File[] | null) {
         title: window.path.parse(file).name,
         path: file,
         visible: false,
+        ext: window.path.parse(file).ext,
       }));
     fileList.value = fileList.value.concat(newFiles);
   }

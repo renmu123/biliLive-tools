@@ -96,6 +96,8 @@ router.post("/subtitle", async (ctx) => {
     endTime?: number;
     // offset - 时间偏移量，单位秒
     offset?: number;
+    // song - 是否为音乐识别
+    song?: boolean;
   };
 
   if (!data.file) {
@@ -144,6 +146,7 @@ router.post("/subtitle", async (ctx) => {
     const srt = await subtitleRecognize(audioFile, asrModelId, {
       offset: data.offset,
       disableCache: true,
+      song: data.song,
     });
 
     // 清理临时音频文件

@@ -1,3 +1,26 @@
+# 1.17.1
+
+- 修复：`webHTML` 接口不再参与获取流
+- 优化电台直播流获取 [#469](https://github.com/renmu123/biliLive-tools/pull/469) [#466](https://github.com/renmu123/biliLive-tools/pull/466)
+
+# 1.17.0
+
+- 增加时间线的相关事件处理
+
+# 1.16.1
+
+- 抖音用户页请求增加额外的错误判断 [#425](https://github.com/renmu123/biliLive-tools/pull/425)
+- `mobile`接口不再应用Cookie
+
+# 1.16.0
+
+- 优化重复文件的生成逻辑，避免覆盖
+- 优化某些情况下获取不到标题时使用第一个标题参数
+
+# 1.12.3
+
+- 弹幕；保持连接参数与网页端一致
+
 # 1.12.2
 
 - 弹幕：修复某些弹幕不存在服务端时间戳的bug

@@ -40,8 +40,10 @@ export async function getRoomInit(roomIdOrShortId: number) {
       live_time: number;
       // 是否加密
       encrypted: boolean;
-      // 普通直播间 / 付费直播间
+      // 普通直播间 / 付费直播间(充电直播)
       is_sp: 0 | 1;
+      // 直播间特殊类型，0 普通；1 充电直播(付费/DRM 加密)；其余为活动等特殊类型
+      special_type: number;
     }>
   >(`https://api.live.bilibili.com/room/v1/Room/room_init?id=${roomIdOrShortId}`);
 
@@ -108,6 +110,8 @@ export async function getStatusInfoByUIDs<UID extends number>(userIds: UID[]) {
           online: number;
           room_id: number;
           short_id: number;
+          // 父分区名称
+          area_v2_parent_name: string;
         }
       >
     >
@@ -201,6 +205,8 @@ export async function getRoomPlayInfo(
       short_id: number;
       live_status: LiveStatus;
       live_time: number;
+      // 特殊直播间标志数组(B站播放器据此判定 DRM 等)，203=DRM 加密直播
+      all_special_types?: number[];
       playurl_info: {
         conf_json: string;
         playurl: {

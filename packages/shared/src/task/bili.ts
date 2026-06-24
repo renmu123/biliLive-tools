@@ -41,7 +41,7 @@ async function sendNotifyWithThrottle(
   title: string,
   desp: string,
   aid: number,
-  options?: { type?: "mediaStatusCheck" },
+  options?: Parameters<typeof sendNotify>[2],
 ) {
   const now = Date.now();
   const lastNotificationTime = notificationCache.get(aid);
@@ -306,10 +306,21 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     cover = undefined;
   }
 
+  let creationStatement: { id: -1 | 1 | 2 | 3 | 4 } | undefined = undefined;
+  if (options.copyright === 1 || options.copyright === 3) {
+    if (options.creationStatement) {
+      creationStatement = { id: options.creationStatement };
+    }
+    if (options.copyright === 3 && !options.creationStatement) {
+      creationStatement = { id: -1 };
+    }
+  }
+
   const data: MediaOptions = {
     cover: cover,
     title: options.title,
-    tid: options.tid,
+    // 移除老分区后，web的默认分区为21
+    tid: 21,
     human_type2: options.human_type2,
     tag: tags.slice(0, 10).join(","),
     copyright: options.copyright,
@@ -334,6 +345,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
       options.copyright === 2 || options.watermark === undefined
         ? undefined
         : { state: options.watermark },
+    creation_statement: creationStatement,
   };
   return data;
 }
@@ -375,8 +387,10 @@ export async function editMediaApi(
   video: { cid: number; filename: string; title: string; desc?: string }[],
   options: BiliupConfig,
 ) {
-  const mediaOptions = {};
-  console.log("编辑视频", options);
+  const mediaOptions = {
+    sortByCid: options.sortByCid,
+  };
+  // console.log("编辑视频", options);
 
   // const globalConfig = container.resolve("globalConfig");
   // const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
@@ -431,7 +445,17 @@ async function biliMediaAction(
             `《${media.title}》稿件审核通过`,
             `请前往B站创作中心查看详情\n稿件名：${media.title}`,
             options.aid!,
-            { type: "mediaStatusCheck" },
+            {
+              type: "mediaStatusCheck",
+              context: {
+                event: "media_status_success",
+                eventLabel: "稿件审核通过",
+                aid: options.aid,
+                mediaTitle: media.title,
+                mediaStatus: status,
+                uid: options.uid,
+              },
+            },
           );
         } catch (error) {
           log.error("发送通知失败", error);
@@ -474,7 +498,18 @@ async function biliMediaAction(
             `《${media.title}》稿件审核未通过`,
             `请前往B站创作中心查看详情\n稿件名：${media.title}\n状态：${media.state_desc}\n状态码：${media.state}`,
             options.aid!,
-            { type: "mediaStatusCheck" },
+            {
+              type: "mediaStatusCheck",
+              context: {
+                event: "media_status_failure",
+                eventLabel: "稿件审核未通过",
+                aid: options.aid,
+                mediaTitle: media.title,
+                mediaStatus: media.state_desc,
+                mediaStateCode: media.state,
+                uid: options.uid,
+              },
+            },
           );
         } catch (error) {
           log.error("发送通知失败", error);
@@ -812,6 +847,8 @@ export async function editMedia(
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
     // 强制检查稿件状态
     forceCheck?: boolean;
+    // 用于排序，按照列表顺序排序，cid可能为空，如果cid为空从上传分P件名中提取cid
+    sortParams?: { filePath: string; cid?: number }[];
     checkCallback?: (status: "completed" | "error") => void;
   },
 ) {
@@ -831,6 +868,7 @@ export async function editMedia(
       uid,
       mediaOptions: formattedOptions,
       aid,
+      sortParams: extraOptions?.sortParams,
     },
     {
       onEnd: async () => {
@@ -1003,22 +1041,6 @@ async function getPlatformArchiveDetail(aid: number, uid: number) {
   return client.platform.getArchive({ aid });
 }
 
-/**
- * 获取投稿分区
- */
-async function getPlatformPre(uid: number) {
-  const client = createClient(uid);
-  return client.platform.getArchivePre();
-}
-
-/**
- * 获取分区简介信息
- */
-async function getTypeDesc(tid: number, uid: number) {
-  const client = createClient(uid);
-  return client.platform.getTypeDesc(tid);
-}
-
 // 验证配置
 export const validateBiliupConfig = (config: BiliupConfig): [boolean, string | null] => {
   let msg: string | undefined = undefined;
@@ -1034,9 +1056,13 @@ export const validateBiliupConfig = (config: BiliupConfig): [boolean, string | n
     if (config.topic_name) {
       msg = "转载类型稿件不支持活动参加哦~";
     }
+  } else if (config.copyright === 3) {
+    if (!config.creationStatement) {
+      msg = "必须选择一个创作声明";
+    }
   }
   if (config.tag.length === 0) {
-    msg = "标签不能为空";
+    msg = "标签至少存在一个";
   }
   if (config.tag.length > 10) {
     msg = "标签不能超过10个";
@@ -1237,8 +1263,6 @@ export const biliApi = {
   editMedia,
   getSeasonList,
   getArchiveDetail,
-  getPlatformPre,
-  getTypeDesc,
   download,
   getSessionId,
   getPlatformArchiveDetail,
@@ -1259,6 +1283,8 @@ export const biliApi = {
   editVideoPartName,
   queryVideoStatus,
   getPlayUrl,
+  readUser,
+  writeUser,
 };
 
 export default biliApi;

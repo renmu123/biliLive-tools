@@ -56,6 +56,8 @@ MacOs 版本如果要使用切片中的波形图，需要手动使用homebrew安
 
 ## Docker
 
+如果你无法访问dockerhub，也可以使用 `ghcr.io/renmu123/bililive-tools-xxxx` 相关镜像
+
 ### 前后端分离
 
 创建 `docker-compose.yml`：
@@ -84,6 +86,8 @@ services:
       - BILILIVE_TOOLS_PASSKEY=your_passkey
       # 账户加密密钥
       - BILILIVE_TOOLS_BILIKEY=your_bilikey
+      # 文件管理器可删除的目录
+      - BILILIVE_TOOLS_DELETE_DIRS=/app/video
       # 中国时区
       - TZ=Asia/Shanghai
 ```
@@ -127,6 +131,8 @@ services:
       - BILILIVE_TOOLS_PASSKEY=your_passkey
       # 账户加密密钥
       - BILILIVE_TOOLS_BILIKEY=your_bilikey
+      # 文件管理器可删除的目录
+      - BILILIVE_TOOLS_DELETE_DIRS=/app/video
       # 中国时区
       - TZ=Asia/Shanghai
 ```
