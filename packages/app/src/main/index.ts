@@ -587,8 +587,17 @@ export const relaunch = async () => {
 };
 
 export const setOpenAtLogin = (_event: IpcMainInvokeEvent, openAtLogin: boolean) => {
+  if (process.platform === "win32") {
+    // 兼容性清理
+    app.setLoginItemSettings({
+      openAtLogin: false,
+      name: "com.electron",
+    });
+  }
+
   app.setLoginItemSettings({
     openAtLogin,
+    args: ["--hidden"],
   });
 };
 
@@ -607,7 +616,7 @@ if (!gotTheLock) {
     },
   });
   app.whenReady().then(() => {
-    electronApp.setAppUserModelId("com.electron");
+    electronApp.setAppUserModelId("com.electron.biliLiveTools");
     installExtension("nhdogjmejiglipccpnnnanhbledajbpd")
       .then(({ name }) => log.debug(`Added Extension:  ${name}`))
       .catch((err) => log.debug("An error occurred: ", err));

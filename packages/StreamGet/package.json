@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/stream-get",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "parse live stream url",
   "main": "./lib/index.js",
   "type": "module",
@@ -40,7 +40,7 @@
     "cookie": "^1.1.1",
     "lodash-es": "catalog:",
     "safe-eval": "^0.4.1",
-    "undici": "^7.24.0",
+    "undici": "^8.5.0",
     "xhshow-js": "^1.0.0"
   },
   "devDependencies": {

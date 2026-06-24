@@ -44,7 +44,7 @@
         <div style="display: flex; flex-direction: column; justify-content: space-between">
           <div style="display: flex; gap: 5px; align-items: center">
             <div class="owner" :title="item.remarks">{{ item.owner || item.remarks }}</div>
-            <n-icon v-if="item.living" size="20" title="直播中" class="icon-muted">
+            <n-icon v-if="item.living" size="20" title="直播中" class="icon-live">
               <Live24Regular />
             </n-icon>
             <n-icon v-if="!item.disableAutoCheck" size="20" title="自动录制" class="icon-muted">
@@ -89,6 +89,21 @@
               v-if="['check-error', 'stopping-record', 'title-blocked'].includes(item.state)"
               @click="emit('showDetail', item)"
               >{{ stateMap[item.state] }}</span
+            >
+            <span
+              class="tag state charge-skipped"
+              v-if="
+                item.state === 'charge-skipped' &&
+                ['paid', 'guard'].includes(item.liveInfo?.liveType ?? '')
+              "
+              @click="emit('showDetail', item)"
+              >付费直播</span
+            >
+            <span
+              class="tag record-blocked"
+              v-if="item.state === 'charge-skipped'"
+              @click="emit('showDetail', item)"
+              >无法录制</span
             >
           </div>
         </div>
@@ -149,6 +164,7 @@ const stateMap = {
   "check-error": "检查错误",
   "stopping-record": "停止中",
   "title-blocked": "标题屏蔽",
+  "charge-skipped": "无法录制",
 };
 </script>
 
@@ -299,6 +315,17 @@ const stateMap = {
         background-color: #fff1f0;
         color: #ff4d4f;
       }
+      &.charge-skipped {
+        background-color: #fff2e8;
+        color: #fa541c;
+        font-weight: 600;
+      }
+    }
+
+    &.record-blocked {
+      background-color: #f0f0f0;
+      color: #8c8c8c;
+      cursor: pointer;
     }
 
     [data-theme="dark"] & {
@@ -319,6 +346,14 @@ const stateMap = {
           background-color: #512c2c;
           color: #ff7875;
         }
+        &.charge-skipped {
+          background-color: #5a2a1a;
+          color: #ff9c6e;
+        }
+      }
+      &.record-blocked {
+        background-color: #3a3a3a;
+        color: #bfbfbf;
       }
     }
   }

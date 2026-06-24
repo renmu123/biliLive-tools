@@ -26,6 +26,11 @@ export default [
       },
     ],
     // inlineDynamicImports: true,
-    plugins: [typescript(), nodeResolve({ browser: false, exportConditions: ["node"] }), commonjs(), json()],
+    plugins: [
+      typescript(),
+      nodeResolve({ browser: false, exportConditions: ["node"] }),
+      commonjs(),
+      json(),
+    ],
   },
 ];

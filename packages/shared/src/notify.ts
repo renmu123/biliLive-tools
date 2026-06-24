@@ -14,6 +14,88 @@ import type {
 } from "@biliLive-tools/types";
 
 /**
+ * 通知模板上下文支持的值类型
+ */
+type NotificationContextValue = string | number | boolean | null | undefined;
+
+/**
+ * 通知模板上下文
+ */
+export type NotificationContext = Record<string, NotificationContextValue>;
+
+/**
+ * 任务类型
+ */
+type TaskType =
+  | "liveStart"
+  | "chargeLive"
+  | "ffmpeg"
+  | "danmu"
+  | "upload"
+  | "download"
+  | "douyuDownload"
+  | "mediaStatusCheck"
+  | "diskSpaceCheck"
+  | "sync";
+
+/**
+ * 通知发送选项
+ */
+export type NotificationSendOptions = {
+  type?: TaskType;
+  context?: NotificationContext;
+};
+
+const toTemplateValue = (value: NotificationContextValue) => {
+  if (value === undefined || value === null) {
+    return "";
+  }
+  return String(value);
+};
+
+const toSnakeCase = (key: string) => {
+  return key.replace(/([A-Z])/g, "_$1").toLowerCase();
+};
+
+const appendTemplateValue = (
+  target: Record<string, string>,
+  key: string,
+  value: NotificationContextValue,
+) => {
+  const stringValue = toTemplateValue(value);
+  target[key] = stringValue;
+  const snakeCaseKey = toSnakeCase(key);
+  if (!(snakeCaseKey in target)) {
+    target[snakeCaseKey] = stringValue;
+  }
+};
+
+const buildTemplateContext = (title: string, desp: string, context: NotificationContext = {}) => {
+  const templateContext: Record<string, string> = {};
+  appendTemplateValue(templateContext, "title", title);
+  appendTemplateValue(templateContext, "desc", desp);
+  appendTemplateValue(templateContext, "desp", desp);
+  Object.entries(context).forEach(([key, value]) => {
+    appendTemplateValue(templateContext, key, value);
+  });
+  return templateContext;
+};
+
+const renderTemplate = (
+  template: string,
+  templateContext: Record<string, string>,
+  options: { encode?: boolean; jsonStringify?: boolean } = {},
+) => {
+  return template.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => {
+    const value = templateContext[key] || "";
+    if (options.jsonStringify) {
+      return JSON.stringify(String(value)).slice(1, -1);
+    }
+    return options.encode ? encodeURIComponent(value) : value;
+  });
+};
+
+/**
  * 通过Server酱发送通知
  */
 export function sendByServer(title: string, desp: string, options: NotificationServerConfig) {
@@ -127,12 +209,16 @@ export async function sendByAllInOne(
   title: string,
   desp: string,
   options: NotificationPushAllInAllConfig,
+  context?: NotificationContext,
 ) {
+  const templateContext = buildTemplateContext(title, desp, context);
   const data = {
+    title,
+    desp,
     message: desp,
-    title: title,
+    context: templateContext,
   };
-  fetch(options.server, {
+  const res = await fetch(options.server, {
     method: "POST",
     body: JSON.stringify(data),
     headers: {
@@ -140,6 +226,7 @@ export async function sendByAllInOne(
       Authorization: `Bearer ${options.key}`,
     },
   });
+  log.info("sendByAllInOne res", res);
 }
 
 /**
@@ -149,11 +236,13 @@ export async function sendByCustomHttp(
   title: string,
   desp: string,
   options: NotificationCustomHttpConfig,
+  context?: NotificationContext,
 ) {
   if (!options.url) {
     throw new Error("自定义HTTP通知URL不能为空");
   }
 
+  const templateContext = buildTemplateContext(title, desp, context);
   let url = options.url;
   let body = options.body || "";
   let headers: Record<string, string> = {};
@@ -164,16 +253,14 @@ export async function sendByCustomHttp(
     for (const line of headerLines) {
       const [key, ...values] = line.split(":");
       if (key && values.length > 0) {
-        headers[key.trim()] = values.join(":").trim();
+        headers[key.trim()] = renderTemplate(values.join(":").trim(), templateContext);
       }
     }
   }
 
   // 替换占位符
-  url = url
-    .replace("{{title}}", encodeURIComponent(title))
-    .replace("{{desc}}", encodeURIComponent(desp));
-  body = body.replace("{{title}}", title).replace("{{desc}}", desp);
+  url = renderTemplate(url, templateContext, { encode: true });
+  body = renderTemplate(body, templateContext, { jsonStringify: true });
 
   try {
     const res = await fetch(url, {
@@ -191,18 +278,7 @@ export async function sendByCustomHttp(
   }
 }
 
-type TaskType =
-  | "liveStart"
-  | "ffmpeg"
-  | "danmu"
-  | "upload"
-  | "download"
-  | "douyuDownload"
-  | "mediaStatusCheck"
-  | "diskSpaceCheck"
-  | "sync";
-
-export function send(title: string, desp: string, options?: { type?: TaskType }) {
+export function send(title: string, desp: string, options?: NotificationSendOptions) {
   const config = appConfig.getAll();
   let notifyType = config?.notification?.setting?.type;
 
@@ -211,8 +287,8 @@ export function send(title: string, desp: string, options?: { type?: TaskType })
       notifyType = config?.notification?.taskNotificationType[options.type];
     }
   }
-  log.debug("send notify", { title, desp, notifyType });
-  return _send(title, desp, config, notifyType);
+  log.debug("send notify", { title, desp, notifyType, context: options?.context });
+  return _send(title, desp, config, notifyType, options);
 }
 
 export async function _send(
@@ -220,6 +296,7 @@ export async function _send(
   desp: string,
   appConfig: AppConfig,
   notifyType: AppConfig["notification"]["setting"]["type"],
+  options?: NotificationSendOptions,
 ): Promise<any | void> {
   switch (notifyType) {
     case "server":
@@ -238,10 +315,20 @@ export async function _send(
       await sendByNtfy(title, desp, appConfig?.notification?.setting?.ntfy);
       break;
     case "allInOne":
-      await sendByAllInOne(title, desp, appConfig?.notification?.setting?.allInOne);
+      await sendByAllInOne(
+        title,
+        desp,
+        appConfig?.notification?.setting?.allInOne,
+        options?.context,
+      );
       break;
     case "customHttp":
-      await sendByCustomHttp(title, desp, appConfig?.notification?.setting?.customHttp);
+      await sendByCustomHttp(
+        title,
+        desp,
+        appConfig?.notification?.setting?.customHttp,
+        options?.context,
+      );
       break;
   }
 }
