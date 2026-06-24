@@ -1,8 +1,52 @@
 # Next
 
+## 功能
+
+- 通知：自定义通知及push-all-in-cloud支持更多上下文变量 [#489](https://github.com/renmu123/biliLive-tools/pull/489)
+- 录制：识别 B 站不可录制的特殊直播及添加相关通知 [#485](https://github.com/renmu123/biliLive-tools/pull/485/)
+
+## 优化
+
+- 录制：B站关闭弹幕库默认重试，业务层面实现重试，可能处理了某些情况的内存溢出问题
+- **开机自启动时默认隐藏窗口**
+
+## Bug修复
+
+- 修复ffmpeg录制器分段录制开启时，如果不存在会失败的bug [#482](https://github.com/renmu123/biliLive-tools/issues/482)
+- 通知：修复某些情况下自定义通知body转义失败的bug
+- 录制：修复某些情况下斗鱼解析错误的bug
+- 修复错误的动态设置`appId`
+
+# 3.16.1(2026.06.13)
+
+## Bug修复
+
+- 修复docker编译后运行错误 [#479](https://github.com/renmu123/biliLive-tools/pull/479)
+- 修复cli单文件运行失败 [#480](https://github.com/renmu123/biliLive-tools/pull/480/)
+
+# 3.16.0(2026.06.13)
+
+**pnpm升级至11.5.0,node最低要求为node22,electron-builder升级至26.14.0**
+
+## 功能
+
+- 支持外部webhook事件订阅 [#458](https://github.com/renmu123/biliLive-tools/pull/458)
+- 支持新参数`上传崩溃报告`，用于将崩溃报告上传至Sentry服务器，默认关闭 [#472](https://github.com/renmu123/biliLive-tools/pull/472)
+
 ## 优化
 
 - 文件浏览器：优化用户体验
+- 录制：为上次录制时间增加原始时间
+- 录制：优化某些场景下“转换为mp4”的表现
+- 录制：优化抖音电台直播流获取 [#469](https://github.com/renmu123/biliLive-tools/pull/469) [#466](https://github.com/renmu123/biliLive-tools/pull/466)
+- 切片：增加了加速功能及相关快捷键 [#467](https://github.com/renmu123/biliLive-tools/issues/467)
+- 优化某些情况下意外断电导致的配置丢失 [#471](https://github.com/renmu123/biliLive-tools/pull/471)
+- 优化MacOS下的一些快捷键使用体验 [#474](https://github.com/renmu123/biliLive-tools/pull/474)
+
+## Bug修复
+
+- 同步：修复文件无法拖拽的bug
+- 录制：抖音 `直播html解析` 接口不再参与获取流，采用web接口
 
 # 3.15.0(2026.05.29)
 

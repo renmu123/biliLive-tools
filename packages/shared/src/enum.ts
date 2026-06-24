@@ -32,6 +32,7 @@ export enum LLMType {
 
 export const APP_DEFAULT_CONFIG: AppConfig = {
   logLevel: "debug",
+  uploadCrashReport: false,
   autoUpdate: true,
   autoLaunch: false,
   trash: false,
@@ -44,6 +45,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   host: "127.0.0.1",
   passKey: "",
   https: false,
+  externalWebhook: "",
   webhook: {
     open: false,
     recoderFolder: "",
@@ -226,6 +228,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     taskNotificationType: {
       liveStart: "system",
+      chargeLive: "system",
     },
   },
   sync: {
@@ -859,6 +862,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  chargeLiveNotification: true,
   liveEndNotification: false,
   weight: 10,
   source: "auto",

@@ -49,6 +49,7 @@ export const recorderNoGlobalFollowFields: Array<
     | "line"
     | "titleKeywords"
     | "liveStartNotification"
+    | "chargeLiveNotification"
     | "liveEndNotification"
     | "onlyAudio"
     | "handleTime"
@@ -354,13 +355,13 @@ export interface NotificationPushAllInAllConfig {
  * 自定义HTTP通知配置
  */
 export interface NotificationCustomHttpConfig {
-  /** 请求URL */
+  /** 请求URL，支持{{title}}、{{desc}}以及上下文占位符 */
   url: string;
   /** 请求方法 */
   method?: "GET" | "POST" | "PUT";
-  /** 请求体，支持{{title}}和{{desc}}占位符 */
+  /** 请求体，支持{{title}}、{{desc}}以及上下文占位符 */
   body?: string;
-  /** 请求头，每行一个，格式为key: value */
+  /** 请求头，每行一个，格式为key: value，支持占位符 */
   headers?: string;
 }
 
@@ -551,6 +552,8 @@ export interface Recorder {
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;
+  /** 充电直播(付费/DRM 加密直播)检测推送 */
+  chargeLiveNotification?: boolean;
   /** 录制结束通知 */
   liveEndNotification?: boolean;
   /** 权重 */
@@ -607,6 +610,8 @@ export interface AppConfig {
   audiowaveformPath: string;
   /** 缓存文件夹 */
   cacheFolder: string;
+  /** 上传崩溃报告 */
+  uploadCrashReport: boolean;
   /** 保存到回收站 */
   trash: boolean;
   /** 自动检查更新 */
@@ -629,6 +634,8 @@ export interface AppConfig {
   requestInfoForRecord: boolean;
   biliUploadFileNameType: "ask" | "always" | "never";
   cutPageInNewWindow: boolean;
+  /** 外部Webhook地址 */
+  externalWebhook: string;
   webhook: {
     recoderFolder: string;
     blacklist: string;
@@ -686,6 +693,7 @@ export interface AppConfig {
     };
     taskNotificationType: {
       liveStart: AppConfig["notification"]["setting"]["type"];
+      chargeLive?: AppConfig["notification"]["setting"]["type"];
     };
   };
   // 同步

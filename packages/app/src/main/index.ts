@@ -38,6 +38,24 @@ import type { Theme, GlobalConfig } from "@biliLive-tools/types";
 export let mainWin: BrowserWindow;
 export let container = createContainer();
 
+const SENTRY_CRASH_DSN =
+  "https://aa05399bf7cf8b619177be3284d28fc8@o4511547045576704.ingest.us.sentry.io/4511547052720128";
+
+const getSentryMinidumpSubmitURL = (dsn: string) => {
+  try {
+    const url = new URL(dsn);
+    const projectId = url.pathname.replace(/^\/+/, "");
+    if (!projectId || !url.username) {
+      throw new Error("Missing Sentry project id or public key.");
+    }
+
+    return `${url.protocol}//${url.host}/api/${projectId}/minidump/?sentry_key=${url.username}`;
+  } catch (error) {
+    log.warn("Failed to parse Sentry crash DSN.", error);
+    return undefined;
+  }
+};
+
 contextMenu({
   showSelectAll: false,
   showSearchWithGoogle: false,
@@ -373,7 +391,18 @@ function createWindow(): void {
 }
 
 function createMenu(): void {
-  const menu = Menu.buildFromTemplate([
+  const isMac = process.platform === "darwin";
+
+  const template: Electron.MenuItemConstructorOptions[] = [];
+
+  // macOS 需要 appMenu 才能让 Cmd+Q 等系统快捷键正常工作
+  if (isMac) {
+    template.push({
+      role: "appMenu",
+    });
+  }
+
+  template.push(
     {
       label: "文件",
       submenu: [
@@ -404,13 +433,19 @@ function createMenu(): void {
             shell.openPath(app.getPath("logs"));
           },
         },
+        { type: "separator" },
         {
           label: "退出",
+          accelerator: isMac ? "Cmd+Q" : "Alt+F4",
           click: async () => {
             quit();
           },
         },
       ],
+    },
+    // Edit 菜单提供 Cmd+C / Cmd+V / Cmd+A 等标准快捷键
+    {
+      role: "editMenu",
     },
     {
       label: "开发者工具",
@@ -463,7 +498,16 @@ function createMenu(): void {
         },
       ],
     },
-  ]);
+  );
+
+  // macOS 需要 windowMenu 来提供窗口管理功能
+  if (isMac) {
+    template.push({
+      role: "windowMenu",
+    });
+  }
+
+  const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 }
 
@@ -543,8 +587,17 @@ export const relaunch = async () => {
 };
 
 export const setOpenAtLogin = (_event: IpcMainInvokeEvent, openAtLogin: boolean) => {
+  if (process.platform === "win32") {
+    // 兼容性清理
+    app.setLoginItemSettings({
+      openAtLogin: false,
+      name: "com.electron",
+    });
+  }
+
   app.setLoginItemSettings({
     openAtLogin,
+    args: ["--hidden"],
   });
 };
 
@@ -552,11 +605,18 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
+  const sentryCrashSubmitURL = getSentryMinidumpSubmitURL(SENTRY_CRASH_DSN);
   crashReporter.start({
     uploadToServer: false,
+    submitURL: sentryCrashSubmitURL,
+    compress: true,
+    rateLimit: true,
+    globalExtra: {
+      product: "biliLive-tools",
+    },
   });
   app.whenReady().then(() => {
-    electronApp.setAppUserModelId("com.electron");
+    electronApp.setAppUserModelId("com.electron.biliLiveTools");
     installExtension("nhdogjmejiglipccpnnnanhbledajbpd")
       .then(({ name }) => log.debug(`Added Extension:  ${name}`))
       .catch((err) => log.debug("An error occurred: ", err));
@@ -733,6 +793,9 @@ const appInit = async () => {
     } catch (error) {
       log.error("自动更新检查失败:", error);
     }
+  }
+  if (appConfig.get("uploadCrashReport")) {
+    crashReporter.setUploadToServer(true);
   }
   // taskQueueListen(container);
 };
