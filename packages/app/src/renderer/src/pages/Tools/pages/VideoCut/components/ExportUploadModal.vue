@@ -33,6 +33,7 @@
               placeholder="请选择上传预设"
               filterable
               style="width: 300px"
+              clearable
             />
             <n-button
               v-if="exportOptions.uploadPresetId"
@@ -109,6 +110,7 @@ import filenamify from "filenamify/browser";
 import { deepRaw, secondsToTimemark } from "@renderer/utils";
 import { showSaveDialog } from "@renderer/utils/fileSystem";
 import type { Segment } from "@renderer/stores";
+import type { BiliupConfig } from "@biliLive-tools/types";
 
 interface Props {
   files: {
@@ -170,13 +172,13 @@ const confirmExportAndUpload = async () => {
     });
     return;
   }
-  if (!exportOptions.uploadPresetId) {
-    notice.error({
-      title: "请选择上传预设",
-      duration: 1000,
-    });
-    return;
-  }
+  // if (!exportOptions.uploadPresetId) {
+  //   notice.error({
+  //     title: "请选择上传预设",
+  //     duration: 1000,
+  //   });
+  //   return;
+  // }
   if (!userInfo.value.uid) {
     notice.error({
       title: "请点击左侧头像处先进行登录",
@@ -203,9 +205,13 @@ const confirmExportAndUpload = async () => {
   try {
     const ffmpegPreset = await ffmpegPresetApi.get(exportOptions.ffmpegPresetId);
     const ffmpegPresetConfig = ffmpegPreset.config;
-    const uploadPreset = await videoPresetApi.get(exportOptions.uploadPresetId);
-    const uploadConfig = deepRaw(uploadPreset.config);
-    await biliApi.validUploadParams(uploadConfig);
+    let uploadConfig: BiliupConfig | null = null;
+    if (exportOptions.uploadPresetId) {
+      const uploadPreset = await videoPresetApi.get(exportOptions.uploadPresetId);
+      uploadConfig = deepRaw(uploadPreset.config);
+      await biliApi.validUploadParams(uploadConfig);
+    }
+
     const srtContent = "";
     const outputPath = await showSaveDialog({
       defaultPath: buildDefaultOutputPath(),
@@ -254,7 +260,7 @@ const confirmExportAndUpload = async () => {
       {
         override: true,
         uploadOptions: {
-          upload: true,
+          upload: !!exportOptions.uploadPresetId,
           config: uploadConfig,
           filePath: outputPath,
           uid: userInfo.value.uid,

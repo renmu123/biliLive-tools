@@ -5,6 +5,7 @@
 - 通知：自定义通知及push-all-in-cloud支持更多上下文变量 [#489](https://github.com/renmu123/biliLive-tools/pull/489)
 - 录制：识别 B 站不可录制的特殊直播及添加相关通知 [#485](https://github.com/renmu123/biliLive-tools/pull/485/)
 - Docker：UMASK、PUID、PGID支持，**启动时会递归修改/app/data /app/video文件权限，可能存在破坏性更改** [#400](https://github.com/renmu123/biliLive-tools/pull/400)
+- 切片：支持单个切片导出并上传 [#455](https://github.com/renmu123/biliLive-tools/pull/455)
 
 ## 优化
 

@@ -871,7 +871,7 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
         ],
       },
       {
-        label: "导出并上传",
+        label: "导出",
         onClick: () => {
           emits("export-upload", segment);
         },

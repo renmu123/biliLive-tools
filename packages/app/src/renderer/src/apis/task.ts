@@ -208,7 +208,7 @@ const cut = async (
     saveType?: 1 | 2;
     uploadOptions?: {
       upload: boolean;
-      config: BiliupPreset["config"];
+      config: BiliupPreset["config"] | null;
       filePath: string;
       uid: number;
     };
