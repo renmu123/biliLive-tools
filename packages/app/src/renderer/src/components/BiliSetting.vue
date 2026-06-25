@@ -236,14 +236,6 @@
           >
         </div>
       </n-form-item>
-      <n-form-item label="充电设置">
-        <n-checkbox
-          v-model:checked="options.config.openElec"
-          :checked-value="1"
-          :unchecked-value="0"
-          >启用充电面板</n-checkbox
-        >
-      </n-form-item>
       <n-form-item label="高级设置">
         <div class="inline-items">
           <div class="inline-item">

@@ -331,7 +331,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     up_close_danmu: options.closeDanmu ? true : false,
     up_close_reply: options.closeReply ? true : false,
     up_selection_reply: options.selectiionReply ? true : false,
-    open_elec: options.openElec,
+    open_elec: 0,
     desc_v2: hasAt ? descV2 : undefined,
     desc: desc,
     recreate: options.recreate || -1,
