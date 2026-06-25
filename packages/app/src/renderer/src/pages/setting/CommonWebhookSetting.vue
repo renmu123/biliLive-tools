@@ -323,6 +323,18 @@
       :disabled="globalFieldsObj.uploadPresetId"
       style="margin-right: 10px"
     />
+    <n-button
+      v-if="data.uploadPresetId"
+      text
+      style="margin-right: 10px"
+      @click="openUploadPresetSetting"
+    >
+      <template #icon>
+        <n-icon>
+          <SettingsOutline />
+        </n-icon>
+      </template>
+    </n-button>
     <n-checkbox
       v-if="isRoom"
       v-model:checked="globalFieldsObj.uploadPresetId"
@@ -556,9 +568,11 @@
   </template>
 
   <DanmuFactorySettingDailog v-model:visible="showDanmuPresetDialog" v-model="danmuPresetModel" />
+  <BiliPresetEditDialog v-model:show="showUploadPresetDialog" :preset-id="data.uploadPresetId" />
 </template>
 
 <script setup lang="ts">
+import BiliPresetEditDialog from "@renderer/components/BiliPresetEditDialog.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
 import { formatWebhookTitle, formatWebhookPartTitle } from "@renderer/apis/bili";
@@ -618,6 +632,7 @@ const notice = useNotification();
 const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
 const { userList } = storeToRefs(useUserInfoStore());
 const showDanmuPresetDialog = ref(false);
+const showUploadPresetDialog = ref(false);
 const danmuPresetModel = computed({
   get: () => data.value.danmuPreset || "default",
   set: (value: string) => {
@@ -763,6 +778,11 @@ const isRoom = computed(() => props.type === "room");
 
 const openSetting = () => {
   showDanmuPresetDialog.value = true;
+};
+
+const openUploadPresetSetting = () => {
+  if (!data.value.uploadPresetId) return;
+  showUploadPresetDialog.value = true;
 };
 
 watch(

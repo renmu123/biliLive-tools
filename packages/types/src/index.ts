@@ -288,6 +288,8 @@ export type ToolConfig = {
     ignoreSubtitle: boolean;
     /** 字幕样式ID */
     subtitleStyleId?: string;
+    /** 上传预设 */
+    uploadPresetId: string;
   };
   /** 文件同步 */
   fileSync: {

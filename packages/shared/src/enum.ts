@@ -166,6 +166,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       ignoreDanmu: false,
       exportSubtitle: true,
       ignoreSubtitle: false,
+      uploadPresetId: "",
     },
   },
   task: {
