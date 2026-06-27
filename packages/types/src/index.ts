@@ -98,7 +98,10 @@ export type FfmpegPreset = CommonPreset<FfmpegOptions>;
 
 export type CommonRoomConfig = {
   open: boolean;
+  /** 最小处理文件大小 */
   minSize: number;
+  /** 碎片合并时间，单位分钟 */
+  autoVideoMergeMinute?: number;
   /** 视频标题 */
   title: string;
   uploadPresetId?: string;
