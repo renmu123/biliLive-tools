@@ -1,7 +1,7 @@
 # ============================================
 # 基础构建环境
 # ============================================
-FROM node:24.10 AS base
+FROM node:24.17 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@11.5.0 --activate
@@ -81,7 +81,7 @@ CMD ["caddy", "run", "--config", "/app/Caddyfile"]
 # ============================================
 # 目标2: 纯后端镜像
 # ============================================
-FROM node:24.10 AS backend
+FROM node:24.17 AS backend
 
 WORKDIR /app
 
@@ -119,7 +119,7 @@ CMD ["node", "index.cjs", "server", "--config", "config.json"]
 # ============================================
 # 目标3: 全栈镜像 (默认)
 # ============================================
-FROM node:24.10 AS fullstack
+FROM node:24.17 AS fullstack
 
 WORKDIR /app
 
