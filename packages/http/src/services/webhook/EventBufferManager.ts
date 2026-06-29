@@ -19,6 +19,11 @@ interface EventData {
   close?: Options;
 }
 
+interface EventBufferStats {
+  recordingParts: number;
+  errorParts: number;
+}
+
 /**
  * 事件缓冲管理器
  * 负责匹配 FileOpening 和 FileClosed 事件
@@ -115,5 +120,27 @@ export class EventBufferManager extends EventEmitter<{
    */
   getBufferStatus(): number {
     return this.events.size;
+  }
+
+  /**
+   * 获取缓冲区中未配对事件的分类统计
+   * 只有 FileOpening 说明仍在录制，只有 FileClosed 说明异常
+   */
+  getEventStats(): EventBufferStats {
+    let recordingParts = 0;
+    let errorParts = 0;
+
+    for (const eventData of this.events.values()) {
+      if (eventData.open && !eventData.close) {
+        recordingParts++;
+      } else if (!eventData.open && eventData.close) {
+        errorParts++;
+      }
+    }
+
+    return {
+      recordingParts,
+      errorParts,
+    };
   }
 }
