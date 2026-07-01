@@ -1281,6 +1281,7 @@ export const mergeVideos = async (
   await setFfmpegPath();
 
   const fileTxtPath = join(getTempPath(), `${uuid()}.txt`);
+  log.debug("mergeVideos videos: \n", inputFiles.join("\n"));
   const fileTxtContent = inputFiles.map((videoFile) => `file '${videoFile}'`).join("\n");
   await fs.writeFile(fileTxtPath, fileTxtContent);
 
@@ -1329,11 +1330,7 @@ export const mergeVideos = async (
   );
 
   taskQueue.addTask(task, false);
-  return {
-    status: "success",
-    text: "添加到任务队列",
-    taskId: task.taskId,
-  };
+  return task;
 };
 
 const promiseTask = async (task: AbstractTask) => {
