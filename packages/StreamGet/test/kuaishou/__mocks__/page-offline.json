@@ -1,0 +1,34 @@
+{
+  "user": { "name": "", "age": 0 },
+  "pcConfig": {
+    "pcConfig": {
+      "result": 1,
+      "did": "web_b8d40401fbbfc36a0a19ba8e76c10eb7",
+      "config": {
+        "pcLive.webConfig.needLoginToWatchHD": 1
+      }
+    }
+  },
+  "liveroom": {
+    "activeIndex": 0,
+    "websocketUrls": [],
+    "token": "",
+    "noticeList": [],
+    "playList": [
+      {
+        "liveStream": {},
+        "author": {},
+        "gameInfo": {},
+        "isLiving": false,
+        "errorType": {
+          "type": 22,
+          "title": "错误代码22",
+          "content": "浏览其他内容",
+          "url": "/"
+        }
+      }
+    ],
+    "loading": false,
+    "$isServerPretch": true
+  }
+}

@@ -416,6 +416,11 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       maxThreadCount: undefined,
       waitTime: undefined,
     },
+    kuaishou: {
+      checkInterval: undefined,
+      maxThreadCount: undefined,
+      waitTime: undefined,
+    },
     saveDanma2DB: false,
   },
   video: {

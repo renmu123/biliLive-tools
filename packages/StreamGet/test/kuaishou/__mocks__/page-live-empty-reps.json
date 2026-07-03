@@ -1,0 +1,30 @@
+{
+  "user": { "name": "", "age": 0 },
+  "pcConfig": {
+    "pcConfig": {
+      "result": 1,
+      "did": "web_another_did_32_hex_chars_abcdef0123456789"
+    }
+  },
+  "liveroom": {
+    "activeIndex": 0,
+    "playList": [
+      {
+        "liveStream": {
+          "id": "stream_empty_reps",
+          "playUrls": {
+            "h264": {
+              "adaptationSet": {
+                "representation": []
+              }
+            }
+          }
+        },
+        "isLiving": true,
+        "errorType": null
+      }
+    ],
+    "loading": false,
+    "$isServerPretch": true
+  }
+}

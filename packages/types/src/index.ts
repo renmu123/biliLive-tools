@@ -431,6 +431,9 @@ interface XhsRecorderConfig extends RecorderCheckConfig {
   cookie: string;
 }
 
+interface KuaishouRecorderConfig extends RecorderCheckConfig {
+}
+
 // 录制全局配置
 export interface GlobalRecorder {
   /** 保存根目录 */
@@ -489,10 +492,12 @@ export interface GlobalRecorder {
   douyin: DouyinRecorderConfig;
   /** 小红书特有的配置 */
   xhs: XhsRecorderConfig;
+  /** 快手特有的配置 */
+  kuaishou: KuaishouRecorderConfig;
 }
 
 export interface Recorder {
-  providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin" | "XHS";
+  providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin" | "XHS" | "Kuaishou";
   id: string;
   channelId: string;
   remarks?: string;

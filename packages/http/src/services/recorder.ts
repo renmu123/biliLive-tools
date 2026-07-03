@@ -356,6 +356,10 @@ export async function resolve(url: string) {
     if (channelInfo.uid) {
       config.uid = channelInfo.uid;
     }
+  } else if (channelInfo.providerId === "Kuaishou") {
+    if (channelInfo.uid) {
+      config.uid = channelInfo.uid;
+    }
   }
   return config;
 }

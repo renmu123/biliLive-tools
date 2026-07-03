@@ -519,4 +519,12 @@ export const textInfo = {
             PS: mobile看起来更不容易触发风控，直播html接口是真容易触发风控`,
     },
   },
+  kuaishou: {
+    qualityRetry: qualityRetry,
+    quality: quality,
+    formatName: {
+      text: "流格式",
+      tip: "默认优先flv模式，其次hls",
+    },
+  },
 } as const;
