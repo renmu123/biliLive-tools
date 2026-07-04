@@ -59,6 +59,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         streamPriorities: this.streamPriorities,
         sourcePriorities: this.sourcePriorities,
         formatPriorities: this.formatPriorities,
+      strictQuality,
       });
       return res.currentStream;
     },
@@ -158,6 +159,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
       formatPriorities: this.formatPriorities,
+      strictQuality,
     });
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);

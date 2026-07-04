@@ -38,7 +38,9 @@ export async function getInfo(channelId: string): Promise<{
  * 获取快手直播流地址
  */
 export async function getStream(
-  opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "formatPriorities">,
+  opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "formatPriorities"> & {
+  strictQuality?: boolean;
+},
 ): Promise<{
   living: true;
   sources: { name: string }[];
