@@ -51,7 +51,7 @@ console.log("\n=== Test 1: parseInitialState (真实快手页面, 未开播主�
 console.log("\n=== Test 2: Mock 已开播数据 (全链路流程) ===");
 (() => {
   const mockData = JSON.parse(
-    fs.readFileSync("./test/kuaishou/__mocks__/page-live.json", "utf-8")
+    fs.readFileSync("./packages/StreamGet/test/kuaishou/__mocks__/page-live.json", "utf-8")
   );
   const liveroom = mockData.liveroom;
   
@@ -98,7 +98,7 @@ console.log("\n=== Test 2: Mock 已开播数据 (全链路流程) ===");
 console.log("\n=== Test 3: Mock 未开播数据 ===");
 (() => {
   const mockData = JSON.parse(
-    fs.readFileSync("./test/kuaishou/__mocks__/page-offline.json", "utf-8")
+    fs.readFileSync("./packages/StreamGet/test/kuaishou/__mocks__/page-offline.json", "utf-8")
   );
   const liveroom = mockData.liveroom;
   
@@ -116,7 +116,7 @@ console.log("\n=== Test 3: Mock 未开播数据 ===");
 console.log("\n=== Test 4: Mock 已开播但无流数据 ===");
 (() => {
   const mockData = JSON.parse(
-    fs.readFileSync("./test/kuaishou/__mocks__/page-live-empty-reps.json", "utf-8")
+    fs.readFileSync("./packages/StreamGet/test/kuaishou/__mocks__/page-live-empty-reps.json", "utf-8")
   );
   const liveroom = mockData.liveroom;
   
