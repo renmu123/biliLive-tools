@@ -535,6 +535,19 @@
                 >全局</n-checkbox
               >
             </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip
+                  :text="textInfo.common.titleKeywords.text"
+                  :tip="textInfo.common.titleKeywords.tip"
+                ></Tip>
+              </template>
+              <n-input
+                v-model:value="config.titleKeywords"
+                :placeholder="textInfo.common.titleKeywords.placeholder"
+                clearable
+              />
+            </n-form-item>
           </template>
 
           <n-form-item

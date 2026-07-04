@@ -101,15 +101,20 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   const roomId = String(this.uid);
+  // 快手标题通常很长（含emoji和大量描述），截断避免文件名过长
+  const maxTitleLen = 50;
 
   // 获取直播间信息
   try {
     const info = await getInfo(roomId);
     const isLiving = info?.living ?? false;
+    const truncatedTitle = info.title.length > maxTitleLen
+      ? info.title.substring(0, maxTitleLen)
+      : info.title;
     this.liveInfo = {
       living: isLiving,
       owner: info.owner,
-      title: info.title,
+      title: truncatedTitle,
       avatar: info.avatar,
       cover: info.cover,
       liveStartTime: info.liveStartTime,
@@ -223,7 +228,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("videoFileCreated", { filename, cover, rawFilename });
 
     if (title && this?.liveInfo) {
-      this.liveInfo.title = title;
+      // 快手标题截断，避免过长
+      this.liveInfo.title = title.length > maxTitleLen
+        ? title.substring(0, maxTitleLen)
+        : title;
     }
     if (cover && this?.liveInfo) {
       this.liveInfo.cover = cover;

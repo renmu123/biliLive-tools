@@ -432,6 +432,10 @@ interface XhsRecorderConfig extends RecorderCheckConfig {
 }
 
 interface KuaishouRecorderConfig extends RecorderCheckConfig {
+  /** 画质 */
+  quality?: string;
+  /** 格式 */
+  formatName?: string;
 }
 
 // 录制全局配置
