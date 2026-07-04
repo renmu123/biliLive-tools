@@ -5,7 +5,7 @@
  * 不需要 __NS 签名，直接 HTTP GET 即可获取。
  */
 
-import type { LiveInfo, SourceInfo, StreamInfo } from "../types.js";
+import type { SourceInfo, StreamInfo } from "../types.js";
 import { ParseError } from "../errors.js";
 import { HttpClient } from "../http.js";
 

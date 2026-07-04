@@ -97,8 +97,7 @@ export class KuaishouParser extends PlatformParser<any> {
     }
   }
 
-  async _fetchLiveroom(userId: string, opts?: RequestOptions): Promise<any> {
-    const mergedOpts = this.mergeOptions(opts);
+  async _fetchLiveroom(userId: string, _opts?: RequestOptions): Promise<any> {
     const { html } = await fetchKuaishouPage(this.httpClient, userId);
     return parseInitialState(html).liveroom;
   }

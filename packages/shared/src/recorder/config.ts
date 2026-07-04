@@ -140,6 +140,8 @@ export default class RecorderConfig {
     } else if (setting.providerId === "XHS") {
       auth = getValue("cookie");
       uid = setting?.uid;
+    } else if (setting.providerId === "Kuaishou") {
+      uid = setting?.uid;
     }
 
     // 流格式处理

@@ -139,7 +139,7 @@ function createSubWindow(
 
   const subWindow = new BrowserWindow({
     webPreferences: {
-      preload: join(__dirname2, "../preload/index.mjs"),
+      preload: join(__dirname2, "../preload/index.js"),
       sandbox: false,
       webSecurity: false,
     },
@@ -195,7 +195,7 @@ function createWindow(): void {
     minWidth: 600,
     ...(process.platform === "linux" ? { icon: join(__dirname2, "../../resources/icon.png") } : {}),
     webPreferences: {
-      preload: join(__dirname2, "../preload/index.mjs"),
+      preload: join(__dirname2, "../preload/index.js"),
       sandbox: false,
       webSecurity: false,
       // nodeIntegrationInWorker: true,

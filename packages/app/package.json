@@ -1,12 +1,10 @@
 {
   "name": "biliLive-tools",
   "version": "3.17.0",
-  "description": "B站直播录制处理工具",
   "main": "./out/main/index.js",
   "author": "renmu123",
   "license": "GPL-3.0",
   "homepage": "https://github.com/renmu123/biliLive-tools",
-  "type": "module",
   "scripts": {
     "dev": "electron-vite dev",
     "devMain": "electron-vite dev --watch",
