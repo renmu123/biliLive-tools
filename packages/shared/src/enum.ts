@@ -417,6 +417,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       waitTime: undefined,
     },
     kuaishou: {
+      quality: "highest",
+      formatName: "auto",
       checkInterval: undefined,
       maxThreadCount: undefined,
       waitTime: undefined,

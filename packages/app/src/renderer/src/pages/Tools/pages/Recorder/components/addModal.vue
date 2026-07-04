@@ -502,6 +502,40 @@
               />
             </n-form-item>
           </template>
+          <template v-if="config.providerId === 'Kuaishou'">
+            <n-form-item>
+              <template #label>
+                <Tip
+                  :text="textInfo.kuaishou.quality.text"
+                  :tip="textInfo.kuaishou.quality.tip"
+                ></Tip>
+              </template>
+              <n-select
+                v-model:value="config.quality"
+                :options="kuaishouQualityOptions"
+                :disabled="globalFieldsObj.quality"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip
+                  :text="textInfo.kuaishou.formatName.text"
+                  :tip="textInfo.kuaishou.formatName.tip"
+                ></Tip>
+              </template>
+              <n-select
+                v-model:value="config.formatName"
+                :options="kuaishouFormatNameOptions"
+                :disabled="globalFieldsObj.formatName"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.formatName" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+          </template>
 
           <n-form-item
             v-if="
@@ -709,6 +743,8 @@ import {
   recorderDebugLevelOptions,
   douyinApiTypeOptions,
   huyaApiTypeOptions,
+  kuaishouQualityOptions,
+  kuaishouFormatNameOptions,
   douyuStreamCodecOptions,
   douyuApiTypeOptions,
 } from "@renderer/enums/recorder";
@@ -885,6 +921,8 @@ watch(
         config.value.quality = appConfig.value.recorder.huya.quality;
       } else if (config.value.providerId === "DouYin") {
         config.value.quality = appConfig.value.recorder.douyin.quality;
+      } else if (config.value.providerId === "Kuaishou") {
+        config.value.quality = appConfig.value.recorder.kuaishou.quality;
       } else {
         config.value.quality = appConfig.value.recorder.quality;
       }
@@ -896,6 +934,8 @@ watch(
         config.value.formatName = appConfig.value.recorder.douyin.formatName;
       } else if (config.value.providerId === "HuYa") {
         config.value.formatName = appConfig.value.recorder.huya.formatName;
+      } else if (config.value.providerId === "Kuaishou") {
+        config.value.formatName = appConfig.value.recorder.kuaishou.formatName;
       }
     }
     if (val.disableProvideCommentsWhenRecording) {
