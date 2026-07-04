@@ -115,11 +115,13 @@ export function extractStreams(liveroom: any): SourceInfo<any>[] {
 
           const qualityDesc =
             rep.qualityLabel ||
-            (rep.qualityType === "HIGH"
-              ? "超清"
-              : rep.qualityType === "BD"
-                ? "蓝光"
-                : "高清");
+            (rep.qualityType === "BLUE_RAY"
+              ? "蓝光"
+              : rep.qualityType === "SUPER"
+                ? "超清"
+                : rep.qualityType === "HIGH"
+                  ? "高清"
+                  : "标清");
           const streamInfo: StreamInfo<any> = {
             url: rep.url,
             quality: rep.qualityType || rep.qualityLabel || "STANDARD",

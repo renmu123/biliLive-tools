@@ -116,12 +116,12 @@ describe("extractStreams - 从 liveroom 提取 StreamInfo[]", () => {
     const tx = sources.find((s) => s.name.includes("tx-origin"))!;
 
     const sd = tx.streams.find((s) => s.quality === "STANDARD");
-    expect(sd!.qualityDesc).toBe("高清");
+    expect(sd!.qualityDesc).toBe("标清");
     expect(sd!.format).toBe("flv");
     expect(sd!.bitrate).toBe(1000);
 
     const hd = tx.streams.find((s) => s.quality === "HIGH");
-    expect(hd!.qualityDesc).toBe("超清");
+    expect(hd!.qualityDesc).toBe("高清");
     expect(hd!.format).toBe("flv");
     expect(hd!.bitrate).toBe(2000);
   });

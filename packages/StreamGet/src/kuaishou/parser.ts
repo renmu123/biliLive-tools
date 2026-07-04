@@ -59,14 +59,17 @@ export class KuaishouParser extends PlatformParser<any> {
 
       const first = liveroom.playList[0];
       const author = first.author || {};
+      const liveStream = first.liveStream || {};
+      // 快手 SSR 中 title 可能在 caption、name 或 author.description 字段
+      const title = liveStream.caption || liveStream.name || author.description || "";
       return {
         platform: this.platform,
         roomId: userId,
         living: !!first.isLiving,
-        title: "",
+        title,
         owner: author.name || "",
         avatar: author.avatar || "",
-        cover: first.liveStream?.poster || "",
+        cover: liveStream.poster || "",
         raw: opts?.raw ? liveroom : undefined,
       };
     } catch (error) {

@@ -109,7 +109,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.liveInfo = {
       living: isLiving,
       owner: info.owner,
-      title: "",
+      title: info.title,
       avatar: info.avatar,
       cover: info.cover,
       liveStartTime: info.liveStartTime,
@@ -207,6 +207,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
+      headers: {
+        Referer: "https://live.kuaishou.com/",
+      },
     },
     onEnd,
     async () => {

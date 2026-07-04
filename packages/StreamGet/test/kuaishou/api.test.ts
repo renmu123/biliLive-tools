@@ -248,8 +248,8 @@ describe("extractStreams", () => {
       ],
     };
     const result = extractStreams(liveroom);
-    expect(result[0].streams[0].qualityDesc).toBe("超清"); // HIGH → 超清
-    expect(result[0].streams[1].qualityDesc).toBe("高清"); // STANDARD → 高清
+    expect(result[0].streams[0].qualityDesc).toBe("高清"); // HIGH → 高清
+    expect(result[0].streams[1].qualityDesc).toBe("标清"); // STANDARD → 标清
     expect(result[0].streams[0].format).toBe("flv"); // 固定 flv
   });
 
