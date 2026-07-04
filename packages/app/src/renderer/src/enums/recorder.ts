@@ -194,6 +194,50 @@ export const huyaQualityOptions = [
   },
 ];
 
+// 快手画质选项
+export const kuaishouQualityOptions = [
+  {
+    value: "highest",
+    label: "最高",
+  },
+  {
+    value: "high",
+    label: "超清",
+  },
+  {
+    value: "medium",
+    label: "高清",
+  },
+  {
+    value: "low",
+    label: "标清",
+  },
+];
+
+// 快手流格式选项
+export const kuaishouFormatNameOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    label: "优先flv",
+    value: "flv",
+  },
+  {
+    label: "优先hls",
+    value: "hls",
+  },
+  {
+    label: "强制flv",
+    value: "flv_only",
+  },
+  {
+    label: "强制hls",
+    value: "hls_only",
+  },
+];
+
 // 抖音画质选项
 export const douyinQualityOptions = [
   {

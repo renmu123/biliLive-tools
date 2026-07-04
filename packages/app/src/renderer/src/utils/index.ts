@@ -220,6 +220,7 @@ export function buildRoomLink(platform: string, roomId: string): string | null {
     douyu: (id: string) => `https://www.douyu.com/${id}`,
     douyin: (id: string) => `https://live.douyin.com/${id}`,
     xhs: (id: string) => `https://www.xiaohongshu.com/user/profile/${id}`,
+    kuaishou: (id: string) => `https://live.kuaishou.com/u/${id}`,
   };
   const link = platformRoomLinkMap[platformLower]?.(roomId);
   return link ?? null;
