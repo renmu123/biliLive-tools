@@ -59,7 +59,6 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         streamPriorities: this.streamPriorities,
         sourcePriorities: this.sourcePriorities,
         formatPriorities: this.formatPriorities,
-      strictQuality,
       });
       return res.currentStream;
     },
