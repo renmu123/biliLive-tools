@@ -594,6 +594,10 @@ function getUploadFormatContext(
   };
 }
 
+function hasTemplateVariable(template?: string) {
+  return !!template?.trim() && (template.includes("{{") || template.includes("<%"));
+}
+
 /**
  * 预格式化选项
  * 解析视频元数据并格式化标题、分P标题和转载来源
@@ -615,13 +619,10 @@ export async function preFormatOptions(
   const normalizedFiles = normalizeUploadFiles(filePath);
 
   // 判断是否需要解析元数据
-  const needParseForTitle = options.title.includes("{{");
+  const needParseForTitle = hasTemplateVariable(options.title);
   const needParseForSource = options.copyright === 2 && !options.source;
-  const needParseForPartTitle =
-    options.partTitleTemplate &&
-    !!options.partTitleTemplate.trim() &&
-    options.partTitleTemplate.includes("{{");
-  const needParseForDesc = options.desc && options.desc.includes("{{");
+  const needParseForPartTitle = hasTemplateVariable(options.partTitleTemplate);
+  const needParseForDesc = hasTemplateVariable(options.desc);
 
   if (!needParseForTitle && !needParseForSource && !needParseForPartTitle && !needParseForDesc) {
     // 不需要解析，直接返回

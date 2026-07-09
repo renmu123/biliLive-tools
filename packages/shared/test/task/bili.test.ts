@@ -53,11 +53,11 @@ describe("preFormatOptions", () => {
 
     expect(pasrseMetadata).not.toHaveBeenCalled();
     expect(result.options.title).toBe("直播标题");
-    expect(result.options.desc).toBe("主播A-1000-part-1.mp4");
+    expect(result.options.desc).toBe("主播A-1000-part-1");
     expect(result.options.source).toBe("https://live.bilibili.com/1000");
     expect(result.videos).toEqual([
-      { path: "C:/videos/part-1.mp4", title: "P1-直播标题-part-1.mp4" },
-      { path: "C:/videos/part-2.mp4", title: "P2-直播标题2-part-2.mp4" },
+      { path: "C:/videos/part-1.mp4", title: "P1-直播标题-part-1" },
+      { path: "C:/videos/part-2.mp4", title: "P2-直播标题2-part-2" },
     ]);
   });
 
@@ -76,10 +76,39 @@ describe("preFormatOptions", () => {
       videoFilePath: "C:/videos/only-part.mp4",
     });
     expect(result.options.title).toBe("解析标题");
-    expect(result.options.desc).toBe("解析主播-3000-only-part.mp4");
+    expect(result.options.desc).toBe("解析主播-3000-only-part");
     expect(result.options.source).toBe("https://live.douyin.com/3000");
     expect(result.videos).toEqual([
-      { path: "C:/videos/only-part.mp4", title: "P1-解析标题-only-part.mp4" },
+      { path: "C:/videos/only-part.mp4", title: "P1-解析标题-only-part" },
+    ]);
+  });
+
+  it("纯 ejs 模板缺少 meta 时仍会调用 pasrseMetadata", async () => {
+    vi.mocked(pasrseMetadata).mockResolvedValue({
+      title: "解析标题",
+      username: "解析主播",
+      roomId: "3000",
+      startTimestamp: 1710007200,
+      platform: "douyin",
+    });
+
+    const result = await preFormatOptions(
+      createConfig({
+        title: "<%= title %>",
+        desc: "<%= user %>-<%= roomId %>-<%= filename %>",
+        partTitleTemplate: "P<%= index %>-<%= title %>-<%= filename %>",
+      }),
+      ["C:/videos/only-part.mp4"],
+    );
+
+    expect(pasrseMetadata).toHaveBeenCalledWith({
+      videoFilePath: "C:/videos/only-part.mp4",
+    });
+    expect(result.options.title).toBe("解析标题");
+    expect(result.options.desc).toBe("解析主播-3000-only-part");
+    expect(result.options.source).toBe("https://live.douyin.com/3000");
+    expect(result.videos).toEqual([
+      { path: "C:/videos/only-part.mp4", title: "P1-解析标题-only-part" },
     ]);
   });
 
@@ -113,8 +142,8 @@ describe("preFormatOptions", () => {
     });
     expect(result.options.title).toBe("固定标题");
     expect(result.videos).toEqual([
-      { path: "C:/videos/part-1.mp4", title: "P1-第一段标题-part-1.mp4" },
-      { path: "C:/videos/part-2.mp4", title: "P2-第二段标题-part-2.mp4" },
+      { path: "C:/videos/part-1.mp4", title: "P1-第一段标题-part-1" },
+      { path: "C:/videos/part-2.mp4", title: "P2-第二段标题-part-2" },
     ]);
   });
 
@@ -135,7 +164,37 @@ describe("preFormatOptions", () => {
 
     expect(pasrseMetadata).not.toHaveBeenCalled();
     expect(result.videos).toEqual([
-      { path: "C:/videos/part-1.mp4", title: "P5-第一段标题-part-1.mp4" },
+      { path: "C:/videos/part-1.mp4", title: "P5-第一段标题-part-1" },
+    ]);
+  });
+
+  it("支持纯 ejs 模板格式化标题、简介和分P标题", async () => {
+    const result = await preFormatOptions(
+      createConfig({
+        title: "<%= user %>-<%= title %>-<%= roomId %>",
+        desc: "<%= filename %>-<%= time.getFullYear() %>",
+        partTitleTemplate: "P<%= index %>-<%= hasDanmaStr %>-<%= filename %>",
+      }),
+      [
+        {
+          path: "C:/videos/part-1-弹幕版.mp4",
+          meta: {
+            index: 9,
+            title: "直播标题",
+            username: "主播A",
+            roomId: "1000",
+            startTimestamp: 1710000000,
+            platform: "bilibili",
+          },
+        },
+      ],
+    );
+
+    expect(pasrseMetadata).not.toHaveBeenCalled();
+    expect(result.options.title).toBe("主播A-直播标题-1000");
+    expect(result.options.desc).toBe("part-1-弹幕版-2024");
+    expect(result.videos).toEqual([
+      { path: "C:/videos/part-1-弹幕版.mp4", title: "P9-弹幕版-part-1-弹幕版" },
     ]);
   });
 });

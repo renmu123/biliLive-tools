@@ -1,5 +1,9 @@
 # Next
 
+## 优化
+
+- Webhook：重构分p标题的占位符模板渲染逻辑，**可能某些场景下存在破坏性更改** [#444](https://github.com/renmu123/biliLive-tools/pull/444)
+
 ## Bug修复
 
 - 录制：修复B站弹幕重试次数错误
