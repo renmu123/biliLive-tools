@@ -15,13 +15,27 @@
           <span class="source">{{ item.usedSource }}</span>
           <span class="line">{{ item.usedStream }}</span>
           <span>{{ formatProgress(item?.recordHandle?.progress?.time) }}</span>
+
+          <div class="card-corner-action" style="margin-left: auto" title="点击查看录制详情">
+            <slot name="cornerAction" :item="item"></slot>
+          </div>
         </div>
         <template v-else>
           <div
             v-if="item?.extra?.lastRecordTime && isColumnVisible('lastRecordTime')"
             class="recording-container"
+            :title="formatTime(item.extra.lastRecordTime)"
           >
-            <span>最近录制时间：{{ formatTime(item.extra.lastRecordTime) }}</span>
+            <span>上次录制：{{ formatRecentRecordTime(item.extra.lastRecordTime) }}</span>
+
+            <div class="card-corner-action" style="margin-left: auto" title="点击查看录制详情">
+              <slot name="cornerAction" :item="item"></slot>
+            </div>
+          </div>
+          <div v-else>
+            <div class="simple-recorder-detail" style="margin-left: auto" title="点击查看录制详情">
+              <slot name="cornerAction" :item="item"></slot>
+            </div>
           </div>
         </template>
       </div>
@@ -30,7 +44,7 @@
         <div style="display: flex; flex-direction: column; justify-content: space-between">
           <div style="display: flex; gap: 5px; align-items: center">
             <div class="owner" :title="item.remarks">{{ item.owner || item.remarks }}</div>
-            <n-icon v-if="item.living" size="20" title="直播中" class="icon-muted">
+            <n-icon v-if="item.living" size="20" title="直播中" class="icon-live">
               <Live24Regular />
             </n-icon>
             <n-icon v-if="!item.disableAutoCheck" size="20" title="自动录制" class="icon-muted">
@@ -73,7 +87,23 @@
                 'title-blocked': item.state === 'title-blocked',
               }"
               v-if="['check-error', 'stopping-record', 'title-blocked'].includes(item.state)"
+              @click="emit('showDetail', item)"
               >{{ stateMap[item.state] }}</span
+            >
+            <span
+              class="tag state charge-skipped"
+              v-if="
+                item.state === 'charge-skipped' &&
+                ['paid', 'guard'].includes(item.liveInfo?.liveType ?? '')
+              "
+              @click="emit('showDetail', item)"
+              >付费直播</span
+            >
+            <span
+              class="tag record-blocked"
+              v-if="item.state === 'charge-skipped'"
+              @click="emit('showDetail', item)"
+              >无法录制</span
             >
           </div>
         </div>
@@ -92,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatTime } from "@renderer/utils";
+import { formatRecentRecordTime, formatTime } from "@renderer/utils";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 import { Live24Regular, AccessTime24Regular } from "@vicons/fluent";
 import { AudiotrackRound } from "@vicons/material";
@@ -101,6 +131,12 @@ interface Props {
   list: any[];
   visibleColumns?: string[];
 }
+
+const emit = defineEmits<{
+  (e: "startRecord", channelId: string): void;
+  (e: "stopRecord", channelId: string): void;
+  (e: "showDetail", payload: { channelId: string }): void;
+}>();
 
 const props = withDefaults(defineProps<Props>(), {
   list: () => [],
@@ -128,6 +164,7 @@ const stateMap = {
   "check-error": "检查错误",
   "stopping-record": "停止中",
   "title-blocked": "标题屏蔽",
+  "charge-skipped": "无法录制",
 };
 </script>
 
@@ -151,6 +188,7 @@ const stateMap = {
     height: 162px;
     border-radius: 5px 5px 0px 0px;
     border-color: white;
+    overflow: hidden;
 
     .cover {
       width: 100%;
@@ -168,6 +206,7 @@ const stateMap = {
       padding: 0 5px;
       border-radius: 5px;
       position: relative;
+      z-index: 2;
       top: 5px;
       left: 5px;
       // 超过忽略
@@ -175,6 +214,7 @@ const stateMap = {
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 95%;
+      backdrop-filter: blur(8px);
     }
     .recording-container {
       display: flex;
@@ -188,6 +228,7 @@ const stateMap = {
       width: 100%;
       bottom: 0px;
       left: 0px;
+      backdrop-filter: blur(8px);
 
       .recording {
         display: inline-block;
@@ -256,7 +297,7 @@ const stateMap = {
 
     &.area {
       background: linear-gradient(135deg, #e8fff4 0%, #d7f4ff 100%);
-      border: 1px solid #9adbbd;
+      // border: 1px solid #9adbbd;
       color: #1f7a52;
       font-weight: 500;
     }
@@ -269,10 +310,22 @@ const stateMap = {
     &.state {
       background-color: #fff1b8;
       color: #d48806;
+      cursor: pointer;
       &.error {
         background-color: #fff1f0;
         color: #ff4d4f;
       }
+      &.charge-skipped {
+        background-color: #fff2e8;
+        color: #fa541c;
+        font-weight: 600;
+      }
+    }
+
+    &.record-blocked {
+      background-color: #f0f0f0;
+      color: #8c8c8c;
+      cursor: pointer;
     }
 
     [data-theme="dark"] & {
@@ -293,8 +346,61 @@ const stateMap = {
           background-color: #512c2c;
           color: #ff7875;
         }
+        &.charge-skipped {
+          background-color: #5a2a1a;
+          color: #ff9c6e;
+        }
+      }
+      &.record-blocked {
+        background-color: #3a3a3a;
+        color: #bfbfbf;
       }
     }
+  }
+}
+
+.card-corner-action {
+  padding-right: 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.simple-recorder-detail {
+  position: absolute;
+
+  right: 10px;
+  bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(19, 30, 49, 0.24) 0%, rgba(19, 30, 49, 0.44) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  [data-theme="dark"] & {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.5) 100%);
+    border-color: rgba(255, 255, 255, 0.16);
   }
 }
 

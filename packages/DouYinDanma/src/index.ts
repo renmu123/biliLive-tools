@@ -19,8 +19,6 @@ import type {
   ScreenChatMessage,
 } from "../types/types.js";
 
-
-
 interface Events {
   init: (url: string) => void;
   open: () => void;
@@ -99,7 +97,8 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.ws = new WebSocket(url, {
       headers: {
         Cookie: cookies,
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
         Origin: "https://live.douyin.com",
         Referer: "https://live.douyin.com/",
       },
@@ -456,7 +455,8 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       browser_language: "zh-CN",
       browser_platform: "Win32",
       browser_name: "Mozilla",
-      browser_version: "5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+      browser_version:
+        "5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
       browser_online: "true",
       tz_name: "Etc/GMT-8",
       host: "https://live.douyin.com",

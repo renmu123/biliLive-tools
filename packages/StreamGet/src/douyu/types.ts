@@ -79,17 +79,19 @@ export interface RoomInfo {
   [key: string]: any;
 }
 
-export interface LiveInfoResult {
-  living: boolean;
-  sources?: SourceProfile[];
-  streams?: StreamProfile[];
-  isSupportRateSwitch?: boolean;
-  isOriginalStream?: boolean;
-  currentStream?: {
-    onlyAudio: boolean;
-    source: string;
-    name: string;
-    rate: number;
-    url: string;
-  };
-}
+export type LiveInfoResult =
+  | { living: false }
+  | {
+      living: true;
+      sources: SourceProfile[];
+      streams: StreamProfile[];
+      isSupportRateSwitch: boolean;
+      isOriginalStream: boolean;
+      currentStream: {
+        onlyAudio: boolean;
+        source: string;
+        name: string;
+        rate: number;
+        url: string;
+      };
+    };

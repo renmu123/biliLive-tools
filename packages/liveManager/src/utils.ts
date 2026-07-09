@@ -571,10 +571,13 @@ export async function checkTitleKeywordsWhileRecording(
 
   // 检查标题是否包含关键词
   if (hasBlockedTitleKeywords(title, recorder.titleKeywords)) {
-    recorder.state = "title-blocked";
+    recorder.emit("stateChange", {
+      state: "title-blocked",
+      msg: `停止录制，直播间标题 "${title}" 包含关键词 "${recorder.titleKeywords}"`,
+    });
     recorder.emit("DebugLog", {
       type: "common",
-      text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${recorder.titleKeywords}"`,
+      text: `停止录制，直播间标题 "${title}" 包含关键词 "${recorder.titleKeywords}"`,
     });
 
     // 停止录制
@@ -604,10 +607,9 @@ export function checkTitleKeywordsBeforeRecord(
   }
 
   if (hasBlockedTitleKeywords(title, recorder.titleKeywords)) {
-    recorder.state = "title-blocked";
-    recorder.emit("DebugLog", {
-      type: "common",
-      text: `跳过录制：直播间标题 "${title}" 包含关键词 "${recorder.titleKeywords}"`,
+    recorder.emit("stateChange", {
+      state: "title-blocked",
+      msg: `跳过录制，直播间标题 "${title}" 包含关键词 "${recorder.titleKeywords}"`,
     });
     return true;
   }

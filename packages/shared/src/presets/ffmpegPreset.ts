@@ -20,6 +20,7 @@ const DefaultFfmpegOptions: FfmpegOptions = {
 
 const commonPresetParams: {
   resetResolution: boolean;
+  fps?: number;
   resolutionWidth: number;
   resolutionHeight: number;
   audioCodec: audioCodec;
@@ -41,6 +42,7 @@ const commonPresetParams: {
   pkOptimize: boolean;
 } = {
   resetResolution: false,
+  fps: undefined,
   resolutionWidth: 2880,
   resolutionHeight: 1620,
   audioCodec: "copy",
@@ -295,6 +297,11 @@ export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
       }
       if (Number(config?.resolutionWidth) < 0 && Number(config?.resolutionHeight) < 0) {
         throw new Error("分辨率参数不得都为负数");
+      }
+    }
+    if (config.fps !== undefined && config.fps !== null) {
+      if (Number.isNaN(Number(config.fps)) || Number(config.fps) <= 0) {
+        throw new Error("帧率参数必须大于0");
       }
     }
   }

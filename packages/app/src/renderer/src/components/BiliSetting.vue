@@ -2,10 +2,10 @@
 <template>
   <div>
     <n-form ref="formRef" label-width="120px" label-placement="left" label-align="right">
-      <n-form-item label="预设">
+      <n-form-item v-if="!isEditOnlyMode" label="预设">
         <n-select v-model:value="presetId" :options="uploaPresetsOptions" />
       </n-form-item>
-      <n-divider />
+      <n-divider v-if="!isEditOnlyMode" />
 
       <n-form-item>
         <template #label>
@@ -70,6 +70,7 @@
           <n-space>
             <n-radio :value="1"> 自制 </n-radio>
             <n-radio :value="2"> 转载 </n-radio>
+            <n-radio :value="3"> 其他 </n-radio>
           </n-space>
         </n-radio-group>
       </n-form-item>
@@ -89,20 +90,17 @@
           show-count
         />
       </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip
-            tip="仍在使用的分区，但是官方投稿已无法手动选择，这里你还是可以手动选的"
-            text="旧分区"
-          ></Tip>
-        </template>
-        <n-cascader
-          v-model:value="options.config.tid"
+      <n-form-item
+        label="创作声明"
+        v-if="options.config.copyright === 1 || options.config.copyright === 3"
+      >
+        <n-select
+          v-model:value="options.config.creationStatement"
+          :options="creationStatementList"
+          key-field="id"
           label-field="name"
           value-field="id"
-          :options="areaData"
-          check-strategy="child"
-          filterable
+          clearable
         />
       </n-form-item>
       <n-form-item label="分区">
@@ -126,7 +124,7 @@
           :loading="tagCreateLoading"
         />
       </n-form-item>
-      <n-form-item v-if="options.config.copyright === 1">
+      <n-form-item v-if="options.config.copyright === 1 || options.config.copyright === 3">
         <template #label>
           <Tip tip="话题也会占据一个tag栏~" text="话题"></Tip>
         </template>
@@ -208,7 +206,10 @@
           }"
         />
       </n-form-item>
-      <n-form-item v-if="options.config.copyright === 1" label="添加水印">
+      <n-form-item
+        v-if="options.config.copyright === 1 || options.config.copyright === 3"
+        label="添加水印"
+      >
         <n-checkbox
           v-model:checked="options.config.watermark"
           :checked-value="1"
@@ -234,14 +235,6 @@
             >二创声明</n-checkbox
           >
         </div>
-      </n-form-item>
-      <n-form-item label="充电设置">
-        <n-checkbox
-          v-model:checked="options.config.openElec"
-          :checked-value="1"
-          :unchecked-value="0"
-          >启用充电面板</n-checkbox
-        >
       </n-form-item>
       <n-form-item label="高级设置">
         <div class="inline-items">
@@ -380,14 +373,16 @@
       </n-form-item>
     </n-form>
 
-    <div style="text-align: right">
-      <n-button v-if="options.id !== 'default'" text type="error" @click="deletePreset"
-        >删除</n-button
-      >
-      <n-button type="primary" style="margin-left: 10px" @click="rename">重命名</n-button>
-      <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPreset"
-        >另存为</n-button
-      >
+    <div v-if="props.showActionButtons" style="text-align: right">
+      <template v-if="!isEditOnlyMode">
+        <n-button v-if="options.id !== 'default'" text type="error" @click="deletePreset"
+          >删除</n-button
+        >
+        <n-button type="primary" style="margin-left: 10px" @click="rename">重命名</n-button>
+        <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPreset"
+          >另存为</n-button
+        >
+      </template>
       <n-button type="primary" style="margin-left: 10px" @click="savePreset">保存</n-button>
     </div>
 
@@ -415,12 +410,12 @@
 <script setup lang="ts">
 import { biliApi, videoPresetApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
-import { deepRaw, uuid } from "@renderer/utils";
+import { uuid } from "@renderer/utils";
 
 import { uploadTitleTemplate } from "@renderer/enums";
 import { useAppConfig, useUploadPreset, useUserInfoStore } from "@renderer/stores";
 import { templateRef } from "@vueuse/core";
-import { cloneDeep } from "lodash-es";
+import { cloneDeep, isEqual } from "lodash-es";
 import DynamicTags from "./DynamicTags.vue";
 
 import type { BiliupPreset } from "@biliLive-tools/types";
@@ -428,15 +423,31 @@ import { FormItemRule } from "naive-ui";
 import { computed } from "vue";
 
 const confirm = useConfirm();
-const { getUploadPresets } = useUploadPreset();
+const uploadPresetStore = useUploadPreset();
+const { saveUploadPreset, removeUploadPreset } = uploadPresetStore;
 const { appConfig } = storeToRefs(useAppConfig());
-const { uploaPresetsOptions } = storeToRefs(useUploadPreset());
+const { uploaPresetsOptions, uploadPresetVersion } = storeToRefs(uploadPresetStore);
+const props = withDefaults(
+  defineProps<{
+    mode?: "full" | "edit-only";
+    presetId?: string;
+    showActionButtons?: boolean;
+  }>(),
+  {
+    mode: "full",
+    showActionButtons: true,
+  },
+);
 const emits = defineEmits<{
   (event: "change", value: BiliupPreset): void;
 }>();
 
 // const presetId = ref<string>("default");
 const presetId = defineModel<string>({ required: false });
+const isEditOnlyMode = computed(() => props.mode === "edit-only");
+const activePresetId = computed(() => {
+  return isEditOnlyMode.value ? props.presetId : presetId.value;
+});
 
 // @ts-ignore
 const options: Ref<BiliupPreset> = ref({
@@ -445,8 +456,8 @@ const options: Ref<BiliupPreset> = ref({
     seasonId: undefined,
   },
 });
-const handlePresetChange = async (value: string) => {
-  const preset = await videoPresetApi.get(value);
+const handlePresetChange = async (id: string) => {
+  const preset = await videoPresetApi.get(id);
   if (preset) {
     options.value = preset;
   } else {
@@ -461,14 +472,32 @@ const handlePresetChange = async (value: string) => {
 const noSideSpace = (value: string) => !value.startsWith(" ") && !value.endsWith(" ");
 
 watch(
-  () => presetId.value,
-  (value) => {
-    value && handlePresetChange(value);
+  () => activePresetId.value,
+  (id) => {
+    id && handlePresetChange(id);
   },
   {
     immediate: true,
   },
 );
+
+watch(uploadPresetVersion, () => {
+  if (activePresetId.value) {
+    // 判断当前options是否与uploaPresetsOptions中的activePresetId匹配的options相同，如果不相同则更新options
+    const currentOptions = uploaPresetsOptions.value.find(
+      (preset) => preset.value === activePresetId.value,
+    )?.options;
+    if (currentOptions) {
+      if (!isEqual(options.value.config, currentOptions)) {
+        console.log("options已过时，更新options");
+        handlePresetChange(activePresetId.value);
+      }
+    } else {
+      // 说明预设已经被删除了，重置为默认预设
+      presetId.value = "default";
+    }
+  }
+});
 
 const notice = useNotification();
 const tagCreateLoading = ref(false);
@@ -564,13 +593,12 @@ const saveAnotherPresetConfirm = async () => {
   if (!isRename.value) preset.id = uuid();
   preset.name = tempPresetName.value;
 
-  await _savePreset(preset);
+  await saveUploadPreset(preset);
   nameModelVisible.value = false;
   notice.success({
     title: "保存成功",
     duration: 1000,
   });
-  await getUploadPresets();
   presetId.value = preset.id;
   handlePresetChange(preset.id);
 };
@@ -592,34 +620,37 @@ const deletePreset = async () => {
   if (!status) return;
 
   const id = options.value.id;
-  await videoPresetApi.remove(id);
-  getUploadPresets();
+  await removeUploadPreset(id);
   presetId.value = "default";
   handlePresetChange("default");
 };
 
 const savePreset = async () => {
+  if (isEditOnlyMode.value && !options.value.id) {
+    notice.error({
+      title: "未找到可编辑的上传预设",
+      duration: 1000,
+    });
+    return false;
+  }
+
   const data = options.value;
   if (userInfoStore.userInfo?.uid) {
     data.config.uid = userInfoStore.userInfo.uid;
   }
-  await _savePreset(options.value);
+  await saveUploadPreset(options.value);
   if (options.value.config.dtime) {
     notice.warning({
       title: "保存成功，但定时发布不会保存到配置文件中",
       duration: 1000,
     });
-    return;
+    return true;
   }
   notice.success({
     title: "保存成功",
     duration: 1000,
   });
-};
-
-const _savePreset = async (data: BiliupPreset) => {
-  await biliApi.validUploadParams(deepRaw(data.config));
-  await videoPresetApi.save(deepRaw(data));
+  return true;
 };
 
 watch(
@@ -642,11 +673,6 @@ watchEffect(() => {
     options.value.config.closeReply = 0;
   }
 });
-// watchEffect(() => {
-//   if (options.value.config.tid) {
-//     getTypeDesc(options.value.config.tid);
-//   }
-// });
 
 // 合集
 const userInfoStore = useUserInfoStore();
@@ -711,27 +737,6 @@ const getSeasonList = async (force?: boolean) => {
   }
 };
 
-const areaData = ref<any[]>([]);
-const getPlatformTypes = async () => {
-  // 优先从本地缓存获取
-  const rawLocalData = window.localStorage.getItem("areaData");
-  if (rawLocalData) {
-    try {
-      areaData.value = JSON.parse(rawLocalData);
-      return;
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  if (!userInfoStore?.userInfo?.uid) {
-    return;
-  }
-  const data = await biliApi.getPlatformPre(userInfoStore.userInfo.uid);
-  areaData.value = data.typelist;
-  window.localStorage.setItem("areaData", JSON.stringify(data.typelist));
-};
-
 const descMaxLength = ref(2000);
 
 watch(
@@ -744,7 +749,6 @@ watch(
 watchEffect(() => {
   if (!userInfoStore.userInfo) return;
   getSeasonList();
-  getPlatformTypes();
 });
 
 const topicLoading = ref(false);
@@ -971,6 +975,7 @@ const getTitle = () => {
 defineExpose({
   setTitle,
   getTitle,
+  savePreset,
 });
 
 const humanTypeList = ref([
@@ -1093,6 +1098,29 @@ const humanTypeList = ref([
   {
     id: 1031,
     name: "生活经验",
+  },
+]);
+
+const creationStatementList = ref([
+  {
+    id: -1,
+    name: "内容无需标注",
+  },
+  {
+    id: 1,
+    name: "含AI生成内容",
+  },
+  {
+    id: 2,
+    name: "含虚构演绎内容",
+  },
+  {
+    id: 3,
+    name: "内容含营销信息",
+  },
+  {
+    id: 4,
+    name: "个人观点，仅供参考",
   },
 ]);
 </script>

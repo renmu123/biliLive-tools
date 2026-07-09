@@ -10,6 +10,7 @@
       :sort="props.sort"
       :placeholder="props.inputPlaceholder"
       @add-danmaku="addDanmaku"
+      :disableEdit="props.disableEdit"
     ></PartArea>
     <div v-else class="empty-area" :class="{ dragging: isOverDropZone }" @click="select">
       <div style="margin-bottom: 12px">
@@ -39,6 +40,7 @@ const fileList = defineModel<
     title: string;
     videoPath: string;
     danmakuPath?: string;
+    ext?: string;
   }[]
 >({ required: true });
 
@@ -48,6 +50,7 @@ const props = withDefaults(
     inputPlaceholder?: string;
     areaPlaceholder?: string;
     extensions?: string[];
+    disableEdit?: boolean;
   }>(),
   {
     sort: true,
@@ -109,6 +112,7 @@ const handleFiles = (files: string[]) => {
       title: window.path.parse(file).name,
       videoPath: file,
       danmakuPath: "",
+      ext: window.path.parse(file).ext,
     }));
 
   const allFiles = fileList.value.concat(newFiles);

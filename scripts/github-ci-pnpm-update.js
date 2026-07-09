@@ -1,6 +1,36 @@
 import fs from "fs";
 import { exec } from "child_process";
 
+async function getPnpmPath() {
+  return new Promise((resolve, reject) => {
+    exec("where pnpm", { windowsHide: true }, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`获取 pnpm 路径失败: ${error}`);
+        reject(error);
+        return;
+      }
+      if (stderr) {
+        console.error(`获取 pnpm 路径标准错误: ${stderr}`);
+        reject(stderr);
+        return;
+      }
+
+      const pnpmPath = stdout
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .find(Boolean);
+
+      if (!pnpmPath) {
+        reject(new Error("未找到 pnpm 路径"));
+        return;
+      }
+
+      console.log(`当前 pnpm 路径: ${pnpmPath}`);
+      resolve(pnpmPath);
+    });
+  });
+}
+
 async function getPnpmVersion() {
   return new Promise((resolve, reject) => {
     exec("pnpm --version", { windowsHide: true }, (error, stdout, stderr) => {
@@ -25,10 +55,19 @@ async function getPnpmVersion() {
 async function updatePnpm() {
   if (process.platform !== "win32") return;
 
+  const pnpmPath = await getPnpmPath();
   const version = await getPnpmVersion();
+  console.log(`正在修改 pnpm.cjs 文件以兼容 Windows 环境...`, version);
+
   // C:\Users\runneradmin\setup-pnpm\node_modules\.pnpm\pnpm@9.6.0\node_modules\pnpm\bin\pnpm.cjs
   // github的runner环境中，pnpm安装在C:\Users\runneradmin\setup-pnpm\node_modules\.pnpm
-  const filePath = `C:\\Users\\runneradmin\\setup-pnpm\\node_modules\\.pnpm\\pnpm@${version}\\node_modules\\pnpm\\bin\\pnpm.cjs`;
+  const resolvedPath = pnpmPath.replace(/pnpm(?:\.cmd)?$/i, "pnpm.cjs");
+  const filePath = fs.existsSync(resolvedPath)
+    ? resolvedPath
+    : `C:\\Users\\runneradmin\\setup-pnpm\\node_modules\\.pnpm\\pnpm@${version}\\node_modules\\pnpm\\bin\\pnpm.cjs`;
+
+  console.log(`目标 pnpm.cjs 路径: ${filePath}`);
+
   // 修改第一行为 #!node
   fs.readFile(filePath, "utf8", (err, data) => {
     if (err) {

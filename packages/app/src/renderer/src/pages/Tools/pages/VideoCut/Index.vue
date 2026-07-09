@@ -81,6 +81,7 @@
                 :danma-list="danmaList"
                 :files="files"
                 :danmaSearchMask="danmaSearchMask"
+                @export-upload="exportCutsAndUpload"
               ></SegmentList>
             </div>
           </template>
@@ -112,6 +113,11 @@
     @cancel="handleCancelConvertDanmu"
   ></DanmuFactorySettingDailog>
   <ExportModal v-model="exportVisible" :files="files"></ExportModal>
+  <ExportUploadModal
+    v-model="exportUploadVisible"
+    :files="files"
+    :segment="currentUploadSegment"
+  ></ExportUploadModal>
   <WaveformAnalyzerDialog
     v-model:visible="waveformAnalyzerDialogVisible"
     v-model="waveformAnalyzerConfig"
@@ -131,6 +137,7 @@ import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import { useSegmentStore, useAppConfig, useSubtitles } from "@renderer/stores";
 import ExportModal from "./components/ExportModal.vue";
+import ExportUploadModal from "./components/ExportUploadModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import VideoPlayer from "./components/VideoPlayer.vue";
 import WaveformPanel from "./components/WaveformPanel.vue";
@@ -150,6 +157,7 @@ import { useChapter } from "./composables/useChapter";
 import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
 
 import type { DanmuConfig } from "@biliLive-tools/types";
+import type { Segment } from "@renderer/stores";
 
 const clientOptions = useStorage("cut-hotprogress", {
   showSetting: true,
@@ -560,17 +568,46 @@ const handleConfirmConvertDanmu = async (config: DanmuConfig) => {
 };
 
 const exportVisible = ref(false);
-/**
- * 导出切片
- */
-const exportCuts = async () => {
+const exportUploadVisible = ref(false);
+const currentUploadSegment = ref<Segment | null>(null);
+
+const validateExportCuts = () => {
   if (selectedCuts.value.length === 0) {
     notice.error({
       title: "没有需要导出的切片",
       duration: 1000,
     });
+    return false;
+  }
+  if (!files.value.videoPath) {
+    notice.error({
+      title: "请先选择视频文件",
+      duration: 1000,
+    });
+    return false;
+  }
+
+  if (convertDanmuLoading.value) {
+    notice.error({
+      title: "弹幕转换中，请稍后",
+      duration: 1000,
+    });
+    return false;
+  }
+
+  return true;
+};
+/**
+ * 导出切片
+ */
+const exportCuts = async () => {
+  if (!validateExportCuts()) {
     return;
   }
+  exportVisible.value = true;
+};
+
+const exportCutsAndUpload = async (segment: Segment) => {
   if (!files.value.videoPath) {
     notice.error({
       title: "请先选择视频文件",
@@ -586,7 +623,9 @@ const exportCuts = async () => {
     });
     return;
   }
-  exportVisible.value = true;
+
+  currentUploadSegment.value = segment;
+  exportUploadVisible.value = true;
 };
 
 // 键盘快捷键

@@ -153,6 +153,7 @@ standardResult.segments.forEach((segment) => {
 ```
 
 **FFmpeg Whisper 特点：**
+
 - ✅ 本地离线识别，无需网络
 - ✅ 支持段落级别时间戳（JSONL 格式）
 - ✅ 独立实现，不依赖 fluent-ffmpeg 和任务队列

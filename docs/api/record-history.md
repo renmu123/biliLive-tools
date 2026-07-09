@@ -14,6 +14,7 @@
 | --------- | ------ | ---- | ------------------------ |
 | room_id   | string | 是   | 房间号                   |
 | platform  | string | 是   | 平台名称                 |
+| liveId    | string | 否   | 直播ID，用于筛选单场直播 |
 | page      | number | 否   | 页码，默认为 1           |
 | pageSize  | number | 否   | 每页条数，默认为 100     |
 | startTime | number | 否   | 开始时间(时间戳,单位:秒) |

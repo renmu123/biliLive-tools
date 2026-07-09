@@ -40,6 +40,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   saveSCDanma?: boolean;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 转封装为 mp4 */
+  convert2Mp4?: boolean;
   /** 身份验证 */
   auth?: string;
   /** cookie所有者uid,B站弹幕录制 */
@@ -69,6 +71,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
     | "userHTML"
     | "balance"
     | "random"
+    | "newAPI"
+    | "oldAPI"
     | string;
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制，支持两种格式：
    * 1. 逗号分隔的关键词：'回放,录播,重播'
@@ -89,6 +93,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   useServerTimestamp?: boolean;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
+  /** 代理 如http://127.0.0.1:7890 */
+  proxy?: string;
   /** 调试等级 */
   debugLevel?: "none" | "basic" | "verbose";
 }
@@ -107,6 +113,7 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     | "segment"
     | "saveSCDanma"
     | "saveCover"
+    | "convert2Mp4"
     | "saveGiftDanma"
     | "disableProvideCommentsWhenRecording"
     | "liveInfo"
@@ -115,14 +122,26 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     // | "recordHandle"
   >;
 
-/** 录制状态，idle: 空闲中，recording: 录制中，stopping-record: 停止录制中，check-error: 检查错误，title-blocked: 标题黑名单 */
+/** 录制状态，idle: 空闲中，recording: 录制中，stopping-record: 停止录制中，check-error: 检查错误，title-blocked: 标题黑名单，charge-skipped: 充电直播(DRM加密)已跳过 */
 export type RecorderState =
   | "idle"
   | "recording"
   | "stopping-record"
   | "check-error"
-  | "title-blocked";
+  | "title-blocked"
+  | "charge-skipped";
 export type Progress = { time: string | null };
+
+export interface RecorderTimelineItem {
+  startTime: number;
+  text: string;
+  endTime?: number;
+}
+
+export interface AppendRecorderTimelineArgs {
+  startTime?: number;
+  text: string;
+}
 
 export interface RecordHandle {
   // 表示这一次录制操作的唯一 id
@@ -159,12 +178,18 @@ export interface Recorder<E extends AnyObject = UnknownObject>
       RecordStart: RecordHandle;
       RecordSegment?: RecordHandle;
       videoFileCreated: { filename: string; cover?: string; rawFilename?: string };
+      stateChange: {
+        state: RecorderState;
+        msg?: string;
+      };
       videoFileCompleted: { filename: string; stats?: XmlStreamStats };
       progress: Progress;
       RecordStop: { recordHandle: RecordHandle; reason?: string };
       Updated: (string | keyof Recorder)[];
       Message: Message;
       DebugLog: DebugLog;
+      // 检测到充电直播(付费/DRM 加密直播)
+      ChargeLive: { channelId: string };
     }>,
     RecorderCreateOpts<E> {
   // 这里 id 设计成 string 而不是 string | number，主要是为了方便调用方少做一些类型处理，
@@ -192,8 +217,15 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     liveId?: string;
     recordStartTime: Date;
     area?: string;
+    // 直播类型(各平台可选填，目前仅 B站)：normal/paid/guard/password 等
+    liveType?: string;
+    liveTypeDesc?: string;
+    // 能否录制(在播 && 普通直播 && 可拿到非加密流)
+    canRecord?: boolean;
   };
   tempStopIntervalCheck?: boolean;
+  timeline?: RecorderTimelineItem[];
+  appendTimeline: (args: AppendRecorderTimelineArgs) => RecorderTimelineItem[];
   /** 缓存实例（命名空间） */
   cache: NamespacedCache;
   getChannelURL: (this: Recorder<E>) => string;

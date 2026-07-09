@@ -1,14 +1,175 @@
+import type { IncomingMessage } from "node:http";
+import type { Duplex } from "node:stream";
+
 import Router from "@koa/router";
+import { WebSocketServer } from "ws";
+import logger from "@biliLive-tools/shared/utils/log.js";
 
 import { pick } from "lodash-es";
 import recorderService from "../services/recorder.js";
 import { appConfig } from "../index.js";
+import streamerDetailService from "@biliLive-tools/shared/db/service/streamerDetailService.js";
+import { getInfo, getStream } from "@bililive-tools/douyin-recorder/stream.js";
 
 import type { RecorderAPI } from "../types/recorder.js";
 
 const router = new Router({
   prefix: "/recorder",
 });
+
+const DANMA_TEST_WS_PATH = "/recorder/ws/danma-test";
+const danmaTestWSS = new WebSocketServer({ noServer: true });
+
+const parsePositiveNumber = (value: string | null) => {
+  if (value === null) return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return null;
+  }
+  return parsed;
+};
+
+const getRawDataSize = (
+  data: Parameters<typeof danmaTestWSS.on>[1] extends never ? never : unknown,
+) => {
+  if (typeof data === "string") {
+    return Buffer.byteLength(data);
+  }
+
+  if (Array.isArray(data)) {
+    return data.reduce((total, chunk) => total + chunk.byteLength, 0);
+  }
+
+  if (data instanceof ArrayBuffer) {
+    return data.byteLength;
+  }
+
+  if (ArrayBuffer.isView(data)) {
+    return data.byteLength;
+  }
+
+  return 0;
+};
+
+const closeWebSocket = (socket: import("ws").WebSocket, code = 1011, reason = "test close") => {
+  if (socket.readyState === socket.OPEN || socket.readyState === socket.CLOSING) {
+    socket.close(code, reason);
+  }
+};
+
+danmaTestWSS.on("connection", (socket, request) => {
+  const url = new URL(request.url ?? DANMA_TEST_WS_PATH, "http://127.0.0.1");
+  const mode = url.searchParams.get("mode") ?? "hold";
+  const sendTextAfterMs = parsePositiveNumber(url.searchParams.get("sendTextAfterMs"));
+  const closeAfterMs = parsePositiveNumber(url.searchParams.get("closeAfterMs"));
+  const destroyAfterMs = parsePositiveNumber(url.searchParams.get("destroyAfterMs"));
+  const closeOnMessageCount = parsePositiveNumber(url.searchParams.get("closeOnMessageCount"));
+  const destroyOnMessageCount = parsePositiveNumber(url.searchParams.get("destroyOnMessageCount"));
+
+  logger.info("[danma-test-ws] connected", {
+    path: url.pathname,
+    search: url.search,
+    mode,
+    closeAfterMs,
+    destroyAfterMs,
+    closeOnMessageCount,
+    destroyOnMessageCount,
+    sendTextAfterMs,
+    remoteAddress: request.socket.remoteAddress,
+    remotePort: request.socket.remotePort,
+  });
+
+  let messageCount = 0;
+  let closeTimer: NodeJS.Timeout | null = null;
+  let destroyTimer: NodeJS.Timeout | null = null;
+  let sendTextTimer: NodeJS.Timeout | null = null;
+
+  const cleanup = () => {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+    if (destroyTimer) {
+      clearTimeout(destroyTimer);
+      destroyTimer = null;
+    }
+    if (sendTextTimer) {
+      clearTimeout(sendTextTimer);
+      sendTextTimer = null;
+    }
+  };
+
+  socket.on("message", (data, isBinary) => {
+    messageCount += 1;
+    logger.info("[danma-test-ws] message", {
+      messageCount,
+      isBinary,
+      size: getRawDataSize(data),
+    });
+
+    if (closeOnMessageCount != null && messageCount >= closeOnMessageCount) {
+      logger.info("[danma-test-ws] close on message count", { messageCount });
+      closeWebSocket(socket, 1011, "close on message count");
+      return;
+    }
+
+    if (destroyOnMessageCount != null && messageCount >= destroyOnMessageCount) {
+      logger.info("[danma-test-ws] destroy on message count", { messageCount });
+      socket.terminate();
+    }
+  });
+
+  socket.on("close", (code, reason) => {
+    logger.info("[danma-test-ws] closed", {
+      code,
+      reason: reason.toString(),
+      messageCount,
+    });
+    cleanup();
+  });
+  socket.on("error", (error) => {
+    logger.error("[danma-test-ws] socket error", error);
+    cleanup();
+  });
+
+  if (mode === "close-immediately") {
+    logger.info("[danma-test-ws] close immediately");
+    closeTimer = setTimeout(() => closeWebSocket(socket, 1011, "close immediately"), 0);
+    return;
+  }
+
+  if (mode === "destroy-immediately") {
+    logger.info("[danma-test-ws] destroy immediately");
+    destroyTimer = setTimeout(() => socket.terminate(), 0);
+    return;
+  }
+
+  if (closeAfterMs != null) {
+    logger.info("[danma-test-ws] close after delay", { closeAfterMs });
+    closeTimer = setTimeout(() => closeWebSocket(socket, 1011, "close after delay"), closeAfterMs);
+  }
+
+  if (destroyAfterMs != null) {
+    logger.info("[danma-test-ws] destroy after delay", { destroyAfterMs });
+    destroyTimer = setTimeout(() => socket.terminate(), destroyAfterMs);
+  }
+
+  if (sendTextAfterMs != null) {
+    logger.info("[danma-test-ws] send text after delay", { sendTextAfterMs });
+    sendTextTimer = setTimeout(() => {
+      if (socket.readyState === socket.OPEN) {
+        socket.send(`Hello! This is a test WebSocket connection. Mode: ${mode}`);
+      }
+    }, sendTextAfterMs);
+  }
+});
+
+const getSingleQueryValue = (value: string | string[] | undefined) => {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+  return value;
+};
 
 /**
  * 录制任务相关接口
@@ -27,6 +188,64 @@ router.get("/list", async (ctx) => {
   const query: RecorderAPI["getRecorders"]["Args"] = ctx.request.query;
 
   ctx.body = { payload: await recorderService.getRecorders(query) };
+});
+
+router.get("/detail", async (ctx) => {
+  const recorderId = getSingleQueryValue(ctx.request.query.recorderId);
+  const page = getSingleQueryValue(ctx.request.query.page);
+  const pageSize = getSingleQueryValue(ctx.request.query.pageSize);
+  const startTime = getSingleQueryValue(ctx.request.query.startTime);
+  const endTime = getSingleQueryValue(ctx.request.query.endTime);
+
+  if (!recorderId) {
+    ctx.status = 400;
+    ctx.body = {
+      message: "recorderId 不能为空",
+    };
+    return;
+  }
+
+  const recorder = recorderService.getRecorder({ id: recorderId });
+  const recorderInfo = recorderService.getRecorderInfo({ id: recorderId });
+  if (!recorder) {
+    ctx.status = 404;
+    ctx.body = {
+      message: "录制器不存在",
+    };
+    return;
+  }
+
+  const payload = streamerDetailService.queryStreamerDetail({
+    room_id: recorder.channelId,
+    platform: recorder.providerId,
+    page: page ? Number(page) : undefined,
+    pageSize: pageSize ? Number(pageSize) : undefined,
+    startTime: startTime ? Number(startTime) : undefined,
+    endTime: endTime ? Number(endTime) : undefined,
+  });
+
+  ctx.body = {
+    payload: {
+      ...payload,
+      recorderInfo,
+    },
+  };
+});
+
+router.get("/ws/danma-test", async (ctx) => {
+  ctx.status = 426;
+  ctx.body = {
+    message: "请使用 WebSocket 连接此地址",
+    wsPath: DANMA_TEST_WS_PATH,
+    usage: {
+      mode: ["hold", "close-immediately", "destroy-immediately", "reject-upgrade"],
+      closeAfterMs: "连接建立后延迟关闭",
+      destroyAfterMs: "连接建立后延迟强制断开",
+      closeOnMessageCount: "收到指定数量消息后关闭",
+      destroyOnMessageCount: "收到指定数量消息后强制断开",
+      sendTextAfterMs: "连接建立后延迟发送一条文本消息，默认不发送",
+    },
+  };
 });
 
 router.post("/add", async (ctx) => {
@@ -49,6 +268,7 @@ router.post("/add", async (ctx) => {
     "sendToWebhook",
     "uid",
     "saveCover",
+    "convert2Mp4",
     "qualityRetry",
     "formatName",
     "useM3U8Proxy",
@@ -56,6 +276,7 @@ router.post("/add", async (ctx) => {
     "codecName",
     "titleKeywords",
     "liveStartNotification",
+    "chargeLiveNotification",
     "liveEndNotification",
     "weight",
     "source",
@@ -110,6 +331,7 @@ router.put("/:id", (ctx) => {
     "codecName",
     "titleKeywords",
     "liveStartNotification",
+    "chargeLiveNotification",
     "liveEndNotification",
     "weight",
     "source",
@@ -121,6 +343,7 @@ router.put("/:id", (ctx) => {
     "useServerTimestamp",
     "handleTime",
     "debugLevel",
+    "convert2Mp4",
     "api",
   );
 
@@ -173,6 +396,17 @@ router.post("/:id/stop_record", async (ctx) => {
 router.post("/:id/cut", async (ctx) => {
   const { id } = ctx.params;
   ctx.body = { payload: await recorderService.cutRecord({ id }) };
+});
+
+/**
+ * 获取最近录制文件所在文件夹
+ * @route GET /recorder/:recorderId/recent-record-folder
+ * @param recorderId 直播间ID
+ * @returns 最近录制文件目录
+ */
+router.get("/:id/recent-record-folder", async (ctx) => {
+  const { id } = ctx.params;
+  ctx.body = { payload: await recorderService.getRecentRecordFolder({ id }) };
 });
 
 /**
@@ -261,4 +495,92 @@ router.post("/manager/liveInfo", async (ctx) => {
   };
 });
 
+router.get("/douyin/live-info", async (ctx) => {
+  const { roomId, platform, dev } = ctx.request.query;
+  if (platform !== "douyin") {
+    ctx.body = { error: "Platform not supported" };
+    ctx.status = 400;
+    return;
+  }
+  try {
+    const info = await getInfo(roomId as string, { api: "balance" });
+    const body = {
+      title: info.title,
+      owner: info.owner,
+      living: info.living,
+    };
+    if (dev) {
+      body["dev"] = info;
+    }
+    ctx.body = body;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: (error as Error).message };
+  }
+});
+
+/**
+ * 获取抖音直播间流信息，for bgo
+ * @route GET /recorder/douyin/stream-info
+ * @param roomId 直播间ID
+ * @param platform 直播平台，必须为douyin
+ * @param quality 画质，原画(origin)、蓝光(uhd)、超清(hd)、高清(sd)、标清(ld)，音频流(ao)，真原画(real_origin)，默认为origin
+ * @param dev 是否返回开发信息，默认为false
+ * @returns 直播流信息
+ */
+router.get("/douyin/stream-info", async (ctx) => {
+  const { roomId, platform, dev, quality } = ctx.request.query;
+  if (platform !== "douyin") {
+    ctx.body = { error: "Platform not supported" };
+    ctx.status = 400;
+    return;
+  }
+  try {
+    const info = await getStream({
+      channelId: roomId as string,
+      quality: getSingleQueryValue(quality) || "origin",
+      streamPriorities: [],
+      sourcePriorities: [],
+      formatPriorities: ["flv"],
+    });
+    const body = { stream: info.currentStream.url };
+    if (dev) {
+      body["dev"] = info;
+    }
+    ctx.body = body;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: (error as Error).message };
+  }
+});
+
 export default router;
+
+export function handleRecorderUpgrade(
+  request: IncomingMessage,
+  socket: Duplex,
+  head: Buffer,
+): boolean {
+  const url = new URL(request.url ?? "/", "http://127.0.0.1");
+  logger.info("[danma-test-ws] upgrade request", {
+    path: url.pathname,
+    search: url.search,
+    remoteAddress: request.socket.remoteAddress,
+    remotePort: request.socket.remotePort,
+  });
+  if (url.pathname !== DANMA_TEST_WS_PATH) {
+    return false;
+  }
+
+  if (url.searchParams.get("mode") === "reject-upgrade") {
+    logger.info("[danma-test-ws] reject upgrade", { path: url.pathname, search: url.search });
+    socket.write("HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n");
+    socket.destroy();
+    return true;
+  }
+
+  danmaTestWSS.handleUpgrade(request, socket, head, (ws) => {
+    danmaTestWSS.emit("connection", ws, request);
+  });
+  return true;
+}

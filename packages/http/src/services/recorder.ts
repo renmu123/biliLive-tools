@@ -1,3 +1,4 @@
+import path from "node:path";
 import axios from "axios";
 import { v4 as uuid } from "uuid";
 import { container } from "../index.js";
@@ -137,6 +138,13 @@ function getRecorder(
   return data;
 }
 
+function getRecorderInfo(args: RecorderAPI["getRecorder"]["Args"]): ClientRecorder | undefined {
+  const recorderManager = container.resolve("recorderManager");
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
+  if (recorder == null) throw new Error("404");
+  return recorderToClient(recorder);
+}
+
 async function addRecorder(
   args: RecorderAPI["addRecorder"]["Args"],
 ): Promise<RecorderAPI["addRecorder"]["Resp"]> {
@@ -201,6 +209,34 @@ async function cutRecord(args: RecorderAPI["cutRecord"]["Args"]): Promise<null> 
   const recorderManager = container.resolve("recorderManager");
   await recorderManager.manager.cutRecord(args.id);
   return null;
+}
+
+async function getRecentRecordFolder(
+  args: RecorderAPI["getRecentRecordFolder"]["Args"],
+): Promise<RecorderAPI["getRecentRecordFolder"]["Resp"]> {
+  const recorderManager = container.resolve("recorderManager");
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
+
+  if (!recorder) {
+    throw new Error("录制器不存在");
+  }
+
+  const recentCandidates = recordHistory.queryRecentClipsByRoomAndPlatform({
+    room_id: recorder.channelId,
+    platform: recorder.providerId,
+    candidateLimit: 15,
+  });
+
+  for (const clip of recentCandidates) {
+    const videoFile = clip.video_file;
+    if (!videoFile) continue;
+
+    return {
+      folderPath: path.dirname(videoFile),
+    };
+  }
+
+  throw new Error("未找到最近录制文件");
 }
 
 async function getBiliStream(id: string) {
@@ -277,6 +313,7 @@ export function recorderToClient(recorder: Recorder): ClientRecorder {
       "all",
       "getChannelURL",
       "checkLiveStatusAndRecord",
+      "appendTimeline",
       "recordHandle",
       "toJSON",
       "getLiveInfo",
@@ -447,12 +484,14 @@ export default {
   getRecorders,
   getRecorderNum,
   getRecorder,
+  getRecorderInfo,
   addRecorder,
   updateRecorder,
   removeRecorder,
   startRecord,
   stopRecord,
   cutRecord,
+  getRecentRecordFolder,
   getLiveInfo,
   batchStartRecord,
   batchStopRecord,

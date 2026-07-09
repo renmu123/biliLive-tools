@@ -36,6 +36,7 @@ const subtitleRecognize = async (
   modelId: string,
   options?: {
     offset?: number;
+    song?: boolean;
   },
 ): Promise<{
   srt: string;
@@ -46,6 +47,7 @@ const subtitleRecognize = async (
     startTime,
     endTime,
     offset: options?.offset,
+    song: options?.song,
   });
   return res.data;
 };

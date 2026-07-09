@@ -13,6 +13,8 @@ export async function getInfo(
   },
 ): Promise<{
   living: boolean;
+  // 是否为直播电台
+  isLiveRadio: boolean;
   owner: string;
   title: string;
   roomId: string;
@@ -39,6 +41,7 @@ export async function getInfo(
   const startTime = new Date();
   return {
     living: info.living,
+    isLiveRadio: info.isLiveRadio,
     owner: info.owner,
     title: info.title,
     roomId: info.roomId,
@@ -62,14 +65,24 @@ export async function getStream(
     doubleScreen?: boolean;
     api?: APIType;
     uid?: string | number;
+    // 是否为电台直播
+    isLiveRadio?: boolean;
   },
 ) {
   let api = opts.api ?? "web";
-  if (api === "userHTML") {
+  if (api === "userHTML" || api === "webHTML") {
     // userHTML 接口只能用于状态检测
     api = "web";
   } else if (api === "random") {
-    api = selectRandomAPI(["userHTML"]);
+    api = selectRandomAPI(["userHTML", "webHTML"]);
+  }
+  if (opts.isLiveRadio) {
+    // 直播电台可能需要特殊处理，优先使用 userHTML 接口
+    api = "userHTML";
+    // 如果用户指定了mobile接口，那么优先使用mobile接口获取流信息
+    if (opts.api === "mobile") {
+      api = "mobile";
+    }
   }
   const info = await getRoomInfo(opts.channelId, {
     doubleScreen: opts.doubleScreen ?? true,

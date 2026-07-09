@@ -68,11 +68,19 @@
         @sort="handleSort"
         @startRecord="startRecord"
         @stopRecord="stopRecord"
+        @showDetail="viewStreamerDetail"
       >
+        <template #cornerAction="{ item }">
+          <div class="card-corner-action" @click.stop="viewStreamerDetail(item)">
+            <span class="card-corner-action__label">详情</span>
+          </div>
+        </template>
         <template #action="{ item }">
           <div style="margin-top: 10px" class="section-container">
             <div class="section" @click="startRecord(item.id)">开始录制</div>
-            <div class="section" @click="stopRecord(item.id)">停止录制</div>
+            <div v-if="item.recordHandle" class="section" @click="stopRecord(item.id)">
+              停止录制
+            </div>
             <div
               class="section"
               @click="cut(item.id)"
@@ -97,15 +105,16 @@
               打开直播
             </div>
             <div
-              v-if="!isWeb && item.recordHandle?.savePath"
+              v-if="!isWeb"
               class="section"
-              @click="openSavePath(item.recordHandle?.savePath)"
+              @click="openSavePath(item.id, item.recordHandle?.savePath)"
             >
               打开录制文件夹
             </div>
 
             <div class="section" @click="toWebhook(item.channelId)">Webhook配置</div>
-            <div class="section" @click="viewHistory(item)">录制历史</div>
+            <div class="section" @click="viewStreamerDetail(item)">录制详情</div>
+            <div class="section" @click="viewHistory(item)" style="display: none">录制历史</div>
             <div class="section section-danger" @click="remove(item.id)">删除房间</div>
           </div>
         </template>
@@ -192,7 +201,7 @@ const columnConfig = [
   { value: "living", label: "直播状态" },
   { value: "state", label: "录制状态" },
   { value: "recordParams", label: "录制参数" },
-  { value: "lastRecordTime", label: "最近录制时间" },
+  { value: "lastRecordTime", label: "上次录制" },
   { value: "monitorStatus", label: "监听状态" },
   { value: "actions", label: "操作" },
 ];
@@ -649,10 +658,23 @@ const isWeb = ref(window.isWeb);
 
 /**
  * 打开录制文件夹
- * @param path
+ * @param id 录制器ID
+ * @param recordingPath 录制文件路径
  */
-const openSavePath = (path: string) => {
-  window.api.openPath(window.path.dirname(path));
+const openSavePath = async (id: string, recordingPath?: string) => {
+  if (recordingPath) {
+    await window.api.openPath(window.path.dirname(recordingPath));
+    return;
+  }
+
+  try {
+    const { folderPath } = await recoderApi.getRecentRecordFolder(id);
+    await window.api.openPath(folderPath);
+  } catch (error: any) {
+    notice.error({
+      title: error?.message,
+    });
+  }
 };
 
 const toWebhook = (channelId: string) => {
@@ -675,6 +697,16 @@ const viewHistory = (item: any) => {
       id: item.id,
       channelId: item.channelId,
       platform: item.providerId,
+      name: item.owner,
+    },
+  });
+};
+
+const viewStreamerDetail = (item: any) => {
+  router.push({
+    path: "/streamerDetail",
+    query: {
+      recorderId: item.id,
       name: item.owner,
     },
   });

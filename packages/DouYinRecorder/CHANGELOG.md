@@ -1,4 +1,13 @@
-# Next
+# 1.17.1
+
+- 修复：`webHTML` 接口不再参与获取流
+- 优化电台直播流获取 [#469](https://github.com/renmu123/biliLive-tools/pull/469) [#466](https://github.com/renmu123/biliLive-tools/pull/466)
+
+# 1.17.0
+
+- 增加时间线的相关事件处理
+
+# 1.16.1
 
 - 抖音用户页请求增加额外的错误判断 [#425](https://github.com/renmu123/biliLive-tools/pull/425)
 - `mobile`接口不再应用Cookie

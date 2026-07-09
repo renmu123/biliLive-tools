@@ -45,6 +45,7 @@ export function defaultToJSON<E extends AnyObject>(
       "segment",
       "saveSCDanma",
       "saveCover",
+      "convert2Mp4",
       "saveGiftDanma",
       "disableProvideCommentsWhenRecording",
       "liveInfo",

@@ -33,25 +33,29 @@ export const useThemeStore = defineStore("theme", () => {
     return osThemeRef.value || "light";
   });
 
+  const applyDataTheme = (currentTheme: "dark" | "light") => {
+    document.documentElement.setAttribute("data-theme", currentTheme);
+  };
+
   const setTheme = (newTheme: "system" | "dark" | "light") => {
     window?.api?.common?.setTheme(newTheme);
 
     if (newTheme === "system") {
       localStorage.removeItem(THEME_KEY);
-      document.documentElement.removeAttribute("data-theme");
       manualTheme.value = "system";
     } else {
       localStorage.setItem(THEME_KEY, newTheme);
-      document.documentElement.setAttribute("data-theme", newTheme);
       manualTheme.value = newTheme;
     }
   };
-  const initDataTheme = (theme: string | null) => {
-    if (theme === "dark" || theme === "light") {
-      document.documentElement.setAttribute("data-theme", theme);
-    }
-  };
-  initDataTheme(manualTheme.value);
+
+  watch(
+    theme,
+    (currentTheme) => {
+      applyDataTheme(currentTheme);
+    },
+    { immediate: true },
+  );
 
   return { themeUI, theme, setTheme };
 });

@@ -4,6 +4,29 @@
     <meta charset="UTF-8" />
     <title>biliLive-tools</title>
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <script>
+      (() => {
+        try {
+          const theme = localStorage.getItem("theme");
+          const resolvedTheme =
+            theme === "dark" || theme === "light"
+              ? theme
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+
+          document.documentElement.setAttribute("data-theme", resolvedTheme);
+        } catch {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
+    <style>
+      /* 解决闪烁问题 */
+      [data-theme="dark"] body {
+        background-color: #101014;
+      }
+    </style>
   </head>
 
   <body>

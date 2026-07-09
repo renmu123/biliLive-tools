@@ -64,23 +64,6 @@ const getPlatformArchiveDetail = async (aid: number, uid: number) => {
   return res.data;
 };
 
-const getPlatformPre = async (uid: number): Promise<ReturnType<BiliApi["getPlatformPre"]>> => {
-  const res = await request.get("/bili/platformPre", {
-    params: { uid },
-  });
-  return res.data;
-};
-
-const getTypeDesc = async (
-  tid: number,
-  uid: number,
-): Promise<ReturnType<BiliApi["getTypeDesc"]>> => {
-  const res = await request.get("/bili/typeDesc", {
-    params: { tid, uid },
-  });
-  return res.data;
-};
-
 const qrcode = async (): Promise<{
   url: string;
   id: string;
@@ -191,8 +174,6 @@ const bili = {
   getArchiveDetail,
   getSessionId,
   getPlatformArchiveDetail,
-  getPlatformPre,
-  getTypeDesc,
   qrcode,
   loginCancel,
   loginPoll,
