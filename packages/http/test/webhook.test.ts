@@ -3130,7 +3130,7 @@ describe("Live", () => {
           expect(result.filePaths[0].part.partId).toBe("part-2");
           expect(result.filePaths[0].meta).toEqual(
             expect.objectContaining({
-              index: 3,
+              index: 2,
               title: "Part 2",
             }),
           );
@@ -3138,7 +3138,7 @@ describe("Live", () => {
           expect(result.filePaths[1].part.partId).toBe("part-3");
           expect(result.filePaths[1].meta).toEqual(
             expect.objectContaining({
-              index: 4,
+              index: 3,
               title: "Part 3",
             }),
           );
@@ -3146,7 +3146,7 @@ describe("Live", () => {
           expect(result.filePaths[2].part.partId).toBe("part-2");
           expect(result.filePaths[2].meta).toEqual(
             expect.objectContaining({
-              index: 5,
+              index: 2,
               title: "Part 2",
             }),
           );
@@ -3154,7 +3154,7 @@ describe("Live", () => {
           expect(result.filePaths[3].part.partId).toBe("part-3");
           expect(result.filePaths[3].meta).toEqual(
             expect.objectContaining({
-              index: 6,
+              index: 3,
               title: "Part 3",
             }),
           );
@@ -3815,7 +3815,7 @@ describe("Live", () => {
                 title: "Part 1",
               }),
               uploadItemMatcher(live.parts[0], "raw", "/path/to/raw1.mp4", "Part 1", {
-                index: 2,
+                index: 1,
                 title: "Part 1",
               }),
             ],

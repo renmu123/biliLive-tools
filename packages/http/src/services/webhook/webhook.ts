@@ -1204,14 +1204,14 @@ export class WebhookHandler {
     return sortParams;
   }
 
-  private getUploadedItemCountForSameMedia(live: Live, config: RoomConfig): number {
+  private getUploadedItemCountForSameMedia(live: Live, type: "handled" | "raw"): number {
     let uploadedCount = 0;
 
     for (const part of live.parts) {
-      if (part.uploadStatus === "uploaded") {
+      if (type === "handled" && part.uploadStatus === "uploaded") {
         uploadedCount++;
       }
-      if (config.uploadNoDanmu && part.rawUploadStatus === "uploaded") {
+      if (type === "raw" && part.rawUploadStatus === "uploaded") {
         uploadedCount++;
       }
     }
@@ -1225,7 +1225,10 @@ export class WebhookHandler {
   ): { filePaths: UploadFileItem[]; cover?: string } {
     let cover: string | undefined;
     const filePaths: UploadFileItem[] = [];
-    let currentIndex = this.getUploadedItemCountForSameMedia(live, config) + 1;
+    const currentIndexes = {
+      handled: this.getUploadedItemCountForSameMedia(live, "handled") + 1,
+      raw: this.getUploadedItemCountForSameMedia(live, "raw") + 1,
+    };
 
     for (const type of SAME_MEDIA_UPLOAD_ORDER) {
       for (const part of live.parts) {
@@ -1238,14 +1241,14 @@ export class WebhookHandler {
         filePaths.push({
           part,
           path: item.path,
-          meta: this.createUploadFileMeta(live, part, currentIndex),
+          meta: this.createUploadFileMeta(live, part, currentIndexes[type]),
           type: item.type,
         });
 
         if (!cover) {
           cover = part.cover;
         }
-        currentIndex++;
+        currentIndexes[type]++;
       }
     }
 
