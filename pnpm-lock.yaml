@@ -303,10 +303,10 @@ importers:
     dependencies:
       '@electron-toolkit/preload':
         specifier: ^3.0.1
-        version: 3.0.1(electron@42.5.0)
+        version: 3.0.1(electron@41.10.1)
       '@electron-toolkit/utils':
         specifier: ^4.0.0
-        version: 4.0.0(electron@42.5.0)
+        version: 4.0.0(electron@41.10.1)
       '@imengyu/vue3-context-menu':
         specifier: ^1.5.2
         version: 1.5.2
@@ -435,8 +435,8 @@ importers:
         specifier: ^1.3.1
         version: 1.3.1
       electron:
-        specifier: 42.5.0
-        version: 42.5.0
+        specifier: 41.10.1
+        version: 41.10.1
       electron-builder:
         specifier: ^26.15.5
         version: 26.15.5(electron-builder-squirrel-windows@26.15.5)
@@ -3341,8 +3341,8 @@ packages:
     resolution: {integrity: sha512-bO3y10YikuUwUuDUQRM4KfwNkKhnpVO7IPdbsrejwN9/AABJzzTQ4GeHwyzNSrVO+tEH3/Np255a3sVZpZDjvg==}
     engines: {node: '>=8.0.0'}
 
-  electron@42.5.0:
-    resolution: {integrity: sha512-cYEKS9XFz+c9fAB4jI0x49yz1FFzB55r3q96wu9YkwwJMv7t9202IE/ltlgy6yitl/J4M7C8JQcmUqdzDvPl/w==}
+  electron@41.10.1:
+    resolution: {integrity: sha512-8BGbTyMWNCXZ2nErXqchO31CJsHlzD5joOiWbNerBi1EnGLXkiMEF3yUUN+T16duz3XYwLTcxOq38MMcWf0sQA==}
     engines: {node: '>= 22.12.0'}
     hasBin: true
 
@@ -6464,17 +6464,17 @@ snapshots:
     dependencies:
       eslint: 8.57.1
 
-  '@electron-toolkit/preload@3.0.1(electron@42.5.0)':
+  '@electron-toolkit/preload@3.0.1(electron@41.10.1)':
     dependencies:
-      electron: 42.5.0
+      electron: 41.10.1
 
   '@electron-toolkit/tsconfig@1.0.1(@types/node@24.7.2)':
     dependencies:
       '@types/node': 24.7.2
 
-  '@electron-toolkit/utils@4.0.0(electron@42.5.0)':
+  '@electron-toolkit/utils@4.0.0(electron@41.10.1)':
     dependencies:
-      electron: 42.5.0
+      electron: 41.10.1
 
   '@electron/asar@3.4.1':
     dependencies:
@@ -8968,7 +8968,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron@42.5.0:
+  electron@41.10.1:
     dependencies:
       '@electron-internal/extract-zip': 1.0.3
       '@electron/get': 5.0.0
