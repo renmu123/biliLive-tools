@@ -32,6 +32,7 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-typescript": "^11.1.6",
+    "@types/lodash-es": "^4.17.12",
     "@types/node": "24.7.2",
     "@types/uuid": "^10.0.0",
     "@vitest/coverage-istanbul": "^3.2.4",
@@ -40,7 +41,7 @@
     "prettier": "^3.6.2",
     "rollup": "^4.24.4",
     "tar": "^7.4.3",
-    "typescript": "7.0.2",
+    "typescript": "6.0.2",
     "vitest": "^3.2.4"
   },
   "packageManager": "pnpm@11.5.0+sha512.dbfcc4f81cf48597afd4bc391ffdf12c11f1a9fb83a395bfa6b0a2d9cc2fd8ffebafdb1ccbd529632153f793904c2615b7f09fe1a345473fd1c35845172a8eb1"

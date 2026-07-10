@@ -19,7 +19,7 @@
     "declaration": true,
     "skipLibCheck": true,
     "types": ["*"],
-    "allowJs": true
+    "allowJs": false
   },
   "include": ["src/**/*.ts", "src/**/*.js"],
   "exclude": ["node_modules"]
