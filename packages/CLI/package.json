@@ -9,9 +9,9 @@
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "scripts": {
     "start": "tsx src/index.ts",
-    "dev": "rollup --config rollup.config.js -w",
+    "dev": "vite build --watch",
     "build:cli": "pnpm run build && pnpm run movePackage && pnpm run pkg",
-    "build": "rimraf lib && rollup --config rollup.config.js",
+    "build": "vite build",
     "movePackage": "node ./scripts/copy_module.js",
     "pkg": "pkg ./lib/index.cjs --output ./dist/biliLive",
     "zip:win": "cd dist && bestzip biliLive-cli-win-x64.zip biliLive.exe",
@@ -51,7 +51,7 @@
     "bestzip": "^2.2.1",
     "cli-progress": "^3.12.0",
     "commander": "^12.1.0",
-    "rimraf": "^6.0.1",
-    "tsx": "^4.19.2"
+    "tsx": "^4.19.2",
+    "vite": "^8.0.0"
   }
 }
