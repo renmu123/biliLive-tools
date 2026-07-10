@@ -19,6 +19,7 @@ import type {
   RecorderCreateOpts,
   RecorderProvider,
   RecordHandle,
+  VideoFileCreatedPayload,
 } from "@bililive-tools/manager";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
@@ -211,7 +212,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     },
   );
 
-  const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
+  const handleVideoCreated = async ({
+    filename,
+    title,
+    cover,
+    rawFilename,
+  }: VideoFileCreatedPayload) => {
     this.emit("videoFileCreated", { filename, cover, rawFilename });
 
     if (title && this?.liveInfo) {

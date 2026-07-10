@@ -4,7 +4,7 @@
     "module": "Node16",
     "outDir": "./lib",
     "rootDir": "./src",
-    "strict": false,
+    "strict": true,
     "sourceMap": false,
     // "strictNullChecks": true,
     // "strictPropertyInitialization": false,
