@@ -1,4 +1,4 @@
-import { cloneDeep, isArray } from "lodash-es";
+import { cloneDeep } from "lodash-es";
 import { v4 as uuid } from "uuid";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
