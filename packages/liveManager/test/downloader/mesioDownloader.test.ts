@@ -42,7 +42,9 @@ describe("mesioDownloader", () => {
       getExtraDataController: vi.fn(),
     };
 
-    (StreamManager as any).mockImplementation(() => mockStreamManager);
+    (StreamManager as any).mockImplementation(function () {
+      return mockStreamManager;
+    });
 
     defaultOptions = {
       url: "https://example.com/stream.flv",

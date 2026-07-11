@@ -426,15 +426,7 @@ describe("WebhookHandler", () => {
         title: "test video",
         software: "bili-recorder",
       };
-      vi.mock("@biliLive-tools/shared/utils/index.js", async (importOriginal) => {
-        const mod = await importOriginal<typeof import("@biliLive-tools/shared/utils/index.js")>();
-        return {
-          ...mod,
-          getFileSize: vi.fn().mockResolvedValue(50),
-          // 替换一些导出
-          namedExport: vi.fn(),
-        };
-      });
+      const getFileSizeSpy = vi.spyOn(utils, "getFileSize").mockResolvedValue(50);
       const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig");
       // @ts-ignore
       getConfigSpy.mockReturnValue({ open: true, minSize: 100, title: "test" });
@@ -447,6 +439,7 @@ describe("WebhookHandler", () => {
       expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
       expect(result).toBeUndefined();
       expect(webhookHandler.liveData.length).toBe(0);
+      getFileSizeSpy.mockRestore();
     });
   });
   describe("handleLive", () => {

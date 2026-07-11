@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -71,6 +71,10 @@ describe("utils", () => {
   });
 
   describe("ensureFolderExist", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it("should create folder if it does not exist", () => {
       const folderPath = "/path/to/folder";
       vi.spyOn(fs, "existsSync").mockReturnValue(false);
