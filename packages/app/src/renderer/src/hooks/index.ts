@@ -14,6 +14,7 @@ export const useConfirm = () => {
       showAgainKey,
       checkboxText,
       checkboxTip,
+      defaultChecked = false,
     }: {
       title?: string;
       content: string;
@@ -23,12 +24,13 @@ export const useConfirm = () => {
       checkboxText?: string;
       showAgainKey?: string;
       checkboxTip?: string;
+      defaultChecked?: boolean;
     }): Promise<[boolean, boolean]> =>
       new Promise((reslove) => {
         const data = JSON.parse(localStorage.getItem("notShowAgain") || "{}");
         if (showAgainKey && data[showAgainKey] === true) return reslove([true, true]);
 
-        const hasChecked = ref(false);
+        const hasChecked = ref(defaultChecked);
         const d = dialog.warning({
           title: title || "警告",
           content: content,
@@ -45,8 +47,7 @@ export const useConfirm = () => {
                   },
                   title: checkboxTip,
                 },
-                h("span", checkboxText || "不再提示"),
-                // checkboxText || "不再提示",
+                () => h("span", checkboxText || "不再提示"),
               );
             }
             const btns = h(
@@ -70,7 +71,7 @@ export const useConfirm = () => {
                       }
                     },
                   },
-                  h("span", negativeText || "取消"),
+                  () => h("span", negativeText || "取消"),
                 ),
                 h(
                   NButton,
@@ -90,7 +91,7 @@ export const useConfirm = () => {
                       d.destroy();
                     },
                   },
-                  h("span", positiveText || "继续"),
+                  () => h("span", positiveText || "继续"),
                 ),
               ],
             );

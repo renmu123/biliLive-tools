@@ -1,5 +1,10 @@
 <template>
-  <n-modal v-model:show="showModal" transform-origin="center" :auto-focus="false">
+  <n-modal
+    v-model:show="showModal"
+    transform-origin="center"
+    :auto-focus="false"
+    :mask-closable="false"
+  >
     <n-card style="width: 800px" title="更新日志" :bordered="false">
       <div>
         <p>
@@ -46,7 +51,7 @@
       <template #footer>
         <div style="text-align: right">
           <n-button type="primary" style="margin-left: 10px" @click="close"
-            >我知道了(〃∀〃)</n-button
+            >我已严肃阅读(〃∀〃)</n-button
           >
         </div>
       </template>

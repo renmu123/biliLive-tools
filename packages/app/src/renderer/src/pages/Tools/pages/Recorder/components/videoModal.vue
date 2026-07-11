@@ -33,7 +33,7 @@ const props = defineProps<Props>();
 // const logs = ref("");
 
 let eventSource: EventSource | null = null;
-const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
+// const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 
 async function streamLogs() {
   eventSource = await getDanmaStream(props.id);

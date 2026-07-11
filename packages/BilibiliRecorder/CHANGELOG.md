@@ -1,3 +1,7 @@
+# 1.18.1
+
+- 修复弹幕重试次数错误
+
 # 1.18.0
 
 - 识别 B 站不可录制的特殊直播及添加相关通知 [#485](https://github.com/renmu123/biliLive-tools/pull/485/)

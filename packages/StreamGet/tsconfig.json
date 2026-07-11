@@ -4,6 +4,7 @@
     "outDir": "./lib",
     "rootDir": "./src",
     "strict": true,
+    "types": ["*"],
     "sourceMap": false,
     "strictNullChecks": true,
     "strictPropertyInitialization": false,

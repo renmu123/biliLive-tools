@@ -27,6 +27,7 @@ import {
   downloadImage,
   isBetweenTimeRange,
   sleep,
+  replaceFourByteUnicode,
 } from "./utils.js";
 import { StreamManager } from "./downloader/streamManager.js";
 
@@ -706,6 +707,7 @@ export function genSavePathFromRule<
     title: title,
     remarks: remarks,
     channelId,
+    replaceFourByteUnicode,
   };
 
   let savePathRule = manager.savePathRule;

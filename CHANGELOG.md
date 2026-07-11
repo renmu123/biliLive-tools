@@ -1,14 +1,32 @@
 # Next
 
+## 优化
+
+- Webhook：重构上传占位符模板渲染逻辑，**可能某些场景下存在破坏性更改** [#444](https://github.com/renmu123/biliLive-tools/pull/444)
+- 录制：为“文件命名规则”选项增加额外的ejs函数来过滤四字节文本支持百度上传
+- 录制：“付费直播推送”选项目前仅对B站直播生效
+- 优化登录页的一些判断
+- 为压制页面添加教程
+
+## Bug修复
+
+- 录制：修复B站弹幕重试次数错误
+
+# 3.17.0(2026.07.01)
+
 ## 功能
 
 - 通知：自定义通知及push-all-in-cloud支持更多上下文变量 [#489](https://github.com/renmu123/biliLive-tools/pull/489)
 - 录制：识别 B 站不可录制的特殊直播及添加相关通知 [#485](https://github.com/renmu123/biliLive-tools/pull/485/)
+- Docker：UMASK、PUID、PGID支持，**启动时会递归修改/app/data /app/video文件权限，可能存在破坏性更改** [#400](https://github.com/renmu123/biliLive-tools/pull/400)
+- 切片：支持单个切片导出并上传 [#455](https://github.com/renmu123/biliLive-tools/pull/455)
 
 ## 优化
 
 - 录制：B站关闭弹幕库默认重试，业务层面实现重试，可能处理了某些情况的内存溢出问题
 - **开机自启动时默认隐藏窗口**
+- B站上传：由于上游弃用，移除`启用充电面板`选项
+- B站上传：增加更多业务报错重试
 
 ## Bug修复
 

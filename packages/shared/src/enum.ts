@@ -166,6 +166,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       ignoreDanmu: false,
       exportSubtitle: true,
       ignoreSubtitle: false,
+      uploadPresetId: "",
     },
   },
   task: {
@@ -274,7 +275,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       {
         vendorId: "3d09badd-5402-4b80-9113-48c0739d51b9",
         modelId: "ca277547-fabd-462b-99d2-cf76f56002e6",
-        modelName: "qwen-plus",
+        modelName: "qwen3.7-plus",
         remark: "通用大模型",
         tags: ["llm"],
         config: {},

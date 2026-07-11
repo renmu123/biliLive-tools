@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppendVideoDialog: typeof import('./src/components/AppendVideoDialog.vue')['default']
+    BiliPresetEditDialog: typeof import('./src/components/BiliPresetEditDialog.vue')['default']
     BiliSetting: typeof import('./src/components/BiliSetting.vue')['default']
     ButtonGroup: typeof import('./src/components/ButtonGroup.vue')['default']
     ChangelogModal: typeof import('./src/components/ChangelogModal.vue')['default']

@@ -276,42 +276,42 @@ Server酱支持免费推送信息到手机微信，免费账户有限制。
 
 #### 基础变量
 
-- `{{title}}`
-- `{{desc}}`
-- `{{desp}}`
-- `{{event}}`
-- `{{eventLabel}}`
+- <code v-pre>{{title}}</code>
+- <code v-pre>{{desc}}</code>
+- <code v-pre>{{desp}}</code>
+- <code v-pre>{{event}}</code>
+- <code v-pre>{{eventLabel}}</code>
 
 #### 直播相关
 
-- `{{roomId}}`
-- `{{platform}}`
-- `{{username}}`
-- `{{liveTitle}}`
-- `{{liveId}}`
-- `{{roomUrl}}`
+- <code v-pre>{{roomId}}</code>
+- <code v-pre>{{platform}}</code>
+- <code v-pre>{{username}}</code>
+- <code v-pre>{{liveTitle}}</code>
+- <code v-pre>{{liveId}}</code>
+- <code v-pre>{{roomUrl}}</code>
 
 #### 任务相关
 
-- `{{taskName}}`
-- `{{taskType}}`
-- `{{taskStatus}}`
-- `{{taskId}}`
-- `{{startedAt}}`
-- `{{endedAt}}`
-- `{{durationMs}}`
-- `{{error}}`
-- `{{output}}`
+- <code v-pre>{{taskName}}</code>
+- <code v-pre>{{taskType}}</code>
+- <code v-pre>{{taskStatus}}</code>
+- <code v-pre>{{taskId}}</code>
+- <code v-pre>{{startedAt}}</code>
+- <code v-pre>{{endedAt}}</code>
+- <code v-pre>{{durationMs}}</code>
+- <code v-pre>{{error}}</code>
+- <code v-pre>{{output}}</code>
 
 #### 文件/稿件相关
 
-- `{{filePath}}`
-- `{{filename}}`
-- `{{mediaTitle}}`
-- `{{aid}}`
+- <code v-pre>{{filePath}}</code>
+- <code v-pre>{{filename}}</code>
+- <code v-pre>{{mediaTitle}}</code>
+- <code v-pre>{{aid}}</code>
 
 ::: tip 提示
-为了便于与其他系统对接，以上变量同时支持驼峰和下划线两种写法，例如 `{{roomId}}` 与 `{{room_id}}` 都可以使用。
+为了便于与其他系统对接，以上变量同时支持驼峰和下划线两种写法，例如 <code v-pre>{{roomId}}</code> 与 <code v-pre>{{room_id}}</code> 都可以使用。
 :::
 
 ### 示例

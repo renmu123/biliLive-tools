@@ -300,6 +300,15 @@ router.post("/flvRepair", async (ctx) => {
 router.post("/cut", async (ctx) => {
   const { files, output, options, ffmpegOptions } = ctx.request.body as any;
 
+  if (options?.uploadOptions?.upload) {
+    const [status, msg] = validateBiliupConfig(options?.uploadOptions?.config || {});
+    if (!status) {
+      ctx.status = 400;
+      ctx.body = msg;
+      return;
+    }
+  }
+
   // 处理srt字幕切割
   const srtContent = files.srtContent;
   let subtitlePath: string | undefined;
@@ -337,6 +346,15 @@ router.post("/cut", async (ctx) => {
     ...options,
     removeSubtitle: true,
   });
+
+  if (options?.uploadOptions?.upload) {
+    task.on("task-end", () => {
+      const uid = options?.uploadOptions?.uid;
+      const file = options?.uploadOptions?.filePath;
+      biliApi.addMedia([file], options?.uploadOptions?.config, uid);
+    });
+  }
+
   ctx.body = { taskId: task.taskId };
 });
 

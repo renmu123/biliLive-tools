@@ -288,6 +288,8 @@ export type ToolConfig = {
     ignoreSubtitle: boolean;
     /** 字幕样式ID */
     subtitleStyleId?: string;
+    /** 上传预设 */
+    uploadPresetId: string;
   };
   /** 文件同步 */
   fileSync: {
@@ -1054,6 +1056,7 @@ export interface BiliupConfig {
   cover?: string; // 封面
   noReprint?: 0 | 1; // 自制声明 0: 允许转载，1：禁止转载
   watermark?: 0 | 1; // 添加水印 0：关闭，1：开启
+  /** 弃用 */
   openElec?: 0 | 1; // 充电面板 0：不开启，1：开启
   closeDanmu?: 0 | 1; // 关闭弹幕 0：不关闭，1：关闭
   closeReply?: 0 | 1; // 关闭评论 0：不关闭，1：关闭
