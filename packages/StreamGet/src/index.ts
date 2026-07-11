@@ -20,6 +20,7 @@ import { BilibiliParser } from "./bilibili/parser.js";
 import { DouyuParser } from "./douyu/parser.js";
 import { HuyaParser } from "./huya/parser.js";
 import { XhsParser } from "./xhs/parser.js";
+import { KuaishouParser } from "./kuaishou/parser.js";
 
 // 自动注册平台解析器
 registry.register("bilibili", (opts) => new BilibiliParser(opts));
@@ -27,6 +28,7 @@ registry.register("bilibili", (opts) => new BilibiliParser(opts));
 registry.register("douyu", (opts) => new DouyuParser(opts));
 registry.register("huya", (opts) => new HuyaParser(opts));
 registry.register("xhs", (opts) => new XhsParser(opts));
+registry.register("kuaishou", (opts) => new KuaishouParser(opts));
 registry.register("xiaohongshu", (opts) => new XhsParser(opts));
 
 // 导出类型
@@ -45,6 +47,7 @@ export { BilibiliParser } from "./bilibili/parser.js";
 export { DouyuParser } from "./douyu/parser.js";
 export { HuyaParser } from "./huya/parser.js";
 export { XhsParser } from "./xhs/parser.js";
+export { KuaishouParser } from "./kuaishou/parser.js";
 
 // 导出错误类
 export {

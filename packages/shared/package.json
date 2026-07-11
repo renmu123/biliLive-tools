@@ -35,6 +35,7 @@
     "@bililive-tools/huya-recorder": "workspace:*",
     "@bililive-tools/manager": "workspace:*",
     "@bililive-tools/xhs-recorder": "workspace:*",
+    "@bililive-tools/kuaishou-recorder": "workspace:*",
     "@napi-rs/canvas": "^0.1.60",
     "@renmu/bili-api": "2.14.0",
     "@renmu/fluent-ffmpeg": "2.3.3",

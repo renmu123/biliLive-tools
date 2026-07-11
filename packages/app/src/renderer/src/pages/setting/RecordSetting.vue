@@ -649,6 +649,81 @@
             </n-input-number>
           </n-form-item>
         </n-tab-pane>
+        <n-tab-pane class="tab-pane" name="kuaishou" tab="快手" display-directive="show:lazy">
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.kuaishou.quality.tip"
+                :text="textInfo.kuaishou.quality.text"
+              ></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.kuaishou.quality"
+              :options="kuaishouQualityOptions"
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.kuaishou.formatName.tip"
+                :text="textInfo.kuaishou.formatName.text"
+              ></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.kuaishou.formatName"
+              :options="kuaishouFormatNameOptions"
+            />
+          </n-form-item>
+          <div class="divider"></div>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.checkInterval.tip"
+                :text="textInfo.common.checkInterval.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.kuaishou.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+              :placeholder="textInfo.common.checkInterval.placeholder"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.maxThreadCount.tip"
+                :text="textInfo.common.maxThreadCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.kuaishou.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.maxThreadCount.placeholder"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.waitTime.text" :tip="textInfo.common.waitTime.tip"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.kuaishou.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+              :placeholder="textInfo.common.waitTime.placeholder"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
+          </n-form-item>
+        </n-tab-pane>
       </n-tabs>
     </n-form>
   </div>
@@ -672,6 +747,8 @@ import {
   douyuSourceOptions,
   videoFormatOptions,
   douyinStreamFormatOptions,
+  kuaishouQualityOptions,
+  kuaishouFormatNameOptions,
   huyaSourceOptions,
   recorderTypeOptions,
   recorderDebugLevelOptions,

@@ -194,6 +194,50 @@ export const huyaQualityOptions = [
   },
 ];
 
+// 快手画质选项
+export const kuaishouQualityOptions = [
+  {
+    value: "highest",
+    label: "最高",
+  },
+  {
+    value: "high",
+    label: "超清",
+  },
+  {
+    value: "medium",
+    label: "高清",
+  },
+  {
+    value: "low",
+    label: "标清",
+  },
+];
+
+// 快手流格式选项
+export const kuaishouFormatNameOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    label: "优先flv",
+    value: "flv",
+  },
+  {
+    label: "优先hls",
+    value: "hls",
+  },
+  {
+    label: "强制flv",
+    value: "flv_only",
+  },
+  {
+    label: "强制hls",
+    value: "hls_only",
+  },
+];
+
 // 抖音画质选项
 export const douyinQualityOptions = [
   {
@@ -517,6 +561,14 @@ export const textInfo = {
             mobile接口也许支持电台直播，该接口对IP有要求<br/>
             web接口支持双屏直播参数<br/>
             PS: mobile看起来更不容易触发风控，直播html接口是真容易触发风控`,
+    },
+  },
+  kuaishou: {
+    qualityRetry: qualityRetry,
+    quality: quality,
+    formatName: {
+      text: "流格式",
+      tip: "默认优先flv模式，其次hls",
     },
   },
 } as const;

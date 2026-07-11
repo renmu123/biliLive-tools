@@ -6,24 +6,34 @@ import Components from "unplugin-vue-components/vite";
 import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
 
 import { version } from "./package.json";
-
 process.env.VITE_VERSION = version;
 
 export default defineConfig({
   main: {
     plugins: [
       externalizeDepsPlugin({
-        exclude: [],
+        exclude: ["electron-store", "electron-dl", "electron-context-menu", "@electron-toolkit/utils"],
       }),
     ],
     build: {
       rollupOptions: {
-        external: ["fsevents"],
+        external: ["fsevents", "electron"],
+        output: {
+          format: "cjs",
+          entryFileNames: "index.js",
+        },
       },
     },
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
+    build: {
+      rollupOptions: {
+        output: {
+          format: "cjs",
+        },
+      },
+    },
   },
   renderer: {
     server: {

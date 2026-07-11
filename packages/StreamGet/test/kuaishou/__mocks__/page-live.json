@@ -1,0 +1,89 @@
+{
+  "user": { "name": "测试主播", "age": 0 },
+  "pcConfig": {
+    "pcConfig": {
+      "result": 1,
+      "did": "web_test_did_32_hex_chars_0123456789abcdef",
+      "config": {
+        "pcLive.webConfig.needLoginToWatchHD": 1
+      }
+    }
+  },
+  "liveroom": {
+    "activeIndex": 0,
+    "websocketUrls": [],
+    "token": "",
+    "noticeList": [],
+    "playList": [
+      {
+        "liveStream": {
+          "id": "test_stream_id_12345",
+          "poster": "https://example.com/poster.jpg",
+          "playUrls": {
+            "h264": {
+              "adaptationSet": {
+                "representation": [
+                  {
+                    "url": "https://tx-origin.pull.yximgs.com/gifshow/test_stream_id_12345_GameAvcSdL0.flv?txSecret=abc123&txTime=1234567890&stat=encoded&kpn=GAME_ZONE",
+                    "bitrate": 1000,
+                    "qualityType": "STANDARD",
+                    "width": 1280,
+                    "height": 720
+                  },
+                  {
+                    "url": "https://tx-origin.pull.yximgs.com/gifshow/test_stream_id_12345_GameAvcHdL0.flv?txSecret=def456&txTime=1234567891&stat=encoded2&kpn=GAME_ZONE",
+                    "bitrate": 2000,
+                    "qualityType": "HIGH",
+                    "width": 1920,
+                    "height": 1080
+                  },
+                  {
+                    "url": "https://ws-origin.pull.yximgs.com/gifshow/test_stream_id_12345_GameAvcSdL0.flv?wsSecret=ghi789&wsTime=1234567892&stat=encoded3&kpn=GAME_ZONE",
+                    "bitrate": 1000,
+                    "qualityType": "STANDARD",
+                    "width": 1280,
+                    "height": 720
+                  },
+                  {
+                    "url": "https://ws-origin.pull.yximgs.com/gifshow/test_stream_id_12345_GameAvcHdL0.flv?wsSecret=jkl012&wsTime=1234567893&stat=encoded4&kpn=GAME_ZONE",
+                    "bitrate": 2000,
+                    "qualityType": "HIGH",
+                    "width": 1920,
+                    "height": 1080
+                  }
+                ]
+              }
+            },
+            "h265": {
+              "adaptationSet": {
+                "representation": [
+                  {
+                    "url": "https://tx-origin.pull.yximgs.com/gifshow/test_stream_id_12345_GameHevcHdL0.flv?txSecret=mno345&txTime=1234567894&stat=encoded5&kpn=GAME_ZONE",
+                    "bitrate": 2500,
+                    "qualityType": "HIGH",
+                    "width": 1920,
+                    "height": 1080
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "author": {
+          "id": "test_author",
+          "name": "测试主播",
+          "avatar": "https://example.com/avatar.jpg",
+          "description": "测试描述"
+        },
+        "gameInfo": {
+          "id": 1,
+          "name": "英雄联盟"
+        },
+        "isLiving": true,
+        "errorType": null
+      }
+    ],
+    "loading": false,
+    "$isServerPretch": true
+  }
+}
