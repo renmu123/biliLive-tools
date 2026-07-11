@@ -773,6 +773,9 @@ importers:
         specifier: ^3.23.8
         version: 3.23.8
     devDependencies:
+      '@types/ejs':
+        specifier: ^3.1.5
+        version: 3.1.5
       '@types/nodemailer':
         specifier: ^6.4.17
         version: 6.4.17
