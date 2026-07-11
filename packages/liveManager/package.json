@@ -40,7 +40,7 @@
     "@renmu/fluent-ffmpeg": "2.3.3",
     "axios": "catalog:",
     "ejs": "^3.1.10",
-    "fast-xml-parser": "^4.5.0",
+    "fast-xml-parser": "catalog:",
     "filenamify": "^7.0.0",
     "fs-extra": "^11.2.0",
     "lodash-es": "catalog:",
