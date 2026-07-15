@@ -146,6 +146,8 @@ onMounted(async () => {
     url: props?.option?.url ?? "",
     type: props?.option?.type ?? "",
     isLive: props.isLive,
+    setting: true,
+    playbackRate: true,
     ...props.option,
     container: artRef.value,
     plugins: plugins,
@@ -165,6 +167,7 @@ onMounted(async () => {
           const flv = mpegts.createPlayer({
             type: "flv",
             url: url,
+            isLive: props.isLive,
           });
           flv.attachMediaElement(video);
           flv.load();

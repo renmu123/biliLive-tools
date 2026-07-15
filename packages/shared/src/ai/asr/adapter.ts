@@ -131,7 +131,6 @@ export class BCutASRAdapter implements ASRProvider {
   ): StandardASRResult {
     let list = data.utterances;
     if (opts?.filterMusic) {
-      // @ts-expect-error
       list = list.filter((s) => s.music <= 0.9); // 过滤掉标记为音乐的段落
     }
 

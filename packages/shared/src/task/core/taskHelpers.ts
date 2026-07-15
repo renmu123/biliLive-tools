@@ -4,6 +4,7 @@ import { sendNotify } from "../../notify.js";
 import { appConfig } from "../../config.js";
 import { TaskType } from "../../enum.js";
 import { TaskQueue } from "./TaskQueue.js";
+import { sendExternalTaskEvent } from "./externalTaskEvent.js";
 
 /**
  * 全局任务队列实例
@@ -29,37 +30,64 @@ export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string): v
       desp = `${task.name}出错\n\n开始时间：${new Date(task.startTime!).toLocaleString()}\n\n错误信息：${task.error}`;
       break;
   }
+
+  const extraContext =
+    task.extra && typeof task.extra === "object"
+      ? Object.fromEntries(
+          Object.entries(task.extra).filter(([, value]) => {
+            return ["string", "number", "boolean"].includes(typeof value);
+          }),
+        )
+      : {};
+
+  const notifyOptions = {
+    context: {
+      event: event === "success" ? "task_success" : "task_failure",
+      eventLabel: event === "success" ? "任务成功" : "任务失败",
+      taskId: task.taskId,
+      taskName: task.name,
+      taskType: taskType,
+      taskStatus: event,
+      taskOutput: task.output,
+      taskError: task.error ? String(task.error) : "",
+      startedAt: task.startTime ? new Date(task.startTime).toISOString() : "",
+      endedAt: task.endTime ? new Date(task.endTime).toISOString() : "",
+      durationMs: task.getDuration(),
+      ...extraContext,
+    },
+  };
+
   const config = appConfig.getAll();
   const taskConfig = config?.notification?.task;
   switch (taskType) {
     case TaskType.ffmpeg:
       if (taskConfig.ffmpeg.includes(event)) {
-        sendNotify(title, desp);
+        sendNotify(title, desp, notifyOptions);
       }
       break;
     case TaskType.danmu:
       if (taskConfig.danmu.includes(event)) {
-        sendNotify(title, desp);
+        sendNotify(title, desp, notifyOptions);
       }
       break;
     case TaskType.bili:
       if (taskConfig.upload.includes(event)) {
-        sendNotify(title, desp);
+        sendNotify(title, desp, notifyOptions);
       }
       break;
     case TaskType.biliDownload:
       if (taskConfig.download.includes(event)) {
-        sendNotify(title, desp);
+        sendNotify(title, desp, notifyOptions);
       }
       break;
     case TaskType.douyuDownload:
       if (taskConfig.download.includes(event)) {
-        sendNotify(title, desp);
+        sendNotify(title, desp, notifyOptions);
       }
       break;
     case TaskType.sync:
       if (taskConfig.sync.includes(event)) {
-        sendNotify(title, desp);
+        sendNotify(title, desp, notifyOptions);
       }
       break;
   }
@@ -71,6 +99,25 @@ taskQueue.on("task-end", ({ taskId }) => {
 });
 taskQueue.on("task-error", ({ taskId }) => {
   sendTaskNotify("failure", taskId);
+});
+
+taskQueue.on("task-start", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-start", payload);
+});
+taskQueue.on("task-end", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-end", payload);
+});
+taskQueue.on("task-error", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-error", payload);
+});
+taskQueue.on("task-pause", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-pause", payload);
+});
+taskQueue.on("task-resume", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-resume", payload);
+});
+taskQueue.on("task-cancel", (payload) => {
+  void sendExternalTaskEvent(taskQueue, "task-cancel", payload);
 });
 
 /**

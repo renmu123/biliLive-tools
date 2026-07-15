@@ -29,6 +29,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     ...mitt(),
     ...opts,
     cache: null as any,
+    appendTimeline: null as any,
 
     availableStreams: [],
     availableSources: [],
@@ -115,9 +116,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       liveStartTime: new Date(),
       recordStartTime: new Date(),
     };
-    this.state = "idle";
+    this.emit("stateChange", { state: "idle" });
   } catch (error) {
-    this.state = "check-error";
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: `检查失败，` + (error instanceof Error ? error.message : String(error)),
+    });
     throw error;
   }
 
@@ -132,9 +136,30 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // 检查标题是否包含关键词，如果包含则不自动录制
   if (utils.checkTitleKeywordsBeforeRecord(this.liveInfo.title, this, isManualStart)) return null;
 
-  const liveInfo = await getInfo(this.channelId);
+  const liveInfo = await getInfo(this.channelId, { cookie: this.auth });
   const { owner, title, roomId, liveStartTime, recordStartTime } = liveInfo;
   this.liveInfo = liveInfo;
+
+  // 特殊直播间无法录制(付费/DRM 加密、大航海权限专属、密码房等)：识别后跳过并告知用户。
+  // - 付费直播流为 DRM(SAMPLE-AES + Widevine/FairPlay/com.bilidrm)加密，ffmpeg 无法解密；
+  // - 大航海/权限专属、密码房无观看权限时拿不到可用流。
+  // 如需强行尝试(例如后续接入其它录制方式)，可设置 recorder.recordCharge = true。
+  if (!liveInfo.canRecord && (this as any).recordCharge !== true) {
+    this.emit("DebugLog", {
+      type: "error",
+      text: `检测到${liveInfo.liveTypeDesc}(room ${roomId})，无法录制，已跳过：${title}`,
+    });
+    // 通知上层：检测到无法录制的特殊直播(供推送通知使用，由 manager 按场次去重)
+    this.emit("ChargeLive", { channelId: this.channelId });
+    // 持续状态标识：特殊直播已跳过。仅在状态变化时 emit，避免每个检查周期重复写时间线
+    if (this.state !== "charge-skipped") {
+      this.emit("stateChange", {
+        state: "charge-skipped",
+        msg: `${liveInfo.liveTypeDesc}，已跳过录制`,
+      });
+    }
+    return null;
+  }
 
   const qualityRetryLeft = (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
   const strictQuality = utils.shouldUseStrictQuality(
@@ -157,11 +182,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
-    this.state = "check-error";
+    this.emit("stateChange", {
+      state: "check-error",
+      msg: `检查失败，` + (err instanceof Error ? err.message : String(err)),
+    });
     throw err;
   }
 
-  this.state = "recording";
+  this.emit("stateChange", { state: "recording" });
   const {
     streamOptions,
     currentStream: stream,
@@ -236,6 +264,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       headers: {
         Referer: "https://live.bilibili.com/",
       },
+      proxy: this.proxy,
     },
     onEnd,
     async () => {
@@ -303,7 +332,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       const hasTitleKeyword = utils.hasBlockedTitleKeywords(title, this.titleKeywords);
 
       if (hasTitleKeyword) {
-        this.state = "title-blocked";
+        this.emit("stateChange", {
+          state: "title-blocked",
+          msg: `停止录制，直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
+        });
         this.emit("DebugLog", {
           type: "common",
           text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
@@ -314,16 +346,33 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       }
     }
   });
+  danmaClient.on("open", () => {
+    this.appendTimeline({
+      text: "弹幕连接已建立",
+    });
+  });
+  danmaClient.on("close", () => {
+    this.appendTimeline({
+      text: "弹幕连接已关闭",
+    });
+  });
+  danmaClient.on("reconnect", ({ retryCount, maxRetry }) => {
+    this.appendTimeline({
+      text: `弹幕连接已断开，正在尝试重连... (重试次数: ${retryCount}/${maxRetry})`,
+    });
+    this.emit("DebugLog", {
+      type: "common",
+      text: `弹幕连接已断开，正在尝试重连... (重试次数: ${retryCount}/${maxRetry})`,
+    });
+  });
 
   if (enableDanmaListen) {
-    try {
-      danmaClient.start();
-    } catch (err) {
+    void danmaClient.start().catch((err) => {
       this.emit("DebugLog", {
         type: "error",
         text: `弹幕连接失败，错误信息: ${String(err)}`,
       });
-    }
+    });
   }
 
   const downloaderArgs = downloader.getArguments();
@@ -337,7 +386,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
 
-    this.state = "stopping-record";
+    this.emit("stateChange", { state: "stopping-record" });
     intervalId && clearInterval(intervalId);
 
     try {
@@ -355,7 +404,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.liveInfo = undefined;
-    this.state = "idle";
+    this.emit("stateChange", { state: "idle" });
     this.cache.set("qualityRetryLeft", this.qualityRetry);
   });
 

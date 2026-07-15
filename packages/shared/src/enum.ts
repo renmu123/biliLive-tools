@@ -32,6 +32,7 @@ export enum LLMType {
 
 export const APP_DEFAULT_CONFIG: AppConfig = {
   logLevel: "debug",
+  uploadCrashReport: false,
   autoUpdate: true,
   autoLaunch: false,
   trash: false,
@@ -44,6 +45,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   host: "127.0.0.1",
   passKey: "",
   https: false,
+  externalWebhook: "",
   webhook: {
     open: false,
     recoderFolder: "",
@@ -164,6 +166,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       ignoreDanmu: false,
       exportSubtitle: true,
       ignoreSubtitle: false,
+      uploadPresetId: "",
     },
   },
   task: {
@@ -226,6 +229,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     taskNotificationType: {
       liveStart: "system",
+      chargeLive: "system",
     },
   },
   sync: {
@@ -271,7 +275,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       {
         vendorId: "3d09badd-5402-4b80-9113-48c0739d51b9",
         modelId: "ca277547-fabd-462b-99d2-cf76f56002e6",
-        modelName: "qwen-plus",
+        modelName: "qwen3.7-plus",
         remark: "通用大模型",
         tags: ["llm"],
         config: {},
@@ -859,6 +863,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  chargeLiveNotification: true,
   liveEndNotification: false,
   weight: 10,
   source: "auto",

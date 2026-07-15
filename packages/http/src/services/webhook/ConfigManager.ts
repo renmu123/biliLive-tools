@@ -233,7 +233,7 @@ export class ConfigManager {
       uploadToSameMedia,
       noDanmuVideoPreset,
       videoHandleTime: limitVideoConvertTime ? videoHandleTime : undefined,
-      partTitleTemplate: this.getRoomSetting("partTitleTemplate", roomSetting) || "{{filename}}",
+      partTitleTemplate: this.getRoomSetting("partTitleTemplate", roomSetting) || "",
       afterUploadDeletAction: this.getRoomSetting("afterUploadDeletAction", roomSetting) ?? "none",
       syncId,
       flvRepair,

@@ -49,6 +49,7 @@ export const recorderNoGlobalFollowFields: Array<
     | "line"
     | "titleKeywords"
     | "liveStartNotification"
+    | "chargeLiveNotification"
     | "liveEndNotification"
     | "onlyAudio"
     | "handleTime"
@@ -287,6 +288,8 @@ export type ToolConfig = {
     ignoreSubtitle: boolean;
     /** 字幕样式ID */
     subtitleStyleId?: string;
+    /** 上传预设 */
+    uploadPresetId: string;
   };
   /** 文件同步 */
   fileSync: {
@@ -354,13 +357,13 @@ export interface NotificationPushAllInAllConfig {
  * 自定义HTTP通知配置
  */
 export interface NotificationCustomHttpConfig {
-  /** 请求URL */
+  /** 请求URL，支持{{title}}、{{desc}}以及上下文占位符 */
   url: string;
   /** 请求方法 */
   method?: "GET" | "POST" | "PUT";
-  /** 请求体，支持{{title}}和{{desc}}占位符 */
+  /** 请求体，支持{{title}}、{{desc}}以及上下文占位符 */
   body?: string;
-  /** 请求头，每行一个，格式为key: value */
+  /** 请求头，每行一个，格式为key: value，支持占位符 */
   headers?: string;
 }
 
@@ -551,6 +554,8 @@ export interface Recorder {
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;
+  /** 充电直播(付费/DRM 加密直播)检测推送 */
+  chargeLiveNotification?: boolean;
   /** 录制结束通知 */
   liveEndNotification?: boolean;
   /** 权重 */
@@ -607,6 +612,8 @@ export interface AppConfig {
   audiowaveformPath: string;
   /** 缓存文件夹 */
   cacheFolder: string;
+  /** 上传崩溃报告 */
+  uploadCrashReport: boolean;
   /** 保存到回收站 */
   trash: boolean;
   /** 自动检查更新 */
@@ -629,6 +636,8 @@ export interface AppConfig {
   requestInfoForRecord: boolean;
   biliUploadFileNameType: "ask" | "always" | "never";
   cutPageInNewWindow: boolean;
+  /** 外部Webhook地址 */
+  externalWebhook: string;
   webhook: {
     recoderFolder: string;
     blacklist: string;
@@ -686,6 +695,7 @@ export interface AppConfig {
     };
     taskNotificationType: {
       liveStart: AppConfig["notification"]["setting"]["type"];
+      chargeLive?: AppConfig["notification"]["setting"]["type"];
     };
   };
   // 同步
@@ -1036,15 +1046,17 @@ export interface BiliupConfig {
   desc?: string;
   dolby: 0 | 1; // 杜比
   hires: 0 | 1; // Hi-Res
-  copyright: 1 | 2; // 1：自制，2：转载
+  copyright: 1 | 2 | 3; // 1：自制，2：转载，3：其他创作声明
   tag: string[]; // 标签，不能为空，不能超过10个，调用接口验证
-  tid: number; // 174 投稿分区
+  // @deprecated，174 投稿分区
+  tid: number;
   source?: string; // 转载来源
   dynamic?: string; // 空间动态
   /** 封面，可能为文件名也有可能是绝对路径 */
   cover?: string; // 封面
   noReprint?: 0 | 1; // 自制声明 0: 允许转载，1：禁止转载
   watermark?: 0 | 1; // 添加水印 0：关闭，1：开启
+  /** 弃用 */
   openElec?: 0 | 1; // 充电面板 0：不开启，1：开启
   closeDanmu?: 0 | 1; // 关闭弹幕 0：不关闭，1：关闭
   closeReply?: 0 | 1; // 关闭评论 0：不关闭，1：关闭
@@ -1082,6 +1094,8 @@ export interface BiliupConfig {
   dtime?: number;
   // 表示按照cid顺序上传，编辑接口会根据这个参数对pathArray进行排序后上传，如果没有这个参数，则按照pathArray的顺序上传
   sortByCid?: Array<number>;
+  // 创作声明，仅当copyright=1、3时有效，// -1: 内容无需标注，1: 含AI生成内容，2：含虚构演绎内容，3：内容含营销信息，4：个人观点，仅供参考
+  creationStatement?: -1 | 1 | 2 | 3 | 4 | null;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

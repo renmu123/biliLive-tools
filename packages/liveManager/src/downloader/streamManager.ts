@@ -205,6 +205,7 @@ export class StreamManager extends EventEmitter {
       recordSavePath = getSavePath({ startTime, extraMs: true });
     }
     this.recordSavePath = recordSavePath;
+    ensureFolderExist(recordSavePath);
 
     if (hasSegment) {
       this.segment = new Segment(getSavePath, disableDanma, this.videoExt, {
@@ -220,8 +221,6 @@ export class StreamManager extends EventEmitter {
         this.emit("videoFileCompleted", data);
       });
     } else {
-      ensureFolderExist(recordSavePath);
-
       const extraDataSavePath = `${recordSavePath}.xml`;
 
       if (!disableDanma) {

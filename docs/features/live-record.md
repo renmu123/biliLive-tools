@@ -54,7 +54,7 @@ biliLive-tools 提供三种录制器引擎：
 
 项目地址：https://github.com/renmu123/BililiveRecorder
 
-录播姬引擎是从录播姬项目中提取了FLV录制引擎，一些细节上并不与原项目相同
+录播姬引擎是从录播姬项目中提取了FLV录制引擎，一些细节上并不与原项目相同，内存占用会偏高
 
 ### 视频格式
 
@@ -96,6 +96,8 @@ biliLive-tools 提供三种录制器引擎：
 自定义录制文件的命名规则，支持以下占位符：
 
 - `{platform}` - 平台名称
+- `{channelId}` - 房间号
+- `{remarks}` - 备注
 - `{owner}` - 主播名称
 - `{title}` - 直播标题
 - `{year}` - 年份
@@ -109,7 +111,7 @@ biliLive-tools 提供三种录制器引擎：
 - `{recordStartTime}` - 录制开始时间，Date对象
 - `{liveStartTime}` - 直播开始时间，Date对象，抖音同录制开始时间
 
-示例：`{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}`
+示例：`{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec}-{ms} {title}`
 
 ::: tip 高级用法
 支持 [ejs](https://ejs.co/) 模板引擎，可以实现更复杂的命名逻辑。
@@ -124,6 +126,12 @@ biliLive-tools 提供三种录制器引擎：
 
 ```
 {platform}/{owner}/<%= recordStartTime.getFullYear() %>-<%= recordStartTime.getMonth()+1 %>-<%= recordStartTime.getDate() %>/{year}-{month}-{date} {hour}-{min}-{sec} {title}
+```
+
+例如，将主播名称和直播标题中的四字节字符串替换为 `_`：
+
+```
+{platform}/<%= replaceFourByteUnicode(owner) %>/{year}-{month}-{date} {hour}-{min}-{sec} <%= replaceFourByteUnicode(title) %>
 ```
 
 :::

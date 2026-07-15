@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppendVideoDialog: typeof import('./src/components/AppendVideoDialog.vue')['default']
+    BiliPresetEditDialog: typeof import('./src/components/BiliPresetEditDialog.vue')['default']
     BiliSetting: typeof import('./src/components/BiliSetting.vue')['default']
     ButtonGroup: typeof import('./src/components/ButtonGroup.vue')['default']
     ChangelogModal: typeof import('./src/components/ChangelogModal.vue')['default']
@@ -44,6 +45,8 @@ declare module 'vue' {
     NDatePicker: typeof import('naive-ui')['NDatePicker']
     NDialogProvider: typeof import('naive-ui')['NDialogProvider']
     NDivider: typeof import('naive-ui')['NDivider']
+    NDrawer: typeof import('naive-ui')['NDrawer']
+    NDrawerContent: typeof import('naive-ui')['NDrawerContent']
     NDropdown: typeof import('naive-ui')['NDropdown']
     NEmpty: typeof import('naive-ui')['NEmpty']
     NForm: typeof import('naive-ui')['NForm']

@@ -13,6 +13,8 @@ import {
   RecordHandle,
   DebugLog,
   Progress,
+  AppendRecorderTimelineArgs,
+  RecorderState,
 } from "./recorder.js";
 import type { XmlStreamStats } from "./xml_stream_controller.js";
 import {
@@ -25,6 +27,7 @@ import {
   downloadImage,
   isBetweenTimeRange,
   sleep,
+  replaceFourByteUnicode,
 } from "./utils.js";
 import { StreamManager } from "./downloader/streamManager.js";
 
@@ -67,6 +70,60 @@ export interface RecorderProvider<E extends AnyObject> {
   setFFMPEGOutputArgs: (this: RecorderProvider<E>, args: string[]) => void;
 }
 
+const RECORDER_TIMELINE_LIMIT = 40;
+
+function normalizeTimelineText(text: string): string {
+  return text.trim();
+}
+
+function appendRecorderTimeline<E extends AnyObject>(
+  recorder: Recorder<E>,
+  args: AppendRecorderTimelineArgs,
+) {
+  const text = normalizeTimelineText(args.text);
+  if (!text) {
+    return recorder.timeline ?? [];
+  }
+
+  const startTime = args.startTime ?? Date.now();
+  const timeline = recorder.timeline ?? [];
+  const lastItem = timeline[timeline.length - 1];
+
+  if (lastItem && lastItem.text === text) {
+    lastItem.endTime = Math.max(lastItem.endTime ?? lastItem.startTime, startTime);
+    recorder.timeline = [...timeline];
+    return recorder.timeline;
+  }
+
+  const nextTimeline = [...timeline, { startTime, text }].slice(-RECORDER_TIMELINE_LIMIT);
+  recorder.timeline = nextTimeline;
+  return nextTimeline;
+}
+
+function ensureRecorderTimeline<E extends AnyObject>(recorder: Recorder<E>) {
+  recorder.timeline = Array.isArray(recorder.timeline) ? recorder.timeline : [];
+  recorder.appendTimeline = (args: AppendRecorderTimelineArgs) =>
+    appendRecorderTimeline(recorder, args);
+}
+
+function getStateTimelineText(state: RecorderState, msg?: string) {
+  const text = normalizeTimelineText(msg ?? "");
+  if (text) {
+    return text;
+  }
+
+  const stateTextMap: Record<RecorderState, string> = {
+    idle: "空闲中",
+    recording: "录制中",
+    "stopping-record": "停止录制中",
+    "check-error": "检查失败",
+    "title-blocked": "标题命中过滤规则",
+    "charge-skipped": "特殊直播(付费/权限/加密)，无法录制，已跳过",
+  };
+
+  return stateTextMap[state];
+}
+
 const configurableProps = [
   "savePathRule",
   "autoRemoveSystemReservedChars",
@@ -105,6 +162,8 @@ export interface RecorderManager<
     };
     RecorderProgress: { recorder: SerializedRecorder<E>; progress: Progress };
     RecoderLiveStart: { recorder: Recorder<E> };
+    // 检测到充电直播(付费/DRM 加密直播)
+    RecoderChargeLive: { recorder: Recorder<E> };
 
     RecordStop: { recorder: SerializedRecorder<E>; recordHandle: RecordHandle; reason?: string };
     Message: { recorder: SerializedRecorder<E>; message: Message };
@@ -277,6 +336,9 @@ export function createRecorderManager<
   // 用于是否触发LiveStart事件，不要重复触发
   const liveStartObj: Record<string, boolean> = {};
 
+  // 用于是否触发ChargeLive(充电直播)事件，按场次去重，不要每个检查周期重复触发
+  const chargeLiveObj: Record<string, boolean> = {};
+
   // 用于记录触发重试直播场次的次数
   const retryCountObj: Record<string, number> = {};
 
@@ -303,12 +365,17 @@ export function createRecorderManager<
 
       // 为录制器注入独立的缓存命名空间
       recorder.cache = this.cache.createNamespace(recorder.id);
+      ensureRecorderTimeline(recorder);
 
       this.recorders.push(recorder);
 
-      recorder.on("RecordStart", (recordHandle) =>
-        this.emit("RecordStart", { recorder: recorder.toJSON(), recordHandle }),
-      );
+      recorder.on("RecordStart", (recordHandle) => {
+        recorder.appendTimeline?.({
+          startTime: recorder.liveInfo?.recordStartTime?.getTime() ?? Date.now(),
+          text: `开始录制：${recordHandle.stream}/${recordHandle.source}/${recordHandle.recorderType}/${recordHandle.url}`,
+        });
+        this.emit("RecordStart", { recorder: recorder.toJSON(), recordHandle });
+      });
       recorder.on("RecordSegment", (recordHandle) =>
         this.emit("RecordSegment", { recorder: recorder.toJSON(), recordHandle }),
       );
@@ -317,11 +384,19 @@ export function createRecorderManager<
           const coverPath = replaceExtName(filename, ".jpg");
           downloadImage(cover ?? recorder?.liveInfo?.cover, coverPath);
         }
+        recorder.appendTimeline?.({
+          startTime: Date.now(),
+          text: `视频文件创建：${filename}`,
+        });
         this.emit("videoFileCreated", { recorder: recorder.toJSON(), filename, rawFilename });
       });
-      recorder.on("videoFileCompleted", ({ filename, stats }) =>
-        this.emit("videoFileCompleted", { recorder: recorder.toJSON(), filename, stats }),
-      );
+      recorder.on("videoFileCompleted", ({ filename, stats }) => {
+        recorder.appendTimeline?.({
+          startTime: Date.now(),
+          text: `视频文件创建完成：${filename}`,
+        });
+        this.emit("videoFileCompleted", { recorder: recorder.toJSON(), filename, stats });
+      });
       recorder.on("Message", (message) =>
         this.emit("Message", { recorder: recorder.toJSON(), message }),
       );
@@ -332,6 +407,10 @@ export function createRecorderManager<
         this.emit("RecorderDebugLog", { recorder: recorder, ...log }),
       );
       recorder.on("RecordStop", ({ recordHandle, reason }) => {
+        recorder.appendTimeline?.({
+          startTime: Date.now(),
+          text: reason ? `停止录制：${reason}` : "停止录制",
+        });
         this.emit("RecordStop", { recorder: recorder.toJSON(), recordHandle, reason });
         const maxRetryCount = 10;
         // 默认策略下，如果录制被中断，那么会在下一个检查周期时重新检查直播状态并重新开始录制，这种策略的问题就是一部分时间会被漏掉。
@@ -361,6 +440,10 @@ export function createRecorderManager<
             type: "common",
             text: `录制${recorder.channelId}中断，立即触发重试（${retryCountObj[key]}/${maxRetryCount}）`,
           });
+          recorder.appendTimeline?.({
+            startTime: Date.now(),
+            text: `录制中断，立即触发重试（${retryCountObj[key]}/${maxRetryCount}）`,
+          });
           // 触发一次检查，等待一秒使状态清理完毕
           setTimeout(() => {
             recorder.checkLiveStatusAndRecord({
@@ -383,7 +466,24 @@ export function createRecorderManager<
 
         this.emit("RecoderLiveStart", { recorder: recorder });
       });
+      recorder.on("ChargeLive", () => {
+        // 充电直播按场次去重，避免每个检查周期重复推送
+        const liveId = recorder.liveInfo?.liveId;
+        const key = `${recorder.channelId}-${liveId ?? ""}`;
+        if (chargeLiveObj[key]) return;
+        chargeLiveObj[key] = true;
 
+        this.emit("RecoderChargeLive", { recorder: recorder });
+      });
+      recorder.on("stateChange", ({ state, msg }) => {
+        recorder.state = state;
+        if (state !== "idle") {
+          recorder.appendTimeline?.({
+            startTime: Date.now(),
+            text: `状态变更：${getStateTimelineText(state, msg)}`,
+          });
+        }
+      });
       this.emit("RecorderAdded", recorder.toJSON());
 
       // startCheckLoop 会为所有注册的 provider 启动检查循环，无需在此处额外处理
@@ -397,6 +497,14 @@ export function createRecorderManager<
       this.recorders.splice(idx, 1);
 
       delete tempBanObj[recorder.channelId];
+      // 清理该房间的 liveStart/chargeLive 去重标记，否则删除后重新添加同一场直播不会再次推送通知
+      const keyPrefix = `${recorder.channelId}-`;
+      Object.keys(liveStartObj).forEach((k) => {
+        if (k.startsWith(keyPrefix)) delete liveStartObj[k];
+      });
+      Object.keys(chargeLiveObj).forEach((k) => {
+        if (k.startsWith(keyPrefix)) delete chargeLiveObj[k];
+      });
       this.emit("RecorderRemoved", recorder.toJSON());
     },
     getRecorder(id) {
@@ -599,6 +707,7 @@ export function genSavePathFromRule<
     title: title,
     remarks: remarks,
     channelId,
+    replaceFourByteUnicode,
   };
 
   let savePathRule = manager.savePathRule;

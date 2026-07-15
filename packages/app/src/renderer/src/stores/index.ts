@@ -4,6 +4,7 @@ import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
 import { getUserList } from "@renderer/apis/user";
 import {
+  biliApi,
   danmuPresetApi,
   ffmpegPresetApi,
   videoPresetApi,
@@ -11,6 +12,7 @@ import {
   taskApi,
   commonApi,
 } from "@renderer/apis";
+import { deepRaw } from "@renderer/utils";
 import { useSubtitles } from "./subtitles";
 
 import type { Task } from "@renderer/types";
@@ -154,6 +156,7 @@ export const useFfmpegPreset = defineStore("ffmpegPreset", () => {
 export const useUploadPreset = defineStore("uploadPreset", () => {
   const upladPresetId = ref("default");
   const uploadPresets = ref<BiliupPreset[]>([]);
+  const uploadPresetVersion = ref(0);
   // @ts-ignore
   const uploadPreset: Ref<BiliupPreset> = ref({
     config: {},
@@ -163,11 +166,25 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
     uploadPresets.value = await videoPresetApi.list();
   }
 
+  async function saveUploadPreset(data: BiliupPreset) {
+    await biliApi.validUploadParams(deepRaw(data.config));
+    await videoPresetApi.save(deepRaw(data));
+    await getUploadPresets();
+    uploadPresetVersion.value += 1;
+  }
+
+  async function removeUploadPreset(id: string) {
+    await videoPresetApi.remove(id);
+    await getUploadPresets();
+    uploadPresetVersion.value += 1;
+  }
+
   const uploaPresetsOptions = computed(() => {
     return uploadPresets.value.map((item) => {
       return {
         label: item.name,
         value: item.id,
+        options: item.config,
       };
     });
   });
@@ -176,7 +193,10 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
 
   return {
     uploadPresets,
+    uploadPresetVersion,
     getUploadPresets,
+    saveUploadPreset,
+    removeUploadPreset,
     uploaPresetsOptions,
     upladPresetId,
     uploadPreset,
@@ -194,6 +214,7 @@ export const useQueueStore = defineStore("queue", () => {
     const res = await taskApi.list(params.value);
     // 为了web的兼容性考虑
     if (isArray(res)) {
+      // @ts-expect-error
       queue.value = res.reverse();
     } else {
       queue.value = res.list.reverse();
@@ -328,6 +349,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         ignoreDanmu: false,
         ignoreSubtitle: false,
         exportSubtitle: true,
+        uploadPresetId: "",
       },
     },
   });

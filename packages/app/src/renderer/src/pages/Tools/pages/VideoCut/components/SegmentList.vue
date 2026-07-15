@@ -67,6 +67,9 @@
           <li>ctrl+z 撤销</li>
           <li>ctrl+shift+z 重做</li>
           <li>ctrl+k 切换弹幕搜索</li>
+          <li>j 减速</li>
+          <li>k 暂停</li>
+          <li>l 加速</li>
         </ul>
       </Tip>
     </div>
@@ -238,6 +241,10 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   danmaList: () => [],
 });
+
+const emits = defineEmits<{
+  (event: "export-upload", segment: Segment): void;
+}>();
 
 const el = ref<HTMLElement | null>(null);
 
@@ -862,6 +869,12 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
             },
           },
         ],
+      },
+      {
+        label: "导出",
+        onClick: () => {
+          emits("export-upload", segment);
+        },
       },
     ],
   });

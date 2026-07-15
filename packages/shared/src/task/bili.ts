@@ -26,6 +26,28 @@ import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
 import type { Item as MediaItem } from "./BiliCheckQueue.js";
 
 type ClientInstance = InstanceType<typeof Client>;
+type ParsedUploadFileMeta = Awaited<ReturnType<typeof pasrseMetadata>>;
+type UploadFileMeta = ParsedUploadFileMeta & {
+  index?: number;
+};
+type UploadFileItem = {
+  path: string;
+  title?: string;
+  meta?: UploadFileMeta;
+};
+type UploadFileInput = string[] | UploadFileItem[];
+type NormalizedUploadFileItem = {
+  path: string;
+  title: string;
+  meta?: UploadFileMeta;
+};
+type UploadFormatContext = {
+  title: string;
+  username: string;
+  time: string;
+  roomId: string | number;
+  filename: string;
+};
 
 // 用于存储最近发送的通知，key为aid，value为发送时间戳
 const notificationCache = new Map<number, number>();
@@ -41,7 +63,7 @@ async function sendNotifyWithThrottle(
   title: string,
   desp: string,
   aid: number,
-  options?: { type?: "mediaStatusCheck" },
+  options?: Parameters<typeof sendNotify>[2],
 ) {
   const now = Date.now();
   const lastNotificationTime = notificationCache.get(aid);
@@ -306,10 +328,21 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     cover = undefined;
   }
 
+  let creationStatement: { id: -1 | 1 | 2 | 3 | 4 } | undefined = undefined;
+  if (options.copyright === 1 || options.copyright === 3) {
+    if (options.creationStatement) {
+      creationStatement = { id: options.creationStatement };
+    }
+    if (options.copyright === 3 && !options.creationStatement) {
+      creationStatement = { id: -1 };
+    }
+  }
+
   const data: MediaOptions = {
     cover: cover,
     title: options.title,
-    tid: options.tid,
+    // 移除老分区后，web的默认分区为21
+    tid: 21,
     human_type2: options.human_type2,
     tag: tags.slice(0, 10).join(","),
     copyright: options.copyright,
@@ -320,7 +353,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     up_close_danmu: options.closeDanmu ? true : false,
     up_close_reply: options.closeReply ? true : false,
     up_selection_reply: options.selectiionReply ? true : false,
-    open_elec: options.openElec,
+    open_elec: 0,
     desc_v2: hasAt ? descV2 : undefined,
     desc: desc,
     recreate: options.recreate || -1,
@@ -334,6 +367,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
       options.copyright === 2 || options.watermark === undefined
         ? undefined
         : { state: options.watermark },
+    creation_statement: creationStatement,
   };
   return data;
 }
@@ -433,7 +467,17 @@ async function biliMediaAction(
             `《${media.title}》稿件审核通过`,
             `请前往B站创作中心查看详情\n稿件名：${media.title}`,
             options.aid!,
-            { type: "mediaStatusCheck" },
+            {
+              type: "mediaStatusCheck",
+              context: {
+                event: "media_status_success",
+                eventLabel: "稿件审核通过",
+                aid: options.aid,
+                mediaTitle: media.title,
+                mediaStatus: status,
+                uid: options.uid,
+              },
+            },
           );
         } catch (error) {
           log.error("发送通知失败", error);
@@ -476,7 +520,18 @@ async function biliMediaAction(
             `《${media.title}》稿件审核未通过`,
             `请前往B站创作中心查看详情\n稿件名：${media.title}\n状态：${media.state_desc}\n状态码：${media.state}`,
             options.aid!,
-            { type: "mediaStatusCheck" },
+            {
+              type: "mediaStatusCheck",
+              context: {
+                event: "media_status_failure",
+                eventLabel: "稿件审核未通过",
+                aid: options.aid,
+                mediaTitle: media.title,
+                mediaStatus: media.state_desc,
+                mediaStateCode: media.state,
+                uid: options.uid,
+              },
+            },
           );
         } catch (error) {
           log.error("发送通知失败", error);
@@ -486,6 +541,63 @@ async function biliMediaAction(
   }
 }
 
+function normalizeUploadFiles(filePath: UploadFileInput): NormalizedUploadFileItem[] {
+  return filePath.map((item) => {
+    if (typeof item === "string") {
+      return {
+        path: item,
+        title: path.parse(item).name,
+      };
+    }
+
+    return {
+      path: item.path,
+      title: item.title ?? path.parse(item.path).name,
+      meta: item.meta,
+    };
+  });
+}
+
+async function resolveUploadFileMeta(
+  item: NormalizedUploadFileItem,
+  onErrorMessage: string,
+): Promise<UploadFileMeta | null> {
+  if (item.meta !== undefined) {
+    return item.meta;
+  }
+
+  try {
+    return await pasrseMetadata({
+      videoFilePath: item.path,
+    });
+  } catch (e) {
+    log.warn(onErrorMessage, e);
+    return null;
+  }
+}
+
+function getUploadFormatContext(
+  meta: UploadFileMeta | null,
+  filePath: string,
+): UploadFormatContext | null {
+  if (!meta?.title || !meta.username || !meta.roomId || !meta.startTimestamp) {
+    return null;
+  }
+
+  const filename = path.parse(filePath).name;
+  return {
+    title: meta.title,
+    username: meta.username,
+    time: new Date(meta.startTimestamp * 1000).toISOString(),
+    roomId: meta.roomId,
+    filename: filename,
+  };
+}
+
+function hasTemplateVariable(template?: string) {
+  return !!template?.trim() && (template.includes("{{") || template.includes("<%"));
+}
+
 /**
  * 预格式化选项
  * 解析视频元数据并格式化标题、分P标题和转载来源
@@ -493,14 +605,9 @@ async function biliMediaAction(
  * @param filePath 视频文件路径数组
  * @returns 格式化后的配置
  */
-async function preFormatOptions(
+export async function preFormatOptions(
   options: BiliupConfig,
-  filePath:
-    | string[]
-    | {
-        path: string;
-        title?: string;
-      }[],
+  filePath: UploadFileInput,
 ): Promise<{
   options: BiliupConfig;
   videos: { path: string; title: string }[];
@@ -509,157 +616,86 @@ async function preFormatOptions(
     return { options, videos: [] };
   }
 
+  const normalizedFiles = normalizeUploadFiles(filePath);
+
   // 判断是否需要解析元数据
-  const needParseForTitle = options.title.includes("{{");
+  const needParseForTitle = hasTemplateVariable(options.title);
   const needParseForSource = options.copyright === 2 && !options.source;
-  const needParseForPartTitle = options.partTitleTemplate && !!options.partTitleTemplate.trim();
-  const needParseForDesc = options.desc && options.desc.includes("{{");
+  const needParseForPartTitle = hasTemplateVariable(options.partTitleTemplate);
+  const needParseForDesc = hasTemplateVariable(options.desc);
 
   if (!needParseForTitle && !needParseForSource && !needParseForPartTitle && !needParseForDesc) {
     // 不需要解析，直接返回
     return {
       options,
-      videos: filePath.map((item) => ({
-        path: typeof item === "string" ? item : item.path,
-        title:
-          typeof item === "string"
-            ? path.parse(item).name
-            : (item.title ?? path.parse(item.path).name),
+      videos: normalizedFiles.map((item) => ({
+        path: item.path,
+        title: item.title,
       })),
     };
   }
 
-  // 解析第一个视频文件的元数据（只解析一次）
-  const firstFilePath = typeof filePath[0] === "string" ? filePath[0] : filePath[0].path;
-  let parseResult: Awaited<ReturnType<typeof pasrseMetadata>> | null = null;
-
-  try {
-    parseResult = await pasrseMetadata({
-      videoFilePath: firstFilePath,
-    });
-  } catch (e) {
-    log.warn("解析视频文件信息失败", e);
-  }
-
   const resultOptions = { ...options };
+  if (needParseForTitle || needParseForDesc || needParseForSource) {
+    const firstFile = normalizedFiles[0];
+    const firstMeta = await resolveUploadFileMeta(firstFile, "解析视频文件信息失败");
+    const firstFormatContext = getUploadFormatContext(firstMeta, firstFile.path);
 
-  // 格式化主标题
-  if (needParseForTitle && parseResult) {
-    if (
-      parseResult.title &&
-      parseResult.username &&
-      parseResult.roomId &&
-      parseResult.startTimestamp
-    ) {
-      try {
-        resultOptions.title = formatTitle(
-          {
-            title: parseResult.title,
-            username: parseResult.username,
-            time: new Date((parseResult.startTimestamp ?? 0) * 1000).toISOString(),
-            roomId: parseResult.roomId,
-            filename: path.basename(firstFilePath),
-          },
-          options.title,
-        );
-      } catch (e) {
-        log.error("格式化主标题失败", e);
-      }
+    // 格式化主标题
+    if (needParseForTitle && firstFormatContext) {
+      resultOptions.title = formatTitle(firstFormatContext, options.title);
     }
-  }
 
-  // 格式化简介
-  if (needParseForDesc && parseResult) {
-    if (
-      parseResult.title &&
-      parseResult.username &&
-      parseResult.roomId &&
-      parseResult.startTimestamp
-    ) {
-      try {
-        resultOptions.desc = formatDesc(
-          {
-            title: parseResult.title,
-            username: parseResult.username,
-            time: new Date((parseResult.startTimestamp ?? 0) * 1000).toISOString(),
-            roomId: parseResult.roomId,
-            filename: path.basename(firstFilePath),
-          },
-          options.desc!,
-        );
-      } catch (e) {
-        log.error("格式化简介失败", e);
-      }
+    // 格式化简介
+    if (needParseForDesc && firstFormatContext) {
+      resultOptions.desc = formatDesc(firstFormatContext, options.desc!);
     }
-  }
 
-  // 处理转载来源
-  if (needParseForSource) {
-    if (parseResult?.platform && parseResult?.roomId) {
-      const source = buildRoomLink(parseResult.platform, parseResult.roomId);
-      if (source) {
-        resultOptions.source = source;
-      } else {
-        log.warn(
-          `构建转载来源链接失败，平台${parseResult?.platform}或房间号${parseResult?.roomId}可能无效`,
-        );
+    // 处理转载来源
+    if (needParseForSource) {
+      if (firstMeta?.platform && firstMeta.roomId) {
+        const source = buildRoomLink(firstMeta.platform, firstMeta.roomId);
+        if (source) {
+          resultOptions.source = source;
+        } else {
+          log.warn(
+            `构建转载来源链接失败，平台${firstMeta.platform}或房间号${firstMeta.roomId}可能无效`,
+          );
+        }
       }
-    }
-    if (!resultOptions.source && parseResult?.roomId) {
-      // 如果平台信息不可用，但有房间号，尝试使用房间号
-      resultOptions.source = parseResult?.roomId;
+      if (!resultOptions.source && firstMeta?.roomId) {
+        // 如果平台信息不可用，但有房间号，尝试使用房间号
+        resultOptions.source = firstMeta.roomId;
+      }
     }
   }
 
   // 格式化分P标题
   const videos: { path: string; title: string }[] = [];
   if (needParseForPartTitle) {
-    // 为每个文件单独解析元数据并格式化标题
-    for (let i = 0; i < filePath.length; i++) {
-      const item = filePath[i];
-      const itemPath = typeof item === "string" ? item : item.path;
-      const itemTitle = typeof item === "string" ? path.parse(item).name : item.title;
+    for (let i = 0; i < normalizedFiles.length; i++) {
+      const item = normalizedFiles[i];
+      const itemMeta = await resolveUploadFileMeta(item, `解析分P[${i + 1}]元数据失败，使用原标题`);
+      const itemFormatContext = getUploadFormatContext(itemMeta, item.path);
 
-      try {
-        // 为每个文件单独解析元数据
-        const itemParseResult = await pasrseMetadata({
-          videoFilePath: itemPath,
-        });
-
-        if (
-          itemParseResult.title &&
-          itemParseResult.username &&
-          itemParseResult.roomId &&
-          itemParseResult.startTimestamp
-        ) {
-          const formattedTitle = formatPartTitle(
-            {
-              title: itemParseResult.title,
-              username: itemParseResult.username,
-              time: new Date((itemParseResult.startTimestamp ?? 0) * 1000).toISOString(),
-              roomId: itemParseResult.roomId,
-              filename: path.basename(itemPath),
-              index: i + 1,
-            },
-            options.partTitleTemplate!,
-          );
-          videos.push({ path: itemPath, title: formattedTitle });
-        } else {
-          // 元数据不完整，使用原标题
-          videos.push({ path: itemPath, title: itemTitle ?? path.parse(itemPath).name });
-          log.warn(`分P[${i + 1}]元数据不完整，使用原标题`);
-        }
-      } catch (e) {
-        log.warn(`解析分P[${i + 1}]元数据失败，使用原标题`, e);
-        videos.push({ path: itemPath, title: itemTitle ?? path.parse(itemPath).name });
+      if (itemFormatContext) {
+        const formattedTitle = formatPartTitle(
+          {
+            ...itemFormatContext,
+            index: itemMeta?.index ?? i + 1,
+          },
+          options.partTitleTemplate!,
+        );
+        videos.push({ path: item.path, title: formattedTitle });
+      } else {
+        videos.push({ path: item.path, title: item.title });
+        log.warn(`分P[${i + 1}]元数据不完整，使用原标题`);
       }
     }
   } else {
     // 不需要格式化分P标题，使用原标题
-    for (const item of filePath) {
-      const itemPath = typeof item === "string" ? item : item.path;
-      const itemTitle = typeof item === "string" ? path.parse(item).name : item.title;
-      videos.push({ path: itemPath, title: itemTitle ?? path.parse(itemPath).name });
+    for (const item of normalizedFiles) {
+      videos.push({ path: item.path, title: item.title });
     }
   }
 
@@ -670,12 +706,7 @@ async function preFormatOptions(
  * 上传稿件
  */
 async function addMedia(
-  filePath:
-    | string[]
-    | {
-        path: string;
-        title?: string;
-      }[],
+  filePath: UploadFileInput,
   options: BiliupConfig,
   uid: number,
   extraOptions?: {
@@ -801,12 +832,7 @@ async function addMedia(
  */
 export async function editMedia(
   aid: number,
-  filePath:
-    | string[]
-    | {
-        path: string;
-        title?: string;
-      }[],
+  filePath: UploadFileInput,
   options: BiliupConfig,
   uid: number,
   extraOptions?: {
@@ -1011,22 +1037,6 @@ async function getPlatformArchiveDetail(aid: number, uid: number) {
   return client.platform.getArchive({ aid });
 }
 
-/**
- * 获取投稿分区
- */
-async function getPlatformPre(uid: number) {
-  const client = createClient(uid);
-  return client.platform.getArchivePre();
-}
-
-/**
- * 获取分区简介信息
- */
-async function getTypeDesc(tid: number, uid: number) {
-  const client = createClient(uid);
-  return client.platform.getTypeDesc(tid);
-}
-
 // 验证配置
 export const validateBiliupConfig = (config: BiliupConfig): [boolean, string | null] => {
   let msg: string | null = null;
@@ -1042,9 +1052,13 @@ export const validateBiliupConfig = (config: BiliupConfig): [boolean, string | n
     if (config.topic_name) {
       msg = "转载类型稿件不支持活动参加哦~";
     }
+  } else if (config.copyright === 3) {
+    if (!config.creationStatement) {
+      msg = "必须选择一个创作声明";
+    }
   }
   if (config.tag.length === 0) {
-    msg = "标签不能为空";
+    msg = "标签至少存在一个";
   }
   if (config.tag.length > 10) {
     msg = "标签不能超过10个";
@@ -1245,8 +1259,6 @@ export const biliApi = {
   editMedia,
   getSeasonList,
   getArchiveDetail,
-  getPlatformPre,
-  getTypeDesc,
   download,
   getSessionId,
   getPlatformArchiveDetail,

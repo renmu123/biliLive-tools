@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/douyu-recorder",
-  "version": "1.17.0",
+  "version": "1.17.1",
   "description": "bililive-tools douyu recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
@@ -49,6 +49,6 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
-    "utf-8-validate": "^6.0.5"
+    "utf-8-validate": "^6.0.6"
   }
 }
