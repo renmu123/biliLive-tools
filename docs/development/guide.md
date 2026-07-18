@@ -70,7 +70,7 @@ pnpm run install:bin
 - **DanmukuFactory**：[v2.1.2](https://github.com/renmu123/DanmakuFactory)
 - **FFmpeg**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
 - **FFprobe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
-- **录播姬cli**：[3.3.3](https://github.com/renmu123/BililiveRecorder)
+- **录播姬cli**：[3.4.0](https://github.com/renmu123/BililiveRecorder)
 - **mesio**：[0.4.1](https://github.com/hua0512/rust-srec/releases/tag/mesio-v0.4.1)
 - **audiowaveform**：[1.10.2](https://github.com/bbc/audiowaveform)
 

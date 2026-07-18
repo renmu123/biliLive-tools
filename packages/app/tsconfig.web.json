@@ -11,13 +11,12 @@
     "composite": true,
     "module": "ES2022",
     "moduleResolution": "bundler",
-    "baseUrl": ".",
     "paths": {
       "@renderer/*": [
-        "src/renderer/src/*"
+        "./src/renderer/src/*"
       ],
       "@types/*": [
-        "src/types/*"
+        "./src/types/*"
       ],
     }
   }

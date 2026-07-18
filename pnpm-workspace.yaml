@@ -10,10 +10,11 @@ packages:
 catalog:
   lodash-es: ^4.17.21
   axios: ^1.15.0
-  better-sqlite3: 12.6.2
+  better-sqlite3: 12.11.1
   font-ls: 0.6.6
   ntsuspend: ^1.0.2
   mitt: ^3.0.1
+  "fast-xml-parser": "^5.9.3"
 
 patchedDependencies:
   "trash": "patches/trash.patch"
@@ -45,3 +46,4 @@ minimumReleaseAgeExclude:
   - dmg-builder
   - electron-builder-squirrel-windows
   - electron-builder
+  - electron@42.5.0

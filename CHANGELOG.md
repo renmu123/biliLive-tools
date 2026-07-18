@@ -1,4 +1,4 @@
-# Next
+# 3.18.0
 
 ## 优化
 
@@ -13,6 +13,12 @@
 - 录制：修复B站弹幕重试次数错误
 - 修复右键托盘“显示”时任务栏不会显示的bug [#502](https://github.com/renmu123/biliLive-tools/issues/502)
 - 切片：修复单个导出不存在上传预设仍提示登录的bug
+
+## 其他
+
+- 文档：增加 vitepress-plugin-llms 插件
+- 依赖升级 [#491](https://github.com/renmu123/biliLive-tools/pull/491)
+- 录播姬引擎升级至[3.4.0](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.4.0)，修复某些抖音录制失败的问题
 
 # 3.17.0(2026.07.01)
 

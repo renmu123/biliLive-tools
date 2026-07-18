@@ -1,6 +1,6 @@
 {
   "name": "@biliLive-tools/shared",
-  "version": "3.17.0",
+  "version": "3.18.0",
   "type": "module",
   "description": "",
   "main": "./lib/index.js",
@@ -51,7 +51,7 @@
     "douyu-api": "^0.2.1",
     "ejs": "^3.1.10",
     "electron-log": "^5.2.3",
-    "fast-xml-parser": "^4.5.0",
+    "fast-xml-parser": "catalog:",
     "filenamify": "^7.0.0",
     "font-ls": "catalog:",
     "form-data": "^4.0.5",
@@ -71,6 +71,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/nodemailer": "^6.4.17"
+    "@types/nodemailer": "^6.4.17",
+    "@types/ejs": "^3.1.5"
   }
 }
