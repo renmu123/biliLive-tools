@@ -5,7 +5,12 @@ argument-hint: "提供需要进行的操作，如查询xx录制状态、添加�
 user-invocable: true
 ---
 
-# bililive tools recorder
+# bililive tools
+
+## 介绍
+
+项目地址：https://github.com/renmu123/biliLive-tools
+ai用文档地址：https://docs.irenmu.com/llms.txt
 
 ## 前置条件
 
