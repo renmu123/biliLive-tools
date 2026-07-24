@@ -32,7 +32,7 @@ import type { FlvCommand } from "./flvRepair.js";
 export { AbstractTask } from "./core/index.js";
 
 export class DanmuTask extends AbstractTask {
-  danmu: DanmakuFactory;
+  danmu?: DanmakuFactory;
   input: string;
   options: any;
   type = TaskType.danmu;
@@ -72,12 +72,14 @@ export class DanmuTask extends AbstractTask {
     this.controller = new AbortController();
   }
   exec() {
+    if (!this.danmu) return;
+    const danmu = this.danmu;
     this.callback.onStart && this.callback.onStart();
     this.status = "running";
     this.progress = 0;
     this.emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
-    this.danmu
+    danmu
       .convertXml2Ass(this.input, this.output as string, this.options)
       .then(() => {
         this.status = "completed";
@@ -93,6 +95,7 @@ export class DanmuTask extends AbstractTask {
       })
       .finally(() => {
         this.endTime = Date.now();
+        this.releaseDanmu();
       });
   }
   pause() {
@@ -111,10 +114,17 @@ export class DanmuTask extends AbstractTask {
     }
     return true;
   }
+
+  /**
+   * 释放任务持有的 DanmakuFactory 实例，同时保留任务历史信息。
+   */
+  releaseDanmu() {
+    this.danmu = undefined;
+  }
 }
 
 export class FFmpegTask extends AbstractTask {
-  command: ffmpeg.FfmpegCommand;
+  command?: ffmpeg.FfmpegCommand;
   type = TaskType.ffmpeg;
   isInterrupted: boolean = false;
 
@@ -157,33 +167,41 @@ export class FFmpegTask extends AbstractTask {
       this.startTime = Date.now();
     });
     command.on("end", async () => {
-      // 如果任务是被中断的，走这个逻辑
-      if (this.isInterrupted) {
-        const msg = `task ${this.taskId} error: isInterrupted`;
-        log.error(msg);
-        this.status = "error";
+      try {
+        // 如果任务是被中断的，走这个逻辑
+        if (this.isInterrupted) {
+          const msg = `task ${this.taskId} error: isInterrupted`;
+          log.error(msg);
+          this.status = "error";
 
-        callback.onError && callback.onError(msg);
-        this.error = msg;
-        this.emitter.emit("task-error", { taskId: this.taskId, error: msg });
-      } else {
-        log.info(`task ${this.taskId} end`);
-        this.status = "completed";
-        this.progress = 100;
+          callback.onError && callback.onError(msg);
+          this.error = msg;
+          this.emitter.emit("task-error", { taskId: this.taskId, error: msg });
+        } else {
+          log.info(`task ${this.taskId} end`);
+          this.status = "completed";
+          this.progress = 100;
 
-        callback.onEnd && callback.onEnd(options.output);
-        this.emitter.emit("task-end", { taskId: this.taskId });
+          callback.onEnd && callback.onEnd(options.output);
+          this.emitter.emit("task-end", { taskId: this.taskId });
+        }
+      } finally {
+        this.endTime = Date.now();
+        this.releaseCommand();
       }
-      this.endTime = Date.now();
     });
     command.on("error", (err) => {
-      log.error(`task ${this.taskId} error: ${err}`);
-      this.status = "error";
+      try {
+        log.error(`task ${this.taskId} error: ${err}`);
+        this.status = "error";
 
-      callback.onError && callback.onError(String(err));
-      this.error = String(err);
-      this.emitter.emit("task-error", { taskId: this.taskId, error: String(err) });
-      this.endTime = Date.now();
+        callback.onError && callback.onError(String(err));
+        this.error = String(err);
+        this.emitter.emit("task-error", { taskId: this.taskId, error: String(err) });
+      } finally {
+        this.endTime = Date.now();
+        this.releaseCommand();
+      }
     });
     command.on("progress", (progress) => {
       // @ts-ignore
@@ -202,12 +220,14 @@ export class FFmpegTask extends AbstractTask {
   }
   exec() {
     if (this.status !== "pending") console.warn("ffmpeg task is not pending when exec");
+    if (!this.command) return;
 
     this.status = "running";
     this.command.run();
   }
   pause() {
     if (this.status !== "running") return;
+    if (!this.command) return;
     if (isWin32) {
       // @ts-ignore
       ntsuspend.suspend(this.command.ffmpegProc.pid);
@@ -221,6 +241,7 @@ export class FFmpegTask extends AbstractTask {
   }
   resume() {
     if (this.status !== "paused") return;
+    if (!this.command) return;
     if (isWin32) {
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
@@ -234,6 +255,7 @@ export class FFmpegTask extends AbstractTask {
   }
   interrupt() {
     if (this.status === "completed" || this.status === "error") return;
+    if (!this.command) return;
     if (isWin32) {
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
@@ -248,6 +270,7 @@ export class FFmpegTask extends AbstractTask {
   kill() {
     if (this.status === "completed" || this.status === "error" || this.status === "canceled")
       return;
+    if (!this.command) return;
     if (isWin32) {
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
@@ -257,6 +280,15 @@ export class FFmpegTask extends AbstractTask {
     // 不需要额外触发error事件，因为ffmpeg会触发error事件，ffmpeg没有取消事件
     this.status = "error";
     return true;
+  }
+
+  /**
+   * 释放任务持有的 FfmpegCommand 及其监听器，同时保留任务历史信息。
+   */
+  releaseCommand() {
+    if (!this.command) return;
+    this.command.removeAllListeners();
+    this.command = undefined;
   }
 }
 
