@@ -170,6 +170,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
   },
   task: {
+    maxNum: 300,
     ffmpegMaxNum: 3,
     douyuDownloadMaxNum: 2,
     biliUploadMaxNum: 2,
