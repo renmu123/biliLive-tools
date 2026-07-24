@@ -266,7 +266,7 @@ type WithoutPromise<T> = T extends Promise<infer U> ? U : T;
  * B站视频上传任务
  */
 export class BiliPartVideoTask extends AbstractTask {
-  command: WebVideoUploader;
+  command?: WebVideoUploader;
   type = TaskType.biliUpload;
   callback: {
     onStart?: () => void;
@@ -319,8 +319,8 @@ export class BiliPartVideoTask extends AbstractTask {
 
         if (this.useUploadPartPersistence) {
           try {
-            const fileHash = await calculateFileQuickHash(this.command.filePath);
-            const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
+            const fileHash = await calculateFileQuickHash(command.filePath);
+            const fileSize = await fs.stat(command.filePath).then((stat) => stat.size);
             uploadPartService.addOrUpdate({
               file_hash: fileHash,
               file_size: fileSize,
@@ -335,13 +335,14 @@ export class BiliPartVideoTask extends AbstractTask {
 
         this.completedPart = {
           ...data,
-          filePath: this.command.filePath,
+          filePath: command.filePath,
         };
         this.endTime = Date.now();
         // 重置进度追踪
         this.speedCalculator.reset();
         callback.onEnd && callback.onEnd(this.completedPart);
         this.emitter.emit("task-end", { taskId: this.taskId });
+        this.releaseCommand();
       },
     );
     command.emitter.on("error", (err) => {
@@ -354,6 +355,7 @@ export class BiliPartVideoTask extends AbstractTask {
       callback.onError && callback.onError(this.error);
       this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
       this.endTime = Date.now();
+      this.releaseCommand();
     });
 
     command.emitter.on("progress", (event) => {
@@ -373,7 +375,8 @@ export class BiliPartVideoTask extends AbstractTask {
   }
 
   async exec() {
-    if (this.status !== "pending") return;
+    if (this.status !== "pending" || !this.command) return;
+    const command = this.command;
     this.status = "running";
     this.startTime = Date.now();
     this.emitter.emit("task-start", { taskId: this.taskId });
@@ -384,8 +387,8 @@ export class BiliPartVideoTask extends AbstractTask {
     // 处理上传分p持久化
     if (this.useUploadPartPersistence) {
       try {
-        const fileHash = await calculateFileQuickHash(this.command.filePath);
-        const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
+        const fileHash = await calculateFileQuickHash(command.filePath);
+        const fileSize = await fs.stat(command.filePath).then((stat) => stat.size);
         const part = uploadPartService.findValidPartByHash(fileHash, fileSize, String(this.uid));
         if (part) {
           this.status = "completed";
@@ -393,14 +396,15 @@ export class BiliPartVideoTask extends AbstractTask {
           this.completedPart = {
             cid: part.cid,
             filename: part.filename,
-            title: this.command.title,
-            filePath: this.command.filePath,
+            title: command.title,
+            filePath: command.filePath,
           };
           this.endTime = Date.now();
           // 重置进度追踪
           this.speedCalculator.reset();
           this.callback.onEnd && this.callback.onEnd(this.completedPart);
           this.emitter.emit("task-end", { taskId: this.taskId });
+          this.releaseCommand();
           return;
         }
       } catch (error) {
@@ -411,12 +415,12 @@ export class BiliPartVideoTask extends AbstractTask {
     this.status = "running";
     this.startTime = Date.now();
     this.emitter.emit("task-start", { taskId: this.taskId });
-    this.command.upload();
+    command.upload();
   }
   pause() {
     if (this.status !== "running") return;
 
-    this.command.pause();
+    this.command?.pause();
     log.warn(`task ${this.taskId} paused`);
     this.status = "paused";
     this.emitter.emit("task-pause", { taskId: this.taskId });
@@ -424,7 +428,7 @@ export class BiliPartVideoTask extends AbstractTask {
   }
   resume() {
     if (this.status !== "paused") return;
-    this.command.start();
+    this.command?.start();
     log.warn(`task ${this.taskId} resumed`);
     this.status = "running";
     this.emitter.emit("task-resume", { taskId: this.taskId });
@@ -435,12 +439,22 @@ export class BiliPartVideoTask extends AbstractTask {
       return;
     log.warn(`task ${this.taskId} killed`);
     this.status = "canceled";
-    this.command.cancel();
+    this.command?.cancel();
     // 重置进度追踪
     this.speedCalculator.reset();
     this.emit("task-cancel", { taskId: this.taskId, autoStart: triggerAutoStart });
     this.endTime = Date.now();
+    this.releaseCommand();
     return true;
+  }
+
+  /**
+   * 释放上传器持有的请求、文件流和取消信号，同时保留任务历史信息。
+   */
+  releaseCommand() {
+    if (!this.command) return;
+    this.command.emitter.removeAllListeners();
+    this.command = undefined;
   }
 }
 
@@ -553,6 +567,12 @@ export class BiliVideoTask extends AbstractTask {
         task.kill(false);
       }
     }
+  }
+  protected releasePartTasks() {
+    for (const task of this.taskList) {
+      task.releaseCommand();
+    }
+    this.taskList.length = 0;
   }
   kill() {
     if (this.status === "completed" || this.status === "error" || this.status === "canceled")
@@ -693,6 +713,8 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.error = String(err);
       this.callback.onError && this.callback.onError(this.error);
       this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
+    } finally {
+      this.releasePartTasks();
     }
     this.endTime = Date.now();
   }
@@ -814,6 +836,8 @@ export class BiliEditVideoTask extends BiliVideoTask {
       this.error = String(err);
       this.callback.onError && this.callback.onError(this.error);
       this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
+    } finally {
+      this.releasePartTasks();
     }
     this.endTime = Date.now();
   }
