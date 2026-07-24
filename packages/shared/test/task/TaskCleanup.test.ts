@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 
 import type { DanmakuFactory } from "../../src/danmu/danmakuFactory.js";
-import { DanmuTask, FFmpegTask } from "../../src/task/task.js";
+import type { SyncClient } from "../../src/sync/index.js";
+import { DanmuTask, FFmpegTask, SyncTask } from "../../src/task/task.js";
 
 function createDanmuTask(convertXml2Ass: DanmakuFactory["convertXml2Ass"]) {
   const danmu = {
@@ -38,6 +39,26 @@ function createFFmpegTask() {
     {},
   );
   return { task, command };
+}
+
+function createSyncTask(uploadFile: () => Promise<void>) {
+  const instance = new EventEmitter() as EventEmitter & {
+    uploadFile: () => Promise<void>;
+    cancelUpload: () => void;
+  };
+  instance.uploadFile = uploadFile;
+  instance.cancelUpload = vi.fn();
+
+  const task = new SyncTask(
+    instance as unknown as SyncClient,
+    {
+      input: "input.mp4",
+      output: "remote/path",
+      name: "文件同步",
+    },
+    {},
+  );
+  return { task, instance };
 }
 
 describe("媒体任务资源清理", () => {
@@ -77,5 +98,31 @@ describe("媒体任务资源清理", () => {
     expect(task.command).toBeUndefined();
     expect(task.status).toBe("error");
     expect(command.eventNames()).toHaveLength(0);
+  });
+});
+
+describe("同步任务资源清理", () => {
+  it("同步完成后释放 instance 及其监听器", async () => {
+    const { task, instance } = createSyncTask(vi.fn().mockResolvedValue(undefined));
+
+    task.exec();
+
+    await vi.waitFor(() => expect(task.status).toBe("completed"));
+    expect(task.instance).toBeUndefined();
+    expect(instance.eventNames()).toHaveLength(0);
+  });
+
+  it("同步失败时保留 instance 以支持重试，重试成功后释放", async () => {
+    const uploadFile = vi.fn().mockRejectedValueOnce("同步失败").mockResolvedValueOnce(undefined);
+    const { task, instance } = createSyncTask(uploadFile);
+
+    task.exec();
+    await vi.waitFor(() => expect(task.status).toBe("error"));
+    expect(task.instance).toBe(instance);
+
+    task.restart();
+    await vi.waitFor(() => expect(task.status).toBe("completed"));
+    expect(uploadFile).toHaveBeenCalledTimes(2);
+    expect(task.instance).toBeUndefined();
   });
 });

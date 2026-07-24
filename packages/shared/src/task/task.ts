@@ -1210,7 +1210,7 @@ export class DouyinDownloadVideoTask extends RangeDownloadTask {
  * 同步任务
  */
 export class SyncTask extends AbstractTask {
-  instance: SyncClient;
+  instance?: SyncClient;
   input: string;
   options: any;
   type = TaskType.sync;
@@ -1250,12 +1250,12 @@ export class SyncTask extends AbstractTask {
     this.action = ["kill", "restart"];
     this.callback = callback || {};
 
-    if (this.instance && this.instance instanceof Pan123) {
+    if (instance instanceof Pan123) {
       // 123网盘不支持重试任务
       this.action = ["kill"];
     }
     // @ts-expect-error
-    this.instance.on("progress", (progress: any) => {
+    instance.on("progress", (progress: any) => {
       // console.log("sync progress", progress);
       callback?.onProgress && callback.onProgress(progress.percentage);
       this.progress = progress.percentage;
@@ -1263,12 +1263,14 @@ export class SyncTask extends AbstractTask {
     });
   }
   exec() {
+    if (!this.instance) return;
+    const instance = this.instance;
     this.callback.onStart && this.callback.onStart();
     this.status = "running";
     this.progress = 0;
     this.emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
-    this.instance
+    instance
       .uploadFile(this.input, this.output, {
         retry: this?.options?.retry,
         policy: this?.options?.policy,
@@ -1288,6 +1290,9 @@ export class SyncTask extends AbstractTask {
       })
       .finally(() => {
         this.endTime = Date.now();
+        if (this.status === "completed") {
+          this.releaseInstance();
+        }
       });
   }
   restart() {
@@ -1306,8 +1311,17 @@ export class SyncTask extends AbstractTask {
       return;
     log.warn(`danmu task ${this.taskId} killed`);
     this.status = "canceled";
-    this.instance.cancelUpload();
+    this.instance?.cancelUpload();
     return true;
+  }
+
+  /**
+   * 释放任务持有的同步客户端及其监听器，同时保留任务历史信息。
+   */
+  releaseInstance() {
+    if (!this.instance) return;
+    this.instance.removeAllListeners();
+    this.instance = undefined;
   }
 }
 
