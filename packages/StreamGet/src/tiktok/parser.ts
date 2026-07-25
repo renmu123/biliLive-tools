@@ -3,7 +3,6 @@ import type { LiveInfo, ParseResult, RequestOptions, SourceInfo, StreamInfo } fr
 import { ParseError } from "../errors.js";
 import { fetchTikTokData, getTikTokLiveRoom } from "./api.js";
 import type {
-  TikTokImage,
   TikTokParserOptions,
   TikTokPullData,
   TikTokResponse,
@@ -72,7 +71,7 @@ function parseQualities(streamData: TikTokStreamData): ParsedQuality[] {
 
     const bitrate = Number(sdkParams.vbitrate ?? 0);
     const resolution = sdkParams.resolution ?? "";
-    if (!Number.isFinite(bitrate) || bitrate <= 0 || !resolution || (!main.flv && !main.hls)) {
+    if (!main.flv && !main.hls) {
       continue;
     }
 
@@ -135,8 +134,12 @@ export class TikTokParser extends PlatformParser<string> {
 
   private async fetch(roomId: string, opts?: RequestOptions & TikTokParserOptions) {
     const options = this.resolveOptions(opts);
+    const data = await fetchTikTokData(this.httpClient, roomId, options);
+    if (!getTikTokLiveRoom(data)) {
+      throw new Error(data?.message || "解析失败");
+    }
     return {
-      data: await fetchTikTokData(this.httpClient, roomId, options),
+      data,
       options,
     };
   }
@@ -145,7 +148,6 @@ export class TikTokParser extends PlatformParser<string> {
     const liveRoomInfo = getTikTokLiveRoom(data);
     const user = liveRoomInfo?.user;
     const room = liveRoomInfo?.liveRoom;
-
     return {
       platform: this.platform,
       roomId,
@@ -170,7 +172,7 @@ export class TikTokParser extends PlatformParser<string> {
     const streamData =
       options.hevc && room?.hevcStreamData ? room.hevcStreamData : room?.streamData;
     if (!streamData) {
-      throw new ParseError("该直播可能包含敏感内容，请登录并确认年龄后重试", this.platform);
+      throw new ParseError("解析错误", this.platform);
     }
 
     const streams: StreamInfo<string>[] = [];
@@ -178,7 +180,6 @@ export class TikTokParser extends PlatformParser<string> {
       for (const format of options.format) {
         const url = quality.main[format];
         if (!url) continue;
-
         streams.push({
           url: appendCodec(url, quality.codec),
           quality: quality.key,
@@ -192,7 +193,7 @@ export class TikTokParser extends PlatformParser<string> {
       }
     }
 
-    return streams.length > 0 ? [{ name: "默认线路", streams }] : [];
+    return streams.length > 0 ? [{ name: "自动", streams }] : [];
   }
 
   async getRoomInfo(

@@ -37,6 +37,8 @@ export default class RecorderConfig {
             return get(globalConfig, "huya.formatName");
           } else if (setting.providerId === "DouYin") {
             return get(globalConfig, "douyin.formatName");
+          } else if (setting.providerId === "TikTok") {
+            return get(globalConfig, "tiktok.formatName");
           } else {
             return "auto";
           }
@@ -49,6 +51,8 @@ export default class RecorderConfig {
             return get(globalConfig, "huya.quality");
           } else if (setting.providerId === "DouYin") {
             return get(globalConfig, "douyin.quality");
+          } else if (setting.providerId === "TikTok") {
+            return get(globalConfig, "tiktok.quality");
           } else {
             return get(globalConfig, "quality");
           }
@@ -57,6 +61,8 @@ export default class RecorderConfig {
             return get(globalConfig, "bilibili.codecName");
           } else if (setting.providerId === "DouYu") {
             return get(globalConfig, "douyu.codecName");
+          } else if (setting.providerId === "TikTok") {
+            return get(globalConfig, "tiktok.codecName");
           }
           return "auto";
         } else if (key === "qualityRetry") {
@@ -68,6 +74,8 @@ export default class RecorderConfig {
             return get(globalConfig, "douyin.cookie");
           } else if (setting.providerId === "XHS") {
             return get(globalConfig, "xhs.cookie");
+          } else if (setting.providerId === "TikTok") {
+            return get(globalConfig, "tiktok.cookie");
           }
         } else if (key === "doubleScreen") {
           if (setting.providerId === "DouYin") {
@@ -75,6 +83,11 @@ export default class RecorderConfig {
           } else {
             return undefined;
           }
+        } else if (key === "proxy") {
+          if (setting.providerId === "TikTok") {
+            return get(globalConfig, "tiktok.proxy");
+          }
+          return undefined;
         } else if (key === "sourcePriorities") {
           if (setting.providerId === "HuYa") {
             const source = get(globalConfig, "huya.source");
@@ -96,6 +109,8 @@ export default class RecorderConfig {
             return get(globalConfig, "huya.api");
           } else if (setting.providerId === "DouYu") {
             return get(globalConfig, "douyu.api");
+          } else if (setting.providerId === "TikTok") {
+            return get(globalConfig, "tiktok.api");
           } else {
             return "auto";
           }
@@ -140,12 +155,18 @@ export default class RecorderConfig {
     } else if (setting.providerId === "XHS") {
       auth = getValue("cookie");
       uid = setting?.uid;
+    } else if (setting.providerId === "TikTok") {
+      auth = getValue("cookie");
     }
 
     // 流格式处理
     const formatName = getValue("formatName") ?? "auto";
     let formatPriorities: Array<"flv" | "hls"> | undefined;
-    if (setting.providerId === "DouYin" || setting.providerId === "HuYa") {
+    if (
+      setting.providerId === "DouYin" ||
+      setting.providerId === "HuYa" ||
+      setting.providerId === "TikTok"
+    ) {
       if (formatName === "flv_only") {
         formatPriorities = ["flv"];
       } else if (formatName === "hls") {
@@ -173,8 +194,8 @@ export default class RecorderConfig {
     // 弹幕处理
     let disableProvideCommentsWhenRecording =
       getValue("disableProvideCommentsWhenRecording") ?? true;
-    if (setting.providerId === "XHS") {
-      // 小红书不支持弹幕
+    if (setting.providerId === "XHS" || setting.providerId === "TikTok") {
+      // 小红书和 TikTok 暂不支持弹幕
       disableProvideCommentsWhenRecording = true;
     }
 
@@ -204,6 +225,7 @@ export default class RecorderConfig {
       doubleScreen: getValue("doubleScreen"),
       sourcePriorities: sourcePriorities,
       api: api,
+      proxy: getValue("proxy"),
     };
   }
   public list() {

@@ -123,6 +123,7 @@ export type UpdateRecorderArgs = Pick<
   | "videoFormat"
   | "recorderType"
   | "cookie"
+  | "proxy"
   | "doubleScreen"
   | "onlyAudio"
   | "useServerTimestamp"

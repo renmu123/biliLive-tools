@@ -293,6 +293,18 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
 
+  packages/TikTokRecorder:
+    dependencies:
+      '@bililive-tools/manager':
+        specifier: workspace:^
+        version: link:../liveManager
+      '@bililive-tools/stream-get':
+        specifier: workspace:*
+        version: link:../StreamGet
+      mitt:
+        specifier: 'catalog:'
+        version: 3.0.1
+
   packages/XHSRecorder:
     dependencies:
       '@bililive-tools/manager':
@@ -670,6 +682,9 @@ importers:
       '@bililive-tools/manager':
         specifier: workspace:*
         version: link:../liveManager
+      '@bililive-tools/tiktok-recorder':
+        specifier: workspace:*
+        version: link:../TikTokRecorder
       '@bililive-tools/xhs-recorder':
         specifier: workspace:*
         version: link:../XHSRecorder

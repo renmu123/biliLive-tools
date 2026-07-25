@@ -8,6 +8,7 @@ import { provider as providerForHuYa } from "@bililive-tools/huya-recorder";
 import { provider as providerForBiliBili } from "@bililive-tools/bilibili-recorder";
 import { provider as providerForDouYin } from "@bililive-tools/douyin-recorder";
 import { provider as providerForXHS } from "@bililive-tools/xhs-recorder";
+import { provider as providerForTikTok } from "@bililive-tools/tiktok-recorder";
 
 import {
   createRecorderManager as createManager,
@@ -288,6 +289,11 @@ export async function createRecorderManager(appConfig: AppConfig) {
         maxThreadCount: config?.recorder?.xhs.maxThreadCount ?? maxThreadCount,
         waitTime: config?.recorder?.xhs.waitTime ?? waitTime,
       },
+      [providerForTikTok.id]: {
+        autoCheckInterval: (config?.recorder?.tiktok?.checkInterval ?? autoCheckInterval) * 1000,
+        maxThreadCount: config?.recorder?.tiktok?.maxThreadCount ?? maxThreadCount,
+        waitTime: config?.recorder?.tiktok?.waitTime ?? waitTime,
+      },
     };
 
     return {
@@ -297,6 +303,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
         providerForBiliBili,
         providerForDouYin,
         providerForXHS,
+        providerForTikTok,
       ],
       autoRemoveSystemReservedChars: true,
       autoCheckInterval: autoCheckInterval * 1000,

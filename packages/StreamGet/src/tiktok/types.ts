@@ -35,6 +35,7 @@ export interface TikTokLiveRoomUserInfo {
 
 export interface TikTokResponse {
   data?: TikTokLiveRoomUserInfo | null;
+  message?: string;
   LiveRoom?: {
     liveRoomUserInfo?: TikTokLiveRoomUserInfo;
   };
