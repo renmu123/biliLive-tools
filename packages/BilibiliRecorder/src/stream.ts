@@ -256,6 +256,24 @@ async function getLiveInfo(
       codec_name: "hevc",
       sort: 4,
     },
+    {
+      protocol_name: "http_stream",
+      format_name: "flv",
+      codec_name: "av1",
+      sort: 3,
+    },
+    {
+      protocol_name: "http_hls",
+      format_name: "fmp4",
+      codec_name: "av1",
+      sort: 2,
+    },
+    {
+      protocol_name: "http_hls",
+      format_name: "ts",
+      codec_name: "av1",
+      sort: 1,
+    },
   ];
 
   // 处理formatName
@@ -295,9 +313,16 @@ async function getLiveInfo(
       }
     });
     conditons = conditons.sort((a, b) => b.sort - a.sort);
+  } else if (opts.codecName === "av1") {
+    conditons.forEach((item) => {
+      if (item.codec_name === "av1") {
+        item.sort += 100;
+      }
+    });
+    conditons = conditons.sort((a, b) => b.sort - a.sort);
+  } else if (opts.codecName === "av1_only") {
+    conditons = conditons.filter((item) => item.codec_name === "av1");
   }
-
-  // console.log("conditons", opts.codecName, conditons);
 
   let streamInfo: CodecInfo | undefined;
   let streamOptions!: {

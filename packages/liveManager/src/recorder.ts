@@ -8,7 +8,7 @@ import type { DownloaderType } from "./downloader/index.js";
 import type { XmlStreamStats } from "./xml_stream_controller.js";
 
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
-type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
+type CodecName = "auto" | "avc" | "hevc" | "av1" | "avc_only" | "hevc_only" | "av1_only";
 
 export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   providerId: RecorderProvider<E>["id"];

@@ -1,3 +1,9 @@
+# Next
+
+## 优化
+
+- 录制：B站录制支持av1选项 [#513](https://github.com/renmu123/biliLive-tools/issues/513)
+
 # 3.18.0
 
 ## 优化

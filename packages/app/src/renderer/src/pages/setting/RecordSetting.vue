@@ -241,7 +241,7 @@
             </template>
             <n-select
               v-model:value="config.recorder.bilibili.codecName"
-              :options="streamCodecOptions"
+              :options="biliStreamCodecOptions"
             />
           </n-form-item>
           <n-form-item v-if="config.recorder.bilibili.formatName !== 'flv_only'">
@@ -667,7 +667,7 @@ import {
   huyaQualityOptions,
   textInfo,
   biliStreamFormatOptions,
-  streamCodecOptions,
+  biliStreamCodecOptions,
   douyinQualityOptions,
   douyuSourceOptions,
   videoFormatOptions,

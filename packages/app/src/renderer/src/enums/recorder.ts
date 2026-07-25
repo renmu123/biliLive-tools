@@ -259,7 +259,7 @@ export const biliStreamFormatOptions = [
 ];
 
 // b站流编码
-export const streamCodecOptions = [
+export const biliStreamCodecOptions = [
   {
     value: "auto",
     label: "自动",
@@ -273,12 +273,20 @@ export const streamCodecOptions = [
     value: "hevc",
   },
   {
+    label: "优先av1",
+    value: "av1",
+  },
+  {
     label: "强制avc",
     value: "avc_only",
   },
   {
     label: "强制hevc",
     value: "hevc_only",
+  },
+  {
+    label: "强制av1",
+    value: "av1_only",
   },
 ];
 
