@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TikTokParser } from "@bililive-tools/stream-get";
 
+import { provider } from "../src/index.js";
 import { getInfo, getStream } from "../src/stream.js";
 
 const sources = [
@@ -54,6 +55,34 @@ const sources = [
 describe("TikTokRecorder stream", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("解析频道信息时将代理传给 TikTokParser", async () => {
+    const getRoomInfo = vi.spyOn(TikTokParser.prototype, "getRoomInfo").mockResolvedValue({
+      platform: "tiktok",
+      roomId: "example",
+      living: true,
+      title: "测试直播",
+      owner: "主播",
+      avatar: "https://example.com/avatar.jpg",
+      cover: "",
+    });
+
+    const result = await provider.resolveChannelInfoFromURL(
+      "https://www.tiktok.com/@example/live",
+      {
+        proxy: "http://127.0.0.1:7890",
+      },
+    );
+
+    expect(result).toMatchObject({
+      id: "example",
+      title: "测试直播",
+      owner: "主播",
+    });
+    expect(Reflect.get(getRoomInfo.mock.instances[0], "options")).toEqual({
+      proxy: "http://127.0.0.1:7890",
+    });
   });
 
   it("获取直播信息并生成稳定的场次 ID", async () => {

@@ -19,8 +19,6 @@ import type {
   VideoFileCreatedPayload,
 } from "@bililive-tools/manager";
 const TIKTOK_REFERER = "https://www.tiktok.com/";
-const TIKTOK_USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   const recorder: Recorder = {
@@ -279,10 +277,12 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     return new TikTokParser().matchURL(channelURL);
   },
 
-  async resolveChannelInfoFromURL(channelURL) {
+  async resolveChannelInfoFromURL(channelURL, options) {
     if (!this.matchURL(channelURL)) return null;
 
-    const parser = new TikTokParser();
+    const parser = new TikTokParser({
+      proxy: options?.proxy,
+    });
     const id = await parser.extractRoomId(channelURL);
     const info = await parser.getRoomInfo(id, {
       api: "auto",

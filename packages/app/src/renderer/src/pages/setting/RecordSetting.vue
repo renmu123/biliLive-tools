@@ -691,11 +691,12 @@
           </n-form-item> -->
           <n-form-item>
             <template #label>
-              <Tip text="代理" tip="用于 TikTok API 请求和直播流录制"></Tip>
+              <Tip text="代理" tip="用于请求和直播流录制，支持http代理"></Tip>
             </template>
             <n-input
               v-model:value="config.recorder.tiktok.proxy"
               placeholder="例如：http://127.0.0.1:7890"
+              clearable
             />
           </n-form-item>
 

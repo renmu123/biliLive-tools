@@ -37,7 +37,7 @@ import type {
   Recorder as RecorderConfigType,
   AppConfig as AppConfigType,
 } from "@biliLive-tools/types";
-import type { Recorder } from "@bililive-tools/manager";
+import type { Recorder, ResolveChannelOptions } from "@bililive-tools/manager";
 
 export { RecorderConfig };
 
@@ -788,9 +788,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
       return updateRecorder(recorder, args);
     },
-    resolveChannel: async (url: string) => {
+    resolveChannel: async (url: string, options?: ResolveChannelOptions) => {
       for (const provider of manager.providers) {
-        const info = await provider.resolveChannelInfoFromURL(url);
+        const info = await provider.resolveChannelInfoFromURL(url, options);
         if (!info) continue;
 
         return {
