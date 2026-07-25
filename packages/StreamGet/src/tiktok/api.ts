@@ -21,6 +21,14 @@ function getHeaders(options: TikTokParserOptions, mobile: boolean): Record<strin
   };
 }
 
+function getRequestOptions(options: TikTokParserOptions, mobile: boolean) {
+  return {
+    headers: getHeaders(options, mobile),
+    proxy: options.proxy,
+    timeout: options.timeout,
+  };
+}
+
 export function getTikTokLiveRoom(data: TikTokResponse): TikTokLiveRoomUserInfo | undefined {
   return data.LiveRoom?.liveRoomUserInfo ?? data.data ?? undefined;
 }
@@ -38,11 +46,10 @@ export async function fetchTikTokAppData(
     sourceType: "54",
     uniqueId,
   });
-  console.log("dadas", options);
   const liveUrl = `https://www.tiktok.com/@${encodeURIComponent(uniqueId)}/live`;
   const data = await http.get<TikTokResponse>(
     `https://www.tiktok.com/api-live/user/room?${params.toString()}`,
-    { headers: getHeaders(options, true), cookie: options.cookie },
+    getRequestOptions(options, true),
   );
 
   return { ...data, live_url: liveUrl };
@@ -54,23 +61,11 @@ export async function fetchTikTokWebData(
   options: TikTokParserOptions = {},
 ): Promise<TikTokResponse> {
   const liveUrl = `https://www.tiktok.com/@${encodeURIComponent(uniqueId)}/live`;
-  const html = await http.getText(liveUrl, { headers: getHeaders(options, false) });
-
-  if (html.includes("We regret to inform you that we have discontinued operating TikTok")) {
-    const message = html.match(
-      /<p[^>]*>\s*(We regret to inform you that we have discontinued[\s\S]*?)\.\s*<\/p>/i,
-    )?.[1];
-    throw new ParseError(
-      `当前代理节点所在地区无法访问 TikTok，请切换其他地区的节点${message ? `: ${message}` : ""}`,
-      "tiktok",
-    );
-  }
+  const html = await http.getText(liveUrl, getRequestOptions(options, false));
 
   if (html.includes("UNEXPECTED_EOF_WHILE_READING")) {
     return { live_url: liveUrl };
   }
-  const fs = await import("fs");
-  fs.writeFileSync("dasd.html", html);
   const json = html.match(/<script\b[^>]*\bid=["']SIGI_STATE["'][^>]*>([\s\S]*?)<\/script>/i)?.[1];
   if (!json) {
     throw new ParseError("无法从 TikTok 页面找到 SIGI_STATE 数据", "tiktok");

@@ -126,6 +126,30 @@ describe("TikTokParser", () => {
     expect(streams[0].streams.every((stream) => stream.codec === "H265")).toBe(true);
   });
 
+  it("支持默认代理和单次调用覆盖代理", async () => {
+    const get = vi.spyOn(HttpClient.prototype, "get").mockResolvedValue(makeLiveResponse());
+    const parser = new TikTokParser({
+      proxy: "http://127.0.0.1:7890",
+      timeout: 10000,
+    });
+
+    await parser.getRoomInfo("example", { api: "app" });
+    await parser.getRoomInfo("example", {
+      api: "app",
+      proxy: "http://127.0.0.1:8899",
+      timeout: 20000,
+    });
+
+    expect(get.mock.calls[0][1]).toMatchObject({
+      proxy: "http://127.0.0.1:7890",
+      timeout: 10000,
+    });
+    expect(get.mock.calls[1][1]).toMatchObject({
+      proxy: "http://127.0.0.1:8899",
+      timeout: 20000,
+    });
+  });
+
   it("未开播时返回空流列表", async () => {
     const response = makeLiveResponse();
     response.data!.user!.status = 4;

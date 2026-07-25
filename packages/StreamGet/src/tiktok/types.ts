@@ -1,3 +1,5 @@
+import type { ProxyConfig } from "../types.js";
+
 export type TikTokApiMode = "auto" | "app" | "web";
 export type TikTokStreamFormat = "flv" | "hls";
 
@@ -69,5 +71,7 @@ export interface TikTokParserOptions {
   headers?: Record<string, string>;
   hevc?: boolean;
   isHevc?: boolean;
+  proxy?: ProxyConfig | string;
   raw?: boolean;
+  timeout?: number;
 }

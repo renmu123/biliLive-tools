@@ -201,7 +201,6 @@ export class TikTokParser extends PlatformParser<string> {
   ): Promise<LiveInfo> {
     try {
       const { data, options } = await this.fetch(roomId, opts);
-      console.log(JSON.stringify(data, null, 2));
       return this.toLiveInfo(roomId, data, options.raw);
     } catch (error) {
       if (error instanceof ParseError) throw error;
@@ -215,7 +214,6 @@ export class TikTokParser extends PlatformParser<string> {
   ): Promise<SourceInfo<string>[]> {
     try {
       const { data, options } = await this.fetch(roomId, opts);
-      console.log("data", JSON.stringify(data, null, 2));
       return this.toSources(data, options);
     } catch (error) {
       if (error instanceof ParseError) throw error;
