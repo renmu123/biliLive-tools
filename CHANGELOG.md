@@ -3,6 +3,7 @@
 ## 优化
 
 - 录制：B站录制支持av1选项 [#513](https://github.com/renmu123/biliLive-tools/issues/513)
+- 上传：B站上传支持显示文件大小 [#510](https://github.com/renmu123/biliLive-tools/pull/510)
 
 # 3.18.0
 
