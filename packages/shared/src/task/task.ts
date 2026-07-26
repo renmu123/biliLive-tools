@@ -374,6 +374,14 @@ export class BiliPartVideoTask extends AbstractTask {
 
   async exec() {
     if (this.status !== "pending") return;
+
+    try {
+      const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
+      this.extra = { ...this.extra, fileSize };
+    } catch (error) {
+      log.warn(`task ${this.taskId} failed to read upload file size: ${error}`);
+    }
+
     this.status = "running";
     this.startTime = Date.now();
     this.emitter.emit("task-start", { taskId: this.taskId });
