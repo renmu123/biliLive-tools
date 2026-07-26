@@ -77,6 +77,18 @@ function isExpectedCodec(stream: TikTokStream, codecName: Recorder["codecName"])
   return true;
 }
 
+function selectCodec(streams: TikTokStream[], codecName: Recorder["codecName"]) {
+  if (codecName === "hevc" || codecName === "hevc_only") {
+    const stream = streams.find((item) => isExpectedCodec(item, "hevc_only"));
+    return stream ?? (codecName === "hevc" ? streams[0] : undefined);
+  }
+  if (codecName === "avc" || codecName === "avc_only") {
+    const stream = streams.find((item) => isExpectedCodec(item, "avc_only"));
+    return stream ?? (codecName === "avc" ? streams[0] : undefined);
+  }
+  return streams[0];
+}
+
 const qualityList = [
   {
     key: "origin",
@@ -123,7 +135,6 @@ export async function getStream(opts: TikTokRecorderStreamOptions): Promise<{
   const sources = await parser.getStreams(opts.channelId, {
     api: opts.api as TikTokApiMode | undefined,
     format: formatPriorities,
-    hevc: opts.codecName === "hevc" || opts.codecName === "hevc_only",
   });
   const source = sources[0];
   if (!source || source.streams.length === 0) {
@@ -137,17 +148,12 @@ export async function getStream(opts: TikTokRecorderStreamOptions): Promise<{
   }
 
   const quality = selectedQuality ?? streams[0].quality;
-  const stream = streams.find(
-    (item) => item.quality === quality && isExpectedCodec(item, opts.codecName),
+  const stream = selectCodec(
+    streams.filter((item) => item.quality === quality),
+    opts.codecName,
   );
   if (!stream) {
-    if (opts.codecName === "hevc_only") {
-      throw new Error("未找到 HEVC 直播流");
-    }
-    if (opts.codecName === "avc_only") {
-      throw new Error("未找到 AVC 直播流");
-    }
-    throw new Error("未找到对应的 TikTok 直播流");
+    throw new Error("未找到可用的录制流");
   }
 
   const availableStreams = streams.filter(

@@ -15,7 +15,6 @@ type ResolvedTikTokOptions = RequestOptions &
   TikTokParserOptions & {
     api: NonNullable<TikTokParserOptions["api"]>;
     format: TikTokStreamFormat[];
-    hevc: boolean;
     raw: boolean;
   };
 
@@ -127,7 +126,6 @@ export class TikTokParser extends PlatformParser<string> {
       ...merged,
       api: merged.api ?? "auto",
       format: merged.format ?? ["flv", "hls"],
-      hevc: merged.hevc ?? merged.isHevc ?? false,
       raw: merged.raw ?? false,
     };
   }
@@ -169,27 +167,30 @@ export class TikTokParser extends PlatformParser<string> {
     }
 
     const room = liveRoomInfo?.liveRoom;
-    const streamData =
-      options.hevc && room?.hevcStreamData ? room.hevcStreamData : room?.streamData;
-    if (!streamData) {
+    const streamDataList = [room?.streamData, room?.hevcStreamData].filter(
+      (streamData): streamData is TikTokStreamData => Boolean(streamData),
+    );
+    if (streamDataList.length === 0) {
       throw new ParseError("解析错误", this.platform);
     }
 
     const streams: StreamInfo<string>[] = [];
-    for (const quality of parseQualities(streamData)) {
-      for (const format of options.format) {
-        const url = quality.main[format];
-        if (!url) continue;
-        streams.push({
-          url: appendCodec(url, quality.codec),
-          quality: quality.key,
-          qualityDesc: quality.definition,
-          format,
-          bitrate: quality.bitrate,
-          codec: quality.codec,
-          resolution: quality.resolution,
-          raw: options.raw ? quality.raw : undefined,
-        });
+    for (const streamData of streamDataList) {
+      for (const quality of parseQualities(streamData)) {
+        for (const format of options.format) {
+          const url = quality.main[format];
+          if (!url) continue;
+          streams.push({
+            url: appendCodec(url, quality.codec),
+            quality: quality.key,
+            qualityDesc: quality.definition,
+            format,
+            bitrate: quality.bitrate,
+            codec: quality.codec,
+            resolution: quality.resolution,
+            raw: options.raw ? quality.raw : undefined,
+          });
+        }
       }
     }
 

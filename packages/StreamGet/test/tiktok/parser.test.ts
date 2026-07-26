@@ -78,9 +78,8 @@ describe("TikTokParser", () => {
     // vi.spyOn(HttpClient.prototype, "get").mockResolvedValue(makeLiveResponse());
     const parser = new TikTokParser();
 
-    const result = await parser.getStreams("ocomelover0214", {
+    const result = await parser.parse("ocomelover0214", {
       api: "app",
-      hevc: true,
     });
     console.log(JSON.stringify(result, null, 2));
     // expect(result.liveInfo).toMatchObject({
@@ -93,7 +92,7 @@ describe("TikTokParser", () => {
     //   cover: "https://example.com/cover.jpg",
     // });
     // expect(result.sources).toHaveLength(1);
-    // expect(result.sources[0].streams).toHaveLength(4);
+    // expect(result.sources[0].streams).toHaveLength(8);
     // expect(result.sources[0].streams[0]).toMatchObject({
     //   quality: "origin",
     //   qualityDesc: "origin",
@@ -109,19 +108,23 @@ describe("TikTokParser", () => {
     // expect(HttpClient.prototype.get).toHaveBeenCalledOnce();
   });
 
-  it("支持 HEVC 和格式筛选", async () => {
+  it("同时解析 AVC、HEVC 并支持格式筛选", async () => {
     vi.spyOn(HttpClient.prototype, "get").mockResolvedValue(makeLiveResponse());
     const parser = new TikTokParser();
 
     const streams = await parser.getStreams("example", {
       api: "app",
       format: ["hls"],
-      hevc: true,
     });
 
-    expect(streams[0].streams).toHaveLength(2);
+    expect(streams[0].streams).toHaveLength(4);
     expect(streams[0].streams.every((stream) => stream.format === "hls")).toBe(true);
-    expect(streams[0].streams.every((stream) => stream.codec === "H265")).toBe(true);
+    expect(streams[0].streams.map((stream) => stream.codec)).toEqual([
+      "H264",
+      "H264",
+      "H265",
+      "H265",
+    ]);
   });
 
   it("支持默认代理和单次调用覆盖代理", async () => {

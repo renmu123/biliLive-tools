@@ -102,7 +102,6 @@ console.log(huyaResult.sources[0].streams[0].quality); // bitRate 值
 // TikTok
 const tiktokParser = new TikTokParser({ proxy: "http://127.0.0.1:7890" });
 const tiktokResult = await tiktokParser.parse("https://www.tiktok.com/@example/live", {
-  hevc: true,
   format: ["flv", "hls"],
 });
 console.log(tiktokResult.sources[0].streams[0].quality); // 'origin', 'hd' 等

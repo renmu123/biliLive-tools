@@ -179,6 +179,41 @@ describe("TikTokRecorder stream", () => {
         codecName: "hevc_only",
       }),
     ).rejects.toThrow("HEVC");
-    expect(getStreams).toHaveBeenCalledWith("example", expect.objectContaining({ hevc: true }));
+    expect(getStreams).toHaveBeenCalledWith(
+      "example",
+      expect.not.objectContaining({ hevc: expect.anything() }),
+    );
+  });
+
+  it("同时存在 AVC 和 HEVC 时按编码配置选择", async () => {
+    vi.spyOn(TikTokParser.prototype, "getStreams").mockResolvedValue([
+      {
+        name: "默认线路",
+        streams: [
+          ...sources[0].streams.slice(0, 2),
+          {
+            ...sources[0].streams[0],
+            url: "https://example.com/origin-hevc.flv",
+            codec: "H265",
+          },
+        ],
+      },
+    ]);
+
+    const preferred = await getStream({
+      channelId: "example",
+      quality: "origin",
+      codecName: "hevc",
+      formatPriorities: ["flv", "hls"],
+    });
+    const forced = await getStream({
+      channelId: "example",
+      quality: "origin",
+      codecName: "avc_only",
+      formatPriorities: ["flv", "hls"],
+    });
+
+    expect(preferred.currentStream.url).toBe("https://example.com/origin-hevc.flv");
+    expect(forced.currentStream.url).toBe("https://example.com/origin.flv");
   });
 });

@@ -70,8 +70,6 @@ export interface TikTokParserOptions {
   cookie?: string;
   format?: TikTokStreamFormat[];
   headers?: Record<string, string>;
-  hevc?: boolean;
-  isHevc?: boolean;
   proxy?: ProxyConfig | string;
   raw?: boolean;
   timeout?: number;
