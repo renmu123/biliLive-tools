@@ -124,7 +124,7 @@ taskQueue.on("task-cancel", (payload) => {
  * 暂停任务
  */
 export const handlePauseTask = (taskId: string): void => {
-  taskQueue.pasue(taskId);
+  taskQueue.pause(taskId);
 };
 
 /**

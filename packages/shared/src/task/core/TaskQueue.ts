@@ -182,7 +182,7 @@ export class TaskQueue {
   /**
    * 暂停任务
    */
-  pasue(taskId: string): void {
+  pause(taskId: string): void {
     const task = this.queryTask(taskId);
     if (!task) return;
     task.pause();

@@ -175,7 +175,7 @@ const getSingleQueryValue = (value: string | string[] | undefined) => {
  * 录制任务相关接口
  * @route GET /recorder/list
  * @param platform 直播平台，DouYu: 斗鱼, HuYa: 虎牙, Bilibili: 哔哩哔哩, DouYin: 抖音
- * @param recordStatus 录制状态 recording: 录制中 unrecorded: 未录制
+ * @param status 录制状态 recording: 录制中 idle: 空闲中 check-error: 检查错误 title-blocked: 标题被屏蔽
  * @param name 备注名称或直播间号，模糊搜索
  * @param autoCheck 是否自动监控
  * @param page 页码
@@ -367,8 +367,9 @@ router.delete("/:id", (ctx) => {
 
 /**
  * 开始录制
+ * @deprecated
  * @route POST /recorder/:recorderId/start_record
- * @param recorderId 直播间ID
+ * @param recorderId 录制ID
  * @returns 录制任务信息
  */
 router.post("/:id/start_record", async (ctx) => {
@@ -377,12 +378,36 @@ router.post("/:id/start_record", async (ctx) => {
 });
 
 /**
+ * 开始录制
+ * @route POST /recorder/:recorderId/start
+ * @param recorderId 录制ID
+ * @returns 录制任务信息
+ */
+router.post("/:id/start", async (ctx) => {
+  const { id } = ctx.params;
+  ctx.body = { payload: await recorderService.startRecord({ id }) };
+});
+
+/**
  * 停止录制
+ * @deprecated
  * @route POST /recorder/:recorderId/stop_record
  * @param recorderId 直播间ID
  * @returns 录制任务信息
  */
 router.post("/:id/stop_record", async (ctx) => {
+  const { id } = ctx.params;
+  ctx.body = { payload: await recorderService.stopRecord({ id }) };
+});
+
+/**
+ * 停止录制
+ * @deprecated
+ * @route POST /recorder/:recorderId/stop
+ * @param recorderId 录制ID
+ * @returns 录制任务信息
+ */
+router.post("/:id/stop", async (ctx) => {
   const { id } = ctx.params;
   ctx.body = { payload: await recorderService.stopRecord({ id }) };
 });
@@ -433,11 +458,11 @@ router.post("/manager/batch_stop_record", async (ctx) => {
 
 /**
  * 解析直播间地址，获取对应的直播间信息
- * @route GET /recorder/manager/resolveChannel
+ * @route GET /recorder/manager/resolve-channel
  * @param url 直播间地址
  * @returns 直播间信息
  */
-router.get("/manager/resolveChannel", async (ctx) => {
+router.get("/manager/resolve-channel", async (ctx) => {
   const { url } = ctx.query;
   const data = await recorderService.resolveChannel(url as string);
 
@@ -472,12 +497,12 @@ router.post("/manager/batchResolveChannel", async (ctx) => {
 
 /**
  * 获取直播间实时信息
- * @route POST /recorder/manager/liveInfo
+ * @route POST /recorder/manager/live-info
  * @param ids 直播间ID列表
  * @param forceRequest 强制查询直播间信息，不受配置限制，默认true
  * @returns 直播间实时信息列表
  */
-router.post("/manager/liveInfo", async (ctx) => {
+router.post("/manager/live-info", async (ctx) => {
   const { ids } = ctx.request.body;
   const forceRequest = ctx.request.body.forceRequest ?? true;
 

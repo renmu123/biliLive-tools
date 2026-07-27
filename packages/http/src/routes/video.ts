@@ -31,6 +31,30 @@ router.post("/download", async (ctx) => {
   ctx.body = await downloadVideo(options);
 });
 
+router.get("/douyu/videoList", async (ctx) => {
+  const { subId, page, limit } = ctx.query;
+
+  const res = await douyu.getReplayList(String(subId), {
+    page: Number(page || 1),
+    limit: Number(limit || 20),
+  });
+  const data = res.list.map((item) => {
+    const firstVideo = item.video_list[0];
+    return {
+      startTime: firstVideo?.start_time,
+      title: item.title,
+      timeStr: new Date(firstVideo?.start_time * 1000).toLocaleString(),
+      videos: item.video_list.map((video) => ({
+        videoId: video.hash_id,
+        title: video.title,
+        url: `https://v.douyu.com/show/${video.hash_id}`,
+      })),
+    };
+  });
+  console.log(data);
+  ctx.body = data;
+});
+
 router.post("/sub/parse", async (ctx) => {
   let data = ctx.request.body;
   if (!data.url) {
