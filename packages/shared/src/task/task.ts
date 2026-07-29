@@ -6,8 +6,9 @@ import { TypedEmitter } from "tiny-typed-emitter";
 import * as ntsuspend from "ntsuspend";
 import kill from "tree-kill";
 import { DownloaderHelper as RangeDownloader } from "node-downloader-helper";
+import { isAxiosError } from "axios";
 
-import { isWin32, calculateFileQuickHash, retryWithAxiosError } from "../utils/index.js";
+import { isWin32, calculateFileQuickHash } from "../utils/index.js";
 import log from "../utils/log.js";
 import { addMediaApi, editMediaApi } from "./bili.js";
 import { TaskType } from "../enum.js";
@@ -373,6 +374,14 @@ export class BiliPartVideoTask extends AbstractTask {
 
   async exec() {
     if (this.status !== "pending") return;
+
+    try {
+      const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
+      this.extra = { ...this.extra, fileSize };
+    } catch (error) {
+      log.warn(`task ${this.taskId} failed to read upload file size: ${error}`);
+    }
+
     this.status = "running";
     this.startTime = Date.now();
     this.emitter.emit("task-start", { taskId: this.taskId });
@@ -563,6 +572,39 @@ export class BiliVideoTask extends AbstractTask {
     this.emit("task-cancel", { taskId: this.taskId, autoStart: true });
     return true;
   }
+}
+
+/**
+ * 重试函数，仅针对axios的错误进行重试
+ * @param fn 要重试的函数
+ * @param times 重试次数
+ * @param delay 重试间隔时间
+ */
+export function retryWithAxiosError<T>(
+  fn: () => Promise<T>,
+  times: number = 3,
+  delay: number = 1000,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    function attempt(currentTimes: number) {
+      fn()
+        .then(resolve)
+        .catch((err) => {
+          if (isAxiosError(err) || err?.message?.includes("网络繁忙")) {
+            if (currentTimes === 1) {
+              reject(err);
+            } else {
+              setTimeout(() => {
+                attempt(currentTimes - 1);
+              }, delay);
+            }
+          } else {
+            reject(err);
+          }
+        });
+    }
+    attempt(times);
+  });
 }
 
 /**

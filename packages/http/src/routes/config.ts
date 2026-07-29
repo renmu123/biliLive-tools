@@ -37,6 +37,16 @@ router.post("/", async (ctx) => {
   ctx.body = "success";
 });
 
+router.get("/get", async (ctx) => {
+  const key = ctx.query.key as string;
+  if (!key) {
+    ctx.body = "key is required";
+    return;
+  }
+  const value = appConfig.get(key);
+  ctx.body = value;
+});
+
 router.post("/set", async (ctx) => {
   const data = ctx.request.body;
   if (!data.key || !data.value) {
@@ -93,7 +103,7 @@ router.post("/verifyBiliKey", async (ctx) => {
   }
 });
 
-router.post("/resetBin", async (ctx) => {
+router.post("/reset-bin", async (ctx) => {
   const data = ctx.request.body;
   const type = data.type;
   if (!type) {
@@ -173,7 +183,7 @@ router.get("/export", async (ctx) => {
       .map((item) => item.config.cover)
       .filter((cover) => cover && !path.isAbsolute(cover));
 
-    const usedImageSet = new Set(usedImages);
+    const usedImageSet: Set<string | undefined> = new Set(usedImages);
     const tempDir = getTempPath();
     const backupPath = path.join(tempDir, "biliLive-tools");
     await fs.ensureDir(backupPath);
@@ -268,7 +278,31 @@ router.post("/import", upload.single("file"), async (ctx) => {
 
 router.post("/notifyTest", async (ctx) => {
   const { title, desp, options, notifyType } = ctx.request.body;
-  await _send(title, desp, options, notifyType);
+  await _send(title, desp, options, notifyType, {
+    context: {
+      event: "notify_test",
+      eventLabel: "测试通知",
+      roomId: "123456",
+      platform: "Bilibili",
+      username: "测试主播",
+      liveTitle: "这是一条测试直播标题",
+      liveId: "live_test_001",
+      roomUrl: "https://live.bilibili.com/123456",
+      taskName: "上传视频：测试文件.mp4",
+      taskType: "upload",
+      taskStatus: "success",
+      taskId: "task_test_001",
+      filename: "test-file.mp4",
+      filePath: "D:/record/test-file.mp4",
+      mediaTitle: "测试稿件",
+      aid: 123456789,
+      startedAt: new Date().toISOString(),
+      endedAt: new Date().toISOString(),
+      durationMs: 3000,
+      error: "",
+      output: "测试输出内容",
+    },
+  });
   ctx.body = "success";
 });
 

@@ -212,7 +212,7 @@
               </template>
               <n-select
                 v-model:value="config.codecName"
-                :options="streamCodecOptions"
+                :options="biliStreamCodecOptions"
                 :disabled="globalFieldsObj.codecName"
               />
               <n-checkbox v-model:checked="globalFieldsObj.codecName" class="global-checkbox"
@@ -566,6 +566,15 @@
               </template>
               <n-switch v-model:value="config.liveEndNotification" />
             </n-form-item>
+            <n-form-item v-if="!config.disableAutoCheck && config.providerId === 'Bilibili'">
+              <template #label>
+                <Tip
+                  text="付费直播推送"
+                  tip="检测到付费直播(DRM 加密直播)时推送通知。此类直播为 DRM 加密，无法自动录制，仅作提醒。"
+                ></Tip>
+              </template>
+              <n-switch v-model:value="config.chargeLiveNotification" />
+            </n-form-item>
 
             <n-form-item>
               <template #label>
@@ -689,7 +698,7 @@ import {
   douyuQualityOptions,
   biliStreamFormatOptions,
   textInfo,
-  streamCodecOptions,
+  biliStreamCodecOptions,
   huyaQualityOptions,
   douyinQualityOptions,
   douyuSourceOptions,
@@ -800,6 +809,10 @@ const getRecordSetting = async () => {
   }
   if (!config.value.weight) {
     config.value.weight = 10;
+  }
+  // 充电直播推送默认开启：旧录制器无该字段时按开启显示
+  if (config.value.chargeLiveNotification === undefined) {
+    config.value.chargeLiveNotification = true;
   }
 };
 const isEdit = computed(() => !!props.id);

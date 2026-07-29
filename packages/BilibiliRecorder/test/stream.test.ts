@@ -221,6 +221,11 @@ describe("stream.ts", () => {
 
       vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
       vi.mocked(getStatusInfoByUIDs).mockResolvedValue(mockStatusInfo);
+      // 普通直播：能拿到流，无 203，非加密 → 可录制
+      vi.mocked(getRoomPlayInfo).mockResolvedValue({
+        all_special_types: [],
+        playurl_info: { playurl: { stream: [{}] } },
+      } as any);
 
       const info = await getInfo("67890");
       expect(getRoomInit).toHaveBeenCalledWith(67890);
@@ -237,6 +242,146 @@ describe("stream.ts", () => {
         roomId: 67890,
         liveId: utils.md5("67890-1704067200000"),
       });
+      // 普通直播间：normal 类型，可录制，isCharge=false
+      expect(info.isCharge).toBe(false);
+      expect(info.liveType).toBe("normal");
+      expect(info.canRecord).toBe(true);
+    });
+
+    const mockChargeStatusInfo = {
+      12345: {
+        live_time: 1704067200,
+        uname: "charge_user",
+        title: "charge_title",
+        face: "avatar_url",
+        cover_from_user: "cover_url",
+        live_status: 1 as LiveStatus,
+        online: 1000,
+        room_id: 99999,
+        short_id: 0,
+      },
+    };
+
+    it("充电直播(is_sp=1 或 special_type=1)应判 paid 且不可录制", async () => {
+      const mockRoomInit = {
+        room_id: 99999,
+        short_id: 0,
+        uid: 12345,
+        live_status: 1 as LiveStatus,
+        live_time: 1704067200,
+        encrypted: false,
+        is_sp: 1 as 0 | 1,
+        special_type: 1,
+      };
+
+      vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
+      vi.mocked(getStatusInfoByUIDs).mockResolvedValue(mockChargeStatusInfo as any);
+      vi.mocked(getRoomPlayInfo).mockResolvedValue({
+        all_special_types: [],
+        playurl_info: { playurl: { stream: [{}] } },
+      } as any);
+
+      const info = await getInfo("99999");
+      expect(info.isCharge).toBe(true);
+      expect(info.liveType).toBe("paid");
+      expect(info.canRecord).toBe(false);
+      expect(info.living).toBe(true);
+    });
+
+    it("DRM 直播(all_special_types 含 203)应判 paid 且不可录制", async () => {
+      const mockRoomInit = {
+        room_id: 99999,
+        short_id: 0,
+        uid: 12345,
+        live_status: 1 as LiveStatus,
+        live_time: 1704067200,
+        encrypted: false,
+        is_sp: 0 as 0 | 1,
+        special_type: 0,
+      };
+
+      vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
+      vi.mocked(getStatusInfoByUIDs).mockResolvedValue(mockChargeStatusInfo as any);
+      vi.mocked(getRoomPlayInfo).mockResolvedValue({
+        all_special_types: [50, 203],
+        playurl_info: { playurl: { stream: [{}] } },
+      } as any);
+
+      const info = await getInfo("99999");
+      expect(info.liveType).toBe("paid");
+      expect(info.canRecord).toBe(false);
+    });
+
+    it("权限专属直播(取流接口正常返回但无可用流)应判 guard 且不可录制", async () => {
+      const mockRoomInit = {
+        room_id: 99999,
+        short_id: 0,
+        uid: 12345,
+        live_status: 1 as LiveStatus,
+        live_time: 1704067200,
+        encrypted: false,
+        is_sp: 0 as 0 | 1,
+        special_type: 0,
+      };
+
+      vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
+      vi.mocked(getStatusInfoByUIDs).mockResolvedValue(mockChargeStatusInfo as any);
+      // 取流接口正常返回(无异常)，但 stream 为空 → 权限受限
+      vi.mocked(getRoomPlayInfo).mockResolvedValue({
+        all_special_types: [],
+        playurl_info: { playurl: { stream: [] } },
+      } as any);
+
+      const info = await getInfo("99999");
+      expect(info.liveType).toBe("guard");
+      expect(info.canRecord).toBe(false);
+      expect(info.living).toBe(true);
+    });
+
+    it("取流接口异常(瞬时错误)应按普通直播放行，不误判 guard 而漏录", async () => {
+      const mockRoomInit = {
+        room_id: 99999,
+        short_id: 0,
+        uid: 12345,
+        live_status: 1 as LiveStatus,
+        live_time: 1704067200,
+        encrypted: false,
+        is_sp: 0 as 0 | 1,
+        special_type: 0,
+      };
+
+      vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
+      vi.mocked(getStatusInfoByUIDs).mockResolvedValue(mockChargeStatusInfo as any);
+      // 网络/瞬时错误：不应臆断为权限受限
+      vi.mocked(getRoomPlayInfo).mockRejectedValue(new Error("network error"));
+
+      const info = await getInfo("99999");
+      expect(info.liveType).toBe("normal");
+      expect(info.canRecord).toBe(true);
+    });
+
+    it("密码加密房(encrypted=true)应判 password 且不调取流接口", async () => {
+      const mockRoomInit = {
+        room_id: 99999,
+        short_id: 0,
+        uid: 12345,
+        live_status: 1 as LiveStatus,
+        live_time: 1704067200,
+        encrypted: true,
+        is_sp: 0 as 0 | 1,
+        special_type: 0,
+      };
+
+      vi.mocked(getRoomInit).mockResolvedValue(mockRoomInit);
+      vi.mocked(getStatusInfoByUIDs).mockResolvedValue(mockChargeStatusInfo as any);
+      vi.mocked(getRoomPlayInfo).mockResolvedValue({} as any);
+
+      const info = await getInfo("99999");
+      expect(info.liveType).toBe("password");
+      expect(info.canRecord).toBe(false);
+      expect(info.living).toBe(true);
+      // 加密房直接短路，不应调用取流接口
+      expect(getRoomPlayInfo).not.toHaveBeenCalled();
     });
   });
 

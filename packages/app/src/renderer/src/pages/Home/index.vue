@@ -3,21 +3,20 @@
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
-        <n-button title="仅供参考，以实际渲染为主！" @click="preview"> 预览 </n-button>
-        <n-button type="primary" @click="handleConvert" title="启动！(ctrl+enter)">
-          启动！
-        </n-button>
+        <n-button title="仅供参考，以实际渲染为主！" @click="handlePreview"> 预览 </n-button>
+        <n-button type="primary" @click="handleStart" title="启动！(ctrl+enter)"> 启动！ </n-button>
         <!-- <n-button type="primary" @click="hotProgressConvert"> 测试高能弹幕进度条生成 </n-button> -->
       </div>
     </div>
 
     <FileArea
       v-model="fileList"
+      class="home-file-area"
       :extensions="['flv', 'mp4', 'ass', 'xml', 'm4s', 'ts', 'mkv']"
       desc="将视频和弹幕压制到一个文件中，请选择视频以及弹幕文件，如果为xml将自动转换为ass"
       :max="2"
     ></FileArea>
-    <n-tabs type="segment" style="margin-top: 10px" class="tabs">
+    <n-tabs v-model:value="activeTab" type="segment" style="margin-top: 10px" class="tabs">
       <n-tab-pane name="common-setting" tab="基础设置" display-directive="show:lazy">
         <div class="flex column">
           <div></div>
@@ -91,12 +90,14 @@
           />
         </div>
 
-        <DanmuFactorySetting
-          v-if="danmuPreset.id"
-          v-model="danmuPreset.config"
-          :simpled-mode="simpledMode"
-          @change="handleDanmuChange"
-        ></DanmuFactorySetting>
+        <div class="home-danmu-setting">
+          <DanmuFactorySetting
+            v-if="danmuPreset.id"
+            v-model="danmuPreset.config"
+            :simpled-mode="simpledMode"
+            @change="handleDanmuChange"
+          ></DanmuFactorySetting>
+        </div>
         <div
           class="footer flex"
           style="text-align: right; gap: 10px; justify-content: flex-end; align-items: center"
@@ -109,10 +110,12 @@
         </div>
       </n-tab-pane>
       <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
-        <ffmpegSetting
-          v-model="clientOptions.ffmpegPresetId"
-          @change="handleFfmpegSettingChange"
-        ></ffmpegSetting>
+        <div class="home-ffmpeg-setting">
+          <ffmpegSetting
+            v-model="clientOptions.ffmpegPresetId"
+            @change="handleFfmpegSettingChange"
+          ></ffmpegSetting>
+        </div>
       </n-tab-pane>
     </n-tabs>
 
@@ -165,6 +168,7 @@ import { cloneDeep } from "lodash-es";
 import { showSaveDialog } from "@renderer/utils/fileSystem";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import { usePresetFile } from "@renderer/hooks/danmuPreset";
+import { useDrive } from "@renderer/hooks/drive";
 
 import type { File, FfmpegOptions, DanmuConfig, FfmpegPreset } from "@biliLive-tools/types";
 
@@ -186,6 +190,8 @@ onUnmounted(() => {
 
 const notice = useNotification();
 const confirm = useConfirm();
+const activeTab = ref("common-setting");
+const { homeDrive } = useDrive();
 const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmuPreset());
 const { getDanmuPresets } = useDanmuPreset();
 const { userInfo } = storeToRefs(useUserInfoStore());
@@ -320,6 +326,28 @@ const handleConvert = async () => {
   );
   fileList.value = [];
 };
+
+const showTutorial = async (action: () => Promise<void>) => {
+  try {
+    const data = JSON.parse(localStorage.getItem("notShowAgain") || "{}");
+    if (!data["burnHelp"]) {
+      homeDrive((tab) => {
+        activeTab.value = tab;
+      });
+      data["burnHelp"] = true;
+      localStorage.setItem("notShowAgain", JSON.stringify(data));
+      return;
+    }
+  } catch (e) {
+    localStorage.removeItem("notShowAgain");
+    console.error("Failed to set notShowAgain in localStorage", e);
+  }
+
+  await action();
+};
+
+const handleStart = () => showTutorial(handleConvert);
+const handlePreview = () => showTutorial(preview);
 
 const biliUpCheck = async () => {
   const hasLogin = !!userInfo.value.uid;

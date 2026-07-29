@@ -81,7 +81,7 @@
             :key="item.label"
             :bordered="false"
           >
-            <div class="stat-card-content">
+            <div class="stat-card-content" :title="item.title">
               <span class="stat-label">{{ item.label }}</span>
               <strong class="stat-value">{{ item.value }}</strong>
             </div>
@@ -300,27 +300,23 @@ const overviewCards = computed(() => [
   {
     label: "总场次",
     value: formatNumber(result.summary.sessionCount),
-    hint: result.pagination.total > 0 ? `当前展示第 ${queryParams.page} 页` : "暂无历史场次",
   },
   {
     label: "总录制时长",
     value: formatDuration(result.summary.totalDuration, "00:00:00"),
-    hint: `${formatNumber(Math.round((result.summary.totalDuration / 3600) * 10) / 10)} 小时`,
   },
   {
     label: "总录制片段",
     value: formatNumber(result.summary.clipCount),
-    hint: "按已保存片段累计",
   },
   {
     label: "总弹幕数",
     value: formatNumber(result.summary.totalDanmaNum),
-    hint: "主播历史录制累计",
   },
   {
     label: "上次录制时间",
     value: formatRecentRecordTime(result.summary.lastRecordTime),
-    hint: roomLabel.value === "--" ? "暂无房间信息" : `房间号 ${roomLabel.value}`,
+    title: formatTime(result.summary.lastRecordTime),
   },
 ]);
 

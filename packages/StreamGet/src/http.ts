@@ -3,8 +3,38 @@
  */
 
 import { request, ProxyAgent, Agent } from "undici";
+import { promisify } from "node:util";
+import { brotliDecompress, gunzip, inflate } from "node:zlib";
 import type { RequestOptions, ProxyConfig } from "./types.js";
 import { NetworkError } from "./errors.js";
+
+const decompressors = {
+  br: promisify(brotliDecompress),
+  deflate: promisify(inflate),
+  gzip: promisify(gunzip),
+} as const;
+
+async function decodeTextBody(
+  body: ArrayBuffer,
+  contentEncoding?: string | string[],
+): Promise<string> {
+  let data: Buffer<ArrayBufferLike> = Buffer.from(body);
+  const encodings = (Array.isArray(contentEncoding) ? contentEncoding.join(",") : contentEncoding)
+    ?.split(",")
+    .map((encoding) => encoding.trim().toLowerCase())
+    .filter((encoding) => encoding && encoding !== "identity");
+
+  // Content-Encoding 按应用顺序声明，解码时需要反向处理。
+  for (const encoding of encodings?.reverse() ?? []) {
+    const decompress = decompressors[encoding as keyof typeof decompressors];
+    if (!decompress) {
+      throw new Error(`不支持的响应压缩格式: ${encoding}`);
+    }
+    data = await decompress(data);
+  }
+
+  return data.toString("utf8");
+}
 
 export class HttpClient {
   private agent?: Agent | ProxyAgent;
@@ -142,7 +172,8 @@ export class HttpClient {
         dispatcher: agent,
         headersTimeout: mergedOpts?.timeout || 10000,
       });
-      return response.body.text();
+      const body = await response.body.arrayBuffer();
+      return await decodeTextBody(body, response.headers["content-encoding"]);
     } catch (error) {
       throw new NetworkError(`请求失败: ${(error as Error).message}`, undefined);
     }

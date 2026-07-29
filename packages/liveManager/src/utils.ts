@@ -158,6 +158,13 @@ export function removeSystemReservedChars(str: string) {
   return filenamify(str, { replacement: "_" });
 }
 
+/**
+ * 替换四字节 Unicode 字符（如部分 emoji 表情）为指定字符。
+ */
+export function replaceFourByteUnicode(value: unknown, replacement: string = "_"): string {
+  return String(value ?? "").replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, replacement);
+}
+
 export function isFfmpegStartSegment(line: string) {
   return line.includes("Opening ") && line.includes("for writing");
 }
@@ -628,6 +635,7 @@ export default {
   assertObjectType,
   asyncThrottle,
   isFfmpegStartSegment,
+  replaceFourByteUnicode,
   createFFmpegInvalidStreamChecker,
   createTimeoutChecker,
   downloadImage,

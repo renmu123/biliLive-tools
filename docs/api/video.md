@@ -1,32 +1,76 @@
-# Video API
+## 视频处理
 
-视频解析和下载相关接口文档,支持多平台视频链接解析。
+### 读取视频元数据
 
-## 解析视频信息
+读取视频文件的元数据信息，如时长、编码器等。
 
-解析视频链接,获取视频标题、分 P、清晰度等信息。
-
-**接口地址:** `POST /video/parse`
+**接口地址:** `POST /task/videoMeta`
 
 **请求参数:**
 
-| 参数名 | 类型   | 必填 | 说明     |
-| ------ | ------ | ---- | -------- |
-| url    | string | 是   | 视频链接 |
-
-**支持的链接格式:**
-
-- 斗鱼: `https://v.douyu.com/show/xxx`
-- 虎牙: `https://www.huya.com/video/play/1043151558.html`
-- B 站视频: `https://www.bilibili.com/video/BVxxx`
-- B 站直播录像: `https://live.bilibili.com/123456`
-- 快手: `https://www.kuaishou.com/playback/xxx`
+| 参数名 | 类型   | 必填 | 说明         |
+| ------ | ------ | ---- | ------------ |
+| file   | string | 是   | 视频文件路径 |
 
 **请求示例:**
 
 ```json
 {
-  "url": "https://www.bilibili.com/video/BV1xx411c7mD"
+  "file": "D:/videos/test.mp4"
+}
+```
+
+### 检查视频合并兼容性
+
+检查多个视频是否可以直接合并。
+
+**接口地址:** `POST /task/checkMergeVideos`
+
+**请求参数:**
+
+| 参数名      | 类型     | 必填 | 说明             |
+| ----------- | -------- | ---- | ---------------- |
+| inputVideos | string[] | 是   | 视频文件路径数组 |
+
+**请求示例:**
+
+```json
+{
+  "inputVideos": ["D:/videos/part1.mp4", "D:/videos/part2.mp4"]
+}
+```
+
+### 合并视频
+
+合并多个视频文件。
+
+**接口地址:** `POST /task/mergeVideo`
+
+**请求参数:**
+
+| 参数名      | 类型     | 必填 | 说明             |
+| ----------- | -------- | ---- | ---------------- |
+| inputVideos | string[] | 是   | 视频文件路径数组 |
+| options     | object   | 是   | 合并选项         |
+
+**options 字段:**
+
+| 参数名             | 类型    | 必填 | 说明                                                   |
+| ------------------ | ------- | ---- | ------------------------------------------------------ |
+| output             | string  | 否   | 输出文件路径                                           |
+| saveOriginPath     | boolean | 是   | 是否保存到原始路径，如果该参数为true，output将不会生效 |
+| keepFirstVideoMeta | boolean | 是   | 是否保留第一个视频的元数据                             |
+
+**请求示例:**
+
+```json
+{
+  "inputVideos": ["D:/videos/part1.mp4", "D:/videos/part2.mp4"],
+  "options": {
+    "output": "D:/videos/merged.mp4",
+    "saveOriginPath": false,
+    "keepFirstVideoMeta": true
+  }
 }
 ```
 
@@ -34,257 +78,373 @@
 
 ```json
 {
-  "videoId": "BV1xx411c7mD",
-  "platform": "bilibili",
-  "title": "视频标题",
-  "resolutions": [
-    {
-      "value": "highest",
-      "label": "最高"
-    },
-    {
-      "value": "80",
-      "label": "1080P 高清"
-    }
-  ],
-  "parts": [
-    {
-      "name": "P1",
-      "partId": "123456",
-      "isEditing": false,
-      "extra": {
-        "bvid": "BV1xx411c7mD"
-      }
-    }
-  ]
+  "taskId": "task_123"
 }
 ```
 
-**响应字段:**
+### 视频转码
 
-| 字段名         | 类型   | 说明                      |
-| -------------- | ------ | ------------------------- |
-| videoId        | string | 视频 ID                   |
-| platform       | string | 平台标识                  |
-| title          | string | 视频标题                  |
-| resolutions    | array  | 可用清晰度列表            |
-| parts          | array  | 视频分 P 列表             |
-| parts[].name   | string | 分 P 名称                 |
-| parts[].partId | string | 分 P ID                   |
-| parts[].extra  | object | 额外信息,不同平台内容不同 |
+对视频进行转码处理。
 
-## 下载视频
-
-下载指定的视频到本地。
-
-**接口地址:** `POST /video/download`
+**接口地址:** `POST /task/transcode`
 
 **请求参数:**
 
-| 参数名     | 类型    | 必填 | 说明                                   |
-| ---------- | ------- | ---- | -------------------------------------- |
-| id         | string  | 是   | 视频分 P ID                            |
-| platform   | string  | 是   | 平台标识                               |
-| savePath   | string  | 是   | 保存路径                               |
-| filename   | string  | 是   | 文件名                                 |
-| resolution | string  | 否   | 清晰度,默认 "highest"                  |
-| danmu      | boolean | 否   | 是否下载弹幕(部分平台支持)             |
-| override   | boolean | 否   | 是否覆盖已存在的文件                   |
-| onlyAudio  | boolean | 否   | 是否仅下载音频(仅 B 站视频支持)        |
-| extra      | object  | 否   | 额外参数,不同平台需要不同的 extra 字段 |
+| 参数名        | 类型   | 必填 | 说明                                     |
+| ------------- | ------ | ---- | ---------------------------------------- |
+| input         | string | 是   | 输入文件路径                             |
+| outputName    | string | 是   | 输出文件名                               |
+| ffmpegOptions | object | 是   | FFmpeg 选项，从[preset](./preset.md)获取 |
+| options       | object | 是   | 转码选项                                 |
 
-**不同平台的 extra 字段:**
+**options 字段:**
 
-### 斗鱼 (douyu)
-
-```json
-{
-  "decodeData": "...",
-  "user_name": "主播名",
-  "room_id": "房间号",
-  "room_title": "直播间标题",
-  "live_start_time": "2024-01-01T00:00:00.000Z",
-  "video_start_time": "2024-01-01T00:00:00.000Z"
-}
-```
-
-### B 站视频 (bilibili)
-
-```json
-{
-  "bvid": "BV1xx411c7mD"
-}
-```
-
-### B 站直播录像 (bilibiliLive)
-
-```json
-{
-  "liveKey": "123456",
-  "startTime": 1704067200,
-  "endTime": 1704070800,
-  "uid": 123456789
-}
-```
-
-### 快手 (kuaishou)
-
-```json
-{
-  "url": "https://xxx.m3u8"
-}
-```
+| 参数名       | 类型    | 必填 | 说明                                             |
+| ------------ | ------- | ---- | ------------------------------------------------ |
+| override     | boolean | 否   | 是否覆盖已存在的文件                             |
+| removeOrigin | boolean | 否   | 是否删除原始文件                                 |
+| savePath     | string  | 否   | 保存路径(支持绝对路径和相对路径)                 |
+| saveType     | 1 \| 2  | 是   | 保存类型: 1-保存到原始文件夹, 2-保存到特定文件夹 |
 
 **请求示例:**
 
 ```json
 {
-  "id": "123456",
-  "platform": "bilibili",
-  "savePath": "D:/videos",
-  "filename": "test.mp4",
-  "resolution": "80",
-  "danmu": true,
-  "override": false,
-  "extra": {
-    "bvid": "BV1xx411c7mD"
+  "input": "D:/videos/input.mp4",
+  "outputName": "output.mp4",
+  "ffmpegOptions": {
+    "codec": "h264"
+  },
+  "options": {
+    "saveType": 1,
+    "override": false
   }
 }
 ```
 
-**响应:** HTTP 200 表示下载任务已开始
+### 视频切片
 
-## 视频订阅管理
+对视频进行切片处理。
 
-管理视频订阅任务,自动检测并下载新视频。
-
-### 解析订阅信息
-
-解析视频链接以获取可订阅的信息。
-
-**接口地址:** `POST /video/sub/parse`
+**接口地址:** `POST /task/cut`
 
 **请求参数:**
 
-| 参数名 | 类型   | 必填 | 说明     |
-| ------ | ------ | ---- | -------- |
-| url    | string | 是   | 视频链接 |
+| 参数名        | 类型   | 必填 | 说明        |
+| ------------- | ------ | ---- | ----------- |
+| files         | object | 是   | 文件信息    |
+| output        | string | 是   | 输出路径    |
+| options       | object | 是   | 切片选项    |
+| ffmpegOptions | object | 是   | FFmpeg 选项 |
 
 **请求示例:**
 
 ```json
 {
-  "url": "https://www.bilibili.com/video/BV1xx411c7mD"
+  "files": {
+    "videoPath": "D:/videos/input.mp4",
+    "startTime": 0,
+    "endTime": 60
+  },
+  "output": "D:/videos/output.mp4",
+  "options": {},
+  "ffmpegOptions": {}
 }
 ```
 
-### 添加订阅
+### 字幕烧录
 
-添加一个新的视频订阅。
+将字幕烧录到视频中。
 
-**接口地址:** `POST /video/sub/add`
-
-<!-- **请求参数:**
-
-| 参数名   | 类型   | 必填 | 说明     |
-| -------- | ------ | ---- | -------- |
-| name     | string | 是   | 订阅名称 |
-| platform | string | 是   | 平台标识 |
-| subId    | string | 是   | 订阅 ID  |
-
-**请求示例:**
-
-```json
-{
-  "name": "我的订阅",
-  "platform": "bilibili",
-  "subId": "123456"
-}
-``` -->
-
-### 删除订阅
-
-删除指定的视频订阅。
-
-**接口地址:** `POST /video/sub/remove`
+**接口地址:** `POST /task/burn`
 
 **请求参数:**
 
-| 参数名 | 类型   | 必填 | 说明    |
-| ------ | ------ | ---- | ------- |
-| id     | string | 是   | 订阅 ID |
+| 参数名  | 类型   | 必填 | 说明         |
+| ------- | ------ | ---- | ------------ |
+| files   | object | 是   | 文件信息     |
+| output  | string | 是   | 输出文件路径 |
+| options | object | 是   | 烧录选项     |
+
+**options 支持上传选项:**
+
+| 参数名        | 类型   | 必填 | 说明         |
+| ------------- | ------ | ---- | ------------ |
+| uploadOptions | object | 否   | B 站上传选项 |
+
+**uploadOptions 字段:**
+
+| 参数名 | 类型    | 必填 | 说明                    |
+| ------ | ------- | ---- | ----------------------- |
+| upload | boolean | 是   | 是否上传                |
+| uid    | number  | 否   | B 站用户 UID            |
+| aid    | number  | 否   | 稿件 ID(编辑稿件时使用) |
+| config | object  | 是   | 上传配置                |
 
 **请求示例:**
 
 ```json
 {
-  "id": "sub_123"
+  "files": {
+    "videoPath": "D:/videos/input.mp4",
+    "danmuPath": "D:/videos/danmu.ass"
+  },
+  "output": "D:/videos/output.mp4",
+  "options": {
+    "uploadOptions": {
+      "upload": true,
+      "uid": 123456789,
+      "config": {}
+    }
+  }
 }
 ```
 
-### 更新订阅
+### FLV 修复
 
-更新订阅信息。
+修复损坏的 FLV 文件。
 
-**接口地址:** `POST /video/sub/update`
+**接口地址:** `POST /task/flvRepair`
 
-<!-- **请求参数:**
+**请求参数:**
 
-| 参数名   | 类型   | 必填 | 说明     |
-| -------- | ------ | ---- | -------- |
-| id       | string | 是   | 订阅 ID  |
-| name     | string | 是   | 订阅名称 |
-| platform | string | 是   | 平台标识 |
-| subId    | string | 是   | 订阅标识 |
+| 参数名  | 类型   | 必填 | 说明         |
+| ------- | ------ | ---- | ------------ |
+| input   | string | 是   | 输入文件路径 |
+| output  | string | 是   | 输出文件路径 |
+| options | object | 否   | 修复选项     |
 
 **请求示例:**
 
 ```json
 {
-  "id": "sub_123",
-  "name": "更新后的名称",
-  "platform": "bilibili",
-  "subId": "123456"
+  "input": "D:/videos/broken.flv",
+  "output": "D:/videos/repaired.flv",
+  "options": {}
 }
 ```
 
-### 获取订阅列表
+### 歌曲识别
 
-获取所有视频订阅。
+截取指定视频时间段的音频并进行歌曲识别。接口会先提取音频片段，再返回识别到的歌曲名；如果启用了歌词优化，也可能返回歌词 SRT。
 
-**接口地址:** `GET /video/sub/list`
+**接口地址:** `POST /ai/song-recognize`
 
-**请求参数:** 无
+**请求参数:**
+
+| 参数名    | 类型   | 必填 | 说明                     |
+| --------- | ------ | ---- | ------------------------ |
+| file      | string | 是   | 完整视频文件路径         |
+| startTime | number | 是   | 音频提取开始时间，单位秒 |
+| endTime   | number | 是   | 音频提取结束时间，单位秒 |
+
+**请求示例:**
+
+```json
+{
+  "file": "D:/videos/test.mp4",
+  "startTime": 30,
+  "endTime": 75
+}
+```
 
 **响应示例:**
 
 ```json
-[
-  {
-    "id": "sub_123",
-    "name": "我的订阅",
-    "platform": "bilibili",
-    "subId": "123456"
-  }
-]
-``` -->
+{
+  "name": "Shape of You",
+  "lyrics": "1\n00:00:30,000 --> 00:00:33,000\nThe club isn't the best place to find a lover\n"
+}
+```
 
-### 检查订阅更新
+**响应字段说明:**
 
-检查指定订阅是否有新视频。
+| 参数名 | 类型   | 必返 | 说明                                  |
+| ------ | ------ | ---- | ------------------------------------- |
+| name   | string | 否   | 识别到的歌曲名称                      |
+| lyrics | string | 否   | 歌词字幕 SRT 内容，仅在生成歌词时返回 |
 
-**接口地址:** `POST /video/sub/check`
+**错误响应示例:**
+
+```json
+{
+  "error": "参数错误，必须包含 file、startTime 和 endTime 字段"
+}
+```
+
+### 字幕识别
+
+对视频文件或指定时间段进行字幕识别，返回 SRT 字幕内容。
+
+**接口地址:** `POST /ai/subtitle`
 
 **请求参数:**
 
-| 参数名 | 类型   | 必填 | 说明    |
-| ------ | ------ | ---- | ------- |
-| id     | string | 是   | 订阅 ID |
+| 参数名    | 类型    | 必填 | 说明                                               |
+| --------- | ------- | ---- | -------------------------------------------------- |
+| file      | string  | 是   | 完整视频文件路径                                   |
+| modelId   | string  | 是   | 预留字段，当前实现实际读取 AI 配置中的字幕识别模型 |
+| startTime | number  | 否   | 开始时间，单位秒                                   |
+| endTime   | number  | 否   | 结束时间，单位秒                                   |
+| offset    | number  | 否   | 时间偏移量，单位秒                                 |
+| song      | boolean | 否   | 是否按音乐场景识别，影响 ASR 过滤策略              |
+
+当同时传入 `startTime` 和 `endTime` 时，接口会先提取该时间范围内的音频片段，再进行识别。
 
 **请求示例:**
 
 ```json
 {
-  "id": "sub_123"
+  "file": "D:/videos/test.mp4",
+  "startTime": 0,
+  "endTime": 20,
+  "offset": 0,
+  "song": false
+}
+```
+
+**响应示例:**
+
+```json
+{
+  "srt": "1\n00:00:00,000 --> 00:00:02,100\n大家好\n\n2\n00:00:02,100 --> 00:00:04,800\n欢迎来到直播间\n"
+}
+```
+
+**响应字段说明:**
+
+| 参数名 | 类型   | 必返 | 说明                  |
+| ------ | ------ | ---- | --------------------- |
+| srt    | string | 是   | 识别出的 SRT 字幕内容 |
+
+**错误响应示例:**
+
+缺少文件参数时：
+
+```json
+{
+  "error": "参数错误，必须包含 file 字段"
+}
+```
+
+未配置字幕识别模型或识别失败时：
+
+```json
+{
+  "error": "字幕识别失败"
+}
+```
+
+## 弹幕处理
+
+### XML 弹幕转 ASS
+
+将 XML 格式的弹幕转换为 ASS 字幕文件。
+
+**接口地址:** `POST /task/convertXml2Ass`
+
+**请求参数:**
+
+| 参数名  | 类型   | 必填 | 说明          |
+| ------- | ------ | ---- | ------------- |
+| input   | string | 是   | 输入 XML 路径 |
+| output  | string | 是   | 输出 ASS 路径 |
+| preset  | object | 是   | 弹幕预设配置  |
+| options | object | 否   | 转换选项      |
+
+**options 字段:**
+
+| 参数名       | 类型    | 必填 | 说明                         |
+| ------------ | ------- | ---- | ---------------------------- |
+| sync         | boolean | 否   | 是否同步等待任务完成         |
+| removeOrigin | boolean | 否   | 是否删除原始文件(默认 false) |
+
+**请求示例:**
+
+```json
+{
+  "input": "D:/videos/danmu.xml",
+  "output": "D:/videos/danmu.ass",
+  "preset": {
+    "resolution": [1920, 1080],
+    "scrolltime": 8,
+    "fontname": "Microsoft YaHei",
+    "fontsize": 38
+  },
+  "options": {
+    "sync": false,
+    "removeOrigin": false
+  }
+}
+```
+
+**响应示例:**
+
+```json
+{
+  "taskId": "task_123",
+  "output": "D:/videos/danmu.ass"
+}
+```
+
+如果 `sync` 为 `true`,会等待任务完成后返回最终输出路径。
+
+## 虚拟录制
+
+### 测试虚拟录制配置
+
+测试虚拟录制配置是否正确。
+
+**接口地址:** `POST /task/testVirtualRecord`
+
+**请求参数:**
+
+| 参数名     | 类型   | 必填 | 说明                     |
+| ---------- | ------ | ---- | ------------------------ |
+| config     | object | 是   | 虚拟录制配置             |
+| folderPath | string | 是   | 文件夹路径               |
+| startTime  | number | 否   | 开始时间(Unix 时间戳,秒) |
+
+**config 字段(normal 模式):**
+
+| 参数名 | 类型   | 必填 | 说明               |
+| ------ | ------ | ---- | ------------------ |
+| mode   | string | 是   | 模式,值为 "normal" |
+| roomId | string | 是   | 直播间 ID          |
+
+**config 字段(advance 模式):**
+
+| 参数名      | 类型   | 必填 | 说明                 |
+| ----------- | ------ | ---- | -------------------- |
+| mode        | string | 是   | 模式,值为 "advance"  |
+| roomIdRegex | string | 是   | 直播间 ID 正则表达式 |
+
+**请求示例:**
+
+```json
+{
+  "config": {
+    "mode": "normal",
+    "roomId": "123456"
+  },
+  "folderPath": "D:/records",
+  "startTime": 1704067200
+}
+```
+
+### 执行虚拟录制
+
+执行虚拟录制任务。
+
+**接口地址:** `POST /task/executeVirtualRecord`
+
+**请求参数:** 与测试接口相同
+
+**响应示例:**
+
+```json
+{
+  "success": true,
+  "message": "执行成功"
 }
 ```

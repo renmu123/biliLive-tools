@@ -1,14 +1,15 @@
 # ============================================
 # 基础构建环境
 # ============================================
-FROM node:24.10 AS base
+FROM node:24.18 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@9.15.2 --activate
+RUN corepack enable && corepack prepare pnpm@11.5.0 --activate
 
 WORKDIR /app
 COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm run build:base
 
 # ============================================
 # 前端构建阶段
@@ -18,13 +19,13 @@ ARG VITE_DEFAULT_SERVER=http://127.0.0.1:18010
 ARG VITE_FULLSTACK=false
 ENV VITE_DEFAULT_SERVER=${VITE_DEFAULT_SERVER}
 ENV VITE_FULLSTACK=${VITE_FULLSTACK}
-RUN pnpm run build:webui
+RUN pnpm run --filter biliLive-tools build:webui
 
 # ============================================
 # 后端构建阶段
 # ============================================
 FROM base AS backend-build
-RUN pnpm run build:base && pnpm run --filter bililive-cli build && cd packages/CLI && node ./scripts/removeDev.js && npm install --force
+RUN pnpm run --filter bililive-cli build && cd packages/CLI && node ./scripts/removeDev.js
 
 # 下载二进制依赖
 RUN pnpm run install:bin
@@ -80,38 +81,45 @@ CMD ["caddy", "run", "--config", "/app/Caddyfile"]
 # ============================================
 # 目标2: 纯后端镜像
 # ============================================
-FROM node:24.10 AS backend
+FROM node:24.18 AS backend
 
 WORKDIR /app
 
 RUN mkdir data && mkdir bin && mkdir video
 
 COPY --from=backend-build /app/packages/CLI/lib /app
-COPY --from=backend-build /app/packages/CLI/node_modules /app/node_modules
+COPY --from=backend-build /app/packages/CLI/package.json /app/package.json
 COPY --from=backend-build /app/packages/app/resources/bin /app/bin
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libfontconfig1-dev && \
+    apt-get install -y --no-install-recommends libfontconfig1-dev gosu && \
     apt-get install -y /app/bin/audiowaveform.deb && \
     rm -rf /var/lib/apt/lists/*
+RUN npm install --force
 COPY --from=backend-build /app/docker/config.json ./
 COPY --from=backend-build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
 COPY --from=backend-build /usr/local/share/fonts/NotoEmoji-Regular.ttf /usr/share/fonts/NotoEmoji-Regular.ttf
 RUN fc-cache -f
 
+COPY --from=base /app/docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 ENV NODE_ENV=production
 ENV IS_DOCKER=true
 ENV BAIDUPCS_GO_CONFIG_DIR=/app/data
 ENV ALIYUNPAN_CONFIG_DIR=/app/data
+ENV TZ=Asia/Shanghai
+ENV PUID=0 PGID=0 UMASK=022
 
 EXPOSE 18010
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["node", "index.cjs", "server", "--config", "config.json"]
 
 # ============================================
 # 目标3: 全栈镜像 (默认)
 # ============================================
-FROM node:24.10 AS fullstack
+FROM node:24.18 AS fullstack
 
 WORKDIR /app
 
@@ -120,7 +128,7 @@ RUN mkdir -p /app/data /app/video /app/bin /app/backend /app/public
 
 # 复制后端
 COPY --from=backend-build /app/packages/CLI/lib /app/backend
-COPY --from=backend-build /app/packages/CLI/node_modules /app/backend/node_modules
+COPY --from=backend-build /app/packages/CLI/package.json /app/backend/package.json
 COPY --from=backend-build /app/packages/app/resources/bin /app/bin
 
 # 安装必要的依赖和 Caddy
@@ -130,13 +138,15 @@ RUN apt-get update && \
     debian-keyring \
     debian-archive-keyring \
     apt-transport-https \
-    curl && \
+    curl \
+    gosu && \
     apt-get install -y /app/bin/audiowaveform.deb && \
     curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg && \
     curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list && \
     apt-get update && \
     apt-get install -y caddy && \
     rm -rf /var/lib/apt/lists/*
+RUN cd /app/backend && npm install --force
 COPY --from=backend-build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
 COPY --from=backend-build /usr/local/share/fonts/NotoEmoji-Regular.ttf /usr/share/fonts/NotoEmoji-Regular.ttf
 RUN fc-cache -f
@@ -148,15 +158,18 @@ COPY --from=frontend-build /app/packages/app/out/renderer /app/public
 COPY --from=base /app/docker/config.json /app/backend/config.json
 COPY --from=base /app/docker/fullstack-Caddyfile /etc/caddy/Caddyfile
 COPY --from=base /app/docker/start.sh /app/start.sh
+COPY --from=base /app/docker/entrypoint.sh /entrypoint.sh
 
-RUN chmod +x /app/start.sh
+RUN chmod +x /app/start.sh /entrypoint.sh
 
 ENV NODE_ENV=production
 ENV IS_DOCKER=true
 ENV BAIDUPCS_GO_CONFIG_DIR=/app/data
 ENV ALIYUNPAN_CONFIG_DIR=/app/data
 ENV TZ=Asia/Shanghai
+ENV PUID=0 PGID=0 UMASK=022
 
 EXPOSE 3000
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/app/start.sh"]

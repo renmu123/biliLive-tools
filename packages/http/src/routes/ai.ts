@@ -38,7 +38,7 @@ const router = new Router({
 //   ctx.body = result;
 // });
 
-router.post("/song_recognize", async (ctx) => {
+router.post("/song-recognize", async (ctx) => {
   const data = ctx.request.body as {
     // file - 完整视频文件路径
     file: string;

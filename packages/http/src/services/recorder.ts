@@ -20,10 +20,9 @@ async function getRecorders(
   if (params.platform) {
     list = list.filter((item) => item.providerId === params.platform);
   }
-  if (params.recordStatus) {
-    list = list.filter(
-      (item) => (item.recordHandle != null) === (params.recordStatus === "recording"),
-    );
+  if (params.status) {
+    const normalizedStatus = params.status;
+    list = list.filter((item) => item.state === normalizedStatus);
   }
   if (params.name) {
     list = list.filter(

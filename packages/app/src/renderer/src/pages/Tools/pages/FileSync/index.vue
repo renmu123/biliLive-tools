@@ -7,7 +7,13 @@
       <n-button type="primary" @click="sync" title="立即同步(ctrl+enter)"> 立即上传 </n-button>
     </div>
 
-    <FileSelect ref="fileSelect" v-model="fileList" :sort="false" :extensions="['*']"></FileSelect>
+    <FileSelect
+      ref="fileSelect"
+      v-model="fileList"
+      :sort="false"
+      :extensions="['*']"
+      areaPlaceholder="请选择文件"
+    ></FileSelect>
 
     <div class="flex align-center" style="margin-top: 10px; gap: 10px; justify-content: center">
       <n-select
@@ -24,7 +30,8 @@
         style="width: 140px; display: inline-block"
       />
       <n-input
-        v-model:value="options.targetPath"
+        v-model:value="targetPathDraft"
+        @blur="handleTargetPathBlur"
         placeholder="请输入目标路径"
         style="width: 200px"
       />
@@ -58,6 +65,23 @@ const options = toReactive(
     },
   }),
 );
+
+const targetPathDraft = ref("");
+
+watch(
+  () => options.targetPath,
+  (value) => {
+    targetPathDraft.value = value;
+  },
+  {
+    immediate: true,
+  },
+);
+
+const handleTargetPathBlur = () => {
+  if (targetPathDraft.value === options.targetPath) return;
+  options.targetPath = targetPathDraft.value;
+};
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 

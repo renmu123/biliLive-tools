@@ -1,4 +1,4 @@
-export const colorTab = {
+export const colorTab: Record<string, string> = {
   "2": "#00ccff", // '1e87f0' to '00ccff' light blue (lv.6)
   "3": "#66ff00", // '7ac84b' to '66ff00' light green(teal) (lv.9)
   "4": "#ff6600", // 'ff7f00' to 'ff6600' orange (lv.15)

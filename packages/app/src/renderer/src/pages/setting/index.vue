@@ -20,6 +20,12 @@
       <n-tabs v-model:value="selectTab" type="bar" animated placement="left" class="setting-tab">
         <n-tab-pane name="common" tab="基本">
           <n-form ref="formRef" label-placement="left" :label-width="labelWidth">
+            <n-form-item v-if="!isWeb">
+              <template #label>
+                <Tip text="上传崩溃报告" tip="上传崩溃报告至Sentry服务器"></Tip>
+              </template>
+              <n-switch v-model:value="config.uploadCrashReport" />
+            </n-form-item>
             <n-form-item>
               <template #label>
                 <Tip

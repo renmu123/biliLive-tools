@@ -42,16 +42,51 @@ const router = new Router({
   prefix: "/task",
 });
 
+const getSingleQueryValue = (value: string | string[] | undefined) => {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+  return value;
+};
+
 router.get("/", async (ctx) => {
-  const type = ctx.query.type;
+  const type = getSingleQueryValue(ctx.request.query.type);
+  const status = getSingleQueryValue(ctx.request.query.status);
+  const page = getSingleQueryValue(ctx.request.query.page);
+  const pageSize = getSingleQueryValue(ctx.request.query.pageSize);
   let data = handleListTask();
   if (type) {
     data = data.filter((item) => item.type === type);
   }
+  if (status) {
+    data = data.filter((item) => item.status === status);
+  }
+
+  const currentPage = page ? Number(page) : 1;
+  const currentPageSize = pageSize ? Number(pageSize) : data.length || 1;
+  if (!Number.isInteger(currentPage) || currentPage < 1) {
+    ctx.status = 400;
+    ctx.body = "page must be a positive integer";
+    return;
+  }
+  if (!Number.isInteger(currentPageSize) || currentPageSize < 1) {
+    ctx.status = 400;
+    ctx.body = "pageSize must be a positive integer";
+    return;
+  }
+
+  const total = data.length;
+  const start = (currentPage - 1) * currentPageSize;
+  const list = data.slice(start, start + currentPageSize);
 
   ctx.body = {
-    list: data,
+    list,
     runningTaskNum: data.filter((item) => item.status === "running").length,
+    pagination: {
+      total,
+      page: currentPage,
+      pageSize: currentPageSize,
+    },
   };
 });
 
@@ -300,6 +335,15 @@ router.post("/flvRepair", async (ctx) => {
 router.post("/cut", async (ctx) => {
   const { files, output, options, ffmpegOptions } = ctx.request.body as any;
 
+  if (options?.uploadOptions?.upload) {
+    const [status, msg] = validateBiliupConfig(options?.uploadOptions?.config || {});
+    if (!status) {
+      ctx.status = 400;
+      ctx.body = msg;
+      return;
+    }
+  }
+
   // 处理srt字幕切割
   const srtContent = files.srtContent;
   let subtitlePath: string | undefined;
@@ -337,6 +381,15 @@ router.post("/cut", async (ctx) => {
     ...options,
     removeSubtitle: true,
   });
+
+  if (options?.uploadOptions?.upload) {
+    task.on("task-end", () => {
+      const uid = options?.uploadOptions?.uid;
+      const file = options?.uploadOptions?.filePath;
+      biliApi.addMedia([file], options?.uploadOptions?.config, uid);
+    });
+  }
+
   ctx.body = { taskId: task.taskId };
 });
 
