@@ -77,11 +77,11 @@ export async function getStream(
     api = selectRandomAPI(["userHTML", "webHTML"]);
   }
   if (opts.isLiveRadio) {
-    // 直播电台可能需要特殊处理，优先使用 userHTML 接口
-    api = "userHTML";
-    // 如果用户指定了mobile接口，那么优先使用mobile接口获取流信息
-    if (opts.api === "mobile") {
-      api = "mobile";
+    // 直播电台可能需要特殊处理，优先使用 mobile 接口，某些直播间userHTML不会有数据,mobile可能更加合适
+    api = "mobile";
+    // 如果用户指定了userHTML接口，那么优先使用userHTML接口获取流信息
+    if (opts.api === "userHTML") {
+      api = "userHTML";
     }
   }
   const info = await getRoomInfo(opts.channelId, {
