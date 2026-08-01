@@ -19,6 +19,7 @@
           <n-input
             v-model:value.trim="channelIdUrl"
             placeholder="输入后自动解析"
+            :loading="channelIdResolving"
             @blur="onChannelIdInputEnd"
           >
           </n-input>
@@ -819,20 +820,26 @@ const isEdit = computed(() => !!props.id);
 
 const channelIdUrl = ref("");
 const owner = ref("");
+const channelIdResolving = ref(false);
 const onChannelIdInputEnd = async () => {
   if (!channelIdUrl.value) return;
-  const res = await recoderApi.resolve(channelIdUrl.value);
-  if (!res) {
-    notice.error({
-      title: "解析失败",
-      duration: 1000,
-    });
-    return;
+  channelIdResolving.value = true;
+  try {
+    const res = await recoderApi.resolve(channelIdUrl.value);
+    if (!res) {
+      notice.error({
+        title: "解析失败",
+        duration: 1000,
+      });
+      return;
+    }
+    initGlobalFields();
+    // 直接使用后端返回的完整配置
+    config.value = res;
+    owner.value = res.remarks || "";
+  } finally {
+    channelIdResolving.value = false;
   }
-  initGlobalFields();
-  // 直接使用后端返回的完整配置
-  config.value = res;
-  owner.value = res.remarks || "";
 };
 
 const initGlobalFields = () => {
