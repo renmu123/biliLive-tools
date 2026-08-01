@@ -1,7 +1,7 @@
 <!-- bili设置 -->
 <template>
   <div>
-    <n-form ref="formRef" label-width="120px" label-placement="left" label-align="right">
+    <n-form ref="formRef" :label-width="labelWidth" label-placement="left" label-align="right">
       <n-form-item v-if="!isEditOnlyMode" label="预设">
         <n-select v-model:value="presetId" :options="uploaPresetsOptions" />
       </n-form-item>
@@ -343,12 +343,12 @@
             ></Tip>
           </span>
         </template>
-        <div class="inline-items" style="align-items: center">
+        <div class="inline-items" style="align-items: center; flex-wrap: wrap; width: 100%">
           <n-select
             v-model:value="options.config.seasonId"
             :options="seasonList"
             placeholder="请选择合集"
-            style="width: 250px; flex: none"
+            style="flex: 1; min-width: 100px; max-width: 250px"
             clearable
           />
           <n-select
@@ -358,7 +358,7 @@
             label-field="title"
             value-field="id"
             placeholder="请选择小节"
-            style="width: 250px; flex: none"
+            style="flex: 1; min-width: 100px; max-width: 250px"
             clearable
           />
           <n-checkbox
@@ -409,7 +409,7 @@
 
 <script setup lang="ts">
 import { biliApi, videoPresetApi } from "@renderer/apis";
-import { useConfirm } from "@renderer/hooks";
+import { useConfirm, useBreakpoints } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 
 import { uploadTitleTemplate } from "@renderer/enums";
@@ -441,6 +441,10 @@ const props = withDefaults(
 const emits = defineEmits<{
   (event: "change", value: BiliupPreset): void;
 }>();
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "120px";
+});
 
 // const presetId = ref<string>("default");
 const presetId = defineModel<string>({ required: false });
@@ -1136,10 +1140,12 @@ const creationStatementList = ref([
 .inline-items {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 
   .inline-item {
     display: inline-flex;
     align-items: center;
+    flex: none;
   }
 }
 .title-var {

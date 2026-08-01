@@ -1,6 +1,9 @@
 <template>
   <div class="container">
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px">
+    <div
+      style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px"
+      class="filter-container"
+    >
       <n-input
         v-model:value="params.name"
         placeholder="备注或房间号"
@@ -157,7 +160,7 @@
 
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
-import { useConfirm } from "@renderer/hooks";
+import { useConfirm, useBreakpoints } from "@renderer/hooks";
 import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
 import addModal from "./components/addModal.vue";
 import batchAddModal from "./components/batchAddModal.vue";
@@ -205,6 +208,7 @@ const columnConfig = [
   { value: "monitorStatus", label: "监听状态" },
   { value: "actions", label: "操作" },
 ];
+const { isMobile } = useBreakpoints();
 
 // 使用可见列 hook
 const { visibleColumns } = useVisibleColumns({
@@ -810,6 +814,11 @@ const handleActionClick = (key?: string | number) => {
     &.section-danger {
       color: var(--color-danger-text);
     }
+  }
+}
+@media (max-width: 1024px) {
+  .filter-container {
+    flex-wrap: wrap;
   }
 }
 

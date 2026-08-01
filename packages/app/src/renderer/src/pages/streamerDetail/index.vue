@@ -911,9 +911,107 @@ onMounted(() => {
 }
 
 @media (max-width: 640px) {
-  .clip-card-grid,
+  .streamer-detail-page {
+    padding: 0 12px 16px;
+  }
+
+  .overview-shell {
+    gap: 12px;
+  }
+
+  .hero-card,
+  .stat-card,
+  .tab-panel {
+    border-radius: 16px;
+  }
+
+  .hero-main,
+  .profile-heading {
+    flex-direction: column;
+  }
+
+  .hero-main {
+    gap: 16px;
+  }
+
+  .profile-block {
+    gap: 12px;
+  }
+
+  .profile-avatar {
+    width: 56px !important;
+    height: 56px !important;
+    font-size: 24px;
+  }
+
+  .profile-content {
+    gap: 10px;
+  }
+
+  .profile-heading {
+    gap: 10px;
+
+    h1 {
+      font-size: 24px;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .profile-meta {
+    margin-top: 6px;
+    gap: 6px 12px;
+    font-size: 13px;
+  }
+
+  .profile-tags {
+    justify-content: flex-start;
+  }
+
+  .hero-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .hero-actions :deep(.n-button) {
+    width: 100%;
+  }
+
   .stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stat-card:last-child {
+    grid-column: span 2;
+  }
+
+  .stat-value {
+    font-size: 20px;
+    overflow-wrap: anywhere;
+  }
+
+  .clip-card-grid {
     grid-template-columns: 1fr;
+  }
+
+  .timeline-item {
+    grid-template-columns: 16px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .timeline-text {
+    display: block;
+    margin: 4px 0 0;
+  }
+
+  .timeline-content {
+    padding: 8px 10px;
+  }
+
+  .pagination-row {
+    justify-content: center;
   }
 }
 </style>

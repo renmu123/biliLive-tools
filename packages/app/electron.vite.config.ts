@@ -28,6 +28,7 @@ export default defineConfig({
   renderer: {
     server: {
       port: 28080,
+      host: "0.0.0.0",
     },
     resolve: {
       alias: {

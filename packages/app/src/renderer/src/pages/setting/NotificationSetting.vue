@@ -1,5 +1,5 @@
 <template>
-  <n-form label-placement="left" :label-width="120">
+  <n-form label-placement="left" :label-width="labelWidth">
     <n-form-item label="通知类型">
       <n-select
         v-model:value="config.notification.setting.type"
@@ -315,6 +315,7 @@
 
 <script setup lang="ts">
 import { configApi } from "@renderer/apis";
+import { useBreakpoints } from "@renderer/hooks";
 import { cloneDeep } from "lodash-es";
 import { NotificationType } from "@biliLive-tools/shared/enum.js";
 
@@ -322,6 +323,10 @@ import type { AppConfig } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},
+});
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "120px";
 });
 
 const typeOptions = [

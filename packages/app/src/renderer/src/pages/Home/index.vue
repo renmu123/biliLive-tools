@@ -38,26 +38,26 @@
 
             <div
               v-if="clientOptions.hotProgress"
-              style="display: flex; gap: 20px; align-items: center; margin-top: 20px"
+              style="display: flex; gap: 10px; align-items: center; margin-top: 20px"
             >
-              <div>
+              <div style="flex-basis: 140px; min-width: 120px">
                 采样间隔
                 <n-input-number
                   v-model:value="clientOptions.hotProgressSample"
                   placeholder="单位秒"
                   min="1"
-                  style="width: 140px"
+                  style="width: 100%"
                 >
                   <template #suffix> 秒 </template></n-input-number
                 >
               </div>
-              <div>
+              <div style="flex-basis: 140px; min-width: 120px">
                 高度
                 <n-input-number
                   v-model:value="clientOptions.hotProgressHeight"
                   placeholder="单位像素"
                   min="10"
-                  style="width: 140px"
+                  style="width: 100%"
                 >
                   <template #suffix> 像素 </template></n-input-number
                 >

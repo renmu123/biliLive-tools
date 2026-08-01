@@ -5,18 +5,21 @@
     auto-focus
     :on-after-enter="handleOpen"
     class="setting-modal"
+    :class="breakpoint"
   >
     <n-card
-      style="width: calc(100% - 60px)"
       :bordered="false"
       size="huge"
       role="dialog"
       aria-modal="true"
       class="card"
+      :style="{
+        width: breakpoint === 'mobile' ? '100%' : 'calc(100% - 60px)',
+      }"
     >
       <n-tabs v-model:value="selectTab" type="bar" animated placement="left" class="setting-tab">
         <n-tab-pane name="common" tab="基本">
-          <n-form ref="formRef" label-placement="left" :label-width="160">
+          <n-form ref="formRef" label-placement="left" :label-width="labelWidth">
             <n-form-item v-if="!isWeb">
               <template #label>
                 <Tip text="上传崩溃报告" tip="上传崩溃报告至Sentry服务器"></Tip>
@@ -312,7 +315,7 @@
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="webhook" tab="Webhook">
-          <n-form label-placement="left" :label-width="135">
+          <n-form label-placement="left" :label-width="labelWidth2">
             <n-form-item>
               <template #label>
                 <Tip
@@ -474,6 +477,7 @@ import { deepRaw } from "@renderer/utils";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
 import { useThemeStore } from "@renderer/stores/theme";
+import { useBreakpoints } from "@renderer/hooks/useBreakpoints";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig } from "@biliLive-tools/types";
 
@@ -481,6 +485,14 @@ const notice = useNotification();
 const appConfigStore = useAppConfig();
 const showModal = defineModel<boolean>({ required: true, default: false });
 const isWeb = computed(() => window.isWeb);
+const { breakpoint, isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "150px";
+});
+
+const labelWidth2 = computed(() => {
+  return isMobile.value ? "90px" : "135px";
+});
 
 // @ts-ignore
 const config: Ref<AppConfig> = ref({
@@ -913,6 +925,9 @@ const navigate = (tab: string) => {
 .setting-modal > :deep(.n-card-content) {
   padding-bottom: 0 !important;
   padding-right: 0px !important;
+}
+.setting-modal.mobile > :deep(.n-card-content) {
+  padding-left: 0 !important;
 }
 .setting-tab > :deep(.n-tab-pane) {
   overflow: auto;
