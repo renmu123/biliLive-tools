@@ -174,7 +174,7 @@ const getSingleQueryValue = (value: string | string[] | undefined) => {
 /**
  * 录制任务相关接口
  * @route GET /recorder/list
- * @param platform 直播平台，DouYu: 斗鱼, HuYa: 虎牙, Bilibili: 哔哩哔哩, DouYin: 抖音
+ * @param platform 直播平台，DouYu: 斗鱼, HuYa: 虎牙, Bilibili: 哔哩哔哩, DouYin: 抖音, XHS: 小红书, TikTok: TikTok
  * @param status 录制状态 recording: 录制中 idle: 空闲中 check-error: 检查错误 title-blocked: 标题被屏蔽
  * @param name 备注名称或直播间号，模糊搜索
  * @param autoCheck 是否自动监控

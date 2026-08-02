@@ -40,6 +40,11 @@ export interface ProviderCheckConfig {
   waitTime?: number;
 }
 
+export interface ResolveChannelOptions {
+  /** 解析频道信息时使用的网络代理 */
+  proxy?: string;
+}
+
 export interface RecorderProvider<E extends AnyObject> {
   // Provider 的唯一 id，最好只由英文 + 数字组成
   // TODO: 可以加个检查 id 合法性的逻辑
@@ -53,6 +58,7 @@ export interface RecorderProvider<E extends AnyObject> {
   resolveChannelInfoFromURL: (
     this: RecorderProvider<E>,
     channelURL: string,
+    options?: ResolveChannelOptions,
   ) => Promise<{
     id: ChannelId;
     title: string;

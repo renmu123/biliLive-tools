@@ -94,6 +94,7 @@ biliLive-tools/
 │   ├── BilibiliRecorder/ # B站录制
 │   ├── DouYinRecorder/   # 抖音录制
 │   ├── DouYuRecorder/    # 斗鱼录制
+│   ├── TikTokRecorder/   # TikTok录制
 │   ├── HuYaRecorder/     # 虎牙录制
 │   ├── liveManager/      # 直播管理
 │   └── ...

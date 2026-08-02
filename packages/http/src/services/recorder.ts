@@ -326,7 +326,13 @@ export function recorderToClient(recorder: Recorder): ClientRecorder {
 
 export function resolveChannel(url: string) {
   const recorderManager = container.resolve("recorderManager");
-  return recorderManager.resolveChannel(url);
+  const matchedProviders = recorderManager.manager.getChannelURLMatchedRecorderProviders(url);
+  const isTikTok = matchedProviders.some((provider) => provider.id === "TikTok");
+  const proxy = isTikTok
+    ? container.resolve("appConfig").get("recorder").tiktok.proxy || undefined
+    : undefined;
+
+  return recorderManager.resolveChannel(url, { proxy });
 }
 
 export async function resolve(url: string) {
