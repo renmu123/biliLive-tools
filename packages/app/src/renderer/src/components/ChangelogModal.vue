@@ -5,7 +5,7 @@
     :auto-focus="false"
     :mask-closable="false"
   >
-    <n-card style="width: 800px" title="更新日志" :bordered="false">
+    <n-card style="max-width: 800px" title="更新日志" :bordered="false">
       <div>
         <p>
           <b

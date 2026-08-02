@@ -8,7 +8,7 @@
       aria-modal="true"
       class="card"
     >
-      <n-form label-placement="left" :label-width="150">
+      <n-form label-placement="left" :label-width="labelWidth">
         <n-form-item v-if="!isEdit">
           <template #label>
             <Tip
@@ -19,6 +19,7 @@
           <n-input
             v-model:value.trim="channelIdUrl"
             placeholder="输入后自动解析"
+            :loading="channelIdResolving"
             @blur="onChannelIdInputEnd"
           >
           </n-input>
@@ -712,7 +713,7 @@ import {
   douyuStreamCodecOptions,
   douyuApiTypeOptions,
 } from "@renderer/enums/recorder";
-import { useConfirm } from "@renderer/hooks";
+import { useConfirm, useBreakpoints } from "@renderer/hooks";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
 import { cloneDeep } from "lodash-es";
 
@@ -730,6 +731,10 @@ const props = defineProps<Props>();
 const emits = defineEmits<{
   (event: "confirm"): void;
 }>();
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "100px" : "150px";
+});
 
 const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>[number], boolean>>(
   {
@@ -815,20 +820,26 @@ const isEdit = computed(() => !!props.id);
 
 const channelIdUrl = ref("");
 const owner = ref("");
+const channelIdResolving = ref(false);
 const onChannelIdInputEnd = async () => {
   if (!channelIdUrl.value) return;
-  const res = await recoderApi.resolve(channelIdUrl.value);
-  if (!res) {
-    notice.error({
-      title: "解析失败",
-      duration: 1000,
-    });
-    return;
+  channelIdResolving.value = true;
+  try {
+    const res = await recoderApi.resolve(channelIdUrl.value);
+    if (!res) {
+      notice.error({
+        title: "解析失败",
+        duration: 1000,
+      });
+      return;
+    }
+    initGlobalFields();
+    // 直接使用后端返回的完整配置
+    config.value = res;
+    owner.value = res.remarks || "";
+  } finally {
+    channelIdResolving.value = false;
   }
-  initGlobalFields();
-  // 直接使用后端返回的完整配置
-  config.value = res;
-  owner.value = res.remarks || "";
 };
 
 const initGlobalFields = () => {

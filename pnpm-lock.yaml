@@ -323,8 +323,8 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       '@renmu/node-shazam':
-        specifier: ^2.0.3
-        version: 2.0.3
+        specifier: ^2.0.4
+        version: 2.0.4
       awilix:
         specifier: ^11.0.4
         version: 11.0.4
@@ -686,8 +686,8 @@ importers:
         specifier: ^0.5.2
         version: 0.5.2
       '@renmu/node-shazam':
-        specifier: ^2.0.3
-        version: 2.0.3
+        specifier: ^2.0.4
+        version: 2.0.4
       '@renmu/throttle':
         specifier: ^1.0.3
         version: 1.0.3
@@ -1800,8 +1800,8 @@ packages:
     resolution: {integrity: sha512-3uWOU0BaEbTcOP9ttRrfHSnsN0xWKJz5ljTMqQ/N0bnrhAjRytWiG601fKzLu9Mjjl/3GWwgXSnh8NTeqE2ovg==}
     engines: {node: '>=18'}
 
-  '@renmu/node-shazam@2.0.3':
-    resolution: {integrity: sha512-efkUu9kOdyZmPu0It7W44aWEspsb3XhSxVJCLxGUgtmGGEyuqqyPmlObJbJJzegDG4TLdyB5HxJmznGqMWqwdw==}
+  '@renmu/node-shazam@2.0.4':
+    resolution: {integrity: sha512-93vl9sx0SnFb5s5rzqFBHzf9STazGVWNIppFGA/W+aaWjpfdRVKtJkGAkUgx2zeaPYrKNPD8S82mz0g2wzK0Eg==}
 
   '@renmu/throttle@1.0.3':
     resolution: {integrity: sha512-6ArdPb+EJ3IXnvemzNDj8YIAJMgyU8NMCi3Ad4nL0Vr9R8TfAk4KvHHsu9tWbmOmgrbp3bCYYO7AAQRN0MRQuw==}
@@ -7334,7 +7334,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@renmu/node-shazam@2.0.3':
+  '@renmu/node-shazam@2.0.4':
     dependencies:
       buffer: 6.0.3
       shazamio-core: 1.3.1

@@ -1,4 +1,5 @@
 import { NCheckbox, NButton } from "naive-ui";
+export * from "./useBreakpoints";
 
 import type { BiliupPreset } from "@biliLive-tools/types";
 

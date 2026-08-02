@@ -1,5 +1,5 @@
 <template>
-  <n-form label-placement="left" :label-width="150">
+  <n-form label-placement="left" :label-width="labelWidth">
     <n-form-item>
       <template #label>
         <Tip text="自动保存" tip="在进行操作之后，自动保存项目文件"></Tip>
@@ -16,10 +16,15 @@
 </template>
 
 <script setup lang="ts">
+import { useBreakpoints } from "@renderer/hooks";
 import type { AppConfig } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},
+});
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "150px";
 });
 </script>
 
