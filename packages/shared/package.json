@@ -39,7 +39,7 @@
     "@renmu/bili-api": "2.14.0",
     "@renmu/fluent-ffmpeg": "2.3.3",
     "@renmu/m3u8-downloader": "^0.5.2",
-    "@renmu/node-shazam": "^2.0.3",
+    "@renmu/node-shazam": "^2.0.4",
     "@renmu/throttle": "^1.0.3",
     "ass-compiler": "^0.1.14",
     "atomically": "^2.1.1",

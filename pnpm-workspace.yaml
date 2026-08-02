@@ -47,3 +47,4 @@ minimumReleaseAgeExclude:
   - electron-builder-squirrel-windows
   - electron-builder
   - electron@42.5.0
+  - '@renmu/node-shazam@2.0.4'

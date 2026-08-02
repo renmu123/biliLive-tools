@@ -160,7 +160,7 @@
 
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
-import { useConfirm, useBreakpoints } from "@renderer/hooks";
+import { useConfirm } from "@renderer/hooks";
 import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
 import addModal from "./components/addModal.vue";
 import batchAddModal from "./components/batchAddModal.vue";
@@ -208,7 +208,6 @@ const columnConfig = [
   { value: "monitorStatus", label: "监听状态" },
   { value: "actions", label: "操作" },
 ];
-const { isMobile } = useBreakpoints();
 
 // 使用可见列 hook
 const { visibleColumns } = useVisibleColumns({
