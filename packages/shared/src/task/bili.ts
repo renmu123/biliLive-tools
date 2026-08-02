@@ -976,6 +976,9 @@ async function editVideoPartName(taskId: string, partName: string) {
   if (task.type !== "biliUpload") {
     throw new Error("不支持的任务类型");
   }
+  if (!task.command) {
+    throw new Error("任务已结束");
+  }
   task.command.title = partName;
   task.name = `上传视频：${partName}(${path.parse(task.command.filePath).base})`;
 }
