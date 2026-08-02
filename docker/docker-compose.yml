@@ -31,11 +31,9 @@ services:
       test:
         [
           "CMD-SHELL",
-          "test ! -f /tmp/bililive-tools-unhealthy && node -e \"fetch('http://127.0.0.1:18010/').then((res) => 
-process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+          "test ! -f /tmp/bililive-tools-unhealthy && node -e \"fetch('http://127.0.0.1:18010/').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))\"",
         ]
-       interval: 30s
-       timeout: 5s
-       start_period: 20s
-       retries: 3
-      
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
