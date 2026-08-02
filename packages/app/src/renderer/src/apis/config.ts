@@ -43,7 +43,7 @@ export const save = async <K extends keyof AppConfig>(data: AppConfig[K]): Promi
 };
 
 export const resetBin = async (type: "ffmpeg" | "ffprobe" | "danmakuFactory"): Promise<string> => {
-  const res = await request.post(`/config/resetBin`, { type });
+  const res = await request.post(`/config/reset-bin`, { type });
   return res.data;
 };
 

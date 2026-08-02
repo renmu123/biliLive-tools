@@ -210,7 +210,7 @@ const cut = async (
       upload: boolean;
       config: BiliupPreset["config"] | null;
       filePath: string;
-      uid: number;
+      uid: number | undefined;
     };
   },
 ) => {

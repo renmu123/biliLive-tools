@@ -1,6 +1,9 @@
 <template>
   <div class="container">
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px">
+    <div
+      style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px"
+      class="filter-container"
+    >
       <n-input
         v-model:value="params.name"
         placeholder="备注或房间号"
@@ -15,7 +18,7 @@
         clearable
       />
       <n-select
-        v-model:value="params.recordStatus"
+        v-model:value="params.status"
         :options="statusOptions"
         placeholder="录制状态"
         style="width: 140px"
@@ -228,7 +231,7 @@ const recorderLocalParams = useStorage(
 
 const params = ref<Parameters<typeof recoderApi.infoList>[0]>({
   platform: undefined,
-  recordStatus: undefined,
+  status: undefined,
   name: undefined,
   autoCheck: undefined,
   page: 1,
@@ -240,8 +243,16 @@ const statusOptions = ref([
     value: "recording",
   },
   {
-    label: "未录制",
-    value: "unrecorded",
+    label: "空闲中",
+    value: "idle",
+  },
+  {
+    label: "检查错误",
+    value: "check-error",
+  },
+  {
+    label: "标题被屏蔽",
+    value: "title-blocked",
   },
 ]);
 const recordOptions = ref([
@@ -802,6 +813,11 @@ const handleActionClick = (key?: string | number) => {
     &.section-danger {
       color: var(--color-danger-text);
     }
+  }
+}
+@media (max-width: 1024px) {
+  .filter-container {
+    flex-wrap: wrap;
   }
 }
 

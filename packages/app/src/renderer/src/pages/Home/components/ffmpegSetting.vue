@@ -1,5 +1,5 @@
 <template>
-  <n-form ref="formRef" label-width="130px" label-placement="left" label-align="right">
+  <n-form ref="formRef" :label-width="labelWidth" label-placement="left" label-align="right">
     <n-form-item>
       <template #label>
         <Tip text="预设"> 修改编码器时优先从预设中修改，不同的预设会有不同的默认参数 </Tip>
@@ -282,6 +282,7 @@
             label-align="right"
             :show-feedback="false"
             label-width="40px"
+            style="flex-wrap: wrap"
           >
             <n-form-item label="x轴">
               <n-input-number
@@ -463,7 +464,7 @@
 
 <script setup lang="ts">
 import { HelpCircleOutline } from "@vicons/ionicons5";
-import { useConfirm } from "@renderer/hooks";
+import { useConfirm, useBreakpoints } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 import { useFfmpegPreset, useAppConfig } from "@renderer/stores";
@@ -476,6 +477,10 @@ const notice = useNotification();
 const confirmDialog = useConfirm();
 const { ffmpegOptions: options } = storeToRefs(useFfmpegPreset());
 const { getPresetOptions } = useFfmpegPreset();
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "120px";
+});
 
 const emits = defineEmits<{
   (event: "change", value: FfmpegPreset): void;

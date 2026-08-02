@@ -413,6 +413,12 @@ const loadProject = async (filePath: string) => {
  * @param path 视频文件路径
  */
 const loadVideo = async (path: string) => {
+  if (!path?.endsWith(".mp4")) {
+    notice.warning({
+      title: "此功能仅针对mp4视频支持良好，请前往“转码”页面进行转封装",
+      duration: 5000,
+    });
+  }
   files.value.originVideoPath = path;
   destroyWaveform();
 

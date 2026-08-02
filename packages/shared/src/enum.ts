@@ -170,6 +170,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
   },
   task: {
+    maxNum: 300,
     ffmpegMaxNum: 3,
     douyuDownloadMaxNum: 2,
     biliUploadMaxNum: 2,
@@ -275,7 +276,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       {
         vendorId: "3d09badd-5402-4b80-9113-48c0739d51b9",
         modelId: "ca277547-fabd-462b-99d2-cf76f56002e6",
-        modelName: "qwen-plus",
+        modelName: "qwen3.7-plus",
         remark: "通用大模型",
         tags: ["llm"],
         config: {},
@@ -412,6 +413,17 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     xhs: {
       cookie: "",
+      checkInterval: undefined,
+      maxThreadCount: undefined,
+      waitTime: undefined,
+    },
+    tiktok: {
+      quality: "origin",
+      formatName: "auto",
+      codecName: "hevc",
+      cookie: "",
+      api: "auto",
+      proxy: "",
       checkInterval: undefined,
       maxThreadCount: undefined,
       waitTime: undefined,
@@ -870,6 +882,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   videoFormat: "auto",
   recorderType: "ffmpeg",
   cookie: "",
+  proxy: "",
   doubleScreen: true,
   useServerTimestamp: false,
   handleTime: [null, null],

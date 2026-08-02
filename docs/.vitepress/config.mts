@@ -1,7 +1,11 @@
 import { defineConfig } from "vitepress";
+import llmstxt from "vitepress-plugin-llms";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  vite: {
+    plugins: [llmstxt({ domain: "https://docs.irenmu.com" })],
+  },
   title: "biliLive-tools",
   description: "biliLive-tools,一站式直播录制与处理工具,xml弹幕处理,斗鱼,虎牙,B站,抖音,录播姬",
   lastUpdated: true,
@@ -56,6 +60,7 @@ export default defineConfig({
                 { text: "虎牙", link: "/features/recorder/huya" },
                 { text: "抖音", link: "/features/recorder/douyin" },
                 { text: "小红书", link: "/features/recorder/xhs" },
+                { text: "TikTok", link: "/features/recorder/tiktok" },
               ],
             },
             { text: "Webhook", link: "/features/webhook" },

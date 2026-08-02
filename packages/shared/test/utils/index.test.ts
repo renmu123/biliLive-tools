@@ -316,50 +316,42 @@ describe("isBetweenTimeRange", () => {
   });
 
   it("should return true when current time is within normal time range", () => {
-    // Mock current time to 14:00:00 (2 PM)
-    const mockDate = new Date();
-    mockDate.setHours(14, 0, 0, 0);
-    vi.spyOn(global, "Date").mockImplementation(() => mockDate);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2022, 0, 1, 14, 0, 0));
 
     const result = isBetweenTimeRange(["10:00:00", "18:00:00"]);
     expect(result).toBe(true);
 
-    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it("should return false when current time is outside normal time range", () => {
-    // Mock current time to 20:00:00 (8 PM)
-    const mockDate = new Date();
-    mockDate.setHours(20, 0, 0, 0);
-    vi.spyOn(global, "Date").mockImplementation(() => mockDate);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2022, 0, 1, 20, 0, 0));
 
     const result = isBetweenTimeRange(["10:00:00", "18:00:00"]);
     expect(result).toBe(false);
 
-    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it("should return true when current time is within overnight time range", () => {
-    // Mock current time to 02:00:00 (2 AM)
-    const mockDate = new Date();
-    mockDate.setHours(2, 0, 0, 0);
-    vi.spyOn(global, "Date").mockImplementation(() => mockDate);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2022, 0, 1, 2, 0, 0));
 
     const result = isBetweenTimeRange(["22:00:00", "06:00:00"]);
     expect(result).toBe(true);
 
-    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it("should return false when current time is outside overnight time range", () => {
-    // Mock current time to 10:00:00 (10 AM)
-    const mockDate = new Date();
-    mockDate.setHours(10, 0, 0, 0);
-    vi.spyOn(global, "Date").mockImplementation(() => mockDate);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2022, 0, 1, 10, 0, 0));
 
     const result = isBetweenTimeRange(["22:00:00", "06:00:00"]);
     expect(result).toBe(false);
 
-    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 });

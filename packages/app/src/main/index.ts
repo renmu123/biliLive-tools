@@ -222,7 +222,11 @@ function createWindow(): void {
     } else {
       // 用来静默启动
       const isHidden = process.argv.includes("--hidden");
-      if (!isHidden) mainWindow.show();
+      if (isHidden) {
+        mainWin.setSkipTaskbar(true);
+      } else {
+        mainWindow.show();
+      }
     }
   });
 
@@ -365,6 +369,7 @@ function createWindow(): void {
     {
       label: "显示",
       click: () => {
+        mainWin.setSkipTaskbar(false);
         mainWin.show();
       },
     },

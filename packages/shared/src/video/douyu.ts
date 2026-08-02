@@ -167,4 +167,19 @@ const downloadDanmu = async (
   return output;
 };
 
-export default { download, parseVideo, getAvailableStreams, downloadDanmu };
+export async function getReplayList(
+  subId: string,
+  opts: {
+    page?: number;
+    limit?: number;
+  },
+) {
+  const replayList = await video.getReplayList({
+    up_id: subId,
+    page: opts.page ?? 1,
+    limit: opts.limit ?? 20,
+  });
+  return replayList;
+}
+
+export default { download, parseVideo, getAvailableStreams, downloadDanmu, getReplayList };

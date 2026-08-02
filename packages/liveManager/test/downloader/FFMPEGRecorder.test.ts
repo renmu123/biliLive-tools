@@ -63,7 +63,9 @@ describe("FFmpegDownloader", () => {
 
     // Setup mocks
     vi.mocked(createFFMPEGBuilder).mockReturnValue(mockFFMPEGBuilder);
-    vi.mocked(StreamManager).mockReturnValue(mockStreamManager);
+    vi.mocked(StreamManager).mockImplementation(function () {
+      return mockStreamManager;
+    });
     vi.mocked(utils.createTimeoutChecker).mockReturnValue(mockTimeoutChecker);
   });
 

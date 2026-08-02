@@ -625,7 +625,7 @@ const navigateToQueue = () => {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 628px) {
   .dashboard-container {
     padding: 16px;
   }

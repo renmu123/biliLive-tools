@@ -97,7 +97,6 @@ class DanmaClient extends EventEmitter {
     const buvid3 = info.data.b_3;
     const handler: MsgHandler = {
       onOpen: () => {
-        this.retryCount = this.maxRetryCount;
         this.emit("open");
       },
       onClose: () => {

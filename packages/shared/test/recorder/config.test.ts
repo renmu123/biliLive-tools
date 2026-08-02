@@ -7,6 +7,7 @@ import { provider as providerForHuYa } from "@bililive-tools/huya-recorder";
 import { provider as providerForBiliBili } from "@bililive-tools/bilibili-recorder";
 import { provider as providerForDouYin } from "@bililive-tools/douyin-recorder";
 import { provider as providerForXHS } from "@bililive-tools/xhs-recorder";
+import { provider as providerForTikTok } from "@bililive-tools/tiktok-recorder";
 
 // 模拟 getCookie 函数
 vi.mock("../../src/task/bili.js", () => ({
@@ -48,10 +49,11 @@ const allProviderIds = [
   providerForDouYin.id,
   providerForHuYa.id,
   providerForXHS.id,
+  providerForTikTok.id,
 ];
 
-const providerIdsWithoutXHS = allProviderIds.filter(
-  (providerId) => providerId !== providerForXHS.id,
+const providerIdsWithDanma = allProviderIds.filter(
+  (providerId) => providerId !== providerForXHS.id && providerId !== providerForTikTok.id,
 );
 
 const buildRecorders = (
@@ -138,7 +140,7 @@ const globalFollowCases = [
     key: "disableProvideCommentsWhenRecording",
     globalValue: false,
     localValue: true,
-    providerIds: providerIdsWithoutXHS,
+    providerIds: providerIdsWithDanma,
   },
 ] as const;
 
@@ -283,6 +285,41 @@ describe("RecorderConfig", () => {
           const result = recorderConfig.get(id);
           expect(result?.codecName).toBe("hevc");
         }
+      });
+    });
+    describe("TikTok 代理：proxy", () => {
+      it("支持跟随全局配置和单独覆盖", () => {
+        mockAppConfig.get.mockImplementation((key: string) => {
+          if (key === "recorder") {
+            return {
+              tiktok: {
+                proxy: "http://127.0.0.1:7890",
+              },
+            };
+          }
+          if (key === "recorders") {
+            return [
+              {
+                id: "global",
+                providerId: "TikTok",
+                channelId: "global",
+                noGlobalFollowFields: [],
+                proxy: "http://127.0.0.1:8899",
+              },
+              {
+                id: "local",
+                providerId: "TikTok",
+                channelId: "local",
+                noGlobalFollowFields: ["proxy"],
+                proxy: "http://127.0.0.1:8899",
+              },
+            ];
+          }
+          return null;
+        });
+
+        expect(recorderConfig.get("global")?.proxy).toBe("http://127.0.0.1:7890");
+        expect(recorderConfig.get("local")?.proxy).toBe("http://127.0.0.1:8899");
       });
     });
     // 转封装为MP4,convert2Mp4

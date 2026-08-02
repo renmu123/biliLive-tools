@@ -7,6 +7,13 @@ import type { VideoFileCompletedPayload } from "./streamManager.js";
 
 export type Segment = number | string | undefined;
 
+export interface VideoFileCreatedPayload {
+  filename: string;
+  cover?: string;
+  rawFilename?: string;
+  title?: string;
+}
+
 /**
  * 录制器构造函数选项的基础接口
  */
@@ -50,24 +57,13 @@ export interface IDownloader extends EventEmitter {
   get videoFilePath(): string;
 
   // 事件类型定义
-  on(
-    event: "videoFileCreated",
-    listener: (data: {
-      filename: string;
-      cover?: string;
-      rawFilename?: string;
-      title?: string;
-    }) => void,
-  ): this;
+  on(event: "videoFileCreated", listener: (data: VideoFileCreatedPayload) => void): this;
   on(event: "videoFileCompleted", listener: (data: VideoFileCompletedPayload) => void): this;
   on(event: "DebugLog", listener: (data: { type: string; text: string }) => void): this;
   on(event: "progress", listener: (info: any) => void): this;
   on(event: string, listener: (...args: any[]) => void): this;
 
-  emit(
-    event: "videoFileCreated",
-    data: { filename: string; cover?: string; rawFilename?: string; title?: string },
-  ): boolean;
+  emit(event: "videoFileCreated", data: VideoFileCreatedPayload): boolean;
   emit(event: "videoFileCompleted", data: VideoFileCompletedPayload): boolean;
   emit(event: "DebugLog", data: { type: string; text: string }): boolean;
   emit(event: "progress", info: any): boolean;

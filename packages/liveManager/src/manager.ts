@@ -27,6 +27,7 @@ import {
   downloadImage,
   isBetweenTimeRange,
   sleep,
+  replaceFourByteUnicode,
 } from "./utils.js";
 import { StreamManager } from "./downloader/streamManager.js";
 
@@ -37,6 +38,11 @@ export interface ProviderCheckConfig {
   maxThreadCount?: number;
   /** 每次检查之间的等待时间（毫秒） */
   waitTime?: number;
+}
+
+export interface ResolveChannelOptions {
+  /** 解析频道信息时使用的网络代理 */
+  proxy?: string;
 }
 
 export interface RecorderProvider<E extends AnyObject> {
@@ -52,6 +58,7 @@ export interface RecorderProvider<E extends AnyObject> {
   resolveChannelInfoFromURL: (
     this: RecorderProvider<E>,
     channelURL: string,
+    options?: ResolveChannelOptions,
   ) => Promise<{
     id: ChannelId;
     title: string;
@@ -706,6 +713,7 @@ export function genSavePathFromRule<
     title: title,
     remarks: remarks,
     channelId,
+    replaceFourByteUnicode,
   };
 
   let savePathRule = manager.savePathRule;

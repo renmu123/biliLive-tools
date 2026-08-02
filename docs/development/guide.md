@@ -70,8 +70,8 @@ pnpm run install:bin
 - **DanmukuFactory**：[v2.1.2](https://github.com/renmu123/DanmakuFactory)
 - **FFmpeg**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
 - **FFprobe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
-- **录播姬cli**：[3.3.3](https://github.com/renmu123/BililiveRecorder)
-- **mesio**：[0.4.1](https://github.com/hua0512/rust-srec/releases/tag/mesio-v0.4.1)
+- **录播姬cli**：[3.4.0](https://github.com/renmu123/BililiveRecorder)
+- **mesio**：[0.5.0](https://github.com/hua0512/rust-srec/releases/tag/mesio-v0.5.0)
 - **audiowaveform**：[1.10.2](https://github.com/bbc/audiowaveform)
 
 同时需要在应用设置中配置可执行文件路径。
@@ -94,6 +94,7 @@ biliLive-tools/
 │   ├── BilibiliRecorder/ # B站录制
 │   ├── DouYinRecorder/   # 抖音录制
 │   ├── DouYuRecorder/    # 斗鱼录制
+│   ├── TikTokRecorder/   # TikTok录制
 │   ├── HuYaRecorder/     # 虎牙录制
 │   ├── liveManager/      # 直播管理
 │   └── ...

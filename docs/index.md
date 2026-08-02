@@ -23,7 +23,7 @@ hero:
 features:
   - icon: 📹
     title: 多平台录制
-    details: 支持B站、斗鱼、虎牙、抖音平台直播录制，支持弹幕，ffmpeg、mesio、录播姬多种引擎
+    details: 支持B站、斗鱼、虎牙、抖音、小红书、TikTok直播录制，以及ffmpeg、mesio、录播姬多种引擎
   - icon: 🔄
     title: Webhook支持
     details: 支持录播姬、blrec、DDTV、oneliverec等录播工具的webhook集成，支持自动化上传到B站

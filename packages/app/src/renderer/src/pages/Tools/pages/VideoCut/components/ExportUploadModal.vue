@@ -179,7 +179,7 @@ const confirmExportAndUpload = async () => {
   //   });
   //   return;
   // }
-  if (!userInfo.value.uid) {
+  if (exportOptions.uploadPresetId && !userInfo.value.uid) {
     notice.error({
       title: "请点击左侧头像处先进行登录",
       duration: 1000,

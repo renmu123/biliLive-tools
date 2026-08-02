@@ -1,7 +1,7 @@
 <template>
   <n-modal v-model:show="roomDetailVisible" :mask-closable="false">
     <n-card :bordered="false" size="small" role="dialog" aria-modal="true" style="width: 800px">
-      <n-form label-placement="left" :label-width="130">
+      <n-form label-placement="left" :label-width="labelWidth">
         <n-form-item v-if="props.type === 'add'" label="房间号">
           <n-input v-model:value="data.id" placeholder="请输入房间号" />
         </n-form-item>
@@ -50,7 +50,7 @@
   </n-modal>
   <n-modal v-model:show="copyVisible" :mask-closable="false">
     <n-card :bordered="false" size="small" role="dialog" aria-modal="true" style="width: 400px">
-      <n-form label-placement="left" label-width="auto">
+      <n-form label-placement="left" :label-width="copyLabelWidth">
         <n-form-item label="房间号">
           <n-input v-model:value="copyData.id" placeholder="请输入房间号" />
         </n-form-item>
@@ -77,7 +77,7 @@
 
 <script setup lang="ts">
 import CommonSetting from "./CommonWebhookSetting.vue";
-import { useConfirm } from "@renderer/hooks";
+import { useBreakpoints, useConfirm } from "@renderer/hooks";
 import { cloneDeep } from "lodash-es";
 
 import type { AppRoomConfig, SyncType } from "@biliLive-tools/types";
@@ -113,6 +113,13 @@ const globalFieldsObj = defineModel<{
 }>("globalFieldsObj", {
   type: Object,
   default: () => {},
+});
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "130px";
+});
+const copyLabelWidth = computed(() => {
+  return isMobile.value ? "90px" : "auto";
 });
 const confirm = useConfirm();
 

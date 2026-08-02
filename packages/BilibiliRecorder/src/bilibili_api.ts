@@ -221,8 +221,8 @@ export async function getRoomPlayInfo(
       qn: opts.qn,
       // 0 http_stream, 1 http_hls
       protocol: "0,1",
-      // 0 avc, 1 hevc
-      codec: "0,1",
+      // 0 avc, 1 hevc，2 av1
+      codec: "0,1,2",
       // 0 flv, 1 ts, 2 fmp4
       format: "0,1,2",
       only_audio: opts.onlyAudio ? "1" : "0",

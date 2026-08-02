@@ -1,3 +1,4 @@
+// @ts-nocheck
 import safeEval from "safe-eval";
 import type { HttpClient } from "../http.js";
 import { ParseError, NetworkError } from "../errors.js";

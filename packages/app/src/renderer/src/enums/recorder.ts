@@ -226,6 +226,33 @@ export const douyinQualityOptions = [
   },
 ];
 
+export const tiktokQualityOptions = [
+  {
+    value: "origin",
+    label: "原画",
+  },
+  {
+    value: "uhd",
+    label: "蓝光",
+  },
+  {
+    value: "hd",
+    label: "超清",
+  },
+  {
+    value: "sd",
+    label: "高清",
+  },
+  {
+    value: "ld",
+    label: "标清",
+  },
+  {
+    value: "ao",
+    label: "音频流",
+  },
+];
+
 // b站流格式
 export const biliStreamFormatOptions = [
   {
@@ -259,7 +286,7 @@ export const biliStreamFormatOptions = [
 ];
 
 // b站流编码
-export const streamCodecOptions = [
+export const biliStreamCodecOptions = [
   {
     value: "auto",
     label: "自动",
@@ -273,12 +300,20 @@ export const streamCodecOptions = [
     value: "hevc",
   },
   {
+    label: "优先av1",
+    value: "av1",
+  },
+  {
     label: "强制avc",
     value: "avc_only",
   },
   {
     label: "强制hevc",
     value: "hevc_only",
+  },
+  {
+    label: "强制av1",
+    value: "av1_only",
   },
 ];
 
@@ -402,6 +437,12 @@ export const douyuApiTypeOptions = [
   { label: "自动", value: "auto" },
   { label: "新接口", value: "newAPI" },
   { label: "旧接口", value: "oldAPI" },
+];
+
+export const tiktokApiTypeOptions = [
+  { label: "自动", value: "auto" },
+  { label: "App 接口", value: "app" },
+  { label: "网页解析", value: "web" },
 ];
 
 const qualityRetry = {

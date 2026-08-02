@@ -73,6 +73,7 @@ export const recorderNoGlobalFollowFields: Array<
   "videoFormat",
   "recorderType",
   "cookie",
+  "proxy",
   "doubleScreen",
   "useServerTimestamp",
 ];
@@ -431,6 +432,15 @@ interface XhsRecorderConfig extends RecorderCheckConfig {
   cookie: string;
 }
 
+interface TikTokRecorderConfig extends RecorderCheckConfig {
+  quality: "origin" | "uhd" | "hd" | "sd" | "ld" | "ao" | "real_origin";
+  cookie: string;
+  formatName: FormatName;
+  codecName: CodecName;
+  api: "auto" | "app" | "web";
+  proxy: string;
+}
+
 // 录制全局配置
 export interface GlobalRecorder {
   /** 保存根目录 */
@@ -489,10 +499,12 @@ export interface GlobalRecorder {
   douyin: DouyinRecorderConfig;
   /** 小红书特有的配置 */
   xhs: XhsRecorderConfig;
+  /** TikTok 特有的配置 */
+  tiktok: TikTokRecorderConfig;
 }
 
 export interface Recorder {
-  providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin" | "XHS";
+  providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin" | "XHS" | "TikTok";
   id: string;
   channelId: string;
   remarks?: string;
@@ -560,8 +572,10 @@ export interface Recorder {
   liveEndNotification?: boolean;
   /** 权重 */
   weight: number;
-  /** 抖音cookie */
+  /** 抖音、TikTok cookie */
   cookie?: string;
+  /** 请求和录制使用的代理 */
+  proxy?: string;
   /** 是否使用双屏直播流 */
   doubleScreen?: boolean;
   /** 流格式优先级 */
@@ -572,8 +586,12 @@ export interface Recorder {
   handleTime: [string | null, string | null];
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
-  /** API类型，仅抖音 */
-  api: HuyaRecorderConfig["api"] | DouyinRecorderConfig["api"] | DouyuRecorderConfig["api"];
+  /** 平台请求接口 */
+  api:
+    | HuyaRecorderConfig["api"]
+    | DouyinRecorderConfig["api"]
+    | DouyuRecorderConfig["api"]
+    | TikTokRecorderConfig["api"];
   /** 自定义host */
   customHost?: string;
   // 不跟随全局配置字段
@@ -787,6 +805,7 @@ export interface AppConfig {
   };
   /** 最大任务数 */
   task: {
+    maxNum: number;
     ffmpegMaxNum: number;
     douyuDownloadMaxNum: number;
     biliUploadMaxNum: number;

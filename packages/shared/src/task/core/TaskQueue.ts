@@ -96,6 +96,13 @@ export class TaskQueue {
     //   this.emitter.emit("task-removed-queue", { taskId });
     // });
 
+    const maxNum = this.appConfig.getAll()?.task?.maxNum ?? 300;
+    while (this.queue.length >= maxNum) {
+      const oldestCompletedTask = this.queue.find(({ status }) => status === "completed");
+      if (!oldestCompletedTask) break;
+      this.remove(oldestCompletedTask.taskId);
+    }
+
     this.queue.push(task);
 
     if (autoRun) {
@@ -182,7 +189,7 @@ export class TaskQueue {
   /**
    * 暂停任务
    */
-  pasue(taskId: string): void {
+  pause(taskId: string): void {
     const task = this.queryTask(taskId);
     if (!task) return;
     task.pause();

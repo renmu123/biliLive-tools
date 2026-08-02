@@ -1,4 +1,4 @@
-import { cloneDeep, isArray } from "lodash-es";
+import { cloneDeep } from "lodash-es";
 import { v4 as uuid } from "uuid";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
@@ -212,14 +212,7 @@ export const useQueueStore = defineStore("queue", () => {
 
   const getQuenu = async () => {
     const res = await taskApi.list(params.value);
-    // 为了web的兼容性考虑
-    if (isArray(res)) {
-      // @ts-expect-error
-      queue.value = res.reverse();
-    } else {
-      queue.value = res.list.reverse();
-      // runningTaskNum.value = res.runningTaskNum;
-    }
+    queue.value = res.list.reverse();
   };
   const setRunningTaskNum = (num: number) => {
     runningTaskNum.value = num;
