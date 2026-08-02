@@ -1,21 +1,23 @@
-# Next
+# 3.19.0(2026.08.02)
+
+## 功能
+
+- 录制：支持tiktok平台
 
 ## 优化
 
-- 修复B站上传以及任务中存在的内存泄漏问题
-- 任务队列增加上限参数，默认值300
 - 录制：B站录制支持av1选项 [#513](https://github.com/renmu123/biliLive-tools/issues/513)
 - 上传：B站上传支持显示文件大小 [#510](https://github.com/renmu123/biliLive-tools/pull/510)
 - 录制：抖音web不支持直播类型使用`mobile`优先而非`用户html解析`
 - UI：小屏幕兼容 [#517](https://github.com/renmu123/biliLive-tools/pull/517)
-- 优化上传以及任务队列中可能存在的内存泄漏 [#518](https://github.com/renmu123/biliLive-tools/pull/518)
+- 优化B站上传以及任务队列中可能存在的内存泄漏 [#518](https://github.com/renmu123/biliLive-tools/pull/518)
 - 任务队列增加大小限制，超过限制会移除已完成的任务，默认值为300 [#518](https://github.com/renmu123/biliLive-tools/pull/518)
 
 ## 其他
 
 - mesio二进制依赖升级到 0.5.0
 
-# 3.18.0
+# 3.18.0(2026.07.18)
 
 ## 优化
 
