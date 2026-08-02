@@ -787,6 +787,7 @@ export interface AppConfig {
   };
   /** 最大任务数 */
   task: {
+    maxNum: number;
     ffmpegMaxNum: number;
     douyuDownloadMaxNum: number;
     biliUploadMaxNum: number;

@@ -497,6 +497,7 @@ const labelWidth2 = computed(() => {
 // @ts-ignore
 const config: Ref<AppConfig> = ref({
   task: {
+    maxNum: 300,
     ffmpegMaxNum: 3,
     douyuDownloadMaxNum: -1,
     biliUploadMaxNum: -1,
