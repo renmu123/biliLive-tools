@@ -674,7 +674,7 @@
             </template>
             <n-select
               v-model:value="config.recorder.tiktok.codecName"
-              :options="streamCodecOptions"
+              :options="biliStreamCodecOptions"
             />
           </n-form-item>
           <!-- <n-form-item>

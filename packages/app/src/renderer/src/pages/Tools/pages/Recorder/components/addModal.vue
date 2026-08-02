@@ -537,7 +537,7 @@
               </template>
               <n-select
                 v-model:value="config.codecName"
-                :options="streamCodecOptions"
+                :options="biliStreamCodecOptions"
                 :disabled="globalFieldsObj.codecName"
               />
               <n-checkbox v-model:checked="globalFieldsObj.codecName" class="global-checkbox"
