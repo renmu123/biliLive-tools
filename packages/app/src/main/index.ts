@@ -61,6 +61,9 @@ contextMenu({
   showSearchWithGoogle: false,
   showSaveImageAs: false,
 });
+if (process.argv.includes("--disable-gpu")) {
+  app.disableHardwareAcceleration();
+}
 
 const WindowState = new Store<{
   winBounds: {

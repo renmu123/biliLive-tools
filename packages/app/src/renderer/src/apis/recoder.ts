@@ -1,5 +1,4 @@
 import request from "./request";
-import configApi from "./config";
 
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { Recorder } from "@biliLive-tools/types";

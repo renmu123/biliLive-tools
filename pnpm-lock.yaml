@@ -324,10 +324,10 @@ importers:
     dependencies:
       '@electron-toolkit/preload':
         specifier: ^3.0.1
-        version: 3.0.1(electron@41.10.1)
+        version: 3.0.1(electron@41.10.3)
       '@electron-toolkit/utils':
         specifier: ^4.0.0
-        version: 4.0.0(electron@41.10.1)
+        version: 4.0.0(electron@41.10.3)
       '@imengyu/vue3-context-menu':
         specifier: ^1.5.2
         version: 1.5.2
@@ -456,8 +456,8 @@ importers:
         specifier: ^1.3.1
         version: 1.3.1
       electron:
-        specifier: 41.10.1
-        version: 41.10.1
+        specifier: 41.10.3
+        version: 41.10.3
       electron-builder:
         specifier: ^26.15.5
         version: 26.15.5(electron-builder-squirrel-windows@26.15.5)
@@ -3454,8 +3454,8 @@ packages:
     resolution: {integrity: sha512-bO3y10YikuUwUuDUQRM4KfwNkKhnpVO7IPdbsrejwN9/AABJzzTQ4GeHwyzNSrVO+tEH3/Np255a3sVZpZDjvg==}
     engines: {node: '>=8.0.0'}
 
-  electron@41.10.1:
-    resolution: {integrity: sha512-8BGbTyMWNCXZ2nErXqchO31CJsHlzD5joOiWbNerBi1EnGLXkiMEF3yUUN+T16duz3XYwLTcxOq38MMcWf0sQA==}
+  electron@41.10.3:
+    resolution: {integrity: sha512-MJuSODPw8siv/I8JjhctW/cS/XNldwI4gLRyyWZx6QkoZJUDgbEvitp7IVOnGrHENTQb6Udo+zMpKhFnhlIhdg==}
     engines: {node: '>= 22.12.0'}
     hasBin: true
 
@@ -6718,17 +6718,17 @@ snapshots:
     dependencies:
       eslint: 8.57.1
 
-  '@electron-toolkit/preload@3.0.1(electron@41.10.1)':
+  '@electron-toolkit/preload@3.0.1(electron@41.10.3)':
     dependencies:
-      electron: 41.10.1
+      electron: 41.10.3
 
   '@electron-toolkit/tsconfig@1.0.1(@types/node@24.7.2)':
     dependencies:
       '@types/node': 24.7.2
 
-  '@electron-toolkit/utils@4.0.0(electron@41.10.1)':
+  '@electron-toolkit/utils@4.0.0(electron@41.10.3)':
     dependencies:
-      electron: 41.10.1
+      electron: 41.10.3
 
   '@electron/asar@3.4.1':
     dependencies:
@@ -6762,7 +6762,7 @@ snapshots:
       env-paths: 3.0.0
       graceful-fs: 4.2.11
       progress: 2.0.3
-      semver: 7.7.4
+      semver: 7.8.5
       sumchecker: 3.0.1
     optionalDependencies:
       undici: 7.28.0
@@ -9232,7 +9232,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron@41.10.1:
+  electron@41.10.3:
     dependencies:
       '@electron-internal/extract-zip': 1.0.3
       '@electron/get': 5.0.0
