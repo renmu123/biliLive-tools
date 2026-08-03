@@ -60,7 +60,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       };
     },
 
-    async getStream() {
+    async getStream(opts: { formatPriorities?: Array<"flv" | "hls"> } = {}) {
       const result = await getStream({
         channelId: this.channelId,
         quality: this.quality,
@@ -68,7 +68,8 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         auth: this.auth,
         proxy: this.proxy,
         codecName: this.codecName,
-        formatPriorities: this.formatPriorities,
+        formatPriorities: opts.formatPriorities ?? this.formatPriorities,
+        strictQuality: false,
       });
       return result.currentStream;
     },

@@ -18,6 +18,7 @@ import type {
   RecorderProvider,
   RecordHandle,
   VideoFileCreatedPayload,
+  FormatName,
 } from "@bililive-tools/manager";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
@@ -60,12 +61,16 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         ...info,
       };
     },
-    async getStream() {
+    async getStream(opts: { formatName?: FormatName } = {}) {
       const res = await getStream({
         channelId: this.channelId,
         quality: this.quality,
-        formatName: this.formatName,
+        formatName: opts.formatName || this.formatName,
         codecName: this.codecName,
+        cookie: this.auth,
+        strictQuality: false,
+        onlyAudio: this.onlyAudio,
+        customHost: this.customHost,
       });
       return res.currentStream;
     },

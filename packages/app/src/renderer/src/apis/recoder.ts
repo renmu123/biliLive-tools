@@ -1,4 +1,5 @@
 import request from "./request";
+import configApi from "./config";
 
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { Recorder } from "@biliLive-tools/types";
@@ -18,6 +19,16 @@ const infoList = async (
  */
 const get = async (id: string): Promise<Recorder> => {
   const res = await request.get(`/recorder/${id}`);
+  return res.data.payload;
+};
+
+/** 获取供播放器使用的直播流地址。 */
+const getStreamUrl = async (
+  id: string,
+): Promise<{
+  url: string;
+}> => {
+  const res = await request.post(`/recorder/${id}/stream`);
   return res.data.payload;
 };
 
@@ -125,6 +136,7 @@ const queryStreamerDetail = async (
 const recoder = {
   infoList,
   get,
+  getStreamUrl,
   add,
   remove,
   update,
