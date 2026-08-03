@@ -168,6 +168,12 @@ const router = createRouter({
           component: () => import("../pages/VideoPlayer/index.vue"),
           meta: { keepAlive: false, title: "视频播放器" },
         },
+        {
+          path: "/liveVideoPlayer",
+          name: "LiveVideoPlayer",
+          component: () => import("../pages/LiveVideoPlayer/Index.vue"),
+          meta: { keepAlive: false, title: "直播视频播放器" },
+        },
       ],
     },
   ],

@@ -7,8 +7,8 @@ import type { NamespacedCache } from "./cache.js";
 import type { DownloaderType } from "./downloader/index.js";
 import type { XmlStreamStats } from "./xml_stream_controller.js";
 
-type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
-type CodecName = "auto" | "avc" | "hevc" | "av1" | "avc_only" | "hevc_only" | "av1_only";
+export type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
+export type CodecName = "auto" | "avc" | "hevc" | "av1" | "avc_only" | "hevc_only" | "av1_only";
 
 export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   providerId: RecorderProvider<E>["id"];
@@ -255,7 +255,10 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     liveStartTime: Date;
     area: string;
   }>;
-  getStream: (this: Recorder<E>) => Promise<{
+  getStream: (
+    this: Recorder<E>,
+    opts?: { formatName?: FormatName; formatPriorities?: Array<"flv" | "hls"> },
+  ) => Promise<{
     source: string;
     name: string;
     url: string;

@@ -263,7 +263,7 @@ ${tsFile}
   });
 });
 
-const switchUrl = async (url: string, type: "" | "flv" = "") => {
+const switchUrl = async (url: string, type: "" | "flv" | "m3u8" = "") => {
   if (instance) {
     instance.type = type;
     instance?.switchUrl(url);

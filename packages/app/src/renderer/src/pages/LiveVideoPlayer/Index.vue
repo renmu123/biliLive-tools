@@ -1,42 +1,41 @@
 <template>
-  <n-modal v-model:show="showModal">
-    <n-card style="width: 80%" :bordered="false" role="dialog" aria-modal="true">
-      <Artplayer
-        ref="videoRef"
-        style="aspect-ratio: 16 / 9"
-        :option="{
-          fullscreen: true,
-          url: props.videoUrl,
-        }"
-        is-live
-        :plugins="['danmuku', 'hls']"
-        @ready="handleVideoReady"
-      ></Artplayer>
-    </n-card>
-  </n-modal>
+  <Artplayer
+    ref="videoRef"
+    style="aspect-ratio: 16 / 9"
+    :option="{
+      fullscreen: true,
+      url: query.url,
+    }"
+    is-live
+    :plugins="['danmuku', 'hls']"
+    @ready="handleVideoReady"
+  ></Artplayer>
 </template>
 
 <script setup lang="ts">
+import { useRoute } from "vue-router";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
-
+import { useTitle } from "@vueuse/core";
 import { getDanmaStream } from "@renderer/apis/common";
+
 import type ArtplayerType from "artplayer";
 
 interface Props {
   id: string;
-  videoUrl: string;
+  url: string;
+  owner: string;
 }
 
-const showModal = defineModel<boolean>("visible", { required: true, default: false });
-const props = defineProps<Props>();
-
+const route = useRoute() as unknown as { query: Props };
+const query = route.query;
+useTitle(`${query.owner} 直播中`);
 // const logs = ref("");
 
 let eventSource: EventSource | null = null;
 // const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 
 async function streamLogs() {
-  eventSource = await getDanmaStream(props.id);
+  eventSource = await getDanmaStream(query.id);
 
   eventSource.onmessage = function (event) {
     const data = JSON.parse(event.data);
@@ -64,22 +63,16 @@ async function streamLogs() {
 
   // eventSource.onerror = function () {};
 }
-watch(
-  () => showModal.value,
-  (value) => {
-    if (value) {
-      streamLogs();
-    } else {
-      eventSource?.close();
-    }
-  },
-);
+
+onMounted(() => {
+  streamLogs();
+});
 
 const videoInstance = ref<ArtplayerType | null>(null);
 const handleVideoReady = async (instance: ArtplayerType) => {
   // console.log("video ready", instance);
   videoInstance.value = instance;
-  if (props.videoUrl) {
+  if (query.url) {
     // videoRef.value?.switchUrl(props.videoUrl, props.videoUrl.endsWith(".flv") ? "flv" : "");
     // instance.play();
   }

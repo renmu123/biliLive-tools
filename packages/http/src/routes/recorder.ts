@@ -306,6 +306,21 @@ router.get("/:id", (ctx) => {
   ctx.body = { payload: recorderService.getRecorder({ id }) };
 });
 
+/**
+ * 获取直播播放列表
+ * @route GET /recorder/:recorderId/stream
+ * @param recorderId 录制器 ID
+ * @returns 重写分片地址后的 HLS 播放列表
+ */
+router.post("/:id/stream", async (ctx) => {
+  const { id } = ctx.params;
+  const data = await recorderService.getStreamUrl(id);
+
+  ctx.body = {
+    payload: data,
+  };
+});
+
 router.put("/:id", (ctx) => {
   const { id } = ctx.params;
   const patch = pick(

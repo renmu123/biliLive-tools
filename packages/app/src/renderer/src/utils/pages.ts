@@ -1,6 +1,5 @@
 import router from "@renderer/routers";
-import { commonApi } from "@renderer/apis";
-import { recordHistoryApi } from "@renderer/apis";
+import { recordHistoryApi, recoderApi, commonApi } from "@renderer/apis";
 
 export async function toVideoPlayerPage(opts: {
   videoFilePath: string;
@@ -70,5 +69,29 @@ export async function toVideoPlayerPage(opts: {
     }
   } else {
     throw new Error("无法播放");
+  }
+}
+
+export async function toLiveVideoPlayerPage(opts: { liveId: string; owner: string }) {
+  const data = await recoderApi.getStreamUrl(opts.liveId);
+  const query: Record<string, string> = {
+    liveId: opts.liveId,
+    url: data.url,
+    owner: opts.owner,
+  };
+
+  if (window.isWeb) {
+    const url = router.resolve({
+      name: "LiveVideoPlayer",
+      query,
+    }).href;
+    window.open(url, "_blank");
+  } else {
+    window.api.common.createSubWindow({
+      routeName: "liveVideoPlayer",
+      hideAside: true,
+      hideMenuBar: true,
+      query,
+    });
   }
 }

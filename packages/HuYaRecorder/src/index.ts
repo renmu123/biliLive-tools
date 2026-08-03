@@ -64,6 +64,9 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         quality: this.quality,
         streamPriorities: this.streamPriorities,
         sourcePriorities: this.sourcePriorities,
+        api: this.api as "auto" | "web" | "mp" | "wup", //"wup"
+        strictQuality: false,
+        formatPriorities: this.formatPriorities,
       });
       return res.currentStream;
     },

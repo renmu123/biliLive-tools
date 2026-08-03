@@ -68,6 +68,7 @@ import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
 import ColumnSelector from "@renderer/components/ColumnSelector.vue";
 import { toVideoPlayerPage } from "@renderer/utils/pages";
 import { formatTime, formatDuration } from "@renderer/utils";
+import { useTitle } from "@vueuse/core";
 
 import type { VNode } from "vue";
 import type { QueryRecordsParams } from "../../apis/recordHistory";
@@ -119,13 +120,14 @@ defineOptions({
   name: "LiveHistory",
 });
 const route = useRoute();
-
+const pageTitle = useTitle();
 // 主播信息
 const streamerInfo = reactive<StreamerInfo>({
   platform: (route.query.platform as string) || "",
   room_id: (route.query.channelId as string) || "",
   name: (route.query.name as string) || "",
 });
+pageTitle.value = `${streamerInfo.name} 录制历史`;
 
 // 查询参数
 const queryParams = reactive<QueryParams>({
@@ -363,6 +365,7 @@ const handleQuery = async (): Promise<void> => {
     // 如果有数据，可以从第一条记录获取主播名称
     if (result.data && result.data.length > 0 && result.data[0].streamer_name) {
       streamerInfo.name = result.data[0].streamer_name;
+      pageTitle.value = `${streamerInfo.name} 录制历史`;
     }
   } catch (error) {
     console.error("查询直播记录失败", error);

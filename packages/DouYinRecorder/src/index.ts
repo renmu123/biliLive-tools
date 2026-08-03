@@ -69,6 +69,12 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         quality: this.quality,
         streamPriorities: this.streamPriorities,
         sourcePriorities: this.sourcePriorities,
+        strictQuality: false,
+        auth: this.auth,
+        formatPriorities: this.formatPriorities,
+        doubleScreen: this.doubleScreen,
+        api: this.api as APIType,
+        uid: this.uid,
       });
       return res.currentStream;
     },
