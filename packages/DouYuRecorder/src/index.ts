@@ -63,7 +63,12 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       const res = await getStream({
         channelId: this.channelId,
         quality: this.quality,
+        source: this.source,
+        strictQuality: false,
+        onlyAudio: this.onlyAudio,
+        avoidEdgeCDN: true,
         codecName: this.codecName,
+        api: this.api,
       });
       return res.currentStream;
     },

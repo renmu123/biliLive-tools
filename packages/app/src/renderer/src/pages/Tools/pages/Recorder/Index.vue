@@ -101,11 +101,11 @@
             <div class="section" @click="edit(item.id)">直播间设置</div>
             <div class="section" @click="refresh(item.id)">刷新直播间信息</div>
             <div
-              v-if="item.recordHandle?.savePath && false"
+              v-if="item.living"
               class="section"
-              @click="open(item.id, item?.recordHandle?.url)"
+              @click="open(item.id, item.owner || item.remarks)"
             >
-              打开直播
+              观看直播
             </div>
             <div
               v-if="!isWeb"
@@ -154,7 +154,6 @@
       v-model:visible="batchOperateModalVisible"
       @completed="handleBatchOperateCompleted"
     ></batchOperateModal>
-    <videoModal :id="editId" v-model:visible="videoModalVisible" :video-url="videoUrl"></videoModal>
   </div>
 </template>
 
@@ -166,19 +165,19 @@ import addModal from "./components/addModal.vue";
 import batchAddModal from "./components/batchAddModal.vue";
 import batchResultModal from "./components/batchResultModal.vue";
 import batchOperateModal from "./components/batchOperateModal.vue";
-import videoModal from "./components/videoModal.vue";
 import cardView from "./components/cardView.vue";
 import listView from "./components/listView.vue";
 import { useRouter } from "vue-router";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import ColumnSelector from "@renderer/components/ColumnSelector.vue";
 import { platformOptions } from "./data";
+import SortButton from "./components/SortButton.vue";
 
 import { useEventListener, useStorage } from "@vueuse/core";
 import eventBus from "@renderer/utils/eventBus";
+import { toLiveVideoPlayerPage } from "@renderer/utils/pages";
 
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
-import SortButton from "./components/SortButton.vue";
 
 defineOptions({
   name: "recorder",
@@ -511,22 +510,23 @@ const edit = async (id: string) => {
   addModalVisible.value = true;
 };
 
-const videoModalVisible = ref(false);
-const videoUrl = ref("");
 /**
  * 打开直播间
  * @param id 内部直播间id
+ * @param owner 直播间主人名
  */
-const open = async (id: string, streamUrl: string) => {
-  editId.value = id;
-  videoUrl.value = streamUrl;
-  if (!streamUrl) {
-    notice.error({
-      title: "未找到直播流地址",
+const open = async (id: string, owner: string) => {
+  const info = await refresh(id, false);
+  if (info?.living === false) {
+    notice.warning({
+      title: "直播间未开播",
     });
     return;
   }
-  videoModalVisible.value = true;
+  toLiveVideoPlayerPage({
+    liveId: id,
+    owner: owner,
+  });
 };
 
 const getLiveInfo = async (forceRequest: boolean = false) => {
@@ -572,7 +572,7 @@ const getLiveInfo = async (forceRequest: boolean = false) => {
 };
 
 // 刷新单个直播间信息
-const refresh = async (id: string) => {
+const refresh = async (id: string, showNotification: boolean = true) => {
   const recorder = recorderList.value.find((item) => item.id === id);
   if (!recorder) return;
 
@@ -587,10 +587,12 @@ const refresh = async (id: string) => {
       [refreshedLiveInfo],
     );
   }
-
-  notice.success({
-    title: "刷新成功",
-  });
+  if (showNotification) {
+    notice.success({
+      title: "刷新成功",
+    });
+  }
+  return refreshedLiveInfo;
 };
 
 const handleModalClose = () => {

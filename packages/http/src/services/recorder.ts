@@ -8,7 +8,7 @@ import logger from "@biliLive-tools/shared/utils/log.js";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
 
 import type { RecorderAPI, ClientRecorder } from "../types/recorder.js";
-import type { Recorder } from "@bililive-tools/manager";
+import type { Recorder, FormatName } from "@bililive-tools/manager";
 
 // RecorderAPI 的实际实现，这里负责实现对外暴露的接口，并假设 Args 都已经由上一层解析好了
 async function getRecorders(
@@ -411,6 +411,37 @@ export async function batchResolveChannel(urls: string[]) {
   };
 }
 
+export async function getStreamUrl(id: string) {
+  const recorderManager = container.resolve("recorderManager");
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === id);
+  if (!recorder) throw new Error("未找到录制器");
+  let url: string | undefined;
+  if (recorder.recordHandle) {
+    if (recorder.providerId === "DouYin") {
+      url = recorder.recordHandle.url;
+    }
+  }
+
+  if (!url) {
+    // B站的fmp4流不需要referer验证
+    let formatName: FormatName | undefined;
+    let formatPriorities: Array<"flv" | "hls"> | undefined;
+    if (recorder.providerId === "Bilibili") {
+      formatName = "fmp4";
+    } else if (recorder.providerId === "TikTok") {
+      formatName = "hls";
+      formatPriorities = ["hls", "flv"];
+    }
+    const data = await recorder.getStream({
+      formatName: formatName,
+      formatPriorities: formatPriorities,
+    });
+    url = data.url;
+  }
+
+  return { url };
+}
+
 export async function getLiveInfo(ids: string[]) {
   const recorderManager = container.resolve("recorderManager");
   const recorders = recorderManager.manager.recorders;
@@ -504,4 +535,5 @@ export default {
   batchResolveChannel,
   getBiliStream,
   resolve,
+  getStreamUrl,
 };

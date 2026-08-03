@@ -225,7 +225,7 @@ import { formatRecentRecordTime, formatTime, formatDuration } from "@renderer/ut
 import { useRoute, useRouter } from "vue-router";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import AddRecorderModal from "@renderer/pages/Tools/pages/Recorder/components/addModal.vue";
-
+import { useTitle } from "@vueuse/core";
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { RecentRecordClipItem } from "@renderer/apis/recordHistory";
 
@@ -236,6 +236,7 @@ defineOptions({
 const route = useRoute();
 const router = useRouter();
 const notice = useNotice();
+const pageTitle = useTitle();
 
 const streamerInfo = reactive({
   recorderId: ((route.query.recorderId as string) || (route.query.id as string) || "") as string,
@@ -276,6 +277,15 @@ const result = reactive<RecorderAPI["queryStreamerDetail"]["Resp"]>({
 });
 
 const displayName = computed(() => result.streamer?.name || streamerInfo.name);
+watch(
+  () => displayName.value,
+  (newName) => {
+    if (newName) {
+      pageTitle.value = `${newName} 录制详情`;
+    }
+  },
+  { immediate: true },
+);
 const avatar = computed(
   () => result.recorderInfo?.liveInfo?.avatar || result.recorderInfo?.extra?.avatar,
 );
