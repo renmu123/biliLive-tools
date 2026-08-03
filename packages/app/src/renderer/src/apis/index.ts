@@ -11,6 +11,7 @@ import videoApi from "./video";
 import recordHistoryApi from "./recordHistory";
 import danmaApi from "./danma";
 import aiApi from "./ai";
+import webhookApi from "./webhook";
 
 import syncApi from "./sync";
 
@@ -28,4 +29,5 @@ export {
   recordHistoryApi,
   danmaApi,
   aiApi,
+  webhookApi,
 };

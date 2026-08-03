@@ -14,10 +14,172 @@ import recorderService from "../services/recorder.js";
 
 import { config, handler, appConfig, fileCache } from "../index.js";
 import { container } from "../index.js";
+import type { Live as WebhookLive } from "../services/webhook/Live.js";
+import type { Part as WebhookPart, UploadStatus } from "../types/webhook.js";
 
 const router = new Router({
   prefix: "/common",
 });
+
+type MonitorLiveStatus =
+  | "recording"
+  | "processing"
+  | "pendingUpload"
+  | "uploading"
+  | "completed"
+  | "error";
+
+interface WebhookMonitorPart {
+  partId: string;
+  title: string;
+  startTime: number | null;
+  endTime: number | null;
+  durationMs: number | null;
+  recordStatus: WebhookPart["recordStatus"];
+  uploadStatus: UploadStatus;
+  rawUploadStatus: UploadStatus;
+  cover: string | null;
+  filePath: string;
+  rawFilePath: string;
+  pendingUpload: boolean;
+  pendingRawUpload: boolean;
+  raw: WebhookPart;
+}
+
+interface WebhookMonitorLive {
+  eventId: string;
+  roomId: string;
+  platform: string;
+  software: string;
+  title: string;
+  username: string;
+  startTime: number;
+  endTime: number | null;
+  durationMs: number | null;
+  status: MonitorLiveStatus;
+  isActive: boolean;
+  aid?: number;
+  rawAid?: number;
+  stats: {
+    totalParts: number;
+    recordedParts: number;
+    prehandledParts: number;
+    handledParts: number;
+    uploadingParts: number;
+    uploadedParts: number;
+    pendingRawUploadParts: number;
+    rawUploadingParts: number;
+    rawUploadedParts: number;
+  };
+  parts: WebhookMonitorPart[];
+}
+
+function computeDurationMs(startTime?: number, endTime?: number): number | null {
+  if (!startTime) return null;
+  const end = endTime ?? Date.now();
+  return Math.max(0, end - startTime);
+}
+
+function getLiveStatus(parts: WebhookMonitorPart[]): MonitorLiveStatus {
+  if (
+    parts.some(
+      (part) =>
+        part.recordStatus === "error" ||
+        part.uploadStatus === "error" ||
+        part.rawUploadStatus === "error",
+    )
+  ) {
+    return "error";
+  }
+
+  if (parts.some((part) => part.recordStatus === "recording")) {
+    return "recording";
+  }
+
+  if (
+    parts.some((part) => part.uploadStatus === "uploading" || part.rawUploadStatus === "uploading")
+  ) {
+    return "uploading";
+  }
+
+  if (parts.some((part) => part.pendingUpload || part.pendingRawUpload)) {
+    return "pendingUpload";
+  }
+
+  if (parts.some((part) => ["recorded", "prehandled"].includes(part.recordStatus))) {
+    return "processing";
+  }
+
+  return "completed";
+}
+
+function mapWebhookLive(live: WebhookLive): WebhookMonitorLive {
+  const parts = live.parts.map((part, index) => {
+    const pendingUpload = part.recordStatus === "handled" && part.uploadStatus === "pending";
+    const pendingRawUpload =
+      (part.recordStatus === "prehandled" || part.recordStatus === "handled") &&
+      part.rawUploadStatus === "pending";
+
+    return {
+      partId: part.partId,
+      title: part.title,
+      startTime: part.startTime ?? null,
+      endTime: part.endTime ?? null,
+      durationMs: computeDurationMs(part.startTime, part.endTime),
+      recordStatus: part.recordStatus,
+      uploadStatus: part.uploadStatus,
+      rawUploadStatus: part.rawUploadStatus,
+      cover: part.cover ?? null,
+      filePath: part.filePath,
+      rawFilePath: part.rawFilePath,
+      pendingUpload,
+      pendingRawUpload,
+      raw: part,
+    };
+  });
+
+  const stats = {
+    totalParts: parts.length,
+    recordedParts: parts.filter((part) => part.recordStatus === "recorded").length,
+    prehandledParts: parts.filter((part) => part.recordStatus === "prehandled").length,
+    handledParts: parts.filter((part) => part.recordStatus === "handled").length,
+    uploadingParts: parts.filter(
+      (part) => part.uploadStatus === "uploading" || part.rawUploadStatus === "uploading",
+    ).length,
+    uploadedParts: parts.filter((part) => part.uploadStatus === "uploaded").length,
+    pendingRawUploadParts: parts.filter((part) => part.pendingRawUpload).length,
+    rawUploadingParts: parts.filter((part) => part.rawUploadStatus === "uploading").length,
+    rawUploadedParts: parts.filter((part) => part.rawUploadStatus === "uploaded").length,
+  };
+  const endTime = live.parts.length > 0 ? (live.getMaxEndTime() ?? null) : null;
+  const status = getLiveStatus(parts);
+
+  return {
+    eventId: live.eventId,
+    roomId: live.roomId,
+    platform: live.platform,
+    software: live.software,
+    title: live.title,
+    username: live.username,
+    startTime: live.startTime,
+    endTime,
+    durationMs: computeDurationMs(live.startTime, endTime ?? undefined),
+    status,
+    isActive: status !== "completed",
+    aid: live.aid,
+    rawAid: live.rawAid,
+    stats,
+    parts,
+  };
+}
+
+function buildWebhookMonitorResponse(lives: WebhookLive[]) {
+  const monitorLives = lives.map(mapWebhookLive);
+
+  return {
+    lives: monitorLives,
+  };
+}
 
 router.get("/version", (ctx) => {
   ctx.body = config.version;
@@ -157,6 +319,20 @@ router.get("/statistics", async (ctx) => {
 router.get("/exportLogs", async (ctx) => {
   const logFilePath = config.logPath;
   ctx.body = fs.createReadStream(logFilePath);
+});
+
+router.get("/exportWebhookRaw", async (ctx) => {
+  if (handler.liveData.length === 0) {
+    ctx.status = 400;
+    ctx.body = "没有可导出的数据";
+    return;
+  }
+  const payload = JSON.stringify(handler.liveData, null, 2);
+  const fileName = `webhook-raw-${Date.now()}.json`;
+
+  ctx.set("Content-Type", "application/json; charset=utf-8");
+  ctx.set("Content-Disposition", `attachment; filename="${fileName}"`);
+  ctx.body = Buffer.from(payload, "utf-8");
 });
 
 router.get("/getLogContent", async (ctx) => {
@@ -429,6 +605,60 @@ router.post("/handleWebhook", async (ctx) => {
 router.post("/webhook", async (ctx) => {
   const liveList = handler.liveData;
   ctx.body = liveList;
+});
+
+router.get("/webhook/monitor", async (ctx) => {
+  const { roomId, platform, status, activeOnly, abnormalOnly, keyword } = ctx.request.query as {
+    roomId?: string;
+    platform?: string;
+    status?: MonitorLiveStatus | "all";
+    activeOnly?: string;
+    abnormalOnly?: string;
+    keyword?: string;
+  };
+
+  const normalizedKeyword = keyword?.trim().toLowerCase();
+  const response = buildWebhookMonitorResponse(handler.liveData as unknown as WebhookLive[]);
+
+  const lives = response.lives
+    .filter((live) => {
+      if (roomId && live.roomId !== roomId) return false;
+      if (platform && platform !== "all" && live.platform !== platform) return false;
+      if (status && status !== "all" && live.status !== status) return false;
+      if (activeOnly === "true" && !live.isActive) return false;
+      if (
+        normalizedKeyword &&
+        ![live.title, live.username, live.roomId, live.platform, live.software]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(normalizedKeyword))
+      ) {
+        return false;
+      }
+      return true;
+    })
+    .sort((left, right) => {
+      if (left.isActive !== right.isActive) return left.isActive ? -1 : 1;
+      return right.startTime - left.startTime;
+    });
+
+  const eventStats = handler.eventBufferManager.getEventStats();
+
+  const summary = {
+    totalLives: lives.length,
+    activeLives: lives.filter((live) => live.isActive).length,
+    processingParts: lives.reduce(
+      (sum, live) => sum + live.stats.recordedParts + live.stats.prehandledParts,
+      0,
+    ),
+    uploadingParts: lives.reduce((sum, live) => sum + live.stats.uploadingParts, 0),
+    recordingParts: eventStats.recordingParts,
+    errorParts: eventStats.errorParts,
+  };
+
+  ctx.body = {
+    lives,
+    summary,
+  };
 });
 
 /**

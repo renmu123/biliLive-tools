@@ -2,7 +2,9 @@
   <n-config-provider :theme="themeStore.themeUI" :locale="zhCN" :date-locale="dateZhCN">
     <n-notification-provider>
       <n-dialog-provider>
-        <router-view />
+        <n-message-provider>
+          <router-view />
+        </n-message-provider>
       </n-dialog-provider>
     </n-notification-provider>
   </n-config-provider>

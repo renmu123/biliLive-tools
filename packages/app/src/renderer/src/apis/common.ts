@@ -21,6 +21,13 @@ export const exportLogs = async (): Promise<Buffer> => {
   return res.data;
 };
 
+export const exportWebhookRaw = async (): Promise<Blob> => {
+  const res = await request.get(`/common/exportWebhookRaw`, {
+    responseType: "blob",
+  });
+  return res.data;
+};
+
 export const getLogContent = async (): Promise<string> => {
   const res = await request.get(`/common/getLogContent`);
   return res.data;
@@ -306,6 +313,7 @@ const common = {
   appStatistics,
   getDanmaStream,
   exportLogs,
+  exportWebhookRaw,
   getLogContent,
   parseMeta,
   getRunningTaskNum,

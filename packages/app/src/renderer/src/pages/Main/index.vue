@@ -61,6 +61,7 @@
               'recorder',
               'videoCut',
               'Queue',
+              'WebhookMonitor',
               'User',
               'About',
               'FileSync',

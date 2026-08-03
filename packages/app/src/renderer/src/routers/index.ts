@@ -129,6 +129,11 @@ const router = createRouter({
           },
         },
         {
+          path: "/webhookMonitor",
+          name: "WebhookMonitor",
+          component: () => import("../pages/WebhookMonitor/index.vue"),
+        },
+        {
           path: "/user",
           name: "User",
           component: () => import("../pages/User/index.vue"),
