@@ -80,6 +80,7 @@ describe("TikTokParser", () => {
 
     const result = await parser.parse("example", {
       api: "web",
+      cookie: "sessionid=test-cookie",
     });
     const url = new URL(get.mock.calls[0][0]);
 
@@ -122,6 +123,9 @@ describe("TikTokParser", () => {
       "https://example.com/live/origin.m3u8?token=abc&codec=H264",
     );
     expect(get).toHaveBeenCalledOnce();
+    expect(get.mock.calls[0][1]?.headers).toMatchObject({
+      cookie: "sessionid=test-cookie",
+    });
   });
 
   it("同时解析 AVC、HEVC 并支持格式筛选", async () => {

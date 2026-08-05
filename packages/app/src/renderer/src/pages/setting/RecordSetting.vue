@@ -683,13 +683,12 @@
             </template>
             <n-select v-model:value="config.recorder.tiktok.api" :options="tiktokApiTypeOptions" />
           </n-form-item>
-          <!--
           <n-form-item>
             <template #label>
               <Tip text="Cookie" tip="遇到年龄限制或风控时可填写 TikTok Cookie"></Tip>
             </template>
             <n-input v-model:value="config.recorder.tiktok.cookie" type="password" />
-          </n-form-item> -->
+          </n-form-item>
           <n-form-item>
             <template #label>
               <Tip text="代理" tip="用于请求和直播流录制，支持http代理"></Tip>

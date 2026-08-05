@@ -557,7 +557,6 @@
                 >全局</n-checkbox
               >
             </n-form-item>
-            <!--
             <n-form-item>
               <template #label>
                 <Tip text="Cookie" tip="遇到年龄限制或风控时可填写 TikTok Cookie"></Tip>
@@ -570,7 +569,7 @@
               <n-checkbox v-model:checked="globalFieldsObj.cookie" class="global-checkbox"
                 >全局</n-checkbox
               >
-            </n-form-item> -->
+            </n-form-item>
             <!-- <n-form-item>
               <template #label>
                 <Tip
