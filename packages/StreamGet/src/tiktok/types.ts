@@ -1,6 +1,11 @@
 import type { ProxyConfig } from "../types.js";
 
-export type TikTokApiMode = "auto" | "app" | "web";
+/**
+ * TikTok 请求接口。
+ *
+ * `auto` 和 `app` 为旧配置值，分别等同于 `random` 和 `web`，用于兼容已有配置。
+ */
+export type TikTokApiMode = "random" | "web" | "webHTML" | "auto";
 export type TikTokStreamFormat = "flv" | "hls";
 
 export type TikTokImage = string;

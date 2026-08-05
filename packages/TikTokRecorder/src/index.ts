@@ -286,7 +286,7 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     });
     const id = await parser.extractRoomId(channelURL);
     const info = await parser.getRoomInfo(id, {
-      api: "auto",
+      api: "web",
     });
     return {
       id,

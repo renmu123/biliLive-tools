@@ -33,17 +33,38 @@ export function getTikTokLiveRoom(data: TikTokResponse): TikTokLiveRoomUserInfo 
   return data.LiveRoom?.liveRoomUserInfo ?? data.data ?? undefined;
 }
 
-export async function fetchTikTokAppData(
+export async function fetchTikTokWebData(
   http: HttpClient,
   uniqueId: string,
   options: TikTokParserOptions = {},
 ): Promise<TikTokResponse> {
   const params = new URLSearchParams({
     aid: "1988",
-    app_language: "en",
+    app_language: "zh-Hans",
+    app_name: "tiktok_web",
+    browser_language: "zh-CN",
+    browser_name: "Mozilla",
+    browser_online: "true",
+    browser_platform: "Win32",
+    browser_version: "5.0 (Windows)",
+    channel: "tiktok_web",
+    cookie_enabled: "true",
+    data_collection_enabled: "true",
+    device_id: "7666124801702397441",
+    device_platform: "web_mobile",
+    focus_state: "true",
+    from_page: "",
+    history_len: "4",
+    is_fullscreen: "false",
+    is_page_visible: "true",
     os: "android",
-    referer: "https://www.tiktok.com/",
+    priority_region: "JP",
+    referer: "",
+    region: "JP",
+    screen_height: "882",
+    screen_width: "427",
     sourceType: "54",
+    tz_name: "Asia/Hong_Kong",
     uniqueId,
   });
   const liveUrl = `https://www.tiktok.com/@${encodeURIComponent(uniqueId)}/live`;
@@ -55,14 +76,13 @@ export async function fetchTikTokAppData(
   return { ...data, live_url: liveUrl };
 }
 
-export async function fetchTikTokWebData(
+export async function fetchTikTokLiveHtmlData(
   http: HttpClient,
   uniqueId: string,
   options: TikTokParserOptions = {},
 ): Promise<TikTokResponse> {
   const liveUrl = `https://www.tiktok.com/@${encodeURIComponent(uniqueId)}/live`;
   const html = await http.getText(liveUrl, getRequestOptions(options, false));
-
   if (html.includes("UNEXPECTED_EOF_WHILE_READING")) {
     return { live_url: liveUrl };
   }
@@ -85,21 +105,14 @@ export async function fetchTikTokData(
 ): Promise<TikTokResponse> {
   const mode: TikTokApiMode = options.api ?? "auto";
 
-  if (mode === "app") {
-    return fetchTikTokAppData(http, uniqueId, options);
-  }
-  if (mode === "web") {
+  if (mode === "web" || mode === "auto") {
     return fetchTikTokWebData(http, uniqueId, options);
   }
-
-  try {
-    const appData = await fetchTikTokAppData(http, uniqueId, options);
-    if (getTikTokLiveRoom(appData)) {
-      return appData;
-    }
-  } catch {
-    // App 接口可能因地区或风控不可用，自动模式继续尝试网页数据。
+  if (mode === "webHTML") {
+    return fetchTikTokLiveHtmlData(http, uniqueId, options);
   }
 
-  return fetchTikTokWebData(http, uniqueId, options);
+  return Math.random() < 0.5
+    ? fetchTikTokWebData(http, uniqueId, options)
+    : fetchTikTokLiveHtmlData(http, uniqueId, options);
 }

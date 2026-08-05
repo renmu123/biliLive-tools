@@ -437,7 +437,7 @@ interface TikTokRecorderConfig extends RecorderCheckConfig {
   cookie: string;
   formatName: FormatName;
   codecName: CodecName;
-  api: "auto" | "app" | "web";
+  api: "random" | "web" | "webHTML" | "auto" | "app";
   proxy: string;
 }
 

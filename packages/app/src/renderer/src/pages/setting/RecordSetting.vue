@@ -677,12 +677,13 @@
               :options="biliStreamCodecOptions"
             />
           </n-form-item>
-          <!-- <n-form-item>
+          <n-form-item>
             <template #label>
-              <Tip text="请求接口" tip="自动模式优先 App 接口，失败时回退到网页解析"></Tip>
+              <Tip text="请求接口" tip="随机模式会在 web 接口和直播 html 解析之间随机选择"></Tip>
             </template>
             <n-select v-model:value="config.recorder.tiktok.api" :options="tiktokApiTypeOptions" />
           </n-form-item>
+          <!--
           <n-form-item>
             <template #label>
               <Tip text="Cookie" tip="遇到年龄限制或风控时可填写 TikTok Cookie"></Tip>
@@ -779,6 +780,7 @@ import {
   huyaApiTypeOptions,
   douyuStreamCodecOptions,
   douyuApiTypeOptions,
+  tiktokApiTypeOptions,
   tiktokQualityOptions,
 } from "@renderer/enums/recorder";
 
