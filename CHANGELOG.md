@@ -8,6 +8,7 @@
 ## Bug修复
 
 - 修复上传并发失效的bug [#521](https://github.com/renmu123/biliLive-tools/issues/521)
+- 修复B站视频下载无法暂停的bug
 
 # 3.19.0(2026.08.02)
 
