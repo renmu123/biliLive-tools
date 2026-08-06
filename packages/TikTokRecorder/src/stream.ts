@@ -153,6 +153,12 @@ export async function getStream(opts: TikTokRecorderStreamOptions): Promise<{
     opts.codecName,
   );
   if (!stream) {
+    if (opts.codecName === "hevc_only") {
+      throw new Error("未找到可用的 HEVC 编码录制流");
+    }
+    if (opts.codecName === "avc_only") {
+      throw new Error("未找到可用的 AVC 编码录制流");
+    }
     throw new Error("未找到可用的录制流");
   }
 

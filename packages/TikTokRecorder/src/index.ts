@@ -10,6 +10,7 @@ import {
 import { TikTokParser } from "@bililive-tools/stream-get";
 
 import { getInfo, getStream } from "./stream.js";
+import TikTokDanmaClient from "./danma.js";
 
 import type {
   Recorder,
@@ -37,7 +38,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     api: opts.api ?? "auto",
     codecName: opts.codecName ?? "auto",
     formatPriorities: opts.formatPriorities ?? ["flv", "hls"],
-    disableProvideCommentsWhenRecording: true,
+    disableProvideCommentsWhenRecording: opts.disableProvideCommentsWhenRecording ?? false,
 
     getChannelURL() {
       return `https://www.tiktok.com/@${encodeURIComponent(this.channelId)}/live`;
@@ -191,7 +192,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           recordStartTime,
           extraMs: pathOptions.extraMs,
         }),
-      disableDanma: true,
+      disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
       proxy: this.proxy,
@@ -228,6 +229,33 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("progress", progress);
   });
 
+  const danmaClient = new TikTokDanmaClient(this.channelId, { auth: this.auth });
+  danmaClient.on("Message", (message) => {
+    if (this.disableProvideCommentsWhenRecording) return;
+    const extraDataController = downloader.getExtraDataController();
+    if (!extraDataController) return;
+
+    this.emit("Message", message);
+    extraDataController.addMessage(message);
+  });
+  danmaClient.on("open", () => {
+    this.appendTimeline({ text: "弹幕连接已建立" });
+  });
+  danmaClient.on("ConnectionError", (error) => {
+    this.emit("DebugLog", { type: "error", text: `弹幕连接错误: ${String(error)}` });
+  });
+  danmaClient.on("reconnect", ({ retryCount, maxRetry }) => {
+    const text = `弹幕连接已断开，正在尝试重连... (重试次数: ${retryCount}/${maxRetry})`;
+    this.appendTimeline({ text });
+    this.emit("DebugLog", { type: "common", text });
+  });
+  danmaClient.on("RetryExhausted", ({ maxRetry }) => {
+    this.emit("DebugLog", { type: "error", text: `弹幕连接重试 ${maxRetry} 次后仍失败` });
+  });
+  if (!this.disableProvideCommentsWhenRecording) {
+    void danmaClient.start();
+  }
+
   const downloaderArgs = downloader.getArguments();
   downloader.run();
 
@@ -238,6 +266,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (!this.recordHandle) return;
     this.emit("stateChange", { state: "stopping-record" });
     try {
+      danmaClient.stop();
       await downloader.stop();
     } catch (error) {
       this.emit("DebugLog", {

@@ -699,7 +699,7 @@
             </n-form-item>
           </template>
 
-          <template v-if="config.providerId !== 'XHS' && config.providerId !== 'TikTok'">
+          <template v-if="config.providerId !== 'XHS'">
             <h2>弹幕</h2>
             <n-form-item>
               <template #label>
@@ -717,7 +717,9 @@
                 >全局</n-checkbox
               >
             </n-form-item>
-            <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+            <n-form-item
+              v-if="!config.disableProvideCommentsWhenRecording && config.providerId !== 'TikTok'"
+            >
               <template #label>
                 <span class="inline-flex"> 保存礼物 </span>
               </template>
@@ -748,7 +750,8 @@
             </n-form-item>
             <n-form-item
               v-if="
-                !config.disableProvideCommentsWhenRecording && !['HuYa'].includes(config.providerId)
+                !config.disableProvideCommentsWhenRecording &&
+                !['HuYa', 'TikTok'].includes(config.providerId)
               "
             >
               <template #label>

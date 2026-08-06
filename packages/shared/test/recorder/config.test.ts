@@ -53,7 +53,7 @@ const allProviderIds = [
 ];
 
 const providerIdsWithDanma = allProviderIds.filter(
-  (providerId) => providerId !== providerForXHS.id && providerId !== providerForTikTok.id,
+  (providerId) => providerId !== providerForXHS.id,
 );
 
 const buildRecorders = (

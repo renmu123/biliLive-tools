@@ -39,6 +39,7 @@
   "dependencies": {
     "@bililive-tools/manager": "workspace:^",
     "@bililive-tools/stream-get": "workspace:*",
-    "mitt": "catalog:"
+    "mitt": "catalog:",
+    "tiktok-live-connector": "^2.4.3"
   }
 }

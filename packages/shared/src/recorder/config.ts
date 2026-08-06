@@ -194,8 +194,8 @@ export default class RecorderConfig {
     // 弹幕处理
     let disableProvideCommentsWhenRecording =
       getValue("disableProvideCommentsWhenRecording") ?? true;
-    if (setting.providerId === "XHS" || setting.providerId === "TikTok") {
-      // 小红书和 TikTok 暂不支持弹幕
+    if (setting.providerId === "XHS") {
+      // 小红书暂不支持弹幕
       disableProvideCommentsWhenRecording = true;
     }
 
