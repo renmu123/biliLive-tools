@@ -74,7 +74,14 @@ const parseVideo = async (
   if (res.data.status !== 200) {
     throw new Error("请求错误");
   }
-  return res.data.data;
+  const data = res.data.data;
+  if (!data?.moment?.videoInfo) {
+    throw new Error("解析失败，请检查链接");
+  }
+  if (!data?.moment?.videoInfo?.definitions?.length) {
+    throw new Error("解析失败，未找到可用的清晰度");
+  }
+  return data;
 };
 
 /**
