@@ -22,15 +22,23 @@ describe("FFmpegDownloader", () => {
   let mockTimeoutChecker: any;
   let mockOnEnd: any;
   let mockOnUpdateLiveInfo: any;
+  let streamManagerListeners: Record<string, Array<(...args: any[]) => void>>;
+  let ffmpegListeners: Record<string, Array<(...args: any[]) => void>>;
 
   beforeEach(() => {
+    streamManagerListeners = {};
+    ffmpegListeners = {};
     // Mock FFMPEG builder
     mockFFMPEGBuilder = {
       input: vi.fn().mockReturnThis(),
       inputOptions: vi.fn().mockReturnThis(),
       outputOptions: vi.fn().mockReturnThis(),
       output: vi.fn().mockReturnThis(),
-      on: vi.fn().mockReturnThis(),
+      on: vi.fn(function (event: string, listener: (...args: any[]) => void) {
+        ffmpegListeners[event] ??= [];
+        ffmpegListeners[event].push(listener);
+        return this;
+      }),
       run: vi.fn(),
       kill: vi.fn(),
       _getArguments: vi.fn().mockReturnValue([]),
@@ -44,7 +52,11 @@ describe("FFmpegDownloader", () => {
     // Mock StreamManager
     mockStreamManager = {
       videoFilePath: "/test/path/video.mp4",
-      on: vi.fn(),
+      on: vi.fn((event: string, listener: (...args: any[]) => void) => {
+        streamManagerListeners[event] ??= [];
+        streamManagerListeners[event].push(listener);
+        return mockStreamManager;
+      }),
       handleVideoStarted: vi.fn(),
       handleVideoCompleted: vi.fn(),
       getExtraDataController: vi.fn(),
@@ -70,7 +82,93 @@ describe("FFmpegDownloader", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
+  });
+
+  describe("segment wall-clock watchdog", () => {
+    const createSegmentedRecorder = (segment = 30) =>
+      new FFmpegDownloader(
+        {
+          url: "https://example.com/stream.flv",
+          getSavePath: vi.fn().mockReturnValue("/test/path/video"),
+          segment,
+          outputOptions: [],
+          formatName: "flv",
+        },
+        mockOnEnd,
+        mockOnUpdateLiveInfo,
+      );
+
+    const emitVideoFileCreated = () => {
+      streamManagerListeners.videoFileCreated[0]({ filename: "/test/path/video.ts" });
+    };
+
+    it("ends the recording once when a segment exceeds its wall-clock deadline", () => {
+      vi.useFakeTimers();
+      createSegmentedRecorder(30);
+      emitVideoFileCreated();
+
+      vi.advanceTimersByTime(32 * 60 * 1000 + 59_999);
+      expect(mockOnEnd).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(1);
+      expect(mockOnEnd).toHaveBeenCalledTimes(1);
+      expect(mockOnEnd).toHaveBeenCalledWith("segment wall-clock timeout");
+
+      vi.advanceTimersByTime(60 * 60 * 1000);
+      expect(mockOnEnd).toHaveBeenCalledTimes(1);
+    });
+
+    it("resets the deadline when the next segment is created", () => {
+      vi.useFakeTimers();
+      createSegmentedRecorder(10);
+      emitVideoFileCreated();
+
+      vi.advanceTimersByTime(10 * 60 * 1000);
+      emitVideoFileCreated();
+      vi.advanceTimersByTime(10 * 60 * 1000);
+      expect(mockOnEnd).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(60 * 1000);
+      expect(mockOnEnd).toHaveBeenCalledWith("segment wall-clock timeout");
+    });
+
+    it("clears the deadline when recording stops normally", async () => {
+      vi.useFakeTimers();
+      const recorder = createSegmentedRecorder(10);
+      emitVideoFileCreated();
+
+      await recorder.stop();
+      vi.advanceTimersByTime(60 * 60 * 1000);
+
+      expect(mockOnEnd).not.toHaveBeenCalled();
+    });
+
+    it("clears the deadline when FFmpeg ends", () => {
+      vi.useFakeTimers();
+      createSegmentedRecorder(10);
+      emitVideoFileCreated();
+
+      ffmpegListeners.end[0]();
+      vi.advanceTimersByTime(60 * 60 * 1000);
+
+      expect(mockOnEnd).toHaveBeenCalledTimes(1);
+      expect(mockOnEnd).toHaveBeenCalledWith("finished");
+    });
+
+    it("is independent from continuing FFmpeg stderr activity", () => {
+      vi.useFakeTimers();
+      createSegmentedRecorder(10);
+      emitVideoFileCreated();
+
+      vi.advanceTimersByTime(5 * 60 * 1000);
+      ffmpegListeners.stderr[1]("frame=100 time=00:01:00.00");
+      vi.advanceTimersByTime(6 * 60 * 1000);
+
+      expect(mockTimeoutChecker.update).toHaveBeenCalled();
+      expect(mockOnEnd).toHaveBeenCalledWith("segment wall-clock timeout");
+    });
   });
 
   describe("formatName and videoFormat parameter combinations", () => {
