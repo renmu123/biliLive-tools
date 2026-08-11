@@ -40,6 +40,7 @@
     "@bililive-tools/manager": "workspace:^",
     "@bililive-tools/stream-get": "workspace:*",
     "mitt": "catalog:",
-    "tiktok-live-connector": "^2.4.3"
+    "tiktok-live-connector": "^2.4.3",
+    "hpagent": "^1.2.0"
   }
 }

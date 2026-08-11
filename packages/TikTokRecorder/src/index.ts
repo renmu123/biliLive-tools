@@ -1,4 +1,5 @@
 import mitt from "mitt";
+import { inspect } from "node:util";
 import {
   createDownloader,
   defaultFromJSON,
@@ -20,6 +21,13 @@ import type {
   VideoFileCreatedPayload,
 } from "@bililive-tools/manager";
 const TIKTOK_REFERER = "https://www.tiktok.com/";
+
+function formatError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.stack ?? error.message;
+  }
+  return inspect(error, { depth: 8, breakLength: 120 });
+}
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   const recorder: Recorder = {
@@ -121,7 +129,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw error;
   }
 
-  const { living, owner, title, liveStartTime, recordStartTime } = this.liveInfo;
+  const { living, owner, title, liveStartTime, recordStartTime, webcastRoomId } = this
+    .liveInfo as typeof this.liveInfo & { webcastRoomId?: string };
   this.tempStopIntervalCheck = this.liveInfo.liveId === banLiveId;
   if (this.tempStopIntervalCheck || !living) return null;
   if (utils.checkTitleKeywordsBeforeRecord(title, this, isManualStart)) return null;
@@ -229,7 +238,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("progress", progress);
   });
 
-  const danmaClient = new TikTokDanmaClient(this.channelId, { auth: this.auth });
+  const danmaClient = new TikTokDanmaClient(this.channelId, {
+    auth: this.auth,
+    proxy: this.proxy,
+    roomId: webcastRoomId,
+  });
   danmaClient.on("Message", (message) => {
     if (this.disableProvideCommentsWhenRecording) return;
     const extraDataController = downloader.getExtraDataController();
@@ -242,7 +255,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.appendTimeline({ text: "弹幕连接已建立" });
   });
   danmaClient.on("ConnectionError", (error) => {
-    this.emit("DebugLog", { type: "error", text: `弹幕连接错误: ${String(error)}` });
+    console.error(error);
+    this.emit("DebugLog", { type: "error", text: `弹幕连接错误: ${formatError(error)}` });
   });
   danmaClient.on("reconnect", ({ retryCount, maxRetry }) => {
     const text = `弹幕连接已断开，正在尝试重连... (重试次数: ${retryCount}/${maxRetry})`;

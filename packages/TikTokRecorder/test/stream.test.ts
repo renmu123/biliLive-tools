@@ -97,6 +97,13 @@ describe("TikTokRecorder stream", () => {
       cover: "https://example.com/cover.jpg",
       liveStartTime: startTime,
       area: "",
+      raw: {
+        data: {
+          user: {
+            roomId: "7672766824583105301",
+          },
+        },
+      },
     });
 
     const first = await getInfo("example", {
@@ -111,9 +118,10 @@ describe("TikTokRecorder stream", () => {
       title: "测试直播",
       owner: "主播",
       liveStartTime: startTime,
+      webcastRoomId: "7672766824583105301",
     });
     expect(first.liveId).toBe(second.liveId);
-    expect(getRoomInfo).toHaveBeenCalledWith("example", { api: "app" });
+    expect(getRoomInfo).toHaveBeenCalledWith("example", { api: "app", raw: true });
   });
 
   it("按 TikTok 原生画质和格式优先级选择直播流", async () => {

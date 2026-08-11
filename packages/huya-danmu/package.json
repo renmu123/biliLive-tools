@@ -1,6 +1,6 @@
 {
   "name": "huya-danma-listener",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "huya danmu module",
   "main": "index.js",
   "types": "index.d.ts",
@@ -21,7 +21,7 @@
     "url": "https://github.com/renmu123/biliLive-tools/tree/master/packages/huya-danmu"
   },
   "dependencies": {
-    "socks-proxy-agent": "^3.0.1",
+    "socks-proxy-agent": "^8.0.5",
     "to-arraybuffer": "^1.0.1",
     "ws": "^4.1.0"
   },

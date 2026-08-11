@@ -26,6 +26,7 @@ export async function getInfo(
   cover: string;
   liveStartTime: Date;
   liveId: string;
+  webcastRoomId?: string;
   recordStartTime: Date;
   area: string;
 }> {
@@ -35,7 +36,10 @@ export async function getInfo(
   });
   const info = await parser.getRoomInfo(channelId, {
     api: opts.api as TikTokApiMode | undefined,
+    raw: true,
   });
+  const rawRoomInfo = info.raw?.LiveRoom?.liveRoomUserInfo ?? info.raw?.data;
+  const rawWebcastRoomId = rawRoomInfo?.user?.roomId;
   const recordStartTime = new Date();
   const liveStartTime = info.liveStartTime ?? recordStartTime;
 
@@ -47,6 +51,10 @@ export async function getInfo(
     cover: info.cover || "",
     liveStartTime,
     liveId: utils.md5(`${channelId}-${liveStartTime.getTime()}`),
+    webcastRoomId:
+      rawWebcastRoomId === undefined || rawWebcastRoomId === null
+        ? undefined
+        : String(rawWebcastRoomId),
     recordStartTime,
     area: info.area || "",
   };
@@ -153,12 +161,6 @@ export async function getStream(opts: TikTokRecorderStreamOptions): Promise<{
     opts.codecName,
   );
   if (!stream) {
-    if (opts.codecName === "hevc_only") {
-      throw new Error("未找到可用的 HEVC 编码录制流");
-    }
-    if (opts.codecName === "avc_only") {
-      throw new Error("未找到可用的 AVC 编码录制流");
-    }
     throw new Error("未找到可用的录制流");
   }
 

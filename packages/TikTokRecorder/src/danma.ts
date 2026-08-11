@@ -1,7 +1,9 @@
 import { EventEmitter } from "node:events";
+import { HttpProxyAgent, HttpsProxyAgent } from "hpagent";
 import { ControlEvent, TikTokLiveConnection, WebcastEvent } from "tiktok-live-connector";
 
 import type { Comment } from "@bililive-tools/manager";
+import type { WebcastGotHttpConfig } from "tiktok-live-connector";
 
 interface TikTokChatEvent {
   content?: string;
@@ -18,19 +20,25 @@ interface TikTokChatEvent {
 }
 
 export interface TikTokLiveConnectionLike {
-  connect(): Promise<unknown>;
+  connect(roomId?: string): Promise<unknown>;
   disconnect(): Promise<unknown>;
   on(event: string, listener: (...args: any[]) => void): unknown;
 }
 
 export interface TikTokDanmaClientOptions {
   auth?: string;
-  connectionFactory?: (uniqueId: string, auth?: string) => TikTokLiveConnectionLike;
+  proxy?: string;
+  roomId?: string;
+  connectionFactory?: (uniqueId: string, auth?: string, proxy?: string) => TikTokLiveConnectionLike;
   maxRetryCount?: number;
   retryDelay?: number;
 }
 
-const createConnection = (uniqueId: string, auth?: string): TikTokLiveConnectionLike => {
+const createConnection = (
+  uniqueId: string,
+  auth?: string,
+  proxy?: string,
+): TikTokLiveConnectionLike => {
   const cookies = new Map(
     auth
       ?.split(";")
@@ -40,11 +48,26 @@ const createConnection = (uniqueId: string, auth?: string): TikTokLiveConnection
   );
   const sessionId = cookies.get("sessionid");
 
-  return new TikTokLiveConnection(uniqueId, {
-    // 不处理连接前的历史消息，避免把录制前的评论写入 XML。
-    processInitialData: false,
-    // 录制器已确认直播状态，无需重复请求房间信息。
-    fetchRoomInfoOnConnect: false,
+  console.log(`uniqueId:@${uniqueId}`, proxy, auth);
+  return new TikTokLiveConnection(`@${uniqueId}`, {
+    // // 不处理连接前的历史消息，避免把录制前的评论写入 XML。
+    // processInitialData: false,
+    // // 录制器已确认直播状态，无需重复请求房间信息。
+    // fetchRoomInfoOnConnect: false,
+    ...(proxy
+      ? {
+          webClientOptions: {
+            agent: {
+              http: new HttpProxyAgent({ proxy, keepAlive: true }),
+              https: new HttpsProxyAgent({ proxy, keepAlive: true }),
+            },
+            // cookieJar 由 tiktok-live-connector 内部注入，但其公开类型错误地标记为必填。
+          } as unknown as WebcastGotHttpConfig,
+          wsClientOptions: {
+            agent: new HttpsProxyAgent({ proxy, keepAlive: true }),
+          },
+        }
+      : {}),
     ...(sessionId
       ? {
           session: {
@@ -81,6 +104,8 @@ export class TikTokDanmaClient extends EventEmitter {
     private readonly uniqueId: string,
     {
       auth,
+      proxy,
+      roomId,
       connectionFactory = createConnection,
       maxRetryCount = 10,
       retryDelay = 2_000,
@@ -88,12 +113,17 @@ export class TikTokDanmaClient extends EventEmitter {
   ) {
     super();
     this.auth = auth;
+    this.proxy = proxy;
+    this.roomId = roomId;
     this.connectionFactory = connectionFactory;
     this.maxRetryCount = maxRetryCount;
     this.retryDelay = retryDelay;
+    console.log("roomId", this.roomId);
   }
 
   private readonly auth: string | undefined;
+  private readonly proxy: string | undefined;
+  private readonly roomId: string | undefined;
 
   async start(): Promise<void> {
     this.stopped = false;
@@ -109,7 +139,7 @@ export class TikTokDanmaClient extends EventEmitter {
     if (previousConnection) {
       void previousConnection.disconnect().catch((error) => this.emit("ConnectionError", error));
     }
-    const connection = this.connectionFactory(this.uniqueId, this.auth);
+    const connection = this.connectionFactory(this.uniqueId, this.auth, this.proxy);
     this.connection = connection;
 
     connection.on(WebcastEvent.CHAT, (data: TikTokChatEvent) => {
@@ -118,7 +148,8 @@ export class TikTokDanmaClient extends EventEmitter {
 
       const comment: Comment = {
         type: "comment",
-        timestamp: getTimestamp(data.common?.createTime),
+        // 默认使用本地时间戳
+        timestamp: new Date().getTime() || getTimestamp(data.common?.createTime),
         text,
         sender: {
           uid: data.user?.id == null ? undefined : String(data.user.id),
@@ -152,7 +183,7 @@ export class TikTokDanmaClient extends EventEmitter {
     });
 
     try {
-      await connection.connect();
+      await connection.connect(this.roomId);
       if (
         this.stopped ||
         this.connection !== connection ||

@@ -26,6 +26,6 @@ manager.startCheckLoop();
 - `codecName`: `auto`、`avc`、`hevc`、`avc_only`、`hevc_only`。
 - `api`: `auto`、`app`、`web`。
 - `auth`: TikTok Cookie。
-- `proxy`: HTTP、HTTPS 或 SOCKS5 代理（同时用于 API 请求与直播流下载）。
+- `proxy`: HTTP、HTTPS 或 SOCKS5 代理（用于 API 请求与直播流下载；HTTP/HTTPS 代理也用于弹幕连接）。
 
-TikTok 弹幕暂未实现，录制器会始终禁用弹幕录制。
+TikTok 弹幕支持录制普通评论，并在连接断开后自动重连。
