@@ -1,7 +1,7 @@
 import ws from "ws";
 import events from "events";
 import to_arraybuffer from "to-arraybuffer";
-import socks_agent from "socks-proxy-agent";
+import { SocksProxyAgent } from "socks-proxy-agent";
 
 import { Taf, TafMx, HUYA, List } from "./lib.js";
 import { md5, intToHexColor } from "./utils.js";
@@ -34,7 +34,7 @@ class huya_danmu extends events {
   }
 
   set_proxy(proxy) {
-    this._agent = new socks_agent(proxy);
+    this._agent = new SocksProxyAgent(proxy);
   }
 
   // 节流重试函数,确保一秒内只能触发一次

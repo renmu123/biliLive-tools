@@ -124,7 +124,7 @@ export class TikTokParser extends PlatformParser<string> {
     const merged = this.mergeOptions(opts);
     return {
       ...merged,
-      api: merged.api ?? "auto",
+      api: merged.api ?? "random",
       format: merged.format ?? ["flv", "hls"],
       raw: merged.raw ?? false,
     };

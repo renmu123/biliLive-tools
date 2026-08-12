@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/tiktok-recorder",
-  "version": "1.17.1",
+  "version": "1.18.0",
   "description": "bililive-tools TikTok recorder implementation",
   "main": "./lib/index.js",
   "type": "module",
@@ -39,6 +39,8 @@
   "dependencies": {
     "@bililive-tools/manager": "workspace:^",
     "@bililive-tools/stream-get": "workspace:*",
-    "mitt": "catalog:"
+    "mitt": "catalog:",
+    "tiktok-live-connector": "^2.4.3",
+    "hpagent": "^1.2.0"
   }
 }

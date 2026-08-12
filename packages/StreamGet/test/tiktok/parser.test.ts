@@ -74,38 +74,58 @@ describe("TikTokParser", () => {
     await expect(parser.extractRoomId("@example")).resolves.toBe("example");
   });
 
-  it("从 app 接口解析直播信息和全部画质", async () => {
-    // vi.spyOn(HttpClient.prototype, "get").mockResolvedValue(makeLiveResponse());
+  it("从 web 接口解析直播信息和全部画质", async () => {
+    const get = vi.spyOn(HttpClient.prototype, "get").mockResolvedValue(makeLiveResponse());
     const parser = new TikTokParser();
 
-    const result = await parser.parse("ocomelover0214", {
-      api: "app",
+    const result = await parser.parse("example", {
+      api: "web",
+      cookie: "sessionid=test-cookie",
     });
-    console.log(JSON.stringify(result, null, 2));
-    // expect(result.liveInfo).toMatchObject({
-    //   platform: "tiktok",
-    //   roomId: "example",
-    //   living: true,
-    //   title: "测试直播",
-    //   owner: "主播",
-    //   avatar: "https://example.com/avatar.jpg",
-    //   cover: "https://example.com/cover.jpg",
-    // });
-    // expect(result.sources).toHaveLength(1);
-    // expect(result.sources[0].streams).toHaveLength(8);
-    // expect(result.sources[0].streams[0]).toMatchObject({
-    //   quality: "origin",
-    //   qualityDesc: "origin",
-    //   format: "flv",
-    //   codec: "H264",
-    //   bitrate: 6000000,
-    //   resolution: "1920x1080",
-    //   url: "https://example.com/live/origin.flv?codec=H264",
-    // });
-    // expect(result.sources[0].streams[1].url).toBe(
-    //   "https://example.com/live/origin.m3u8?token=abc&codec=H264",
-    // );
-    // expect(HttpClient.prototype.get).toHaveBeenCalledOnce();
+    const url = new URL(get.mock.calls[0][0]);
+
+    expect(url.pathname).toBe("/api-live/user/room");
+    expect(Object.fromEntries(url.searchParams)).toMatchObject({
+      aid: "1988",
+      app_language: "zh-Hans",
+      app_name: "tiktok_web",
+      browser_platform: "Win32",
+      channel: "tiktok_web",
+      device_id: "7666124801702397441",
+      device_platform: "web_mobile",
+      os: "android",
+      priority_region: "JP",
+      region: "JP",
+      tz_name: "Asia/Hong_Kong",
+      uniqueId: "example",
+    });
+    expect(result.liveInfo).toMatchObject({
+      platform: "tiktok",
+      roomId: "example",
+      living: true,
+      title: "测试直播",
+      owner: "主播",
+      avatar: "https://example.com/avatar.jpg",
+      cover: "https://example.com/cover.jpg",
+    });
+    expect(result.sources).toHaveLength(1);
+    expect(result.sources[0].streams).toHaveLength(8);
+    expect(result.sources[0].streams[0]).toMatchObject({
+      quality: "origin",
+      qualityDesc: "origin",
+      format: "flv",
+      codec: "H264",
+      bitrate: 6000000,
+      resolution: "1920x1080",
+      url: "https://example.com/live/origin.flv?codec=H264",
+    });
+    expect(result.sources[0].streams[1].url).toBe(
+      "https://example.com/live/origin.m3u8?token=abc&codec=H264",
+    );
+    expect(get).toHaveBeenCalledOnce();
+    expect(get.mock.calls[0][1]?.headers).toMatchObject({
+      cookie: "sessionid=test-cookie",
+    });
   });
 
   it("同时解析 AVC、HEVC 并支持格式筛选", async () => {
@@ -113,7 +133,7 @@ describe("TikTokParser", () => {
     const parser = new TikTokParser();
 
     const streams = await parser.getStreams("example", {
-      api: "app",
+      api: "web",
       format: ["hls"],
     });
 
@@ -134,9 +154,9 @@ describe("TikTokParser", () => {
       timeout: 10000,
     });
 
-    await parser.getRoomInfo("example", { api: "app" });
+    await parser.getRoomInfo("example", { api: "web" });
     await parser.getRoomInfo("example", {
-      api: "app",
+      api: "web",
       proxy: "http://127.0.0.1:8899",
       timeout: 20000,
     });
@@ -157,7 +177,7 @@ describe("TikTokParser", () => {
     vi.spyOn(HttpClient.prototype, "get").mockResolvedValue(response);
     const parser = new TikTokParser();
 
-    const result = await parser.parse("example", { api: "app" });
+    const result = await parser.parse("example", { api: "web" });
 
     expect(result.liveInfo.living).toBe(false);
     expect(result.sources).toEqual([]);
@@ -172,9 +192,26 @@ describe("TikTokParser", () => {
     );
     const parser = new TikTokParser();
 
-    const info = await parser.getRoomInfo("example", { api: "web" });
+    const info = await parser.getRoomInfo("example", { api: "webHTML" });
 
     expect(info.living).toBe(true);
     expect(info.title).toBe("测试直播");
+  });
+
+  it("随机模式在 web 接口和直播 HTML 解析之间选择", async () => {
+    const get = vi.spyOn(HttpClient.prototype, "get").mockResolvedValue(makeLiveResponse());
+    const getText = vi.spyOn(HttpClient.prototype, "getText").mockResolvedValue(
+      `<script id="SIGI_STATE">${JSON.stringify({
+        LiveRoom: { liveRoomUserInfo: makeLiveResponse().data! },
+      })}</script>`,
+    );
+    const parser = new TikTokParser();
+
+    vi.spyOn(Math, "random").mockReturnValueOnce(0.1).mockReturnValueOnce(0.9);
+    await parser.getRoomInfo("example");
+    await parser.getRoomInfo("example");
+
+    expect(get).toHaveBeenCalledOnce();
+    expect(getText).toHaveBeenCalledOnce();
   });
 });

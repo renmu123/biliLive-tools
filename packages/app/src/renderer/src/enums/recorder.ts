@@ -441,8 +441,9 @@ export const douyuApiTypeOptions = [
 
 export const tiktokApiTypeOptions = [
   { label: "自动", value: "auto" },
-  { label: "App 接口", value: "app" },
-  { label: "网页解析", value: "web" },
+  { label: "随机", value: "random" },
+  { label: "web接口", value: "web" },
+  { label: "直播html解析", value: "webHTML" },
 ];
 
 const qualityRetry = {

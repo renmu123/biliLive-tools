@@ -544,9 +544,9 @@
                 >全局</n-checkbox
               >
             </n-form-item>
-            <!-- <n-form-item>
+            <n-form-item>
               <template #label>
-                <Tip text="请求接口" tip="自动模式优先 App 接口，失败时回退到网页解析"></Tip>
+                <Tip text="请求接口" tip="随机模式会在 web 接口和直播 html 解析之间随机选择"></Tip>
               </template>
               <n-select
                 v-model:value="config.api"
@@ -569,7 +569,7 @@
               <n-checkbox v-model:checked="globalFieldsObj.cookie" class="global-checkbox"
                 >全局</n-checkbox
               >
-            </n-form-item> -->
+            </n-form-item>
             <!-- <n-form-item>
               <template #label>
                 <Tip
@@ -699,7 +699,7 @@
             </n-form-item>
           </template>
 
-          <template v-if="config.providerId !== 'XHS' && config.providerId !== 'TikTok'">
+          <template v-if="config.providerId !== 'XHS'">
             <h2>弹幕</h2>
             <n-form-item>
               <template #label>
@@ -717,7 +717,9 @@
                 >全局</n-checkbox
               >
             </n-form-item>
-            <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+            <n-form-item
+              v-if="!config.disableProvideCommentsWhenRecording && config.providerId !== 'TikTok'"
+            >
               <template #label>
                 <span class="inline-flex"> 保存礼物 </span>
               </template>
@@ -748,7 +750,8 @@
             </n-form-item>
             <n-form-item
               v-if="
-                !config.disableProvideCommentsWhenRecording && !['HuYa'].includes(config.providerId)
+                !config.disableProvideCommentsWhenRecording &&
+                !['HuYa', 'TikTok'].includes(config.providerId)
               "
             >
               <template #label>
@@ -803,6 +806,7 @@ import {
   huyaApiTypeOptions,
   douyuStreamCodecOptions,
   douyuApiTypeOptions,
+  tiktokApiTypeOptions,
   tiktokQualityOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm, useBreakpoints } from "@renderer/hooks";

@@ -1,4 +1,4 @@
-# Unreleased
+# 0.3.0
 
 - 新增 TikTok 直播信息及 FLV/HLS 多画质流解析
 
