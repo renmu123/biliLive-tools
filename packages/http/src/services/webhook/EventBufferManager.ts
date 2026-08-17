@@ -17,7 +17,11 @@ export interface MatchedEventPair {
 interface EventData {
   open?: Options;
   close?: Options;
+  updatedAt: number;
 }
+
+const DEFAULT_EVENT_TTL = 6 * 60 * 60 * 1000;
+const DEFAULT_MAX_EVENTS = 1000;
 
 /**
  * 事件缓冲管理器
@@ -28,6 +32,13 @@ export class EventBufferManager extends EventEmitter<{
 }> {
   // 事件缓冲区,同时保存 open 和 close 事件
   private events: Map<string, EventData> = new Map();
+
+  constructor(
+    private readonly eventTtl = DEFAULT_EVENT_TTL,
+    private readonly maxEvents = DEFAULT_MAX_EVENTS,
+  ) {
+    super();
+  }
 
   /**
    * 添加事件到缓冲区
@@ -49,11 +60,14 @@ export class EventBufferManager extends EventEmitter<{
   private setEvent(event: Options, type: "open" | "close"): void {
     const filePath = event.filePath;
 
+    this.pruneExpiredEvents();
+
     // 获取或创建事件数据
     let eventData = this.events.get(filePath);
     if (!eventData) {
-      eventData = {};
+      eventData = { updatedAt: Date.now() };
     }
+    eventData.updatedAt = Date.now();
 
     // 存储事件
     if (type === "open") {
@@ -66,8 +80,26 @@ export class EventBufferManager extends EventEmitter<{
 
     // 更新到 Map 中
     this.events.set(filePath, eventData);
+    this.enforceCapacity();
 
     this.emitPair();
+  }
+
+  private pruneExpiredEvents(): void {
+    const expireBefore = Date.now() - this.eventTtl;
+    for (const [filePath, eventData] of this.events) {
+      if (eventData.updatedAt <= expireBefore) {
+        this.events.delete(filePath);
+      }
+    }
+  }
+
+  private enforceCapacity(): void {
+    while (this.events.size > this.maxEvents) {
+      const oldestFilePath = this.events.keys().next().value;
+      if (oldestFilePath === undefined) break;
+      this.events.delete(oldestFilePath);
+    }
   }
 
   /**

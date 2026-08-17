@@ -75,6 +75,8 @@ type SortParamItem = {
 };
 
 const SAME_MEDIA_UPLOAD_ORDER: Array<"handled" | "raw"> = ["handled", "raw"];
+const PROCESSED_FILE_TTL = 24 * 60 * 60 * 1000;
+const MAX_PROCESSED_FILES = 10_000;
 
 export class WebhookHandler {
   liveManager: LiveManager = new LiveManager();
@@ -83,7 +85,7 @@ export class WebhookHandler {
   danmuPreset: DanmuPreset;
   appConfig: AppConfig;
   configManager: ConfigManager;
-  private processedFiles: Set<string> = new Set();
+  private processedFiles: Map<string, number> = new Map();
   private fileRefManager: FileRefManager = new FileRefManager();
   eventBufferManager: EventBufferManager = new EventBufferManager();
 
@@ -558,8 +560,12 @@ export class WebhookHandler {
   ) {
     if (!(await fs.pathExists(filePath))) return;
 
+    const now = Date.now();
+    this.pruneProcessedFiles(now);
+
     // 检查文件是否已经处理过
-    if (this.processedFiles.has(filePath)) {
+    const processedAt = this.processedFiles.get(filePath);
+    if (processedAt !== undefined && now - processedAt < PROCESSED_FILE_TTL) {
       log.info(`文件已处理过，跳过同步: ${filePath}`);
       return;
     }
@@ -575,7 +581,7 @@ export class WebhookHandler {
     if (!livePart) return;
 
     // 将文件添加到已处理集合中
-    this.processedFiles.add(filePath);
+    this.processedFiles.set(filePath, now);
 
     // 提取基本信息
     let platform: Platform = "blrec";
@@ -616,6 +622,21 @@ export class WebhookHandler {
       });
     } catch (error) {
       log.error(`同步${fileType}文件失败: ${filePath}`, error);
+    }
+  }
+
+  private pruneProcessedFiles(now: number): void {
+    const expireBefore = now - PROCESSED_FILE_TTL;
+    for (const [filePath, processedAt] of this.processedFiles) {
+      if (processedAt <= expireBefore) {
+        this.processedFiles.delete(filePath);
+      }
+    }
+
+    while (this.processedFiles.size >= MAX_PROCESSED_FILES) {
+      const oldestFilePath = this.processedFiles.keys().next().value;
+      if (oldestFilePath === undefined) break;
+      this.processedFiles.delete(oldestFilePath);
     }
   }
 
