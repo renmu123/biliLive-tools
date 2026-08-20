@@ -467,7 +467,7 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <Tip text="Cookie" tip="我也不知道有啥用，可能哪天被风控的时候用得上吧"></Tip>
+                <Tip text="Cookie" tip="使用mobile接口时Cookie不会被应用"></Tip>
               </template>
               <n-input
                 v-model:value="config.cookie"

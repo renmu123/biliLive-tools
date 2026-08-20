@@ -513,7 +513,7 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip text="Cookie" tip="~"></Tip>
+              <Tip text="Cookie" tip="使用mobile接口时Cookie不会被应用"></Tip>
             </template>
             <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
             <n-button
