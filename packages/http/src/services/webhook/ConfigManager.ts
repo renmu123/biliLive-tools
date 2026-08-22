@@ -8,6 +8,10 @@ export interface RoomConfig {
   mergePart: boolean;
   /* 最小文件大小 */
   minSize: number;
+  /** 碎片合并时间，单位分钟 */
+  autoVideoMergeMinute?: number;
+  /** 碎片合并时间，单位秒 */
+  autoVideoMergeSecond: number;
   /* 上传preset */
   uploadPresetId: string;
   /* 上传标题 */
@@ -143,6 +147,8 @@ export class ConfigManager {
     const danmu = this.getRoomSetting("danmu", roomSetting) ?? false;
     const mergePart = this.getRoomSetting("autoPartMerge", roomSetting) ?? false;
     const minSize = this.getRoomSetting("minSize", roomSetting) ?? 10;
+    const autoVideoMergeMinute = this.getRoomSetting("autoVideoMergeMinute", roomSetting) ?? 0;
+    const autoVideoMergeSecond = autoVideoMergeMinute * 60;
     const uploadPresetId = this.getRoomSetting("uploadPresetId", roomSetting) || "default";
     const title = this.getRoomSetting("title", roomSetting) || "";
     const danmuPresetId = this.getRoomSetting("danmuPreset", roomSetting);
@@ -209,6 +215,8 @@ export class ConfigManager {
       danmu,
       mergePart,
       minSize,
+      autoVideoMergeMinute,
+      autoVideoMergeSecond,
       uploadPresetId,
       title,
       danmuPresetId,
