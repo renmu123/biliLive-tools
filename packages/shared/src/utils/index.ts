@@ -186,6 +186,9 @@ export const deleteFile = async (path: string) => {
 };
 
 export const trashItem = async (path: string) => {
+  if (process.env.IS_DOCKER) {
+    return deleteFile(path);
+  }
   const trashConfig = appConfig.get("trash");
   if (trashConfig) {
     return trash(path);
