@@ -25,7 +25,7 @@ const get = async (id: string): Promise<Recorder> => {
 const getStreamUrl = async (
   id: string,
 ): Promise<{
-  url: string;
+  url: string | undefined;
 }> => {
   const res = await request.post(`/recorder/${id}/stream`);
   return res.data.payload;

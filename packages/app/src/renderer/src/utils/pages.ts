@@ -74,6 +74,9 @@ export async function toVideoPlayerPage(opts: {
 
 export async function toLiveVideoPlayerPage(opts: { liveId: string; owner: string }) {
   const data = await recoderApi.getStreamUrl(opts.liveId);
+  if (!data.url) {
+    throw new Error("无法获取可供播放的流");
+  }
   const query: Record<string, string> = {
     liveId: opts.liveId,
     url: data.url,
