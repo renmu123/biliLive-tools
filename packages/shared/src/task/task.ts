@@ -1,9 +1,8 @@
 import path from "node:path";
+import { createRequire } from "node:module";
 import fs from "fs-extra";
 import EventEmitter from "node:events";
 import { TypedEmitter } from "tiny-typed-emitter";
-// @ts-ignore
-import * as ntsuspend from "ntsuspend";
 import kill from "tree-kill";
 import { DownloaderHelper as RangeDownloader } from "node-downloader-helper";
 import { isAxiosError } from "axios";
@@ -27,6 +26,18 @@ import type { Progress, BiliupConfig } from "@biliLive-tools/types";
 import type M3U8Downloader from "@renmu/m3u8-downloader";
 import type { DanmakuFactory } from "../danmu/danmakuFactory.js";
 import type { FlvCommand } from "./flvRepair.js";
+
+interface NtSuspend {
+  suspend(pid: number): void;
+  resume(pid: number): void;
+}
+
+let ntsuspend: NtSuspend | undefined;
+
+function getNtSuspend(): NtSuspend {
+  ntsuspend ??= createRequire(import.meta.url)("ntsuspend") as NtSuspend;
+  return ntsuspend;
+}
 
 // 重新导出 AbstractTask 以保持向后兼容
 export { AbstractTask } from "./core/index.js";
@@ -229,8 +240,7 @@ export class FFmpegTask extends AbstractTask {
     if (this.status !== "running") return;
     if (!this.command) return;
     if (isWin32) {
-      // @ts-ignore
-      ntsuspend.suspend(this.command.ffmpegProc.pid);
+      getNtSuspend().suspend(this.command.ffmpegProc.pid);
     } else {
       this.command.kill("SIGSTOP");
     }
@@ -243,8 +253,7 @@ export class FFmpegTask extends AbstractTask {
     if (this.status !== "paused") return;
     if (!this.command) return;
     if (isWin32) {
-      // @ts-ignore
-      ntsuspend.resume(this.command.ffmpegProc.pid);
+      getNtSuspend().resume(this.command.ffmpegProc.pid);
     } else {
       this.command.kill("SIGCONT");
     }
@@ -257,8 +266,7 @@ export class FFmpegTask extends AbstractTask {
     if (this.status === "completed" || this.status === "error") return;
     if (!this.command) return;
     if (isWin32) {
-      // @ts-ignore
-      ntsuspend.resume(this.command.ffmpegProc.pid);
+      getNtSuspend().resume(this.command.ffmpegProc.pid);
     }
     // @ts-ignore
     this.command.ffmpegProc.stdin.write("q");
@@ -272,8 +280,7 @@ export class FFmpegTask extends AbstractTask {
       return;
     if (!this.command) return;
     if (isWin32) {
-      // @ts-ignore
-      ntsuspend.resume(this.command.ffmpegProc.pid);
+      getNtSuspend().resume(this.command.ffmpegProc.pid);
     }
     this.command.kill("SIGKILL");
     log.warn(`task ${this.taskId} killed`);
