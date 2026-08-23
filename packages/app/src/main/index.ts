@@ -14,6 +14,7 @@ import {
   nativeTheme,
   crashReporter,
   nativeImage,
+  powerSaveBlocker,
 } from "electron";
 import { createContainer } from "awilix";
 
@@ -22,6 +23,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
 import log from "./utils/log";
 import { notify } from "./utils/index";
+import { PowerSaveController } from "./utils/powerSave";
 import { init } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
@@ -37,6 +39,7 @@ import type { Theme, GlobalConfig } from "@biliLive-tools/types";
 
 export let mainWin: BrowserWindow;
 export let container = createContainer();
+const powerSaveController = new PowerSaveController(powerSaveBlocker);
 
 const SENTRY_CRASH_DSN =
   "https://aa05399bf7cf8b619177be3284d28fc8@o4511547045576704.ingest.us.sentry.io/4511547052720128";
@@ -793,6 +796,12 @@ const appInit = async () => {
   nativeTheme.themeSource = appConfig.get("theme");
   const menuBarVisible = appConfig.get("menuBarVisible");
   mainWin.setMenuBarVisibility(menuBarVisible);
+  powerSaveController.setEnabled(appConfig.get("preventSystemSleep"));
+  appConfig.on("update", (newData, oldData) => {
+    if (newData.preventSystemSleep !== oldData.preventSystemSleep) {
+      powerSaveController.setEnabled(newData.preventSystemSleep);
+    }
+  });
 
   // 检测更新
   if (appConfig.get("autoUpdate")) {

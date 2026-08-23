@@ -647,6 +647,8 @@ export interface AppConfig {
   /** 主题 */
   theme: Theme;
   menuBarVisible: boolean;
+  /** 阻止系统进入休眠（仅 Electron 客户端） */
+  preventSystemSleep: boolean;
   port: number;
   host: string;
   passKey: string;

@@ -46,6 +46,12 @@
             </n-form-item>
             <n-form-item v-if="!isWeb">
               <template #label>
+                <Tip text="阻止系统休眠" tip="开启后，客户端运行期间系统不会自动进入休眠"></Tip>
+              </template>
+              <n-switch v-model:value="config.preventSystemSleep" />
+            </n-form-item>
+            <n-form-item v-if="!isWeb">
+              <template #label>
                 <span class="inline-flex"> 开启自启动 </span>
               </template>
               <n-switch v-model:value="config.autoLaunch" />
