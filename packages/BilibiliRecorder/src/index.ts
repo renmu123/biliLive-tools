@@ -322,10 +322,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     uid: Number(this.uid) as number,
     useServerTimestamp: this.useServerTimestamp,
   });
-  // 开启了禁止提供弹幕功能，并且也没有设置标题关键词，才完全禁止连接弹幕服务器，否则都连接弹幕服务器，前者不处理弹幕消息，后者根据标题关键词来判断是否停止录制
+  // 禁用弹幕且不需要监听标题时，才完全禁止连接弹幕服务器
   const enableDanmaListen =
     !this.disableProvideCommentsWhenRecording ||
-    utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords);
+    utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords) ||
+    this.segmentOnTitleChange;
+  let currentTitle = title;
   danmaClient.on("Message", (msg) => {
     if (this.disableProvideCommentsWhenRecording) return;
     const extraDataController = downloader.getExtraDataController();
@@ -338,8 +340,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController.addMessage(msg);
   });
   danmaClient.on("onRoomInfoChange", (msg) => {
+    const title = msg?.body?.title?.trim() ?? "";
     if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
-      const title = msg?.body?.title ?? "";
       const hasTitleKeyword = utils.hasBlockedTitleKeywords(title, this.titleKeywords);
 
       if (hasTitleKeyword) {
@@ -354,8 +356,32 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
         // 停止录制
         this.recordHandle && this.recordHandle.stop("直播间标题包含关键词");
+        return;
       }
     }
+
+    if (!this.segmentOnTitleChange || !title || title === currentTitle) return;
+
+    const previousTitle = currentTitle;
+    currentTitle = title;
+    if (this.liveInfo) {
+      this.liveInfo.title = title;
+    }
+
+    if (downloader.type !== "bililive") {
+      this.emit("DebugLog", {
+        type: "common",
+        text: `检测到标题由 "${previousTitle}" 变更为 "${title}"，中断录制以进行分段`,
+      });
+      this.recordHandle && this.recordHandle.stop("标题变更分段");
+      return;
+    }
+
+    this.emit("DebugLog", {
+      type: "common",
+      text: `检测到标题由 "${previousTitle}" 变更为 "${title}"，开始分段`,
+    });
+    downloader.cut();
   });
   danmaClient.on("open", () => {
     this.appendTimeline({

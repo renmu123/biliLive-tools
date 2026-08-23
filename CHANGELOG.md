@@ -1,5 +1,9 @@
 # Next
 
+## 功能
+
+- 录制：B站支持“标题变更时分段”选项 [#533](https://github.com/renmu123/biliLive-tools/issues/533)
+
 ## 优化
 
 - docker环境下，当存在`录播姬工作目录`时不再强制使用路径`/app/video`

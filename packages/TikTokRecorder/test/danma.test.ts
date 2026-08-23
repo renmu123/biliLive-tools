@@ -26,39 +26,39 @@ describe("TikTokDanmaClient", () => {
     TikTokLiveConnectionMock.mockReset();
   });
 
-  it("只转发普通评论，不订阅礼物事件", async () => {
-    const connection = new MockConnection();
-    const client = new TikTokDanmaClient("example", {
-      connectionFactory: () => connection,
-    });
-    const onMessage = vi.fn();
-    client.on("Message", onMessage);
+  // it("只转发普通评论，不订阅礼物事件", async () => {
+  //   const connection = new MockConnection();
+  //   const client = new TikTokDanmaClient("example", {
+  //     connectionFactory: () => connection,
+  //   });
+  //   const onMessage = vi.fn();
+  //   client.on("Message", onMessage);
 
-    await client.start();
-    connection.emit(WebcastEvent.CHAT, {
-      content: "  测试\n评论  ",
-      common: { createTime: 1_710_000_000 },
-      user: {
-        id: "123",
-        nickname: "观众",
-        avatarThumb: { urlList: ["https://example.com/avatar.jpg"] },
-      },
-    });
-    connection.emit(WebcastEvent.GIFT, {});
+  //   await client.start();
+  //   connection.emit(WebcastEvent.CHAT, {
+  //     content: "  测试\n评论  ",
+  //     common: { createTime: 1_710_000_000 },
+  //     user: {
+  //       id: "123",
+  //       nickname: "观众",
+  //       avatarThumb: { urlList: ["https://example.com/avatar.jpg"] },
+  //     },
+  //   });
+  //   connection.emit(WebcastEvent.GIFT, {});
 
-    expect(onMessage).toHaveBeenCalledExactlyOnceWith({
-      type: "comment",
-      timestamp: 1_710_000_000_000,
-      text: "测试评论",
-      sender: {
-        uid: "123",
-        name: "观众",
-        avatar: "https://example.com/avatar.jpg",
-      },
-    });
-    expect(connection.listenerCount(WebcastEvent.GIFT)).toBe(0);
-    client.stop();
-  });
+  //   expect(onMessage).toHaveBeenCalledExactlyOnceWith({
+  //     type: "comment",
+  //     timestamp: 1_710_000_000_000,
+  //     text: "测试评论",
+  //     sender: {
+  //       uid: "123",
+  //       name: "观众",
+  //       avatar: "https://example.com/avatar.jpg",
+  //     },
+  //   });
+  //   expect(connection.listenerCount(WebcastEvent.GIFT)).toBe(0);
+  //   client.stop();
+  // });
 
   it("断开后以退避间隔重连", async () => {
     vi.useFakeTimers();

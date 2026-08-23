@@ -518,6 +518,10 @@ export const textInfo = {
       tip: "如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，或者使用正则表达式（如：/回放|录播/i），手动录制的不会被影响",
       placeholder: "例如：回放,录播,重播 或 /回放|录播/i",
     },
+    segmentOnTitleChange: {
+      text: "标题变更时分段",
+      tip: "监听到直播间标题变更时创建新分段；录播姬引擎支持无损分割，其他引擎会中断录制",
+    },
   },
   douyu: {
     qualityRetry: qualityRetry,

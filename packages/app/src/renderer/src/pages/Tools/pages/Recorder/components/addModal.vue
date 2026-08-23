@@ -121,6 +121,24 @@
               >
             </n-form-item>
 
+            <n-form-item v-if="config.providerId === 'Bilibili'">
+              <template #label>
+                <Tip
+                  :text="textInfo.bili.segmentOnTitleChange.text"
+                  :tip="textInfo.bili.segmentOnTitleChange.tip"
+                ></Tip>
+              </template>
+              <n-switch
+                v-model:value="config.segmentOnTitleChange"
+                :disabled="globalFieldsObj.segmentOnTitleChange"
+              />
+              <n-checkbox
+                v-model:checked="globalFieldsObj.segmentOnTitleChange"
+                class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+
             <n-form-item>
               <template #label>
                 <Tip
@@ -846,6 +864,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     formatName: true,
     useM3U8Proxy: true,
     customHost: true,
+    segmentOnTitleChange: true,
     codecName: true,
     source: true,
     videoFormat: true,
@@ -955,6 +974,9 @@ const initGlobalFields = () => {
     formatName: !(config.value?.noGlobalFollowFields ?? []).includes("formatName"),
     useM3U8Proxy: !(config.value?.noGlobalFollowFields ?? []).includes("useM3U8Proxy"),
     customHost: !(config.value?.noGlobalFollowFields ?? []).includes("customHost"),
+    segmentOnTitleChange: !(config.value?.noGlobalFollowFields ?? []).includes(
+      "segmentOnTitleChange",
+    ),
     codecName: !(config.value?.noGlobalFollowFields ?? []).includes("codecName"),
     source: !(config.value?.noGlobalFollowFields ?? []).includes("source"),
     videoFormat: !(config.value?.noGlobalFollowFields ?? []).includes("videoFormat"),
@@ -1100,6 +1122,9 @@ watch(
     }
     if (val.customHost) {
       config.value.customHost = appConfig.value.recorder.bilibili.customHost;
+    }
+    if (val.segmentOnTitleChange) {
+      config.value.segmentOnTitleChange = appConfig.value.recorder.bilibili.segmentOnTitleChange;
     }
   },
   {

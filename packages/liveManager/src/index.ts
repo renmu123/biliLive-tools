@@ -52,6 +52,7 @@ export function defaultToJSON<E extends AnyObject>(
       "liveInfo",
       "uid",
       "titleKeywords",
+      "segmentOnTitleChange",
       // "recordHandle",
     ]),
   };
