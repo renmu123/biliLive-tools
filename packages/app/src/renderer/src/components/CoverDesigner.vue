@@ -58,6 +58,8 @@
                     :config="imageConfig(layer)"
                     @click="selectLayer(layer.id, $event)"
                     @tap="selectLayer(layer.id, $event)"
+                    @wheel="handleImageWheel(layer, $event)"
+                    @dragmove="constrainImageDrag(layer, $event)"
                     @dragend="updatePosition(layer, $event)"
                     @transformend="updateTransform(layer, $event)"
                   />
@@ -86,11 +88,15 @@
                   :autosize="{ minRows: 2, maxRows: 5 }"
                 />
               </label>
-              <div class="field-grid">
-                <label class="field">
-                  <span>字体</span>
-                  <n-select v-model:value="selectedLayer.fontFamily" :options="fontOptions" />
-                </label>
+              <label class="field">
+                <span>字体</span>
+                <n-select
+                  v-model:value="selectedLayer.fontFamily"
+                  :options="fontOptions"
+                  filterable
+                />
+              </label>
+              <div class="field-grid" style="margin-bottom: 10px">
                 <label class="field">
                   <span>字号</span>
                   <n-input-number v-model:value="selectedLayer.fontSize" :min="12" :max="300" />
@@ -249,6 +255,7 @@ interface ImageLayer extends LayerBase {
   type: "image";
   name: string;
   source: string;
+  constrainToCanvas: boolean;
   width: number;
   height: number;
   image: HTMLImageElement;
@@ -327,7 +334,7 @@ const transformerConfig = {
   },
 };
 
-const fontOptions = [
+const fallbackFontFamilies = [
   "Microsoft YaHei",
   "SimHei",
   "SimSun",
@@ -336,7 +343,40 @@ const fontOptions = [
   "sans-serif",
   "serif",
   "monospace",
-].map((font) => ({ label: font, value: font }));
+];
+const fontOptions = ref(fallbackFontFamilies.map((font) => ({ label: font, value: font })));
+let localFontsRequested = false;
+
+interface LocalFontData {
+  family: string;
+}
+
+const loadLocalFonts = async () => {
+  if (localFontsRequested) return;
+  localFontsRequested = true;
+  const queryLocalFonts = (
+    globalThis as unknown as { queryLocalFonts?: () => Promise<LocalFontData[]> }
+  ).queryLocalFonts;
+  if (!queryLocalFonts) return;
+
+  try {
+    const localFonts = await queryLocalFonts.call(globalThis);
+    const families = new Map<string, string>();
+    for (const { family } of localFonts) {
+      const normalizedFamily = family.trim();
+      if (normalizedFamily) families.set(normalizedFamily.toLocaleLowerCase(), normalizedFamily);
+    }
+    if (!families.size) return;
+    for (const family of ["sans-serif", "serif", "monospace"]) {
+      families.set(family, family);
+    }
+    fontOptions.value = [...families.values()]
+      .sort((left, right) => left.localeCompare(right, "zh-CN", { sensitivity: "base" }))
+      .map((font) => ({ label: font, value: font }));
+  } catch {
+    // Unsupported contexts and denied permissions keep using the fallback list.
+  }
+};
 const alignOptions = [
   { label: "左对齐", value: "left" },
   { label: "居中", value: "center" },
@@ -360,7 +400,10 @@ watch(selectedId, async () => {
 watch(
   () => visible.value,
   async (show, previous) => {
-    if (show && !previous) await resetCanvas();
+    if (show && !previous) {
+      void loadLocalFonts();
+      await resetCanvas();
+    }
   },
 );
 
@@ -371,6 +414,7 @@ const textConfig = (layer: TextLayer) => ({
   fontStyle: layer.bold ? "bold" : "normal",
   lineHeight: 1.15,
   wrap: "char",
+  fillAfterStrokeEnabled: true,
   shadowEnabled: layer.shadowBlur > 0 || layer.shadowOffsetX !== 0 || layer.shadowOffsetY !== 0,
 });
 
@@ -404,13 +448,107 @@ const selectLayer = (id: string, event: any) => {
   selectedId.value = id;
 };
 
+interface Position {
+  x: number;
+  y: number;
+}
+
+const getCoverMinScale = (layer: ImageLayer, rotation = layer.rotation) => {
+  const radians = (rotation * Math.PI) / 180;
+  const cos = Math.abs(Math.cos(radians));
+  const sin = Math.abs(Math.sin(radians));
+  const requiredWidth = CANVAS_WIDTH * cos + CANVAS_HEIGHT * sin;
+  const requiredHeight = CANVAS_WIDTH * sin + CANVAS_HEIGHT * cos;
+  return Math.max(requiredWidth / layer.width, requiredHeight / layer.height);
+};
+
+const constrainCoverPosition = (
+  layer: ImageLayer,
+  position: Position,
+  scale = layer.scaleX,
+  rotation = layer.rotation,
+) => {
+  const radians = (rotation * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  const canvasCorners = [
+    { x: 0, y: 0 },
+    { x: CANVAS_WIDTH, y: 0 },
+    { x: 0, y: CANVAS_HEIGHT },
+    { x: CANVAS_WIDTH, y: CANVAS_HEIGHT },
+  ];
+  const horizontalProjections = canvasCorners.map(({ x, y }) => x * cos + y * sin);
+  const verticalProjections = canvasCorners.map(({ x, y }) => -x * sin + y * cos);
+  const projectedX = position.x * cos + position.y * sin;
+  const projectedY = -position.x * sin + position.y * cos;
+  const minX = Math.max(...horizontalProjections) - layer.width * scale;
+  const maxX = Math.min(...horizontalProjections);
+  const minY = Math.max(...verticalProjections) - layer.height * scale;
+  const maxY = Math.min(...verticalProjections);
+  const boundedX = Math.min(maxX, Math.max(minX, projectedX));
+  const boundedY = Math.min(maxY, Math.max(minY, projectedY));
+
+  return {
+    x: boundedX * cos - boundedY * sin,
+    y: boundedX * sin + boundedY * cos,
+  };
+};
+
+const applyCoverBounds = (layer: ImageLayer, node: any) => {
+  const scale = Math.max(node.scaleX(), node.scaleY(), getCoverMinScale(layer, node.rotation()));
+  node.scale({ x: scale, y: scale });
+  node.position(constrainCoverPosition(layer, node.position(), scale, node.rotation()));
+};
+
+const constrainImageDrag = (layer: ImageLayer, event: any) => {
+  if (layer.constrainToCanvas) applyCoverBounds(layer, event.target);
+};
+
+const handleImageWheel = (layer: ImageLayer, event: any) => {
+  if (!layer.constrainToCanvas || event.evt.deltaY === 0) return;
+  event.evt.preventDefault();
+  event.cancelBubble = true;
+
+  const node = event.target;
+  const stage = node.getStage();
+  const pointer = stage?.getRelativePointerPosition?.();
+  if (!pointer) return;
+
+  const oldScale = node.scaleX();
+  const minScale = getCoverMinScale(layer, node.rotation());
+  const scaleFactor = 1.08;
+  const requestedScale = event.evt.deltaY < 0 ? oldScale * scaleFactor : oldScale / scaleFactor;
+  const newScale = Math.min(minScale * 10, Math.max(minScale, requestedScale));
+  const ratio = newScale / oldScale;
+  node.scale({ x: newScale, y: newScale });
+  node.position({
+    x: pointer.x - (pointer.x - node.x()) * ratio,
+    y: pointer.y - (pointer.y - node.y()) * ratio,
+  });
+  applyCoverBounds(layer, node);
+
+  layer.x = node.x();
+  layer.y = node.y();
+  layer.scaleX = node.scaleX();
+  layer.scaleY = node.scaleY();
+  node.getLayer()?.batchDraw();
+  transformerRef.value?.getNode?.()?.forceUpdate();
+};
+
 const updatePosition = (layer: CoverLayer, event: any) => {
+  if (layer.type === "image" && layer.constrainToCanvas) {
+    applyCoverBounds(layer, event.target);
+    layer.scaleX = event.target.scaleX();
+    layer.scaleY = event.target.scaleY();
+    layer.rotation = event.target.rotation();
+  }
   layer.x = event.target.x();
   layer.y = event.target.y();
 };
 
 const updateTransform = (layer: CoverLayer, event: any) => {
   const node = event.target;
+  if (layer.type === "image" && layer.constrainToCanvas) applyCoverBounds(layer, node);
   layer.x = node.x();
   layer.y = node.y();
   layer.scaleX = node.scaleX();
@@ -432,7 +570,7 @@ const addText = () => {
     opacity: 1,
     visible: true,
     fontFamily: "Microsoft YaHei",
-    fontSize: 72,
+    fontSize: 60,
     bold: true,
     fill: "#ffffff",
     align: "center",
@@ -478,13 +616,18 @@ const loadHtmlImage = (source: string) =>
     image.src = source;
   });
 
-const createImageLayer = async (source: string, name: string): Promise<ImageLayer> => {
+const createImageLayer = async (
+  source: string,
+  name: string,
+  constrainToCanvas = false,
+): Promise<ImageLayer> => {
   const image = await loadHtmlImage(source);
   return {
     id: uuid(),
     type: "image",
     name,
     source,
+    constrainToCanvas,
     image,
     x: 0,
     y: 0,
@@ -552,7 +695,7 @@ const resetCanvas = async () => {
   safeAreaVisible.value = true;
   if (!props.initialSrc) return;
   try {
-    const layer = await createImageLayer(props.initialSrc, "当前封面");
+    const layer = await createImageLayer(props.initialSrc, "当前封面", true);
     layers.value.push(layer);
     fitImage(layer, "cover");
   } catch (error) {
@@ -603,7 +746,7 @@ onBeforeUnmount(clearObjectUrls);
 <style scoped lang="less">
 .designer-card {
   width: min(1500px, 96vw);
-  height: min(920px, 94vh);
+  // height: min(920px, 94vh);
 
   :deep(.n-card__content) {
     min-height: 0;
