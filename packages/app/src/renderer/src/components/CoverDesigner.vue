@@ -80,6 +80,25 @@
           <template v-if="selectedLayer">
             <h3>图层设置</h3>
             <template v-if="selectedLayer.type === 'text'">
+              <div class="text-template-actions">
+                <n-select
+                  v-model:value="selectedTextTemplateId"
+                  :options="textTemplateOptions"
+                  placeholder="选择文字模板"
+                  clearable
+                  @update:value="applyTextTemplate"
+                />
+                <n-button size="small" @click="saveTextTemplate">保存模板</n-button>
+                <n-popconfirm
+                  :disabled="!selectedTextTemplateId"
+                  @positive-click="removeTextTemplate"
+                >
+                  <template #trigger>
+                    <n-button size="small" :disabled="!selectedTextTemplateId">删除</n-button>
+                  </template>
+                  确定删除这个文字模板吗？
+                </n-popconfirm>
+              </div>
               <label class="field field-wide">
                 <span>文字</span>
                 <n-input
@@ -213,8 +232,9 @@
 </template>
 
 <script setup lang="ts">
-import { useResizeObserver } from "@vueuse/core";
+import { useResizeObserver, useStorage } from "@vueuse/core";
 import { uuid } from "@renderer/utils";
+import showInput from "./showInput";
 
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 900;
@@ -263,6 +283,28 @@ interface ImageLayer extends LayerBase {
 
 type CoverLayer = TextLayer | ImageLayer;
 
+type TextTemplateConfig = Pick<
+  TextLayer,
+  | "fontFamily"
+  | "fontSize"
+  | "bold"
+  | "fill"
+  | "align"
+  | "stroke"
+  | "strokeWidth"
+  | "shadowColor"
+  | "shadowBlur"
+  | "shadowOffsetX"
+  | "shadowOffsetY"
+  | "opacity"
+>;
+
+interface TextTemplate {
+  id: string;
+  name: string;
+  config: TextTemplateConfig;
+}
+
 const props = withDefaults(
   defineProps<{
     initialSrc?: string;
@@ -290,6 +332,8 @@ const imageInputRef = ref<HTMLInputElement | null>(null);
 const canvasHostRef = ref<HTMLElement | null>(null);
 const stageScale = ref(0.6);
 const objectUrls = new Set<string>();
+const textTemplates = useStorage<TextTemplate[]>("cover-designer-text-templates", []);
+const selectedTextTemplateId = ref<string | null>(null);
 
 const stageWidth = computed(() => CANVAS_WIDTH * stageScale.value);
 const stageHeight = computed(() => CANVAS_HEIGHT * stageScale.value);
@@ -385,6 +429,9 @@ const alignOptions = [
 
 const selectedLayer = computed(() => layers.value.find((layer) => layer.id === selectedId.value));
 const reversedLayers = computed(() => [...layers.value].reverse());
+const textTemplateOptions = computed(() =>
+  textTemplates.value.map((template) => ({ label: template.name, value: template.id })),
+);
 
 useResizeObserver(canvasHostRef, (entries) => {
   const width = entries[0]?.contentRect.width ?? 0;
@@ -393,6 +440,7 @@ useResizeObserver(canvasHostRef, (entries) => {
 });
 
 watch(selectedId, async () => {
+  selectedTextTemplateId.value = null;
   await nextTick();
   updateTransformer();
 });
@@ -585,6 +633,79 @@ const addText = () => {
   selectedId.value = layer.id;
 };
 
+const getTextTemplateConfig = (layer: TextLayer): TextTemplateConfig => ({
+  fontFamily: layer.fontFamily,
+  fontSize: layer.fontSize,
+  bold: layer.bold,
+  fill: layer.fill,
+  align: layer.align,
+  stroke: layer.stroke,
+  strokeWidth: layer.strokeWidth,
+  shadowColor: layer.shadowColor,
+  shadowBlur: layer.shadowBlur,
+  shadowOffsetX: layer.shadowOffsetX,
+  shadowOffsetY: layer.shadowOffsetY,
+  opacity: layer.opacity,
+});
+
+const applyTextTemplate = (id: string | null) => {
+  selectedTextTemplateId.value = id;
+  if (!id || selectedLayer.value?.type !== "text") return;
+  const template = textTemplates.value.find((item) => item.id === id);
+  if (!template) return;
+  Object.assign(selectedLayer.value, template.config);
+  nextTick(updateTransformer);
+};
+
+const saveTextTemplate = async () => {
+  if (selectedLayer.value?.type !== "text") return;
+  const selectedTemplate = textTemplates.value.find(
+    (template) => template.id === selectedTextTemplateId.value,
+  );
+  if (selectedTemplate) {
+    selectedTemplate.config = getTextTemplateConfig(selectedLayer.value);
+    notice.success({ title: "文字模板已更新" });
+    return;
+  }
+
+  const name = (
+    await showInput({
+      title: "保存文字模板",
+      placeholder: "请输入模板名称",
+      defaultValue: `文字模板 ${textTemplates.value.length + 1}`,
+      required: true,
+    })
+  )?.trim();
+  if (!name) return;
+
+  const existingTemplate = textTemplates.value.find((template) => template.name === name);
+  if (existingTemplate) {
+    existingTemplate.config = getTextTemplateConfig(selectedLayer.value);
+    selectedTextTemplateId.value = existingTemplate.id;
+    notice.success({ title: "文字模板已更新", duration: 3000 });
+    return;
+  }
+
+  const template: TextTemplate = {
+    id: uuid(),
+    name,
+    config: getTextTemplateConfig(selectedLayer.value),
+  };
+  textTemplates.value.push(template);
+  selectedTextTemplateId.value = template.id;
+  notice.success({ title: "文字模板已保存", duration: 3000 });
+};
+
+const removeTextTemplate = () => {
+  const index = textTemplates.value.findIndex(
+    (template) => template.id === selectedTextTemplateId.value,
+  );
+  if (index < 0) return;
+  textTemplates.value.splice(index, 1);
+  selectedTextTemplateId.value = null;
+  notice.success({ title: "文字模板已删除", duration: 3000 });
+};
+
 const selectImages = () => {
   if (!imageInputRef.value) return;
   imageInputRef.value.value = "";
@@ -602,7 +723,7 @@ const handleImageFiles = async (event: Event) => {
       fitImage(layer, "contain", 0.65);
       selectedId.value = layer.id;
     } catch (error) {
-      notice.error({ title: `图片加载失败：${file.name}`, content: String(error) });
+      notice.error({ title: `图片加载失败：${file.name}`, content: String(error), duration: 3000 });
     }
   }
 };
@@ -763,10 +884,20 @@ onBeforeUnmount(clearObjectUrls);
 
 .toolbar,
 .footer-actions,
-.image-actions {
+.image-actions,
+.text-template-actions {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.text-template-actions {
+  margin-bottom: 12px;
+
+  :deep(.n-select) {
+    min-width: 0;
+    flex: 1;
+  }
 }
 
 .toolbar {
