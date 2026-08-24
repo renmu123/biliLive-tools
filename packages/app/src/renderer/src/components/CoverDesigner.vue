@@ -13,7 +13,7 @@
         <n-button type="primary" @click="addText">添加文字</n-button>
         <n-button @click="selectImages">添加图片</n-button>
         <n-button v-if="selectedLayer" @click="removeSelected">删除图层</n-button>
-        <n-switch v-model:value="safeAreaVisible">
+        <n-switch v-model:value="safeAreaVisible" class="safe-area-switch">
           <template #checked>显示 16:9 安全区</template>
           <template #unchecked>隐藏 16:9 安全区</template>
         </n-switch>
@@ -220,7 +220,7 @@
 
       <template #footer>
         <div class="footer-actions">
-          <span class="canvas-size">输出尺寸：1200 × 900</span>
+          <span class="canvas-size">输出尺寸：1200 × 675</span>
           <n-button :disabled="saving" @click="close">取消</n-button>
           <n-button type="primary" :loading="saving || exporting" @click="complete">
             完成
@@ -237,7 +237,7 @@ import { uuid } from "@renderer/utils";
 import showInput from "./showInput";
 
 const CANVAS_WIDTH = 1200;
-const CANVAS_HEIGHT = 900;
+const CANVAS_HEIGHT = 675;
 
 type Align = "left" | "center" | "right";
 type ImageFit = "cover" | "contain";
@@ -324,7 +324,7 @@ const emit = defineEmits<{
 const notice = useNotification();
 const layers = ref<CoverLayer[]>([]);
 const selectedId = ref<string | null>(null);
-const safeAreaVisible = ref(true);
+const safeAreaVisible = ref(false);
 const exporting = ref(false);
 const stageRef = ref<any>(null);
 const transformerRef = ref<any>(null);
@@ -813,7 +813,7 @@ const resetCanvas = async () => {
   clearObjectUrls();
   layers.value = [];
   selectedId.value = null;
-  safeAreaVisible.value = true;
+  safeAreaVisible.value = false;
   if (!props.initialSrc) return;
   try {
     const layer = await createImageLayer(props.initialSrc, "当前封面", true);
@@ -903,6 +903,10 @@ onBeforeUnmount(clearObjectUrls);
 .toolbar {
   flex-wrap: wrap;
   margin-bottom: 12px;
+}
+
+.safe-area-switch {
+  display: none;
 }
 
 .designer-body {

@@ -67,7 +67,7 @@ interface Props {
   width?: string;
 }
 const props: Props = withDefaults(defineProps<Props>(), {
-  height: "100px",
+  height: "90px",
   width: "160px",
 });
 
