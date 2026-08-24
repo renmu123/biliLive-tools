@@ -715,11 +715,14 @@ const canvasToBlob = (canvas: HTMLCanvasElement) =>
 const complete = async () => {
   const stage = stageRef.value?.getNode?.();
   if (!stage || exporting.value || props.saving) return;
+  const transformer = transformerRef.value?.getNode?.();
   exporting.value = true;
   const previousSelection = selectedId.value;
   const previousSafeArea = safeAreaVisible.value;
+  const previousTransformerVisible = transformer?.visible();
   selectedId.value = null;
   safeAreaVisible.value = false;
+  transformer?.visible(false);
   try {
     await nextTick();
     const canvas = stage.toCanvas({ pixelRatio: 1 / stageScale.value });
@@ -730,6 +733,9 @@ const complete = async () => {
   } finally {
     selectedId.value = previousSelection;
     safeAreaVisible.value = previousSafeArea;
+    if (previousTransformerVisible !== undefined) {
+      transformer?.visible(previousTransformerVisible);
+    }
     exporting.value = false;
   }
 };
