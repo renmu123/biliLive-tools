@@ -33,11 +33,22 @@
         </svg>
       </n-icon>
     </div>
+    <div class="cover-actions">
+      <n-button size="small" @click="selectImage">选择图片</n-button>
+      <n-button size="small" type="primary" @click="designerVisible = true">设计封面</n-button>
+    </div>
+    <CoverDesigner
+      v-model:show="designerVisible"
+      :initial-src="src"
+      :saving="designerSaving"
+      @complete="handleDesignComplete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { commonApi, api } from "@renderer/apis";
+import CoverDesigner from "./CoverDesigner.vue";
 
 const filename = defineModel<string | undefined>({ required: true, default: "" });
 const src = computed(() => {
@@ -61,10 +72,7 @@ const props: Props = withDefaults(defineProps<Props>(), {
 });
 
 const notice = useNotification();
-const handleCoverChange = async (e: Event) => {
-  const file = (e.target as HTMLInputElement).files?.[0];
-  if (!file) return;
-  console.log(file);
+const uploadCover = async (file: File) => {
   if (file.size > 1024 * 1024 * 2) {
     notice.warning({
       title: "图片大小超过2M可能导致无法上传成功~",
@@ -73,6 +81,33 @@ const handleCoverChange = async (e: Event) => {
   }
   const res = await commonApi.uploadCover(file);
   filename.value = res.name;
+};
+
+const handleCoverChange = async (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  await uploadCover(file);
+};
+
+const designerVisible = ref(false);
+const designerSaving = ref(false);
+const handleDesignComplete = async (file: File) => {
+  designerSaving.value = true;
+  try {
+    await uploadCover(file);
+    designerVisible.value = false;
+    notice.success({
+      title: "封面已生成",
+      duration: 1200,
+    });
+  } catch (error) {
+    notice.error({
+      title: "封面上传失败",
+      content: String(error),
+    });
+  } finally {
+    designerSaving.value = false;
+  }
 };
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -92,6 +127,11 @@ const remove = () => {
 <style scoped lang="less">
 .image-container {
   position: relative;
+}
+.cover-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
 }
 .image {
   cursor: pointer;

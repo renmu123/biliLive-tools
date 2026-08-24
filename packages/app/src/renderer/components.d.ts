@@ -18,6 +18,7 @@ declare module 'vue' {
     ChangelogModal: typeof import('./src/components/ChangelogModal.vue')['default']
     CheckUpdateModal: typeof import('./src/components/checkUpdateModal.vue')['default']
     ColumnSelector: typeof import('./src/components/ColumnSelector.vue')['default']
+    CoverDesigner: typeof import('./src/components/CoverDesigner.vue')['default']
     DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
     DynamicTags: typeof import('./src/components/DynamicTags.vue')['default']
