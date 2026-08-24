@@ -69,7 +69,12 @@
           </div>
         </div>
 
-        <aside class="sidebar">
+        <aside
+          class="sidebar"
+          :style="{
+            maxHeight: `${stageHeight}px`,
+          }"
+        >
           <template v-if="selectedLayer">
             <h3>图层设置</h3>
             <template v-if="selectedLayer.type === 'text'">
@@ -645,7 +650,7 @@ onBeforeUnmount(clearObjectUrls);
 }
 
 .sidebar {
-  overflow: visible;
+  overflow: auto;
 }
 
 .sidebar h3 {
