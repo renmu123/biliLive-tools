@@ -20,8 +20,12 @@ import { getDanmaStream } from "@renderer/apis/common";
 
 import type ArtplayerType from "artplayer";
 
+defineOptions({
+  name: "LiveVideoPlayer",
+});
+
 interface Props {
-  id: string;
+  liveId: string;
   url: string;
   owner: string;
 }
@@ -35,7 +39,7 @@ let eventSource: EventSource | null = null;
 // const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 
 async function streamLogs() {
-  eventSource = await getDanmaStream(query.id);
+  eventSource = await getDanmaStream(query.liveId);
 
   eventSource.onmessage = function (event) {
     const data = JSON.parse(event.data);

@@ -139,6 +139,8 @@ function createSubWindow(
   }  
   `;
   const hideMenuBar = !!options.hideMenuBar;
+  const queryString = options.query ? new URLSearchParams(options.query).toString() : "";
+  const route = queryString ? `${options.routeName}?${queryString}` : options.routeName;
 
   const subWindow = new BrowserWindow({
     webPreferences: {
@@ -150,18 +152,13 @@ function createSubWindow(
   });
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-    let url = process.env["ELECTRON_RENDERER_URL"] + `/#/${options.routeName}`;
-    if (options.query) {
-      let queryString = Object.keys(options.query).map(
-        (key) => `${key}=${encodeURIComponent(options.query![key])}`,
-      );
-      url += `?${queryString.join("&")}`;
-    }
-    subWindow.loadURL(url.toString());
+    const url = process.env["ELECTRON_RENDERER_URL"] + `/#/${route}`;
+    subWindow.loadURL(url);
   } else {
     subWindow.loadFile(join(__dirname2, "../renderer/index.html"), {
-      hash: options.routeName,
-      query: options.query,
+      // Hash 路由只会解析 # 后面的查询参数。loadFile 的 query 会被放在
+      // index.html 与 hash 之间，导致 useRoute().query 在生产环境中为空。
+      hash: route,
     });
   }
 
