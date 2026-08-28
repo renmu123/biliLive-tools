@@ -498,6 +498,9 @@ importers:
       json5:
         specifier: ^2.2.3
         version: 2.2.3
+      konva:
+        specifier: ^10.3.1
+        version: 10.3.1
       less:
         specifier: ^4.2.1
         version: 4.2.1
@@ -537,6 +540,9 @@ importers:
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@6.0.2)
+      vue-konva:
+        specifier: ^3.4.0
+        version: 3.4.0(konva@10.3.1)(vue@3.5.13(typescript@6.0.2))
       vue-router:
         specifier: ^5.0.3
         version: 5.0.3(@vue/compiler-sfc@3.5.30)(pinia@3.0.4(typescript@6.0.2)(vue@3.5.13(typescript@6.0.2)))(vue@3.5.13(typescript@6.0.2))
@@ -4460,6 +4466,17 @@ packages:
     resolution: {integrity: sha512-j/8tY9j5t+GVMLeioLaxweJiKUayFhlGqNTzf2ZGwL0ZCQijd2RLHK0SLW5Tsko8YyyqCZC2cojIb0/s62qTAg==}
     engines: {node: ^4.8.4 || ^6.10.1 || ^7.10.1 || >= 8.1.4}
 
+  konva@10.3.1:
+    resolution: {integrity: sha512-7fT/jSkL2bZZOHRBk2QVMKAUbgHoKG72W+KJtpP5YMJUZRmjgoafROgxTADsrxKOY2ZM5eKyN/x6CM9PrlFfOg==}
+    peerDependencies:
+      canvas: ^3.0.0
+      skia-canvas: ^3.0.0
+    peerDependenciesMeta:
+      canvas:
+        optional: true
+      skia-canvas:
+        optional: true
+
   lazy-val@1.0.5:
     resolution: {integrity: sha512-0/BnGCCfyUMkBpeDgWihanIAF9JmZhHBgUhEqzvf+adhNGLoP6TaiI5oF8oyb3I45P+PcnrqihSf01M0l0G5+Q==}
 
@@ -6299,6 +6316,13 @@ packages:
     engines: {node: ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: '>=6.0.0'
+
+  vue-konva@3.4.0:
+    resolution: {integrity: sha512-l7yqAPmc6gPbdXzxoukTiXzA6EdqTtPhzQp1pTdppwWLiimPCgFHcqp8nApXQN5dqF11p2OejwjKv150cf9ncA==}
+    engines: {node: '>= 4.0.0', npm: '>= 3.0.0'}
+    peerDependencies:
+      konva: '>7'
+      vue: ^3
 
   vue-router@5.0.3:
     resolution: {integrity: sha512-nG1c7aAFac7NYj8Hluo68WyWfc41xkEjaR0ViLHCa3oDvTQ/nIuLJlXJX1NUPw/DXzx/8+OKMng045HHQKQKWw==}
@@ -10482,6 +10506,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  konva@10.3.1: {}
+
   lazy-val@1.0.5: {}
 
   lazystream@1.0.1:
@@ -12334,6 +12360,11 @@ snapshots:
       semver: 7.7.4
     transitivePeerDependencies:
       - supports-color
+
+  vue-konva@3.4.0(konva@10.3.1)(vue@3.5.13(typescript@6.0.2)):
+    dependencies:
+      konva: 10.3.1
+      vue: 3.5.13(typescript@6.0.2)
 
   vue-router@5.0.3(@vue/compiler-sfc@3.5.30)(pinia@3.0.4(typescript@6.0.2)(vue@3.5.13(typescript@6.0.2)))(vue@3.5.13(typescript@6.0.2)):
     dependencies:
