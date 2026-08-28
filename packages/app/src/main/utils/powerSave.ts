@@ -1,5 +1,5 @@
 interface PowerSaveBlocker {
-  start(type: "prevent-app-suspension"): number;
+  start(type: "prevent-app-suspension" | "prevent-display-sleep"): number;
   stop(id: number): void;
   isStarted(id: number): boolean;
 }
@@ -12,7 +12,7 @@ export class PowerSaveController {
   setEnabled(enabled: boolean) {
     if (enabled) {
       if (this.blockerId === undefined || !this.powerSaveBlocker.isStarted(this.blockerId)) {
-        this.blockerId = this.powerSaveBlocker.start("prevent-app-suspension");
+        this.blockerId = this.powerSaveBlocker.start("prevent-display-sleep");
       }
       return;
     }
