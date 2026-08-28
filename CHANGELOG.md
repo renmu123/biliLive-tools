@@ -3,6 +3,7 @@
 ## 功能
 
 - 客户端新增“阻止系统休眠”选项支持 [#533](https://github.com/renmu123/biliLive-tools/issues/533)
+- 视频封面支持修改，如添加文字等操作 [#536](https://github.com/renmu123/biliLive-tools/pull/536)
 
 ## 优化
 
