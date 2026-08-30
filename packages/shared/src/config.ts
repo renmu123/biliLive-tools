@@ -6,6 +6,7 @@ import { defaultsDeep, get, set, cloneDeep } from "lodash-es";
 import { TypedEmitter } from "tiny-typed-emitter";
 import { APP_DEFAULT_CONFIG } from "./enum.js";
 import log from "./utils/log.js";
+import { normalizeBiliUploadRouteConfig } from "./biliUploadRoute.js";
 
 import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/types";
 
@@ -106,6 +107,8 @@ export class AppConfig extends Config {
 
     const initData = defaultsDeep(data, APP_DEFAULT_CONFIG);
     super.init(filepath, initData);
+    this.data.biliUpload = normalizeBiliUploadRouteConfig(this.data.biliUpload);
+    this.save();
   }
   get<K extends keyof AppConfigType>(key: K): AppConfigType[K];
   get<TPath extends string>(key: TPath): ReturnType<typeof get>;
@@ -119,10 +122,23 @@ export class AppConfig extends Config {
   set<K extends keyof AppConfigType>(key: K, value: AppConfigType[K]): void;
   set(key: string, value: any): void;
   set(key: keyof AppConfigType | string, value: any) {
-    return super.set(key, value);
+    this.read();
+    const oldData = cloneDeep(this.data);
+    set(this.data, key, value);
+    if (String(key) === "biliUpload.line") {
+      this.data.biliUpload.lines = [value];
+    }
+    if (String(key) === "biliUpload" || String(key).startsWith("biliUpload.")) {
+      this.data.biliUpload = normalizeBiliUploadRouteConfig(this.data.biliUpload);
+    }
+    this.save();
+    this.emit("update", this.data, oldData);
   }
   setAll(newConfig: AppConfigType) {
-    return super.setAll(newConfig);
+    return super.setAll({
+      ...newConfig,
+      biliUpload: normalizeBiliUploadRouteConfig(newConfig.biliUpload),
+    });
   }
   getAll() {
     const data = this.read() as AppConfigType;
