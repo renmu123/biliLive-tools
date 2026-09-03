@@ -334,7 +334,13 @@ export async function recognize(file: string, lyricOptimize: boolean) {
   const result = await shazamRecognizeWithSampling(file);
   // console.log("Shazam 识别结果：", JSON.stringify(result, null, 2));
   if (!result) return null;
-  const info = await shazamQueryInfo(result.trackId);
+  let info: (TrackInfo & { appleMusicId: string | undefined }) | null = null;
+
+  try {
+    info = await shazamQueryInfo(result.trackId);
+  } catch (error) {
+    console.error("Shazam 查询信息失败：", error);
+  }
 
   const appleMusicId = result.appleMusicId || info?.appleMusicId;
   const title = info?.title || result.title;
