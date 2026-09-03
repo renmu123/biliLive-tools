@@ -94,7 +94,7 @@ export class QwenLLM {
     this.client = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL || "https://dashscope.aliyuncs.com/compatible-mode/v1",
-      timeout: config.timeout || 60000,
+      timeout: config.timeout || 300000,
     });
     this.model = config.model || "qwen-plus";
   }
