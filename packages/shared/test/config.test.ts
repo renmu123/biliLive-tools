@@ -89,7 +89,7 @@ describe("Config", () => {
         nested: {
           value: 1,
         },
-      }
+      },
     );
     expect(onUpdate).toHaveBeenNthCalledWith(
       2,
@@ -105,7 +105,7 @@ describe("Config", () => {
         nested: {
           value: 2,
         },
-      }
+      },
     );
     expect(JSON.parse(fs.readFileSync(configPath, "utf-8"))).toEqual({
       nested: {
@@ -197,5 +197,58 @@ describe("AppConfig", () => {
 
     const persisted = JSON.parse(fs.readFileSync(configPath, "utf-8"));
     expect(persisted.tool.download.override).toBe(true);
+  });
+
+  it("将旧 biliUpload.line 配置迁移为单线路固定模式", () => {
+    fs.writeFileSync(configPath, JSON.stringify({ biliUpload: { line: "cs-qn" } }));
+    const config = new AppConfig();
+
+    config.init(configPath);
+
+    expect(config.get("biliUpload")).toMatchObject({
+      line: "cs-qn",
+      lines: ["cs-qn"],
+      lineStrategy: "fixed",
+    });
+    expect(JSON.parse(fs.readFileSync(configPath, "utf-8")).biliUpload).toMatchObject({
+      line: "cs-qn",
+      lines: ["cs-qn"],
+      lineStrategy: "fixed",
+    });
+  });
+
+  it("保存线路池时规范化 selector 并回填旧 line 字段", () => {
+    const config = new AppConfig();
+    config.init(configPath);
+    const current = config.getAll();
+
+    config.setAll({
+      ...current,
+      biliUpload: {
+        ...current.biliUpload,
+        line: "auto",
+        lines: ["cs-qn", "unknown", "cs-qn", "cs-alia"],
+        lineStrategy: "random",
+      },
+    });
+
+    expect(config.get("biliUpload")).toMatchObject({
+      line: "cs-qn",
+      lines: ["cs-qn", "cs-alia"],
+      lineStrategy: "random",
+    });
+  });
+
+  it("兼容通过旧 biliUpload.line 路径更新单线路", () => {
+    const config = new AppConfig();
+    config.init(configPath);
+
+    config.set("biliUpload.line", "cs-qn");
+
+    expect(config.get("biliUpload")).toMatchObject({
+      line: "cs-qn",
+      lines: ["cs-qn"],
+      lineStrategy: "fixed",
+    });
   });
 });

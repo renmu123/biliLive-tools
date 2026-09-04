@@ -2,6 +2,8 @@ export * from "./task.js";
 import type { Line as UploadLine } from "@renmu/bili-api";
 export * from "./preset.js";
 
+export type BiliUploadLineStrategy = "fixed" | "round-robin" | "random";
+
 // 弹幕配置
 // export type DanmuConfig = {
 //   resolution: [number, number];
@@ -818,6 +820,10 @@ export interface AppConfig {
   biliUpload: {
     /** 线路 */
     line: UploadLine;
+    /** 用户允许使用的上传线路池；缺省时兼容读取 line */
+    lines?: UploadLine[];
+    /** 上传会话的线路调度策略 */
+    lineStrategy?: BiliUploadLineStrategy;
     /** 上传重试次数 */
     retryTimes: number;
     /** 上传超时时间 */
