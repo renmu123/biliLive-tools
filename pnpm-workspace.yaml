@@ -50,3 +50,4 @@ minimumReleaseAgeExclude:
   - electron@42.5.0
   - "@renmu/bili-api@2.15.0"
   - "@renmu/node-shazam@2.0.4"
+  - '@renmu/bili-api@2.15.1'

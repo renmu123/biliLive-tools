@@ -578,8 +578,8 @@ importers:
         specifier: ^14.0.0
         version: 14.0.0
       '@renmu/bili-api':
-        specifier: 2.15.0
-        version: 2.15.0
+        specifier: 2.15.1
+        version: 2.15.1
       awilix:
         specifier: ^11.0.4
         version: 11.0.4
@@ -706,8 +706,8 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       '@renmu/bili-api':
-        specifier: 2.15.0
-        version: 2.15.0
+        specifier: 2.15.1
+        version: 2.15.1
       '@renmu/fluent-ffmpeg':
         specifier: 2.3.3
         version: 2.3.3
@@ -819,8 +819,8 @@ importers:
         version: 2.1.2
     devDependencies:
       '@renmu/bili-api':
-        specifier: 2.15.0
-        version: 2.15.0
+        specifier: 2.15.1
+        version: 2.15.1
 
 packages:
 
@@ -1018,9 +1018,6 @@ packages:
 
   '@bufbuild/protobuf@2.13.0':
     resolution: {integrity: sha512-acq7c49vxfm1ggJ95P70TX7ABDM0vxr1SYD3BB0o0jnBLB4OAqeHyKuN+cD3w80gXEDQ2zxHpR6CUeA+O/aU9g==}
-
-  '@bufbuild/protobuf@2.2.3':
-    resolution: {integrity: sha512-tFQoXHJdkEOSwj5tRIZSPNUuXK3RaR7T1nUrPgbYX1pUbvqqaaZAsfo+NXBPsz5rZMSKVFrgK1WL8Q/MSLvprg==}
 
   '@css-render/plugin-bem@0.15.14':
     resolution: {integrity: sha512-QK513CJ7yEQxm/P3EwsI+d+ha8kSOcjGvD6SevM41neEMxdULE+18iuQK6tEChAWMOQNQPLG/Rw3Khb69r5neg==}
@@ -1823,8 +1820,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@2.15.0':
-    resolution: {integrity: sha512-hK7KSdrRAcacEgbdRQdDOkopFqF7d5XEoGQI6+Rj1uljgJCU7T0DhRAVoReAIKPk741QPg5lvaMaG7G+FqtvXQ==}
+  '@renmu/bili-api@2.15.1':
+    resolution: {integrity: sha512-/zQhuAVYYUlFihB4XTvvnAyyGM5fto6+wu104dOU6CvoUX6SFyithwp7zRStxoadnRepkyyPGKIXdTY7CP/WMQ==}
     engines: {node: '>=18'}
 
   '@renmu/fluent-ffmpeg@2.3.3':
@@ -6863,8 +6860,6 @@ snapshots:
 
   '@bufbuild/protobuf@2.13.0': {}
 
-  '@bufbuild/protobuf@2.2.3': {}
-
   '@css-render/plugin-bem@0.15.14(css-render@0.15.14)':
     dependencies:
       css-render: 0.15.14
@@ -7493,9 +7488,9 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@2.15.0':
+  '@renmu/bili-api@2.15.1':
     dependencies:
-      '@bufbuild/protobuf': 2.2.3
+      '@bufbuild/protobuf': 2.13.0
       '@renmu/throttle': 1.0.3
       axios: 1.15.0
       axios-retry: 4.5.0(axios@1.15.0)
