@@ -1,4 +1,4 @@
-import path from "node:path";
+﻿import path from "node:path";
 import fs from "fs-extra";
 import axios from "axios";
 
@@ -338,7 +338,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     }
   }
 
-  const data: MediaOptions = {
+  const data = {
     cover: cover,
     title: options.title,
     // 移除老分区后，web的默认分区为21
@@ -363,13 +363,14 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     is_only_self: options.is_only_self || 0,
     space_hidden: options.space_hidden || 2,
     dtime: options.dtime ? options.dtime : undefined,
+    act_reserve: options.act_reserve ? options.act_reserve : undefined,
     watermark:
       options.copyright === 2 || options.watermark === undefined
         ? undefined
         : { state: options.watermark },
     creation_statement: creationStatement,
   };
-  return data;
+  return data as MediaOptions;
 }
 
 /**
@@ -1252,6 +1253,21 @@ export async function getBuvidConf(): Promise<{
   return res.data;
 }
 
+/**
+ * 获取预约列表
+ */
+async function getReserveList(uid: number) {
+  const cookie = getCookie(uid);
+  const cookieStr = Object.entries(cookie).map(([k, v]) => `${k}=${v}`).join("; ");
+  const res = await axios.get("https://member.bilibili.com/x/vupre/web/archive/pre", {
+    headers: {
+      Cookie: cookieStr,
+      Referer: "https://member.bilibili.com/platform/upload/video/frame",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    },
+  });
+  return res.data;
+}
 export const biliApi = {
   getArchives,
   checkTag,
@@ -1262,6 +1278,7 @@ export const biliApi = {
   addMedia,
   editMedia,
   getSeasonList,
+  getReserveList,
   getArchiveDetail,
   download,
   getSessionId,

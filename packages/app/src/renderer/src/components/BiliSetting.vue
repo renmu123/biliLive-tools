@@ -1,4 +1,4 @@
-<!-- bili设置 -->
+﻿<!-- bili设置 -->
 <template>
   <div>
     <n-form ref="formRef" :label-width="labelWidth" label-placement="left" label-align="right">
@@ -191,6 +191,22 @@
             }
           "
         ></n-date-picker>
+      </n-form-item>
+      
+      <n-form-item label="关联预约">
+        <div v-if="reserveOptions.length" style="display: flex; flex-direction: column; gap: 8px;">
+          <n-checkbox
+            v-for="item in reserveOptions"
+            :key="item.value"
+            :checked="reserveSid === item.value"
+            @update:checked="(checked: boolean) => handleReserveChange(checked, item.value)"
+          >
+            {{ item.label }}
+          </n-checkbox>
+        </div>
+        <div v-else style="color: #999; font-size: 12px;">
+          暂无可用预约，<span @click="loadReserveList" style="cursor: pointer; color: #2080f0;">点击刷新</span>
+        </div>
       </n-form-item>
 
       <n-form-item label="粉丝动态">
@@ -582,6 +598,37 @@ const scheduledTimestampMillis = computed({
   set(value) {
     options.value.config.dtime = value ? Math.floor(value / 1000) : undefined;
   },
+});
+const reserveOptions = ref<{ label: string; value: number }[]>([]);
+const reserveSid = computed(() => options.value.config.act_reserve?.sid);
+
+const handleReserveChange = (checked: boolean, sid: number) => {
+  if (checked) {
+    options.value.config.act_reserve = { sid };
+  } else {
+    options.value.config.act_reserve = undefined;
+  }
+};
+
+const loadReserveList = async () => {
+  try {
+    if (!userInfoStore.userInfo?.uid) {
+      reserveOptions.value = [];
+      return;
+    }
+    const data = await biliApi.getReserveList(userInfoStore.userInfo.uid);
+    const list = data?.data?.act_reserve?.act_reserve_list || [];
+    reserveOptions.value = list.map((item: any) => ({
+      label: item.title,
+      value: item.sid,
+    }));
+  } catch (e) {
+    console.error("获取预约列表失败", e);
+  }
+};
+
+onMounted(() => {
+  loadReserveList();
 });
 
 const saveAnotherPresetConfirm = async () => {
