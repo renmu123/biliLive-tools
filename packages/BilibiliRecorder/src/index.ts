@@ -339,7 +339,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("Message", msg);
     extraDataController.addMessage(msg);
   });
-  danmaClient.on("onRoomInfoChange", (msg) => {
+  danmaClient.on("RoomInfoChange", (msg) => {
     const title = msg?.body?.title?.trim() ?? "";
     if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
       const hasTitleKeyword = utils.hasBlockedTitleKeywords(title, this.titleKeywords);
@@ -373,12 +373,18 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         type: "common",
         text: `检测到标题由 "${previousTitle}" 变更为 "${title}"，中断录制以进行分段`,
       });
+      this.appendTimeline({
+        text: `检测到标题由 "${previousTitle}" 变更为 "${title}"，中断录制以进行分段`,
+      });
       this.recordHandle && this.recordHandle.stop("标题变更分段");
       return;
     }
 
     this.emit("DebugLog", {
       type: "common",
+      text: `检测到标题由 "${previousTitle}" 变更为 "${title}"，开始分段`,
+    });
+    this.appendTimeline({
       text: `检测到标题由 "${previousTitle}" 变更为 "${title}"，开始分段`,
     });
     downloader.cut();
