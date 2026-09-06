@@ -56,6 +56,7 @@ interface Options {
   recorderType?: "auto" | "ffmpeg" | "mesio" | "bililive"; // 底层录制器，使用mesio和bililive时videoFormat参数无效
   debugLevel?: `verbose` | "basic"; // verbose参数时，录制器会输出更加详细的log
   customHost?: string; // 自定义host来替换直播流的host
+  segmentOnTitleChange?: boolean; // 标题变更时分段，默认为false；bililive引擎无损切段，其他引擎中断录制
 }
 ```
 

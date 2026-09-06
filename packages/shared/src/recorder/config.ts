@@ -120,6 +120,11 @@ export default class RecorderConfig {
           } else {
             return undefined;
           }
+        } else if (key === "segmentOnTitleChange") {
+          if (setting.providerId === "Bilibili") {
+            return get(globalConfig, "bilibili.segmentOnTitleChange");
+          }
+          return false;
         } else {
           return get(globalConfig, key);
         }
@@ -217,6 +222,7 @@ export default class RecorderConfig {
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
       customHost: getValue("customHost"),
+      segmentOnTitleChange: getValue("segmentOnTitleChange") ?? false,
       useServerTimestamp: getValue("useServerTimestamp") ?? true,
       formatName: formatName,
       codecName: getValue("codecName") ?? "auto",

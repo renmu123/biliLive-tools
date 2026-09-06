@@ -79,6 +79,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
    * 2. 正则表达式：'/pattern/flags'（如：'/回放|录播/i'）
    */
   titleKeywords?: string;
+  /** B站直播间标题变更时分段 */
+  segmentOnTitleChange?: boolean;
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
   videoFormat?: "auto" | "ts" | "mkv" | "flv";
   /** 录制类型 */
@@ -119,6 +121,7 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     | "liveInfo"
     | "uid"
     | "titleKeywords"
+    | "segmentOnTitleChange"
     // | "recordHandle"
   >;
 

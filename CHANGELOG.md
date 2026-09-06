@@ -2,6 +2,7 @@
 
 ## 功能
 
+- 录制：B站支持“标题变更时分段”选项 [#533](https://github.com/renmu123/biliLive-tools/issues/533)
 - 客户端新增“阻止系统休眠”选项支持 [#533](https://github.com/renmu123/biliLive-tools/issues/533)
 - 视频封面支持修改，如添加文字等操作 [#536](https://github.com/renmu123/biliLive-tools/pull/536)
 - 切片：优化字幕功能 [#544](https://github.com/renmu123/biliLive-tools/pull/544)
@@ -19,6 +20,7 @@
 - 录制：优化某些情况下无法观看直播仍跳出播放器的bug
 - 切片：修复“歌曲识别”失败的bug
 - 切片：修复“歌词识别”错误使用“字幕识别”模型的bug
+- 录制：修复B站“禁止标题关键词”参数无效的bug [#551](https://github.com/renmu123/biliLive-tools/pull/551)
 
 ## 其他
 
