@@ -571,7 +571,7 @@ const songRecognize = async (segment: Segment) => {
   // TODO:
   // 波形图配置颜色
   const [status] = await confirm.warning({
-    content: `此功能使用AI用于针对片段进行歌曲识别，使用前请先去配置阿里云相关key。\n
+    content: `此功能使用AI用于针对片段进行歌曲识别，使用前请先去配置如阿里云相关key。\n
     1. 利用asr识别出字幕\n
     2. 利用llm根据字幕内容推断歌曲名称和歌词\n
     3. 利用asr中的时间轴以及歌词生成校对后的字幕（设置可关闭）\n`,
@@ -588,11 +588,12 @@ const songRecognize = async (segment: Segment) => {
       segment.start,
       segment.end!,
     );
-    updateSegment(segment.id, { name: data.name });
-    subtitleStore.setForSegment(segment.id, data.lyrics || "");
 
-    resetSubtitle();
     if (data.name) {
+      updateSegment(segment.id, { name: data.name });
+      subtitleStore.setForSegment(segment.id, data.lyrics || "");
+
+      resetSubtitle();
       notice.success({
         title: `歌曲识别成功：${data.name}`,
         duration: 3000,

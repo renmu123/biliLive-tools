@@ -8,7 +8,9 @@ RUN corepack enable && corepack prepare pnpm@11.5.0 --activate
 
 WORKDIR /app
 COPY . .
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
+# Keep pnpm's store at the same path as the BuildKit cache mount. PNPM_HOME only
+# controls where the pnpm executable is installed; it does not configure the store.
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store,sharing=locked pnpm install --store-dir=/pnpm/store --frozen-lockfile --ignore-scripts
 RUN pnpm run build:base
 
 # ============================================

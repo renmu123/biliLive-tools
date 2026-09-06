@@ -217,6 +217,7 @@ export async function optimizeLyrics(
       temperature: 0.5,
       enableSearch: false,
       responseFormat: enableStructuredOutput ? { type: "json_object" } : undefined,
+      enableThinking: false,
     },
   );
   logger.info("优化结果:", response);
@@ -329,6 +330,7 @@ async function recognizeSongNameWithLLM(
       enableSearch: options.enableSearch,
       responseFormat: options.enableStructuredOutput ? { type: "json_object" } : undefined,
       temperature: 0.6,
+      enableThinking: false,
       searchOptions: {
         forcedSearch: options.enableSearch,
         search_strategy: "max",

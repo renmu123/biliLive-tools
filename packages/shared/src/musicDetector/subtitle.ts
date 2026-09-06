@@ -307,6 +307,7 @@ export async function subtitleRecognize(
     fillGap,
     disableCache,
     song: options?.song,
+    modelId,
   });
 
   try {

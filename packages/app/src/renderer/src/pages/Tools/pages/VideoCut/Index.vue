@@ -97,7 +97,7 @@
           />
 
           <!-- 字幕编辑视图 -->
-          <SubtitleView v-else-if="activeSegmentView === 'subtitle'" />
+          <SubtitleView v-show="activeSegmentView === 'subtitle'" />
         </div>
       </div>
     </div>

@@ -107,8 +107,12 @@ router.post("/subtitle", async (ctx) => {
     };
     return;
   }
-  const config = appConfig.get("ai") || {};
-  const asrModelId = config.subtitleRecognize.modelId;
+  let asrModelId = data.modelId;
+
+  if (!asrModelId) {
+    const config = appConfig.get("ai") || {};
+    asrModelId = config.subtitleRecognize.modelId;
+  }
   if (!asrModelId) {
     throw new Error("请先在配置中设置字幕识别ASR模型");
   }

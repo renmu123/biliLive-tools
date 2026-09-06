@@ -3,16 +3,28 @@
 ## 功能
 
 - 录制：B站支持“标题变更时分段”选项 [#533](https://github.com/renmu123/biliLive-tools/issues/533)
+- 客户端新增“阻止系统休眠”选项支持 [#533](https://github.com/renmu123/biliLive-tools/issues/533)
+- 视频封面支持修改，如添加文字等操作 [#536](https://github.com/renmu123/biliLive-tools/pull/536)
+- 切片：优化字幕功能
+- B站视频上传：添加关联预约功能 [#548](https://github.com/renmu123/biliLive-tools/pull/548)
 
 ## 优化
 
 - docker环境下，当存在`录播姬工作目录`时不再强制使用路径`/app/video`
 - docker环境下，“删除至回收站”不会生效
-- `ntsuspend`修改为可选依赖
+- 切片：歌词优化等功能显式关闭深度思考，加长超时时间为300s
 
 ## Bug修复
 
-- 优化某些情况下无法观看直播仍跳出播放器的bug
+- 录制：修复“观看直播”功能无法在客户端使用的bug
+- 录制：优化某些情况下无法观看直播仍跳出播放器的bug
+- 切片：修复“歌曲识别”失败的bug
+- 切片：修复“歌词识别”错误使用“字幕识别”模型的bug
+
+## 其他
+
+- `ntsuspend`修改为可选依赖
+- 依赖；升级使用typescript7
 
 # 3.20.0(2026.08.16)
 

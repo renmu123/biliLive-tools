@@ -54,9 +54,16 @@
                 />
               </div>
             </div>
-            <n-button text type="error" size="small" class="delete-btn" @click="deleteNode(idx)">
-              <n-icon size="16"><TrashOutline /></n-icon>
-            </n-button>
+            <n-dropdown
+              trigger="click"
+              placement="bottom-end"
+              :options="getNodeActions(idx)"
+              @select="(key) => handleNodeAction(key, idx)"
+            >
+              <n-button text size="small" class="node-handle" aria-label="字幕行操作">
+                <n-icon size="16"><EllipsisVertical /></n-icon>
+              </n-button>
+            </n-dropdown>
           </div>
         </div>
       </div>
@@ -73,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { TrashOutline, AddOutline } from "@vicons/ionicons5";
+import { AddOutline, EllipsisVertical } from "@vicons/ionicons5";
 import SrtParser from "srt-parser-2";
 import { useSegmentStore, useSubtitles } from "@renderer/stores";
 import { secondsToTimemark } from "@renderer/utils";
@@ -108,6 +115,8 @@ interface SrtNode {
   endSeconds: number;
   text: string;
 }
+
+type NodeAction = "insert-before" | "insert-after" | "merge-previous" | "merge-next" | "delete";
 
 const nodes = ref<SrtNode[]>([]);
 
@@ -179,11 +188,82 @@ function deleteNode(idx: number) {
   flushToStore();
 }
 
-function addNode() {
-  const start = videoInstance.value.currentTime ?? 0;
-  const end = start + 4;
+function getNodeActions(idx: number) {
+  return [
+    { label: "之前插入行", key: "insert-before" },
+    { label: "之后插入行", key: "insert-after" },
+    { type: "divider", key: "insert-divider" },
+    { label: "与前行合并", key: "merge-previous", disabled: idx === 0 },
+    { label: "与后行合并", key: "merge-next", disabled: idx === nodes.value.length - 1 },
+    { type: "divider", key: "delete-divider" },
+    { label: "删除", key: "delete", props: { style: "color: var(--n-error-color)" } },
+  ];
+}
 
-  const newNode: SrtNode = {
+function handleNodeAction(key: string | number, idx: number) {
+  switch (key as NodeAction) {
+    case "insert-before":
+      insertNode(idx, "before");
+      break;
+    case "insert-after":
+      insertNode(idx, "after");
+      break;
+    case "merge-previous":
+      mergeNode(idx, "previous");
+      break;
+    case "merge-next":
+      mergeNode(idx, "next");
+      break;
+    case "delete":
+      deleteNode(idx);
+      break;
+  }
+}
+
+function insertNode(idx: number, position: "before" | "after") {
+  const node = nodes.value[idx];
+  const start = parseTimeToSeconds(node.startTime);
+  const end = parseTimeToSeconds(node.endTime);
+  const middle = (start + end) / 2;
+  const newNode = createNode(
+    position === "before" ? start : middle,
+    position === "before" ? middle : end,
+  );
+
+  if (position === "before") {
+    node.startSeconds = middle;
+    node.startTime = formatTime(middle);
+    nodes.value.splice(idx, 0, newNode);
+  } else {
+    node.endSeconds = middle;
+    node.endTime = formatTime(middle);
+    nodes.value.splice(idx + 1, 0, newNode);
+  }
+  flushToStore();
+}
+
+function mergeNode(idx: number, direction: "previous" | "next") {
+  const targetIdx = direction === "previous" ? idx - 1 : idx + 1;
+  const target = nodes.value[targetIdx];
+  const node = nodes.value[idx];
+  if (!target) return;
+
+  if (direction === "previous") {
+    target.endSeconds = parseTimeToSeconds(node.endTime);
+    target.endTime = node.endTime;
+    target.text = [target.text, node.text].filter(Boolean).join("\n");
+    nodes.value.splice(idx, 1);
+  } else {
+    node.endSeconds = parseTimeToSeconds(target.endTime);
+    node.endTime = target.endTime;
+    node.text = [node.text, target.text].filter(Boolean).join("\n");
+    nodes.value.splice(targetIdx, 1);
+  }
+  flushToStore();
+}
+
+function createNode(start: number, end: number): SrtNode {
+  return {
     id: String(nodes.value.length + 1),
     startTime: formatTime(start),
     startSeconds: start,
@@ -191,6 +271,13 @@ function addNode() {
     endSeconds: end,
     text: "",
   };
+}
+
+function addNode() {
+  const start = videoInstance.value.currentTime ?? 0;
+  const end = start + 4;
+
+  const newNode = createNode(start, end);
   nodes.value.push(newNode);
   flushToStore();
 }
@@ -214,8 +301,18 @@ function flushToStore() {
     }))
     .filter((n) => n.startSeconds < n.endSeconds);
 
-  // 如果没有有效节点，跳过后续处理
+  // 清空最后一行时也要同步到 store
   if (validNodes.length === 0) {
+    isFlushing = true;
+    if (selectedSegmentId.value === "__global__") {
+      subtitleStore.setGlobal("");
+    } else {
+      subtitleStore.setForSegment(selectedSegmentId.value, "");
+    }
+    nextTick(() => {
+      isFlushing = false;
+    });
+    videoInstance.value.artplayerPluginSubtitle.setContent("", "srt");
     return;
   }
 
@@ -291,6 +388,7 @@ function parseTimeToSeconds(timeStr: string): number {
   flex: 1;
   overflow-y: auto;
   padding: 4px 8px;
+  padding-right: 0;
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -340,6 +438,7 @@ function parseTimeToSeconds(timeStr: string): number {
       .text-input {
         width: 100%;
         height: 100%;
+        font-size: 13px;
 
         :deep(.n-input__input-el) {
           height: 100%;
@@ -373,15 +472,13 @@ function parseTimeToSeconds(timeStr: string): number {
       }
     }
 
-    .delete-btn {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      display: none;
-    }
-    &:hover {
-      .delete-btn {
-        display: block;
+    .node-handle {
+      flex-shrink: 0;
+      align-self: center;
+      color: var(--n-text-color-3);
+
+      &:hover {
+        color: var(--n-text-color-1);
       }
     }
   }

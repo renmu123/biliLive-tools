@@ -1,4 +1,4 @@
-import Router from "@koa/router";
+﻿import Router from "@koa/router";
 import { omit } from "lodash-es";
 
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
@@ -73,6 +73,11 @@ router.get("/searchTopic", async (ctx) => {
 router.get("/seasons", async (ctx) => {
   const { uid } = ctx.request.query as unknown as { uid: number };
   const data = await biliApi.getSeasonList(uid);
+  ctx.body = data;
+});
+router.get("/reserveList", async (ctx) => {
+  const { uid } = ctx.request.query as unknown as { uid: number };
+  const data = await biliApi.getReserveList(uid);
   ctx.body = data;
 });
 router.get("/season/:aid", async (ctx) => {
