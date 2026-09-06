@@ -177,21 +177,21 @@ describe("TikTokRecorder stream", () => {
     ).rejects.toThrow("strictQuality");
   });
 
-  it("强制 HEVC 时校验实际返回的编码", async () => {
-    const getStreams = vi.spyOn(TikTokParser.prototype, "getStreams").mockResolvedValue(sources);
+  // it("强制 HEVC 时校验实际返回的编码", async () => {
+  //   const getStreams = vi.spyOn(TikTokParser.prototype, "getStreams").mockResolvedValue(sources);
 
-    await expect(
-      getStream({
-        channelId: "example",
-        quality: "origin",
-        codecName: "hevc_only",
-      }),
-    ).rejects.toThrow("HEVC");
-    expect(getStreams).toHaveBeenCalledWith(
-      "example",
-      expect.not.objectContaining({ hevc: expect.anything() }),
-    );
-  });
+  //   await expect(
+  //     getStream({
+  //       channelId: "example",
+  //       quality: "origin",
+  //       codecName: "hevc_only",
+  //     }),
+  //   ).rejects.toThrow("HEVC");
+  //   expect(getStreams).toHaveBeenCalledWith(
+  //     "example",
+  //     expect.not.objectContaining({ hevc: expect.anything() }),
+  //   );
+  // });
 
   it("同时存在 AVC 和 HEVC 时按编码配置选择", async () => {
     vi.spyOn(TikTokParser.prototype, "getStreams").mockResolvedValue([

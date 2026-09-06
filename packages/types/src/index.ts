@@ -68,6 +68,7 @@ export const recorderNoGlobalFollowFields: Array<
   "formatName",
   "useM3U8Proxy",
   "customHost",
+  "segmentOnTitleChange",
   "codecName",
   "source",
   "videoFormat",
@@ -396,6 +397,8 @@ interface BilibiliRecorderConfig extends RecorderCheckConfig {
   codecName: CodecName;
   /** 自定义host */
   customHost?: string;
+  /** 直播间标题变更时分段 */
+  segmentOnTitleChange: boolean;
 }
 interface DouyuRecorderConfig extends RecorderCheckConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
@@ -564,6 +567,8 @@ export interface Recorder {
    * 2. 正则表达式：'/pattern/flags'（如：'/回放|录播/i'）
    */
   titleKeywords?: string;
+  /** B站直播间标题变更时分段 */
+  segmentOnTitleChange?: boolean;
   /** 开播推送 */
   liveStartNotification?: boolean;
   /** 充电直播(付费/DRM 加密直播)检测推送 */

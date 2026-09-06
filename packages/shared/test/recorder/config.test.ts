@@ -322,6 +322,41 @@ describe("RecorderConfig", () => {
         expect(recorderConfig.get("local")?.proxy).toBe("http://127.0.0.1:8899");
       });
     });
+    describe("B站标题变更时分段：segmentOnTitleChange", () => {
+      it("支持跟随全局配置和单独覆盖", () => {
+        mockAppConfig.get.mockImplementation((key: string) => {
+          if (key === "recorder") {
+            return {
+              bilibili: {
+                segmentOnTitleChange: true,
+              },
+            };
+          }
+          if (key === "recorders") {
+            return [
+              {
+                id: "global",
+                providerId: "Bilibili",
+                channelId: "global",
+                noGlobalFollowFields: [],
+                segmentOnTitleChange: false,
+              },
+              {
+                id: "local",
+                providerId: "Bilibili",
+                channelId: "local",
+                noGlobalFollowFields: ["segmentOnTitleChange"],
+                segmentOnTitleChange: false,
+              },
+            ];
+          }
+          return null;
+        });
+
+        expect(recorderConfig.get("global")?.segmentOnTitleChange).toBe(true);
+        expect(recorderConfig.get("local")?.segmentOnTitleChange).toBe(false);
+      });
+    });
     // 转封装为MP4,convert2Mp4
     describe("转封装为MP4：convert2Mp4", () => {
       it("全局", () => {

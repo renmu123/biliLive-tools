@@ -116,6 +116,7 @@ export type UpdateRecorderArgs = Pick<
   | "customHost"
   | "codecName"
   | "titleKeywords"
+  | "segmentOnTitleChange"
   | "liveStartNotification"
   | "chargeLiveNotification"
   | "liveEndNotification"
