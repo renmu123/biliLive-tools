@@ -15,6 +15,7 @@ import {
   crashReporter,
   nativeImage,
   powerSaveBlocker,
+  session,
 } from "electron";
 import { createContainer } from "awilix";
 
@@ -624,6 +625,15 @@ if (!gotTheLock) {
     },
   });
   app.whenReady().then(() => {
+    // 为B站图片请求添加Referer头，绕过防盗链（401/403）
+    session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+      const url = details.url;
+      if (url.includes("hdslb.com") || url.includes("biliimg.com")) {
+        details.requestHeaders["Referer"] = "https://www.bilibili.com";
+      }
+      callback({ requestHeaders: details.requestHeaders });
+    });
+
     electronApp.setAppUserModelId("com.electron.biliLiveTools");
     installExtension("nhdogjmejiglipccpnnnanhbledajbpd")
       .then(({ name }) => log.debug(`Added Extension:  ${name}`))

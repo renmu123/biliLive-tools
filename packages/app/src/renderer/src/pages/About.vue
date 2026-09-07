@@ -114,8 +114,8 @@ import { commonApi } from "@renderer/apis";
 const isWeb = computed(() => window.isWeb);
 
 const webVersion = import.meta.env.VITE_VERSION;
+const version = ref("");
 
-const version = ref();
 onMounted(async () => {
   version.value = await commonApi.version();
 });

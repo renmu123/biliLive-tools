@@ -49,6 +49,14 @@ const router = createRouter({
           },
         },
         {
+          path: "/editArchive",
+          name: "EditArchive",
+          component: () => import("../pages/Tools/pages/EditArchive/index.vue"),
+          meta: {
+            title: "编辑稿件",
+          },
+        },
+        {
           path: "/danmakufactory",
           name: "DanmakuFactory",
           component: () => import("../pages/Tools/pages/DanmuFactory.vue"),

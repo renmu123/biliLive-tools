@@ -177,7 +177,7 @@
         <template #label>
           <Tip
             text="定时发布"
-            tip="可选择距离当前最早≥2小时/最晚≤15天的时间，花火稿件或距发布不足5分钟时不可修改/取消，不会保存到配置中"
+            tip="可选择距离当前最早≥2小时/最晚≤15天的时间，花火稿件或距发布不足5分钟时不可修改/取消，会保存到配置中"
           ></Tip>
         </template>
         <n-date-picker
@@ -206,6 +206,30 @@
         </div>
         <div v-else style="color: #999; font-size: 12px;">
           暂无可用预约，<span @click="loadReserveList" style="cursor: pointer; color: #2080f0;">点击刷新</span>
+        </div>
+      </n-form-item>
+
+      <n-form-item label="联合投稿">
+        <div style="display: flex; flex-direction: column; gap: 0;">
+          <div style="font-size: 12px; color: #999; margin-bottom: 8px; line-height: 1.8;">
+            <div>{{ staffRemaining >= 0 ? (staffRemainingTips || ('本月剩余联合投稿发起次数：' + staffRemaining + '次/6次')) : '剩余次数获取中...' }}</div>
+            <div>最多10名合作者</div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <n-input v-model:value="staffSearchKeyword" placeholder="输入昵称或者UID搜索" style="flex: 1;" @keyup.enter="searchStaff" />
+            <n-button type="primary" :loading="staffSearchLoading" @click="searchStaff">搜索</n-button>
+          </div>
+          <div v-for="user in staffSearchResults" :key="user.mid" style="display: flex; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f0f0f0;">
+            <img :src="user.face" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 12px;" />
+            <span style="flex: 1; font-size: 14px;">{{ user.name }}</span>
+            <n-button type="primary" @click="addStaff(user)" style="margin-right: 8px;">添加</n-button>
+            <n-button type="error" @click="removeSearchResult(user.mid)">删除</n-button>
+          </div>
+          <div v-for="(staff, index) in options.config.staffs" :key="staff.mid" style="display: flex; align-items: center; padding: 8px 12px; background: #fafafa; border-bottom: 1px solid #f0f0f0;">
+            <span style="flex: 1; margin-right: 12px; font-size: 14px;">{{ staff.title }} - {{ staff.name || 'UID:' + staff.mid }}</span>
+            <n-select v-model:value="staff.title" :options="staffTitleOptions" style="width: 120px; margin-right: 8px;" />
+            <n-button type="error" @click="removeStaff(index)">删除</n-button>
+          </div>
         </div>
       </n-form-item>
 
@@ -487,6 +511,10 @@ const handlePresetChange = async (id: string) => {
       config: {},
     };
   }
+  // 每次加载预设后清空联合投稿合作者（不保存到配置文件）
+  if (options.value.config) {
+    options.value.config.staffs = [];
+  }
 };
 
 const noSideSpace = (value: string) => !value.startsWith(" ") && !value.endsWith(" ");
@@ -501,6 +529,15 @@ watch(
   },
 );
 
+// 比较配置时忽略联合投稿合作者（staffs 仅本次投稿有效，不因保存刷新预设而清空）
+const compareConfigIgnoringStaffs = (a: Record<string, unknown>, b: Record<string, unknown>) => {
+  const copyA = { ...(a || {}) };
+  const copyB = { ...(b || {}) };
+  delete copyA.staffs;
+  delete copyB.staffs;
+  return isEqual(copyA, copyB);
+};
+
 watch(uploadPresetVersion, () => {
   if (activePresetId.value) {
     // 判断当前options是否与uploaPresetsOptions中的activePresetId匹配的options相同，如果不相同则更新options
@@ -508,7 +545,7 @@ watch(uploadPresetVersion, () => {
       (preset) => preset.value === activePresetId.value,
     )?.options;
     if (currentOptions) {
-      if (!isEqual(options.value.config, currentOptions)) {
+      if (!compareConfigIgnoringStaffs(options.value.config, currentOptions)) {
         console.log("options已过时，更新options");
         handlePresetChange(activePresetId.value);
       }
@@ -627,9 +664,121 @@ const loadReserveList = async () => {
   }
 };
 
+// 联合投稿相关
+const userInfoStore = useUserInfoStore();
+const staffSearchKeyword = ref("");
+const staffSearchResults = ref<any[]>([]);
+const staffSearchLoading = ref(false);
+const staffSearched = ref(false);
+const staffRemaining = ref(-1);
+const staffRemainingTips = ref("");
+const staffTitleOptions = [
+  { label: "参演", value: "参演" },
+  { label: "策划", value: "策划" },
+  { label: "设计", value: "设计" },
+  { label: "配音", value: "配音" },
+  { label: "后期", value: "后期" },
+  { label: "调音", value: "调音" },
+  { label: "剪辑", value: "剪辑" },
+  { label: "视频制作", value: "视频制作" },
+  { label: "填词", value: "填词" },
+  { label: "作词", value: "作词" },
+  { label: "作曲", value: "作曲" },
+  { label: "编曲", value: "编曲" },
+  { label: "演唱", value: "演唱" },
+  { label: "混音", value: "混音" },
+  { label: "曲绘", value: "曲绘" },
+  { label: "调教", value: "调教" },
+  { label: "合剪", value: "合剪" },
+  { label: "导演", value: "导演" },
+  { label: "编剧", value: "编剧" },
+  { label: "主演", value: "主演" },
+  { label: "封面设计", value: "封面设计" },
+  { label: "文案", value: "文案" },
+  { label: "合舞", value: "合舞" },
+  { label: "舞者", value: "舞者" },
+  { label: "摄影", value: "摄影" },
+  { label: "字幕", value: "字幕" },
+  { label: "渲染", value: "渲染" },
+  { label: "模型", value: "模型" },
+  { label: "动作", value: "动作" },
+  { label: "调校", value: "调校" },
+  { label: "演奏", value: "演奏" },
+  { label: "母带", value: "母带" },
+  { label: "手工制作", value: "手工制作" },
+  { label: "研发", value: "研发" },
+  { label: "编舞", value: "编舞" },
+];
+
+const fetchStaffRemaining = async () => {
+  const uid = appConfig.value.uid;
+  if (!uid) return;
+  try {
+    const res: any = await biliApi.getStaffRemaining(uid);
+    staffRemaining.value = res?.cnt_remaining ?? -1;
+    staffRemainingTips.value = res?.tips ?? "";
+  } catch (e) {
+    console.error("获取联合投稿剩余次数失败", e);
+  }
+};
+
+const searchStaff = async () => {
+  if (!staffSearchKeyword.value.trim()) return;
+  if (!userInfoStore.userInfo?.uid) {
+    console.error("未登录，无法搜索UP主");
+    return;
+  }
+  staffSearchLoading.value = true;
+  staffSearched.value = true;
+  try {
+    const res: any = await biliApi.searchStaffUser(
+      staffSearchKeyword.value.trim(),
+      userInfoStore.userInfo.uid,
+    );
+    staffSearchResults.value = res?.data?.users || res?.users || [];
+  } catch (e) {
+    console.error("搜索UP主失败", e);
+  } finally {
+    staffSearchLoading.value = false;
+  }
+};
+
+const addStaff = (user: { mid: number; name: string; face: string }) => {
+  if (!options.value.config.staffs) {
+    options.value.config.staffs = [];
+  }
+  if (options.value.config.staffs.length >= 10) {
+    notice.warning({ title: "联合投稿最多支持10名合作者", duration: 2000 });
+    return;
+  }
+  if (options.value.config.staffs.some((s: any) => s.mid === user.mid)) {
+    return;
+  }
+  options.value.config.staffs.push({ title: "参演", mid: user.mid, name: user.name });
+  staffSearchResults.value = staffSearchResults.value.filter((u) => u.mid !== user.mid);
+};
+
+const removeStaff = (index: number) => {
+  options.value.config.staffs?.splice(index, 1);
+};
+
+const removeSearchResult = (mid: number) => {
+  staffSearchResults.value = staffSearchResults.value.filter((u) => u.mid !== mid);
+};
+
 onMounted(() => {
   loadReserveList();
+  fetchStaffRemaining();
 });
+
+watch(
+  () => appConfig.value.uid,
+  (newUid) => {
+    if (newUid) {
+      fetchStaffRemaining();
+    }
+  },
+);
 
 const saveAnotherPresetConfirm = async () => {
   if (!tempPresetName.value) {
@@ -643,6 +792,11 @@ const saveAnotherPresetConfirm = async () => {
 
   if (!isRename.value) preset.id = uuid();
   preset.name = tempPresetName.value;
+
+  // 合作者仅本次投稿有效，不写入配置文件
+  if (Array.isArray(preset.config.staffs) && preset.config.staffs.length > 0) {
+    delete preset.config.staffs;
+  }
 
   await saveUploadPreset(preset);
   nameModelVisible.value = false;
@@ -689,17 +843,16 @@ const savePreset = async () => {
   if (userInfoStore.userInfo?.uid) {
     data.config.uid = userInfoStore.userInfo.uid;
   }
-  await saveUploadPreset(options.value);
-  if (options.value.config.dtime) {
-    notice.warning({
-      title: "保存成功，但定时发布不会保存到配置文件中",
-      duration: 1000,
-    });
-    return true;
-  }
+  const hasStaffs = Array.isArray(data.config.staffs) && data.config.staffs.length > 0;
+  // 合作者不保存到预设配置文件中
+  const saveData = hasStaffs
+    ? { ...data, config: { ...data.config, staffs: undefined } }
+    : data;
+  await saveUploadPreset(saveData);
   notice.success({
     title: "保存成功",
-    duration: 1000,
+    content: hasStaffs ? "合作者仅本次投稿有效，不会保存到配置文件中" : undefined,
+    duration: hasStaffs ? 3000 : 1000,
   });
   return true;
 };
@@ -726,7 +879,6 @@ watchEffect(() => {
 });
 
 // 合集
-const userInfoStore = useUserInfoStore();
 const seasonList = ref<
   {
     label: string;
@@ -1023,10 +1175,19 @@ const getTitle = () => {
   return options.value?.config?.title;
 };
 
+const setConfig = (config: Record<string, unknown>) => {
+  options.value.config = { ...options.value.config, ...config } as typeof options.value.config;
+};
+const getConfig = () => {
+  return options.value?.config;
+};
+
 defineExpose({
   setTitle,
   getTitle,
   savePreset,
+  setConfig,
+  getConfig,
 });
 
 const humanTypeList = ref([

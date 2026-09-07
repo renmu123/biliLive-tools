@@ -56,6 +56,20 @@ const getReserveList = async (uid: number) => {
   return res.data;
 };
 
+const searchStaffUser = async (kw: string, uid: number) => {
+  const res = await request.get("/bili/searchStaff", {
+    params: { kw, uid },
+  });
+  return res.data;
+};
+
+const getStaffRemaining = async (uid: number) => {
+  const res = await request.get("/bili/staffRemaining", {
+    params: { uid },
+  });
+  return res.data;
+};
+
 const getSessionId = async (aid: number, uid: number) => {
   const res = await request.get(`/bili//season/${aid}`, {
     params: { uid },
@@ -175,6 +189,8 @@ const bili = {
   validUploadParams,
   getArchives,
   getReserveList,
+  searchStaffUser,
+  getStaffRemaining,
   checkTag,
   searchTopic,
   getSeasonList,
