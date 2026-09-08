@@ -6,6 +6,7 @@
   },
   "devDependencies": {
     "vitepress": "2.0.0-alpha.12",
+    "vitepress-plugin-llms": "^1.13.3",
     "vitepress-mermaid-renderer": "^1.1.7"
   }
 }

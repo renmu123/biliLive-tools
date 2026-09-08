@@ -166,6 +166,7 @@ export function formatPartTitle(options: PartTitleFormatOptions, template: strin
       time: new Date(options.time),
       roomId: options.roomId,
       filename: options.filename,
+      index: options.index,
       isDanmaFile,
       hasDanmaStr,
     };

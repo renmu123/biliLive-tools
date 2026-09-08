@@ -1,6 +1,6 @@
 {
   "name": "@biliLive-tools/types",
-  "version": "3.13.0",
+  "version": "3.21.0",
   "type": "module",
   "description": "",
   "main": "./lib/index.js",
@@ -18,6 +18,12 @@
       "development": "./src/*.ts",
       "default": "./lib/*.js"
     }
+  },
+  "dependencies": {
+    "arktype": "^2.1.2"
+  },
+  "devDependencies": {
+    "@renmu/bili-api": "2.15.1"
   },
   "scripts": {
     "build": "tsc",

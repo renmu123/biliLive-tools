@@ -8,19 +8,18 @@
       aria-modal="true"
       class="card"
     >
-      <n-form label-placement="left" :label-width="150">
-        <h4>支持斗鱼、虎牙、B站、抖音、小红书，请做好踩坑的准备</h4>
-
+      <n-form label-placement="left" :label-width="labelWidth">
         <n-form-item v-if="!isEdit">
           <template #label>
             <Tip
               text="直播间链接"
-              tip="如果链接无法解析，请尝试使用标准直播间链接<br/>斗鱼：https://www.douyu.com/房间号<br/>虎牙：https://www.huya.com/房间号<br/>B站：https://live.bilibili.com/房间号<br/>抖音：https://live.douyin.com/房间号<br/>抖音：https://www.douyin.com/user/xxxxx<br/>小红书：http://xhslink.com/m/54KhCYhGUZA（手机端分享链接）"
+              tip="如果链接无法解析，请尝试使用标准直播间链接<br/>斗鱼：https://www.douyu.com/房间号<br/>虎牙：https://www.huya.com/房间号<br/>B站：https://live.bilibili.com/房间号<br/>抖音：https://live.douyin.com/房间号<br/>抖音：https://www.douyin.com/user/xxxxx<br/>小红书：http://xhslink.com/m/54KhCYhGUZA（手机端分享链接）<br/>TikTok：https://www.tiktok.com/@用户名/live"
             ></Tip>
           </template>
           <n-input
             v-model:value.trim="channelIdUrl"
             placeholder="输入后自动解析"
+            :loading="channelIdResolving"
             @blur="onChannelIdInputEnd"
           >
           </n-input>
@@ -121,6 +120,40 @@
                 >全局</n-checkbox
               >
             </n-form-item>
+
+            <n-form-item v-if="config.providerId === 'Bilibili'">
+              <template #label>
+                <Tip
+                  :text="textInfo.bili.segmentOnTitleChange.text"
+                  :tip="textInfo.bili.segmentOnTitleChange.tip"
+                ></Tip>
+              </template>
+              <n-switch
+                v-model:value="config.segmentOnTitleChange"
+                :disabled="globalFieldsObj.segmentOnTitleChange"
+              />
+              <n-checkbox
+                v-model:checked="globalFieldsObj.segmentOnTitleChange"
+                class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+
+            <n-form-item>
+              <template #label>
+                <Tip
+                  :text="textInfo.common.convert2Mp4.text"
+                  :tip="textInfo.common.convert2Mp4.tip"
+                ></Tip>
+              </template>
+              <n-switch
+                v-model:value="config.convert2Mp4"
+                :disabled="globalFieldsObj.convert2Mp4"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
           </template>
 
           <h2>直播流</h2>
@@ -130,7 +163,8 @@
               config.providerId !== 'Bilibili' &&
               config.providerId !== 'DouYu' &&
               config.providerId !== 'HuYa' &&
-              config.providerId !== 'DouYin'
+              config.providerId !== 'DouYin' &&
+              config.providerId !== 'TikTok'
             "
           >
             <template #label>
@@ -198,7 +232,7 @@
               </template>
               <n-select
                 v-model:value="config.codecName"
-                :options="streamCodecOptions"
+                :options="biliStreamCodecOptions"
                 :disabled="globalFieldsObj.codecName"
               />
               <n-checkbox v-model:checked="globalFieldsObj.codecName" class="global-checkbox"
@@ -237,16 +271,16 @@
                 >全局</n-checkbox
               >
             </n-form-item>
-            <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+            <n-form-item>
               <template #label>
                 <Tip
-                  :text="textInfo.common.titleKeywords.text"
-                  :tip="textInfo.common.titleKeywords.tip"
+                  :text="textInfo.bili.titleKeywords.text"
+                  :tip="textInfo.bili.titleKeywords.tip"
                 ></Tip>
               </template>
               <n-input
                 v-model:value="config.titleKeywords"
-                :placeholder="textInfo.common.titleKeywords.placeholder"
+                :placeholder="textInfo.bili.titleKeywords.placeholder"
                 clearable
               />
             </n-form-item>
@@ -275,6 +309,35 @@
                 :disabled="globalFieldsObj.source"
               />
               <n-checkbox v-model:checked="globalFieldsObj.source" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip :text="textInfo.douyu.api.text" :tip="textInfo.douyu.api.tip"></Tip>
+              </template>
+              <n-select
+                v-model:value="config.api"
+                :options="douyuApiTypeOptions"
+                :disabled="globalFieldsObj.api"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.api" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item v-if="config.api !== 'oldAPI'">
+              <template #label>
+                <Tip
+                  :text="textInfo.douyu.codecName.text"
+                  :tip="textInfo.douyu.codecName.tip"
+                ></Tip>
+              </template>
+              <n-select
+                v-model:value="config.codecName"
+                :options="douyuStreamCodecOptions"
+                :disabled="globalFieldsObj.codecName"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.codecName" class="global-checkbox"
                 >全局</n-checkbox
               >
             </n-form-item>
@@ -422,7 +485,7 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <Tip text="Cookie" tip="我也不知道有啥用，可能哪天被风控的时候用得上吧"></Tip>
+                <Tip text="Cookie" tip="使用mobile接口时Cookie不会被应用"></Tip>
               </template>
               <n-input
                 v-model:value="config.cookie"
@@ -459,14 +522,104 @@
               />
             </n-form-item>
           </template>
+          <template v-if="config.providerId === 'TikTok'">
+            <n-form-item>
+              <template #label>
+                <Tip text="画质" tip="如果指定画质不可用，会根据画质重试配置决定是否回退"></Tip>
+              </template>
+              <n-select
+                v-model:value="config.quality"
+                :options="tiktokQualityOptions"
+                :disabled="globalFieldsObj.quality"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip text="流格式" tip="默认优先 FLV，其次 HLS"></Tip>
+              </template>
+              <n-select
+                v-model:value="config.formatName"
+                :options="douyinStreamFormatOptions"
+                :disabled="globalFieldsObj.formatName"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.formatName" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip text="流编码" tip="自动和 AVC 默认使用 AVC 流，也可优先或强制使用 HEVC"></Tip>
+              </template>
+              <n-select
+                v-model:value="config.codecName"
+                :options="biliStreamCodecOptions"
+                :disabled="globalFieldsObj.codecName"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.codecName" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip text="请求接口" tip="随机模式会在 web 接口和直播 html 解析之间随机选择"></Tip>
+              </template>
+              <n-select
+                v-model:value="config.api"
+                :options="tiktokApiTypeOptions"
+                :disabled="globalFieldsObj.api"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.api" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip text="Cookie" tip="遇到年龄限制或风控时可填写 TikTok Cookie"></Tip>
+              </template>
+              <n-input
+                v-model:value="config.cookie"
+                type="password"
+                :disabled="globalFieldsObj.cookie"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.cookie" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <!-- <n-form-item>
+              <template #label>
+                <Tip
+                  text="代理"
+                  tip="用于 TikTok API 请求和直播流录制，例如 http://127.0.0.1:7890"
+                ></Tip>
+              </template>
+              <n-input
+                v-model:value="config.proxy"
+                placeholder="例如：http://127.0.0.1:7890"
+                :disabled="globalFieldsObj.proxy"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.proxy" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item> -->
+            <n-form-item>
+              <template #label>
+                <Tip
+                  :text="textInfo.common.titleKeywords.text"
+                  :tip="textInfo.common.titleKeywords.tip"
+                ></Tip>
+              </template>
+              <n-input
+                v-model:value="config.titleKeywords"
+                :placeholder="textInfo.common.titleKeywords.placeholder"
+                clearable
+              />
+            </n-form-item>
+          </template>
 
-          <n-form-item
-            v-if="
-              config.providerId !== 'HuYa' &&
-              config.providerId !== 'DouYin' &&
-              config.providerId !== 'XHS'
-            "
-          >
+          <n-form-item v-if="config.providerId === 'Bilibili' || config.providerId === 'DouYu'">
             <template #label>
               <Tip text="只录制音频" tip="会选择纯音频流，B站只支持flv流，抖音请在画质中选择"></Tip>
             </template>
@@ -523,6 +676,15 @@
               </template>
               <n-switch v-model:value="config.liveEndNotification" />
             </n-form-item>
+            <n-form-item v-if="!config.disableAutoCheck && config.providerId === 'Bilibili'">
+              <template #label>
+                <Tip
+                  text="付费直播推送"
+                  tip="检测到付费直播(DRM 加密直播)时推送通知。此类直播为 DRM 加密，无法自动录制，仅作提醒。"
+                ></Tip>
+              </template>
+              <n-switch v-model:value="config.chargeLiveNotification" />
+            </n-form-item>
 
             <n-form-item>
               <template #label>
@@ -573,7 +735,9 @@
                 >全局</n-checkbox
               >
             </n-form-item>
-            <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+            <n-form-item
+              v-if="!config.disableProvideCommentsWhenRecording && config.providerId !== 'TikTok'"
+            >
               <template #label>
                 <span class="inline-flex"> 保存礼物 </span>
               </template>
@@ -604,7 +768,8 @@
             </n-form-item>
             <n-form-item
               v-if="
-                !config.disableProvideCommentsWhenRecording && !['HuYa'].includes(config.providerId)
+                !config.disableProvideCommentsWhenRecording &&
+                !['HuYa', 'TikTok'].includes(config.providerId)
               "
             >
               <template #label>
@@ -646,7 +811,7 @@ import {
   douyuQualityOptions,
   biliStreamFormatOptions,
   textInfo,
-  streamCodecOptions,
+  biliStreamCodecOptions,
   huyaQualityOptions,
   douyinQualityOptions,
   douyuSourceOptions,
@@ -657,8 +822,12 @@ import {
   recorderDebugLevelOptions,
   douyinApiTypeOptions,
   huyaApiTypeOptions,
+  douyuStreamCodecOptions,
+  douyuApiTypeOptions,
+  tiktokApiTypeOptions,
+  tiktokQualityOptions,
 } from "@renderer/enums/recorder";
-import { useConfirm } from "@renderer/hooks";
+import { useConfirm, useBreakpoints } from "@renderer/hooks";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
 import { cloneDeep } from "lodash-es";
 
@@ -676,6 +845,10 @@ const props = defineProps<Props>();
 const emits = defineEmits<{
   (event: "confirm"): void;
 }>();
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "100px" : "150px";
+});
 
 const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>[number], boolean>>(
   {
@@ -686,15 +859,18 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     segment: true,
     uid: true,
     saveCover: true,
+    convert2Mp4: true,
     qualityRetry: true,
     formatName: true,
     useM3U8Proxy: true,
     customHost: true,
+    segmentOnTitleChange: true,
     codecName: true,
     source: true,
     videoFormat: true,
     recorderType: true,
     cookie: true,
+    proxy: true,
     doubleScreen: true,
     useServerTimestamp: true,
     debugLevel: true,
@@ -751,25 +927,35 @@ const getRecordSetting = async () => {
   if (!config.value.weight) {
     config.value.weight = 10;
   }
+  // 充电直播推送默认开启：旧录制器无该字段时按开启显示
+  if (config.value.chargeLiveNotification === undefined) {
+    config.value.chargeLiveNotification = true;
+  }
 };
 const isEdit = computed(() => !!props.id);
 
 const channelIdUrl = ref("");
 const owner = ref("");
+const channelIdResolving = ref(false);
 const onChannelIdInputEnd = async () => {
   if (!channelIdUrl.value) return;
-  const res = await recoderApi.resolve(channelIdUrl.value);
-  if (!res) {
-    notice.error({
-      title: "解析失败",
-      duration: 1000,
-    });
-    return;
+  channelIdResolving.value = true;
+  try {
+    const res = await recoderApi.resolve(channelIdUrl.value);
+    if (!res) {
+      notice.error({
+        title: "解析失败",
+        duration: 1000,
+      });
+      return;
+    }
+    initGlobalFields();
+    // 直接使用后端返回的完整配置
+    config.value = res;
+    owner.value = res.remarks || "";
+  } finally {
+    channelIdResolving.value = false;
   }
-  initGlobalFields();
-  // 直接使用后端返回的完整配置
-  config.value = res;
-  owner.value = res.remarks || "";
 };
 
 const initGlobalFields = () => {
@@ -783,15 +969,20 @@ const initGlobalFields = () => {
     segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
     uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
     saveCover: !(config.value?.noGlobalFollowFields ?? []).includes("saveCover"),
+    convert2Mp4: !(config.value?.noGlobalFollowFields ?? []).includes("convert2Mp4"),
     qualityRetry: !(config.value?.noGlobalFollowFields ?? []).includes("qualityRetry"),
     formatName: !(config.value?.noGlobalFollowFields ?? []).includes("formatName"),
     useM3U8Proxy: !(config.value?.noGlobalFollowFields ?? []).includes("useM3U8Proxy"),
     customHost: !(config.value?.noGlobalFollowFields ?? []).includes("customHost"),
+    segmentOnTitleChange: !(config.value?.noGlobalFollowFields ?? []).includes(
+      "segmentOnTitleChange",
+    ),
     codecName: !(config.value?.noGlobalFollowFields ?? []).includes("codecName"),
     source: !(config.value?.noGlobalFollowFields ?? []).includes("source"),
     videoFormat: !(config.value?.noGlobalFollowFields ?? []).includes("videoFormat"),
     recorderType: !(config.value?.noGlobalFollowFields ?? []).includes("recorderType"),
     cookie: !(config.value?.noGlobalFollowFields ?? []).includes("cookie"),
+    proxy: !(config.value?.noGlobalFollowFields ?? []).includes("proxy"),
     doubleScreen: !(config.value?.noGlobalFollowFields ?? []).includes("doubleScreen"),
     useServerTimestamp: !(config.value?.noGlobalFollowFields ?? []).includes("useServerTimestamp"),
     debugLevel: !(config.value?.noGlobalFollowFields ?? []).includes("debugLevel"),
@@ -825,6 +1016,8 @@ watch(
         config.value.quality = appConfig.value.recorder.huya.quality;
       } else if (config.value.providerId === "DouYin") {
         config.value.quality = appConfig.value.recorder.douyin.quality;
+      } else if (config.value.providerId === "TikTok") {
+        config.value.quality = appConfig.value.recorder.tiktok.quality;
       } else {
         config.value.quality = appConfig.value.recorder.quality;
       }
@@ -836,6 +1029,8 @@ watch(
         config.value.formatName = appConfig.value.recorder.douyin.formatName;
       } else if (config.value.providerId === "HuYa") {
         config.value.formatName = appConfig.value.recorder.huya.formatName;
+      } else if (config.value.providerId === "TikTok") {
+        config.value.formatName = appConfig.value.recorder.tiktok.formatName;
       }
     }
     if (val.disableProvideCommentsWhenRecording) {
@@ -859,6 +1054,9 @@ watch(
     if (val.saveCover) {
       config.value.saveCover = appConfig.value.recorder.saveCover;
     }
+    if (val.convert2Mp4) {
+      config.value.convert2Mp4 = appConfig.value.recorder.convert2Mp4;
+    }
     if (val.qualityRetry) {
       config.value.qualityRetry = appConfig.value.recorder.qualityRetry;
     }
@@ -869,6 +1067,10 @@ watch(
     if (val.codecName) {
       if (config.value.providerId === "Bilibili") {
         config.value.codecName = appConfig.value.recorder.bilibili.codecName;
+      } else if (config.value.providerId === "DouYu") {
+        config.value.codecName = appConfig.value.recorder.douyu.codecName;
+      } else if (config.value.providerId === "TikTok") {
+        config.value.codecName = appConfig.value.recorder.tiktok.codecName;
       }
     }
     if (val.source) {
@@ -891,7 +1093,12 @@ watch(
         config.value.cookie = appConfig.value.recorder.douyin.cookie;
       } else if (config.value.providerId === "XHS") {
         config.value.cookie = appConfig.value.recorder.xhs.cookie;
+      } else if (config.value.providerId === "TikTok") {
+        config.value.cookie = appConfig.value.recorder.tiktok.cookie;
       }
+    }
+    if (val.proxy && config.value.providerId === "TikTok") {
+      config.value.proxy = appConfig.value.recorder.tiktok.proxy;
     }
     if (val.doubleScreen) {
       config.value.doubleScreen = appConfig.value.recorder.douyin.doubleScreen;
@@ -907,10 +1114,17 @@ watch(
         config.value.api = appConfig.value.recorder.douyin.api;
       } else if (config.value.providerId === "HuYa") {
         config.value.api = appConfig.value.recorder.huya.api;
+      } else if (config.value.providerId === "DouYu") {
+        config.value.api = appConfig.value.recorder.douyu.api;
+      } else if (config.value.providerId === "TikTok") {
+        config.value.api = appConfig.value.recorder.tiktok.api;
       }
     }
     if (val.customHost) {
       config.value.customHost = appConfig.value.recorder.bilibili.customHost;
+    }
+    if (val.segmentOnTitleChange) {
+      config.value.segmentOnTitleChange = appConfig.value.recorder.bilibili.segmentOnTitleChange;
     }
   },
   {
@@ -940,7 +1154,7 @@ watch(
 
 .card {
   :deep(.n-form-item-feedback-wrapper) {
-    --n-feedback-height: 20px;
+    --n-feedback-height: 15px;
   }
 }
 h2 {

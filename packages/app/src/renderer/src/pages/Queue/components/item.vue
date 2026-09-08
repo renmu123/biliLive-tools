@@ -194,6 +194,9 @@
           )
         }}
       </span>
+      <span v-if="item.type === TaskType.biliUpload && item.extra?.fileSize !== undefined">
+        文件大小：{{ formatFileSize(item.extra.fileSize) }}
+      </span>
       <span>{{ item.custsomProgressMsg }}</span>
     </div>
   </div>
@@ -237,6 +240,21 @@ const props = withDefaults(defineProps<Props>(), {
 
 const item = computed(() => props.item);
 const isWeb = computed(() => window.isWeb);
+
+const formatFileSize = (size: number) => {
+  if (!Number.isFinite(size) || size < 0) return "--";
+  if (size < 1024) return `${size} B`;
+
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = size / 1024;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+
+  return `${value.toFixed(value < 10 ? 1 : 0)} ${units[unitIndex]}`;
+};
 
 const confirm = useConfirm();
 const store = useQueueStore();

@@ -4,8 +4,10 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
+    "strict": false,
     "strictNullChecks": true,
     "skipLibCheck": true,
+    "types": ["*"],
     "noEmit": true
   },
   "files": ["packages/types/src/index.ts"]

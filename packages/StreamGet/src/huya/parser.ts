@@ -28,7 +28,7 @@ export class HuyaParser extends PlatformParser<number> {
     return url;
   }
 
-  async getLiveInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo> {
+  async getRoomInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo> {
     const mergedOpts = this.mergeOptions(opts);
     console.log(`HuYaParser.getLiveInfo: roomId=${roomId}, options=`, mergedOpts);
     // TODO: 实现 HuYa API 调用

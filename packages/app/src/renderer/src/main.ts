@@ -7,6 +7,7 @@ import { init as axiosInit } from "./apis/request";
 import path from "path-unified";
 import "@imengyu/vue3-context-menu/lib/vue3-context-menu.css";
 import ContextMenu from "@imengyu/vue3-context-menu";
+import VueKonva from "vue-konva";
 
 const isWeb = !window.api;
 window.isWeb = isWeb;
@@ -21,7 +22,7 @@ const init = async () => {
   const pinia = createPinia();
   const app = createApp(App);
   // app.provide("app", app);
-  app.use(router).use(ContextMenu).use(pinia).mount("#app");
+  app.use(router).use(ContextMenu).use(VueKonva).use(pinia).mount("#app");
 };
 
 init();

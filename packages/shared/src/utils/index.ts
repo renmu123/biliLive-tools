@@ -12,6 +12,7 @@ import trash from "trash";
 import { appConfig } from "../config.js";
 export * from "./webhook.js";
 export * from "./crypto.js";
+export * from "./externalEvent.js";
 import { videoEncoders } from "../enum.js";
 
 import type { FfmpegOptions, VideoCodec } from "@biliLive-tools/types";
@@ -158,8 +159,6 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
   }
   if (options.audioCodec) {
     result.push(`-c:a ${options.audioCodec}`);
-  } else {
-    result.push(`-c:a copy`);
   }
   if (options.extraOptions) {
     options.extraOptions.split(" ").forEach((option) => {
@@ -187,6 +186,9 @@ export const deleteFile = async (path: string) => {
 };
 
 export const trashItem = async (path: string) => {
+  if (process.env.IS_DOCKER) {
+    return deleteFile(path);
+  }
   const trashConfig = appConfig.get("trash");
   if (trashConfig) {
     return trash(path);

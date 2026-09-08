@@ -6,9 +6,9 @@ body:
     attributes:
       label: 我已尝试以下操作
       options:
-        - label: 尝试使用 [最新版本](https://github.com/renmu123/biliLive-tools/releases)
+        - label: 使用 [最新版本](https://github.com/renmu123/biliLive-tools/releases)
           required: true
-        - label: 已阅读文档，并查询过 issue
+        - label: 已阅读 [文档](https://docs.irenmu.com/)，并查询过 [issue](https://github.com/renmu123/biliLive-tools/issues) 无类似问题
           required: true
   - type: textarea
     id: steps-to-reproduce

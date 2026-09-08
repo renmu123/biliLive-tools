@@ -20,6 +20,7 @@ import { BilibiliParser } from "./bilibili/parser.js";
 import { DouyuParser } from "./douyu/parser.js";
 import { HuyaParser } from "./huya/parser.js";
 import { XhsParser } from "./xhs/parser.js";
+import { TikTokParser } from "./tiktok/parser.js";
 
 // 自动注册平台解析器
 registry.register("bilibili", (opts) => new BilibiliParser(opts));
@@ -28,6 +29,7 @@ registry.register("douyu", (opts) => new DouyuParser(opts));
 registry.register("huya", (opts) => new HuyaParser(opts));
 registry.register("xhs", (opts) => new XhsParser(opts));
 registry.register("xiaohongshu", (opts) => new XhsParser(opts));
+registry.register("tiktok", (opts) => new TikTokParser(opts));
 
 // 导出类型
 export type * from "./types.js";
@@ -35,6 +37,7 @@ export type * from "./errors.js";
 
 // 导出平台特定类型（可选）
 export type * from "./bilibili/types.js";
+export type * from "./tiktok/types.js";
 
 // 导出通用解析器（统一入口）
 export { StreamParser } from "./parser.js";
@@ -45,6 +48,7 @@ export { BilibiliParser } from "./bilibili/parser.js";
 export { DouyuParser } from "./douyu/parser.js";
 export { HuyaParser } from "./huya/parser.js";
 export { XhsParser } from "./xhs/parser.js";
+export { TikTokParser } from "./tiktok/parser.js";
 
 // 导出错误类
 export {

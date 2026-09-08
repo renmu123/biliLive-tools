@@ -123,7 +123,7 @@
         </template>
         <n-form
           label-placement="left"
-          :label-width="120"
+          :label-width="labelWidth"
           :model="editingConfig"
           ref="formRef"
           :rules="formRules"
@@ -441,7 +441,7 @@
 <script setup lang="ts">
 import { Add, FolderOpenOutline } from "@vicons/ionicons5";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
-import { useConfirm } from "@renderer/hooks";
+import { useConfirm, useBreakpoints } from "@renderer/hooks";
 import { uuid, formatTime } from "@renderer/utils";
 import Tip from "@renderer/components/Tip.vue";
 import task from "@renderer/apis/task";
@@ -460,6 +460,10 @@ const notice = useNotice();
 const confirm = useConfirm();
 
 // 模态框相关
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "120px";
+});
 const modalVisible = ref(false);
 const editingIndex = ref<number | null>(null);
 const editingConfig = ref({

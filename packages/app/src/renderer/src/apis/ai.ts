@@ -21,7 +21,7 @@ const songRecognize = async (
   lyrics: string;
   name: string;
 }> => {
-  const res = await request.post("/ai/song_recognize", {
+  const res = await request.post("/ai/song-recognize", {
     file,
     startTime,
     endTime,
@@ -36,6 +36,7 @@ const subtitleRecognize = async (
   modelId: string,
   options?: {
     offset?: number;
+    song?: boolean;
   },
 ): Promise<{
   srt: string;
@@ -46,6 +47,7 @@ const subtitleRecognize = async (
     startTime,
     endTime,
     offset: options?.offset,
+    song: options?.song,
   });
   return res.data;
 };

@@ -4,7 +4,7 @@
     "module": "Node16",
     "outDir": "./lib",
     "rootDir": "./src",
-    // "strict": true,
+    "strict": true,
     "sourceMap": false,
     // "strictNullChecks": true,
     // "strictPropertyInitialization": false,
@@ -18,7 +18,8 @@
     // "noImplicitReturns": false,
     "declaration": true,
     "skipLibCheck": true,
-    "allowJs": true
+    "types": ["*"],
+    "allowJs": false
   },
   "include": ["src/**/*.ts", "src/**/*.js"],
   "exclude": ["node_modules"]

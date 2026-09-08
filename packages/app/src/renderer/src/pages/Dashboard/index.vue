@@ -457,7 +457,7 @@ const navigateToQueue = () => {
 <style scoped lang="less">
 .dashboard-container {
   padding: 24px;
-  max-width: 1400px;
+  // max-width: 1800px;
   margin: 0 auto;
 }
 
@@ -625,7 +625,7 @@ const navigateToQueue = () => {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 628px) {
   .dashboard-container {
     padding: 16px;
   }

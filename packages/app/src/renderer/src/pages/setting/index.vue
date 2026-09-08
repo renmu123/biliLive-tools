@@ -5,23 +5,32 @@
     auto-focus
     :on-after-enter="handleOpen"
     class="setting-modal"
+    :class="breakpoint"
   >
     <n-card
-      style="width: calc(100% - 60px)"
       :bordered="false"
       size="huge"
       role="dialog"
       aria-modal="true"
       class="card"
+      :style="{
+        width: breakpoint === 'mobile' ? '100%' : 'calc(100% - 60px)',
+      }"
     >
       <n-tabs v-model:value="selectTab" type="bar" animated placement="left" class="setting-tab">
         <n-tab-pane name="common" tab="基本">
-          <n-form ref="formRef" label-placement="left" :label-width="160">
+          <n-form ref="formRef" label-placement="left" :label-width="labelWidth">
+            <n-form-item v-if="!isWeb">
+              <template #label>
+                <Tip text="上传崩溃报告" tip="上传崩溃报告至Sentry服务器"></Tip>
+              </template>
+              <n-switch v-model:value="config.uploadCrashReport" />
+            </n-form-item>
             <n-form-item>
               <template #label>
                 <Tip
                   text="删除至回收站"
-                  tip="关闭后若使用“删除源文件”等选项，文件将被直接删除，不会进入回收站，如果使用的文件为smb等远程协议挂载，可能会删除失败"
+                  tip="关闭后若使用“删除源文件”等选项，文件将被直接删除，不会进入回收站，如果使用的文件为smb等远程协议挂载，可能会删除失败，Docker环境不会生效"
                 ></Tip>
               </template>
               <n-switch v-model:value="config.trash" />
@@ -34,6 +43,12 @@
                 <n-switch v-if="!isWeb" v-model:value="config.autoUpdate" />
                 <n-button type="primary" ghost @click="checkForUpdates">检查更新</n-button>
               </div>
+            </n-form-item>
+            <n-form-item v-if="!isWeb">
+              <template #label>
+                <Tip text="阻止系统休眠" tip="开启后，客户端运行期间系统不会自动进入休眠"></Tip>
+              </template>
+              <n-switch v-model:value="config.preventSystemSleep" />
             </n-form-item>
             <n-form-item v-if="!isWeb">
               <template #label>
@@ -89,6 +104,18 @@
               <n-input v-model:value="config.passKey" type="password" show-password-on="click">
               </n-input>
             </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  <Tip
+                    text="事件订阅"
+                    :tip="`可以通过webhook接收本软件的事件，具体使用方法请查看文档`"
+                  ></Tip>
+                </span>
+              </template>
+              <n-input v-model:value="config.externalWebhook" placeholder="请输入地址" />
+            </n-form-item>
+
             <n-form-item>
               <template #label>
                 <span class="inline-flex">
@@ -294,7 +321,7 @@
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="webhook" tab="Webhook">
-          <n-form label-placement="left" :label-width="135">
+          <n-form label-placement="left" :label-width="labelWidth2">
             <n-form-item>
               <template #label>
                 <Tip
@@ -456,6 +483,7 @@ import { deepRaw } from "@renderer/utils";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
 import { useThemeStore } from "@renderer/stores/theme";
+import { useBreakpoints } from "@renderer/hooks/useBreakpoints";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig } from "@biliLive-tools/types";
 
@@ -463,10 +491,19 @@ const notice = useNotification();
 const appConfigStore = useAppConfig();
 const showModal = defineModel<boolean>({ required: true, default: false });
 const isWeb = computed(() => window.isWeb);
+const { breakpoint, isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "150px";
+});
+
+const labelWidth2 = computed(() => {
+  return isMobile.value ? "90px" : "135px";
+});
 
 // @ts-ignore
 const config: Ref<AppConfig> = ref({
   task: {
+    maxNum: 300,
     ffmpegMaxNum: 3,
     douyuDownloadMaxNum: -1,
     biliUploadMaxNum: -1,
@@ -895,6 +932,9 @@ const navigate = (tab: string) => {
 .setting-modal > :deep(.n-card-content) {
   padding-bottom: 0 !important;
   padding-right: 0px !important;
+}
+.setting-modal.mobile > :deep(.n-card-content) {
+  padding-left: 0 !important;
 }
 .setting-tab > :deep(.n-tab-pane) {
   overflow: auto;

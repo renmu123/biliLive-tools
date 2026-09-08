@@ -49,6 +49,12 @@ const getSeasonList = async (uid: number): Promise<ReturnType<BiliApi["getSeason
   });
   return res.data;
 };
+const getReserveList = async (uid: number) => {
+  const res = await request.get("/bili/reserveList", {
+    params: { uid },
+  });
+  return res.data;
+};
 
 const getSessionId = async (aid: number, uid: number) => {
   const res = await request.get(`/bili//season/${aid}`, {
@@ -60,23 +66,6 @@ const getSessionId = async (aid: number, uid: number) => {
 const getPlatformArchiveDetail = async (aid: number, uid: number) => {
   const res = await request.get("/bili/platformArchiveDetail", {
     params: { aid, uid },
-  });
-  return res.data;
-};
-
-const getPlatformPre = async (uid: number): Promise<ReturnType<BiliApi["getPlatformPre"]>> => {
-  const res = await request.get("/bili/platformPre", {
-    params: { uid },
-  });
-  return res.data;
-};
-
-const getTypeDesc = async (
-  tid: number,
-  uid: number,
-): Promise<ReturnType<BiliApi["getTypeDesc"]>> => {
-  const res = await request.get("/bili/typeDesc", {
-    params: { tid, uid },
   });
   return res.data;
 };
@@ -185,14 +174,13 @@ export const formatWebhookDesc = async (
 const bili = {
   validUploadParams,
   getArchives,
+  getReserveList,
   checkTag,
   searchTopic,
   getSeasonList,
   getArchiveDetail,
   getSessionId,
   getPlatformArchiveDetail,
-  getPlatformPre,
-  getTypeDesc,
   qrcode,
   loginCancel,
   loginPoll,

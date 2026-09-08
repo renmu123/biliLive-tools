@@ -3,6 +3,10 @@ import type {
   // RecorderManagerCreateOpts,
   RecordHandle,
 } from "@bililive-tools/manager";
+import type {
+  StreamerDetailQueryArgs as SharedStreamerDetailQueryArgs,
+  StreamerDetailResult as StreamerDetailResponse,
+} from "@biliLive-tools/shared/db/service/streamerDetailService.js";
 
 import type { Recorder as RecoderConfig } from "@biliLive-tools/types";
 
@@ -17,7 +21,13 @@ export interface PagedResp extends PagedArgs {
 
 export type ClientRecorder = Omit<
   Recorder<RecoderConfig["extra"]>,
-  "all" | "getChannelURL" | "checkLiveStatusAndRecord" | "recordHandle" | "toJSON" | "getLiveInfo"
+  | "all"
+  | "getChannelURL"
+  | "checkLiveStatusAndRecord"
+  | "recordHandle"
+  | "toJSON"
+  | "getLiveInfo"
+  | "appendTimeline"
 > & {
   channelURL: string;
   recordHandle?: Omit<RecordHandle, "stop">;
@@ -41,7 +51,7 @@ export type GetLiveInfoResp = LiveInfo[];
 
 export type GetRecordersArgs = {
   platform?: string;
-  recordStatus?: "recording" | "unrecorded";
+  status?: "recording" | "idle" | "check-error" | "title-blocked";
   name?: string;
   autoCheck?: string;
   page?: number;
@@ -99,18 +109,22 @@ export type UpdateRecorderArgs = Pick<
   | "sendToWebhook"
   | "uid"
   | "saveCover"
+  | "convert2Mp4"
   | "qualityRetry"
   | "formatName"
   | "useM3U8Proxy"
   | "customHost"
   | "codecName"
   | "titleKeywords"
+  | "segmentOnTitleChange"
   | "liveStartNotification"
+  | "chargeLiveNotification"
   | "liveEndNotification"
   | "source"
   | "videoFormat"
   | "recorderType"
   | "cookie"
+  | "proxy"
   | "doubleScreen"
   | "onlyAudio"
   | "useServerTimestamp"
@@ -198,6 +212,15 @@ export interface GetRecordExtraDataArgs {
   id: string;
 }
 
+export interface QueryStreamerDetailArgs
+  extends Omit<SharedStreamerDetailQueryArgs, "room_id" | "platform"> {
+  recorderId: RecoderConfig["id"];
+}
+
+export interface QueryStreamerDetailResp extends StreamerDetailResponse {
+  recorderInfo: ClientRecorder | null;
+}
+
 export interface BatchStartRecordArgs {
   ids: string[];
 }
@@ -216,6 +239,14 @@ export interface BatchStopRecordArgs {
 export type BatchStopRecordResp = {
   results: BatchOperateResult[];
 };
+
+export interface GetRecentRecordFolderArgs {
+  id: RecoderConfig["id"];
+}
+
+export interface GetRecentRecordFolderResp {
+  folderPath: string;
+}
 
 export type RecorderAPI = {
   getLiveInfo: {
@@ -261,6 +292,14 @@ export type RecorderAPI = {
   batchStopRecord: {
     Args: BatchStopRecordArgs;
     Resp: BatchStopRecordResp;
+  };
+  getRecentRecordFolder: {
+    Args: GetRecentRecordFolderArgs;
+    Resp: GetRecentRecordFolderResp;
+  };
+  queryStreamerDetail: {
+    Args: QueryStreamerDetailArgs;
+    Resp: QueryStreamerDetailResp;
   };
   // getManager: {
   //   Args: GetManagerArgs;

@@ -1,4 +1,4 @@
-import Router from "@koa/router";
+﻿import Router from "@koa/router";
 import { omit } from "lodash-es";
 
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
@@ -75,6 +75,11 @@ router.get("/seasons", async (ctx) => {
   const data = await biliApi.getSeasonList(uid);
   ctx.body = data;
 });
+router.get("/reserveList", async (ctx) => {
+  const { uid } = ctx.request.query as unknown as { uid: number };
+  const data = await biliApi.getReserveList(uid);
+  ctx.body = data;
+});
 router.get("/season/:aid", async (ctx) => {
   const { uid } = ctx.request.query as unknown as { uid: number };
   const { aid } = ctx.params;
@@ -85,16 +90,6 @@ router.get("/season/:aid", async (ctx) => {
 router.get("/platformArchiveDetail", async (ctx) => {
   const { aid, uid } = ctx.request.query as unknown as { aid: number; uid: number };
   const data = await biliApi.getPlatformArchiveDetail(aid, uid);
-  ctx.body = data;
-});
-router.get("/platformPre", async (ctx) => {
-  const { uid } = ctx.request.query as unknown as { uid: number };
-  const data = await biliApi.getPlatformPre(uid);
-  ctx.body = data;
-});
-router.get("/typeDesc", async (ctx) => {
-  const { tid, uid } = ctx.request.query as unknown as { tid: number; uid: number };
-  const data = await biliApi.getTypeDesc(tid, uid);
   ctx.body = data;
 });
 

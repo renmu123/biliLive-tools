@@ -7,8 +7,10 @@
     "target": "ESNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
+    "strict": false,
     "declaration": true,
     "skipLibCheck": true,
+    "types": ["*"],
     "strictNullChecks": true
   },
   "include": ["src/**/*.ts"],

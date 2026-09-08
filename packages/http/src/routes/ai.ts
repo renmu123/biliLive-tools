@@ -38,7 +38,7 @@ const router = new Router({
 //   ctx.body = result;
 // });
 
-router.post("/song_recognize", async (ctx) => {
+router.post("/song-recognize", async (ctx) => {
   const data = ctx.request.body as {
     // file - 完整视频文件路径
     file: string;
@@ -96,6 +96,8 @@ router.post("/subtitle", async (ctx) => {
     endTime?: number;
     // offset - 时间偏移量，单位秒
     offset?: number;
+    // song - 是否为音乐识别
+    song?: boolean;
   };
 
   if (!data.file) {
@@ -105,8 +107,12 @@ router.post("/subtitle", async (ctx) => {
     };
     return;
   }
-  const config = appConfig.get("ai") || {};
-  const asrModelId = config.subtitleRecognize.modelId;
+  let asrModelId = data.modelId;
+
+  if (!asrModelId) {
+    const config = appConfig.get("ai") || {};
+    asrModelId = config.subtitleRecognize.modelId;
+  }
   if (!asrModelId) {
     throw new Error("请先在配置中设置字幕识别ASR模型");
   }
@@ -144,6 +150,7 @@ router.post("/subtitle", async (ctx) => {
     const srt = await subtitleRecognize(audioFile, asrModelId, {
       offset: data.offset,
       disableCache: true,
+      song: data.song,
     });
 
     // 清理临时音频文件

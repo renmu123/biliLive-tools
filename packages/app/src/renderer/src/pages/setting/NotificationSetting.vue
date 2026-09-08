@@ -1,5 +1,5 @@
 <template>
-  <n-form label-placement="left" :label-width="120">
+  <n-form label-placement="left" :label-width="labelWidth">
     <n-form-item label="通知类型">
       <n-select
         v-model:value="config.notification.setting.type"
@@ -163,7 +163,10 @@
     <template v-else-if="config.notification.setting.type === NotificationType.customHttp">
       <n-form-item>
         <template #label>
-          <Tip tip="支持{{title}}和{{desc}}占位符，GET请求会自动URL编码" text="请求URL"></Tip>
+          <Tip
+            tip="支持{{title}}、{{desc}}以及上下文占位符（如{{roomId}}、{{username}}、{{platform}}、{{liveTitle}}、{{taskType}}等），GET请求会自动URL编码"
+            text="请求URL"
+          ></Tip>
         </template>
         <n-input
           v-model:value="config.notification.setting.customHttp.url"
@@ -187,7 +190,7 @@
       <n-form-item>
         <template #label>
           <Tip
-            tip="POST/PUT请求的请求体，默认为json，支持{{title}}和{{desc}}占位符"
+            tip="POST/PUT请求的请求体，默认为json，支持{{title}}、{{desc}}以及上下文占位符"
             text="请求体"
           ></Tip>
         </template>
@@ -276,6 +279,15 @@
         style="width: 200px"
       />
     </n-form-item>
+    <n-form-item label="付费直播通知">
+      <n-select
+        v-model:value="config.notification.taskNotificationType.chargeLive"
+        :options="typeOptions"
+        placeholder="请选择通知类型，不选则使用全局通知类型"
+        clearable
+        style="width: 200px"
+      />
+    </n-form-item>
     <n-form-item>
       <template #label>
         <Tip
@@ -303,6 +315,7 @@
 
 <script setup lang="ts">
 import { configApi } from "@renderer/apis";
+import { useBreakpoints } from "@renderer/hooks";
 import { cloneDeep } from "lodash-es";
 import { NotificationType } from "@biliLive-tools/shared/enum.js";
 
@@ -310,6 +323,10 @@ import type { AppConfig } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},
+});
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "120px";
 });
 
 const typeOptions = [

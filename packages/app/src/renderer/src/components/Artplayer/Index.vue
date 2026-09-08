@@ -20,6 +20,7 @@ const props = withDefaults(
     option: {
       fullscreen?: boolean;
       url?: string;
+      type?: string;
       string?: any;
       plugins?: {
         heatmap?: {
@@ -68,7 +69,6 @@ let instance: Artplayer | null = null;
 onMounted(async () => {
   const plugins: any[] = [];
   if (props.plugins) {
-    plugins.push(artplayerPluginChapter({}));
     if (props.plugins.includes("danmuku")) {
       plugins.push(
         artplayerPluginDanmuku({
@@ -130,6 +130,9 @@ onMounted(async () => {
       });
       plugins.push(plugin);
     }
+    if (props.plugins.includes("chapter")) {
+      plugins.push(artplayerPluginChapter({}));
+    }
   } else {
     plugins.push(
       artplayerPluginAssJS({
@@ -142,8 +145,12 @@ onMounted(async () => {
     return;
   }
   instance = new Artplayer({
-    url: "",
+    url: props?.option?.url ?? "",
+    type: props?.option?.type ?? "",
     isLive: props.isLive,
+    setting: true,
+    playbackRate: props.isLive ? false : true,
+    autoplay: props.isLive ? true : false,
     ...props.option,
     container: artRef.value,
     plugins: plugins,
@@ -163,10 +170,10 @@ onMounted(async () => {
           const flv = mpegts.createPlayer({
             type: "flv",
             url: url,
+            isLive: props.isLive,
           });
           flv.attachMediaElement(video);
           flv.load();
-          flv.play();
 
           art.flv = flv;
           art.on("destroy", () => flv.destroy());
@@ -256,7 +263,7 @@ ${tsFile}
   });
 });
 
-const switchUrl = async (url: string, type: "" | "flv" = "") => {
+const switchUrl = async (url: string, type: "" | "flv" | "m3u8" = "") => {
   if (instance) {
     instance.type = type;
     instance?.switchUrl(url);

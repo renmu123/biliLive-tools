@@ -1,7 +1,7 @@
 <!-- 文转码 -->
 <template>
   <div>
-    <div class="center btns" style="margin-bottom: 20px">
+    <div class="center btns" style="margin-bottom: 20px; flex-wrap: wrap">
       <span v-if="fileList.length !== 0" style="cursor: pointer; color: #958e8e" @click="clear"
         >清空</span
       >
@@ -22,7 +22,7 @@
         v-model:value="options.danmuPresetId"
         :options="danmuPresetsOptions"
         placeholder="选择弹幕预设"
-        style="width: 140px"
+        style="width: 140px; text-align: left"
       />
       <n-checkbox v-model:checked="options.hotProgress" title="使用首页的数据">
         高能进度条
@@ -33,6 +33,7 @@
       v-model="fileList"
       :sort="false"
       :extensions="[...supportedVideoExtensions, 'xml', 'ass']"
+      inputPlaceholder="输入内容将会被用为文件名"
     ></FileSelect>
 
     <div class="flex align-center column" style="margin-top: 10px">
@@ -40,16 +41,19 @@
         <n-radio-group v-model:value="options.saveRadio">
           <n-space class="flex align-center column">
             <n-radio :value="1"> 保存到原始文件夹 </n-radio>
-            <n-radio :value="2"> </n-radio>
-            <n-input
-              v-model:value="options.savePath"
-              placeholder="选择文件夹"
-              style="width: 300px"
-              :title="options.savePath"
-            />
-            <n-icon size="30" style="margin-left: -10px" class="pointer" @click="getDir">
-              <FolderOpenOutline />
-            </n-icon>
+            <n-radio :value="2" style="display: flex; align-items: center">
+              <div style="display: flex; align-items: center">
+                <n-input
+                  v-model:value="options.savePath"
+                  placeholder="选择文件夹"
+                  style="width: 300px"
+                  :title="options.savePath"
+                />
+                <n-icon size="30" style="margin-left: 10px" class="pointer" @click="getDir">
+                  <FolderOpenOutline />
+                </n-icon>
+              </div>
+            </n-radio>
           </n-space>
         </n-radio-group>
       </div>
@@ -155,7 +159,7 @@ const convert = async () => {
     }
   }
 
-  if (ffmpegOptions.encoder !== "copy" || ffmpegOptions.audioCodec !== "copy") {
+  if (ffmpegOptions.encoder !== "copy") {
     const [status] = await confirm.warning({
       content:
         "你可能正在对视频进行重编码，将耗费大量时间，是否继续？（如果你只是想转封装，可以选择预设中的 copy 选项）",

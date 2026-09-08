@@ -1,6 +1,6 @@
 # stream-get
 
-直播平台链接解析器 - 支持 Bilibili、DouYin、DouYu、HuYa、XHS 等平台的流地址解析。
+直播平台链接解析器 - 支持 Bilibili、DouYin、DouYu、HuYa、TikTok、XHS 等平台的流地址解析。
 
 ## 特性
 
@@ -82,7 +82,7 @@ const fullResult = await biliParser.parse("https://live.bilibili.com/123");
 ### 3. 其他平台
 
 ```typescript
-import { DouyinParser, DouyuParser, HuyaParser } from "@bililive-tools/stream-get";
+import { DouyinParser, DouyuParser, HuyaParser, TikTokParser } from "@bililive-tools/stream-get";
 
 // 抖音
 const dyParser = new DouyinParser({ proxy: "http://127.0.0.1:7890" });
@@ -98,6 +98,13 @@ console.log(douyuResult.sources[0].streams[0].quality); // rate: 0, 2, 3, 4, 8
 const huyaParser = new HuyaParser();
 const huyaResult = await huyaParser.parse("https://www.huya.com/abc");
 console.log(huyaResult.sources[0].streams[0].quality); // bitRate 值
+
+// TikTok
+const tiktokParser = new TikTokParser({ proxy: "http://127.0.0.1:7890" });
+const tiktokResult = await tiktokParser.parse("https://www.tiktok.com/@example/live", {
+  format: ["flv", "hls"],
+});
+console.log(tiktokResult.sources[0].streams[0].quality); // 'origin', 'hd' 等
 ```
 
 ## API 文档
@@ -185,6 +192,7 @@ proxy: {
 - 🚧 **DouYin** - 开发中
 - 🚧 **DouYu** - 开发中
 - 🚧 **HuYa** - 开发中
+- ✅ **TikTok** - 完整实现
 
 ## 平台特定特性
 
@@ -209,6 +217,13 @@ proxy: {
 
 - 保留原生 `bitRate` 值
 - 支持多 API 模式（auto/web/mp/wup）
+
+### TikTok
+
+- 支持 App API，并在自动模式下回退到网页 `SIGI_STATE`
+- 保留原生画质标识、码率、分辨率及编码信息
+- 支持 FLV/HLS 格式筛选和 HEVC 流
+- 支持 Cookie、代理及自定义请求头
 
 ## 错误处理
 

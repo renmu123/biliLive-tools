@@ -3,7 +3,7 @@
 import * as events from "events";
 import * as stream from "stream";
 
-declare module Ffmpeg {
+declare namespace Ffmpeg {
   interface FfmpegCommandLogger {
     error(...data: any[]): void;
     warn(...data: any[]): void;

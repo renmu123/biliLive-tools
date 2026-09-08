@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <n-form label-placement="left" :label-width="150">
+    <n-form label-placement="left" :label-width="labelWidth">
       <n-form-item label="主题"
         ><n-select v-model:value="config.theme" :options="themeOptions" />
       </n-form-item>
@@ -37,10 +37,15 @@
 </template>
 
 <script setup lang="ts">
+import { useBreakpoints } from "@renderer/hooks";
 import type { AppConfig, Theme } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},
+});
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "150px";
 });
 const isWeb = computed(() => window.isWeb);
 

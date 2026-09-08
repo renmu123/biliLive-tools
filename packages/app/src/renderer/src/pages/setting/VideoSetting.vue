@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <n-form label-placement="left" :label-width="150">
+    <n-form label-placement="left" :label-width="labelWidth">
       <n-form-item>
         <template #label>
           <span class="inline-flex"> 保存文件夹 </span>
@@ -21,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import { useBreakpoints } from "@renderer/hooks";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 
@@ -28,6 +29,10 @@ import type { AppConfig } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},
+});
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "150px";
 });
 
 const selectFolder = async () => {

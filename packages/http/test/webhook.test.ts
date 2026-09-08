@@ -30,12 +30,31 @@ vi.spyOn(utils, "sleep").mockImplementation(async () => {
   return undefined;
 });
 
-const uploadItemMatcher = (part: Part, type: "raw" | "handled", path: string, title: string) =>
-  expect.objectContaining({
+const uploadItemMatcher = (
+  part: Part,
+  type: "raw" | "handled",
+  path: string,
+  titleOrMeta?: string | Record<string, unknown>,
+  meta?: Record<string, unknown>,
+) => {
+  const expectedMeta =
+    typeof titleOrMeta === "string"
+      ? { title: titleOrMeta, ...(meta ?? {}) }
+      : (titleOrMeta ?? meta);
+
+  return expect.objectContaining({
     part,
     type,
     path,
-    title,
+    ...(expectedMeta ? { meta: expect.objectContaining(expectedMeta) } : {}),
+  });
+};
+
+const uploadPresetMatcher = (overrides: Record<string, unknown> = {}) =>
+  expect.objectContaining({
+    ...DEFAULT_BILIUP_CONFIG,
+    partTitleTemplate: "",
+    ...overrides,
   });
 
 describe("WebhookHandler", () => {
@@ -134,6 +153,9 @@ describe("WebhookHandler", () => {
       webhookHandler.liveData = [];
 
       vi.spyOn(utils, "getFileSize").mockResolvedValue(20 * 1024 * 1024); // 10MB
+      // @ts-ignore
+      vi.spyOn(fs, "pathExists").mockResolvedValue(true);
+
       const options: Options = {
         event: "FileOpening",
         roomId: "123",
@@ -174,8 +196,10 @@ describe("WebhookHandler", () => {
           partMergeMinute: 10,
         },
       );
+
+      await utils.sleep(500); // 等待异步处理完成
       const liveData2 = webhookHandler.liveData;
-      await utils.sleep(100); // 等待异步处理完成
+      await utils.sleep(500); // 等待异步处理完成
       expect(liveData2.length).toBe(1);
       expect(liveData2[0].parts[0].recordStatus).toBe("recorded");
     });
@@ -402,15 +426,7 @@ describe("WebhookHandler", () => {
         title: "test video",
         software: "bili-recorder",
       };
-      vi.mock("@biliLive-tools/shared/utils/index.js", async (importOriginal) => {
-        const mod = await importOriginal<typeof import("@biliLive-tools/shared/utils/index.js")>();
-        return {
-          ...mod,
-          getFileSize: vi.fn().mockResolvedValue(50),
-          // 替换一些导出
-          namedExport: vi.fn(),
-        };
-      });
+      const getFileSizeSpy = vi.spyOn(utils, "getFileSize").mockResolvedValue(50);
       const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig");
       // @ts-ignore
       getConfigSpy.mockReturnValue({ open: true, minSize: 100, title: "test" });
@@ -423,6 +439,7 @@ describe("WebhookHandler", () => {
       expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
       expect(result).toBeUndefined();
       expect(webhookHandler.liveData.length).toBe(0);
+      getFileSizeSpy.mockRestore();
     });
   });
   describe("handleLive", () => {
@@ -483,10 +500,7 @@ describe("WebhookHandler", () => {
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
           [uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1")],
-          {
-            ...DEFAULT_BILIUP_CONFIG,
-            title: "webhook-title",
-          },
+          uploadPresetMatcher({ title: "webhook-title" }),
           [],
           "none",
         );
@@ -533,10 +547,7 @@ describe("WebhookHandler", () => {
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
           [uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1")],
-          {
-            ...DEFAULT_BILIUP_CONFIG,
-            title: "webhook-title-live-title",
-          },
+          uploadPresetMatcher({ title: "webhook-title-live-title" }),
           [],
           "none",
         );
@@ -585,10 +596,7 @@ describe("WebhookHandler", () => {
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
           [uploadItemMatcher(live.parts[0], "handled", "/path/to/part1.mp4", "part1")],
-          {
-            ...DEFAULT_BILIUP_CONFIG,
-            title: "live-title-username-2022.01.01-123",
-          },
+          uploadPresetMatcher({ title: "live-title-username-2022.01.01-123" }),
           [],
           "none",
         );
@@ -658,11 +666,7 @@ describe("WebhookHandler", () => {
             uploadItemMatcher(live.parts[1], "handled", "/path/to/part2.mp4", "part2"),
             uploadItemMatcher(live.parts[2], "handled", "/path/to/part3.mp4", "part3"),
           ],
-          {
-            ...DEFAULT_BILIUP_CONFIG,
-            title: "webhook-title",
-            cover: "/path/to/cover.jpg",
-          },
+          uploadPresetMatcher({ title: "webhook-title", cover: "/path/to/cover.jpg" }),
           [],
           "delete",
         );
@@ -985,20 +989,22 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            uploadItemMatcher(
-              live.parts[1],
-              "handled",
-              "/path/to/part2.mp4",
-              "part2-part2-username-123-2",
-            ),
-            uploadItemMatcher(
-              live.parts[2],
-              "handled",
-              "/path/to/part3.mp4",
-              "part3-part3-username-123-3",
-            ),
+            uploadItemMatcher(live.parts[1], "handled", "/path/to/part2.mp4", "part2", {
+              index: 2,
+              title: "part2",
+              username: "username",
+              roomId: "123",
+            }),
+            uploadItemMatcher(live.parts[2], "handled", "/path/to/part3.mp4", "part3", {
+              index: 3,
+              title: "part3",
+              username: "username",
+              roomId: "123",
+            }),
           ],
-          expect.anything(),
+          uploadPresetMatcher({
+            partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
+          }),
           [],
           "delete",
         );
@@ -1072,20 +1078,22 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            uploadItemMatcher(
-              live.parts[2],
-              "handled",
-              "/path/to/part3.mp4",
-              "part3-part3-username-123-2",
-            ),
-            uploadItemMatcher(
-              live.parts[4],
-              "handled",
-              "/path/to/part5.mp4",
-              "part5-part5-username-123-3",
-            ),
+            uploadItemMatcher(live.parts[2], "handled", "/path/to/part3.mp4", "part3", {
+              index: 2,
+              title: "part3",
+              username: "username",
+              roomId: "123",
+            }),
+            uploadItemMatcher(live.parts[4], "handled", "/path/to/part5.mp4", "part5", {
+              index: 3,
+              title: "part5",
+              username: "username",
+              roomId: "123",
+            }),
           ],
-          expect.anything(),
+          uploadPresetMatcher({
+            partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
+          }),
           [],
           "delete",
         );
@@ -1261,11 +1269,7 @@ describe("WebhookHandler", () => {
             uploadItemMatcher(live.parts[1], "raw", "/rawPath/to/part2.mp4", "part2"),
             uploadItemMatcher(live.parts[2], "raw", "/rawPath/to/part3.mp4", "part3"),
           ],
-          {
-            ...DEFAULT_BILIUP_CONFIG,
-            title: "preset-title",
-            cover: "/path/to/cover.jpg",
-          },
+          uploadPresetMatcher({ title: "preset-title", cover: "/path/to/cover.jpg" }),
           [],
           "delete",
         );
@@ -1476,7 +1480,7 @@ describe("WebhookHandler", () => {
             uploadItemMatcher(live.parts[1], "raw", "/path/to/part2.mp4", "part2"),
             uploadItemMatcher(live.parts[2], "raw", "/path/to/part3.mp4", "part3"),
           ],
-          expect.anything(),
+          uploadPresetMatcher(),
           [],
           "delete",
         );
@@ -1548,7 +1552,7 @@ describe("WebhookHandler", () => {
             uploadItemMatcher(live.parts[1], "raw", "/path/to/part2.mp4", "part2"),
             uploadItemMatcher(live.parts[2], "raw", "/path/to/part3.mp4", "part3"),
           ],
-          expect.anything(),
+          uploadPresetMatcher(),
           [],
           "delete",
         );
@@ -1612,20 +1616,22 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            uploadItemMatcher(
-              live.parts[1],
-              "raw",
-              "/path/to/part2.mp4",
-              "part2-part2-username-123-2",
-            ),
-            uploadItemMatcher(
-              live.parts[2],
-              "raw",
-              "/path/to/part3.mp4",
-              "part3-part3-username-123-3",
-            ),
+            uploadItemMatcher(live.parts[1], "raw", "/path/to/part2.mp4", "part2", {
+              index: 2,
+              title: "part2",
+              username: "username",
+              roomId: "123",
+            }),
+            uploadItemMatcher(live.parts[2], "raw", "/path/to/part3.mp4", "part3", {
+              index: 3,
+              title: "part3",
+              username: "username",
+              roomId: "123",
+            }),
           ],
-          expect.anything(),
+          uploadPresetMatcher({
+            partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
+          }),
           [],
           "delete",
         );
@@ -1703,20 +1709,22 @@ describe("WebhookHandler", () => {
           456,
           789,
           [
-            uploadItemMatcher(
-              live.parts[2],
-              "raw",
-              "/path/to/part3.mp4",
-              "part3-part3-username-123-2",
-            ),
-            uploadItemMatcher(
-              live.parts[4],
-              "raw",
-              "/path/to/part5.mp4",
-              "part5-part5-username-123-3",
-            ),
+            uploadItemMatcher(live.parts[2], "raw", "/path/to/part3.mp4", "part3", {
+              index: 2,
+              title: "part3",
+              username: "username",
+              roomId: "123",
+            }),
+            uploadItemMatcher(live.parts[4], "raw", "/path/to/part5.mp4", "part5", {
+              index: 3,
+              title: "part5",
+              username: "username",
+              roomId: "123",
+            }),
           ],
-          expect.anything(),
+          uploadPresetMatcher({
+            partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
+          }),
           [],
           "delete",
         );
@@ -2987,23 +2995,32 @@ describe("Live", () => {
           });
 
           const uploadableParts = [live.parts[0], live.parts[1]];
-          const config = {
-            partTitleTemplate: "{{filename}}",
-          } as any;
-
           // @ts-ignore
-          const result = webhookHandler.buildUploadFileList(
-            live,
-            uploadableParts,
-            "handled",
-            config,
-          );
+          const result = webhookHandler.buildUploadFileList(live, uploadableParts, "handled");
 
           expect(result.filePaths.length).toBe(2);
           expect(result.filePaths[0].part.partId).toBe("part-1");
-          expect(result.filePaths[0].title).toBe("part1");
+          expect(result.filePaths[0].meta).toEqual(
+            expect.objectContaining({
+              index: 1,
+              title: "Part 1",
+              username: "TestUser",
+              roomId: "123",
+              platform: "blrec",
+              startTimestamp: 1640995200,
+            }),
+          );
           expect(result.filePaths[1].part.partId).toBe("part-2");
-          expect(result.filePaths[1].title).toBe("part2");
+          expect(result.filePaths[1].meta).toEqual(
+            expect.objectContaining({
+              index: 2,
+              title: "Part 2",
+              username: "TestUser",
+              roomId: "123",
+              platform: "blrec",
+              startTimestamp: 1640995500,
+            }),
+          );
           expect(result.cover).toBe("/path/to/cover.jpg");
         });
 
@@ -3038,19 +3055,15 @@ describe("Live", () => {
           });
 
           const uploadableParts = [live.parts[1]];
-          const config = {
-            partTitleTemplate: "P{{index}} {{filename}}",
-          } as any;
-
           // @ts-ignore
-          const result = webhookHandler.buildUploadFileList(
-            live,
-            uploadableParts,
-            "handled",
-            config,
-          );
+          const result = webhookHandler.buildUploadFileList(live, uploadableParts, "handled");
 
-          expect(result.filePaths[0].title).toBe("P2 part2");
+          expect(result.filePaths[0].meta).toEqual(
+            expect.objectContaining({
+              index: 2,
+              title: "Part 2",
+            }),
+          );
         });
 
         it("应在同稿件模式下先收集全部处理版，再收集原始版", () => {
@@ -3108,16 +3121,36 @@ describe("Live", () => {
           expect(result.filePaths).toHaveLength(4);
           expect(result.filePaths[0].type).toBe("handled");
           expect(result.filePaths[0].part.partId).toBe("part-2");
-          expect(result.filePaths[0].title).toBe("P3 handled2");
+          expect(result.filePaths[0].meta).toEqual(
+            expect.objectContaining({
+              index: 2,
+              title: "Part 2",
+            }),
+          );
           expect(result.filePaths[1].type).toBe("handled");
           expect(result.filePaths[1].part.partId).toBe("part-3");
-          expect(result.filePaths[1].title).toBe("P4 handled3");
+          expect(result.filePaths[1].meta).toEqual(
+            expect.objectContaining({
+              index: 3,
+              title: "Part 3",
+            }),
+          );
           expect(result.filePaths[2].type).toBe("raw");
           expect(result.filePaths[2].part.partId).toBe("part-2");
-          expect(result.filePaths[2].title).toBe("P5 raw2");
+          expect(result.filePaths[2].meta).toEqual(
+            expect.objectContaining({
+              index: 2,
+              title: "Part 2",
+            }),
+          );
           expect(result.filePaths[3].type).toBe("raw");
           expect(result.filePaths[3].part.partId).toBe("part-3");
-          expect(result.filePaths[3].title).toBe("P6 raw3");
+          expect(result.filePaths[3].meta).toEqual(
+            expect.objectContaining({
+              index: 3,
+              title: "Part 3",
+            }),
+          );
         });
 
         it("应在同稿件续传排序中先排列全部处理版，再排列原始版", () => {
@@ -3770,8 +3803,14 @@ describe("Live", () => {
           expect(addUploadTaskSpy).toHaveBeenCalledWith(
             123,
             [
-              uploadItemMatcher(live.parts[0], "handled", "/path/to/handled1.mp4", "P1 handled1"),
-              uploadItemMatcher(live.parts[0], "raw", "/path/to/raw1.mp4", "P2 raw1"),
+              uploadItemMatcher(live.parts[0], "handled", "/path/to/handled1.mp4", "Part 1", {
+                index: 1,
+                title: "Part 1",
+              }),
+              uploadItemMatcher(live.parts[0], "raw", "/path/to/raw1.mp4", "Part 1", {
+                index: 1,
+                title: "Part 1",
+              }),
             ],
             expect.anything(),
             [],

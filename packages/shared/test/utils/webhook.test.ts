@@ -128,4 +128,18 @@ describe("formatPartTitle", () => {
     const result = formatPartTitle(options, template);
     expect(result).toBe("EJS:false-纯享版");
   });
+
+  it("should support ejs variables for index", () => {
+    const options = {
+      title: "Live Title",
+      username: "Streamer",
+      time: "2022-01-01T12:34:56.789Z",
+      roomId: 123456,
+      filename: "MyFile",
+      index: 7,
+    };
+    const template = "P<%= index %>-<%= filename %>";
+    const result = formatPartTitle(options, template);
+    expect(result).toBe("P7-MyFile");
+  });
 });

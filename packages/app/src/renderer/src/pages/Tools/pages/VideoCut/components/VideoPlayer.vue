@@ -15,7 +15,7 @@
             },
           },
         }"
-        :plugins="['ass', 'heatmap', 'timestamp', 'subtitle']"
+        :plugins="['ass', 'heatmap', 'timestamp', 'subtitle', 'chapter']"
         @ready="handleReady"
         @video:durationchange="handleDurationChange"
         @video:canplay="handleCanPlay"

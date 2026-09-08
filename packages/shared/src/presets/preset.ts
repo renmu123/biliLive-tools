@@ -1,6 +1,12 @@
 import fs from "fs-extra";
+import { writeFile } from "atomically";
 
 import type { CommonPreset as CommonPresetType } from "@biliLive-tools/types";
+
+function writeJSON(filePath: string, data: any) {
+  const jsonData = JSON.stringify(data);
+  return writeFile(filePath, jsonData, "utf-8");
+}
 
 export default class CommonPreset<T> {
   filepath: string;
@@ -24,7 +30,7 @@ export default class CommonPreset<T> {
       allPresets[presetIndex] = presets;
     }
     const presetsPath = this.filepath;
-    await fs.writeJSON(presetsPath, allPresets);
+    await writeJSON(presetsPath, allPresets);
     return true;
   }
   // 保存预设
@@ -38,7 +44,7 @@ export default class CommonPreset<T> {
       allPresets[presetIndex] = presets;
     }
     const presetsPath = this.filepath;
-    await fs.writeJSON(presetsPath, allPresets);
+    await writeJSON(presetsPath, allPresets);
     return true;
   }
   // 删除预设
@@ -53,7 +59,7 @@ export default class CommonPreset<T> {
     }
     allPresets.splice(presetIndex, 1);
     const presetsPath = this.filepath;
-    await fs.writeJSON(presetsPath, allPresets);
+    await writeJSON(presetsPath, allPresets);
     return true;
   }
 

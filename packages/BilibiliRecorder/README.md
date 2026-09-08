@@ -56,6 +56,7 @@ interface Options {
   recorderType?: "auto" | "ffmpeg" | "mesio" | "bililive"; // 底层录制器，使用mesio和bililive时videoFormat参数无效
   debugLevel?: `verbose` | "basic"; // verbose参数时，录制器会输出更加详细的log
   customHost?: string; // 自定义host来替换直播流的host
+  segmentOnTitleChange?: boolean; // 标题变更时分段，默认为false；bililive引擎无损切段，其他引擎中断录制
 }
 ```
 
@@ -81,15 +82,15 @@ B站录制高画质需要登录，在无法匹配到画质时，会优先使用�
 
 能否录制flv下的hevc和你的ffmpeg版本有关
 
-| 解释        | 值        |
-| ----------- | --------- |
-| 等于flv     | auto      |
-| 优先使用flv | flv       |
-| 优先使用hls | hls       |
-| 只使用fmp4  | fmp4      |
-| 只使用flv   | flv_only  |
-| 只使用hls   | hls_only  |
-| 只使用fmp4  | fmp4_only |
+| 解释         | 值        |
+| ------------ | --------- |
+| 等于flv      | auto      |
+| 优先使用flv  | flv       |
+| 优先使用hls  | hls       |
+| 优先使用fmp4 | fmp4      |
+| 只使用flv    | flv_only  |
+| 只使用hls    | hls_only  |
+| 只使用fmp4   | fmp4_only |
 
 ### CodecName
 
@@ -100,8 +101,10 @@ B站录制高画质需要登录，在无法匹配到画质时，会优先使用�
 | 等于avc      | auto      |
 | 优先使用avc  | avc       |
 | 优先使用hevc | hevc      |
+| 优先使用av1  | av1       |
 | 只使用avc    | avc_only  |
 | 只使用hevc   | hevc_only |
+| 只使用av1    | av1_only  |
 
 ## 直播间ID解析
 

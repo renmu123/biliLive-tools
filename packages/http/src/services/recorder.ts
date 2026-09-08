@@ -1,3 +1,4 @@
+import path from "node:path";
 import axios from "axios";
 import { v4 as uuid } from "uuid";
 import { container } from "../index.js";
@@ -7,7 +8,7 @@ import logger from "@biliLive-tools/shared/utils/log.js";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
 
 import type { RecorderAPI, ClientRecorder } from "../types/recorder.js";
-import type { Recorder } from "@bililive-tools/manager";
+import type { Recorder, FormatName } from "@bililive-tools/manager";
 
 // RecorderAPI 的实际实现，这里负责实现对外暴露的接口，并假设 Args 都已经由上一层解析好了
 async function getRecorders(
@@ -19,10 +20,9 @@ async function getRecorders(
   if (params.platform) {
     list = list.filter((item) => item.providerId === params.platform);
   }
-  if (params.recordStatus) {
-    list = list.filter(
-      (item) => (item.recordHandle != null) === (params.recordStatus === "recording"),
-    );
+  if (params.status) {
+    const normalizedStatus = params.status;
+    list = list.filter((item) => item.state === normalizedStatus);
   }
   if (params.name) {
     list = list.filter(
@@ -137,6 +137,13 @@ function getRecorder(
   return data;
 }
 
+function getRecorderInfo(args: RecorderAPI["getRecorder"]["Args"]): ClientRecorder | undefined {
+  const recorderManager = container.resolve("recorderManager");
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
+  if (recorder == null) throw new Error("404");
+  return recorderToClient(recorder);
+}
+
 async function addRecorder(
   args: RecorderAPI["addRecorder"]["Args"],
 ): Promise<RecorderAPI["addRecorder"]["Resp"]> {
@@ -201,6 +208,34 @@ async function cutRecord(args: RecorderAPI["cutRecord"]["Args"]): Promise<null> 
   const recorderManager = container.resolve("recorderManager");
   await recorderManager.manager.cutRecord(args.id);
   return null;
+}
+
+async function getRecentRecordFolder(
+  args: RecorderAPI["getRecentRecordFolder"]["Args"],
+): Promise<RecorderAPI["getRecentRecordFolder"]["Resp"]> {
+  const recorderManager = container.resolve("recorderManager");
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
+
+  if (!recorder) {
+    throw new Error("录制器不存在");
+  }
+
+  const recentCandidates = recordHistory.queryRecentClipsByRoomAndPlatform({
+    room_id: recorder.channelId,
+    platform: recorder.providerId,
+    candidateLimit: 15,
+  });
+
+  for (const clip of recentCandidates) {
+    const videoFile = clip.video_file;
+    if (!videoFile) continue;
+
+    return {
+      folderPath: path.dirname(videoFile),
+    };
+  }
+
+  throw new Error("未找到最近录制文件");
 }
 
 async function getBiliStream(id: string) {
@@ -277,6 +312,7 @@ export function recorderToClient(recorder: Recorder): ClientRecorder {
       "all",
       "getChannelURL",
       "checkLiveStatusAndRecord",
+      "appendTimeline",
       "recordHandle",
       "toJSON",
       "getLiveInfo",
@@ -290,7 +326,13 @@ export function recorderToClient(recorder: Recorder): ClientRecorder {
 
 export function resolveChannel(url: string) {
   const recorderManager = container.resolve("recorderManager");
-  return recorderManager.resolveChannel(url);
+  const matchedProviders = recorderManager.manager.getChannelURLMatchedRecorderProviders(url);
+  const isTikTok = matchedProviders.some((provider) => provider.id === "TikTok");
+  const proxy = isTikTok
+    ? container.resolve("appConfig").get("recorder").tiktok.proxy || undefined
+    : undefined;
+
+  return recorderManager.resolveChannel(url, { proxy });
 }
 
 export async function resolve(url: string) {
@@ -367,6 +409,37 @@ export async function batchResolveChannel(urls: string[]) {
     successCount,
     failedCount,
   };
+}
+
+export async function getStreamUrl(id: string) {
+  const recorderManager = container.resolve("recorderManager");
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === id);
+  if (!recorder) throw new Error("未找到录制器");
+  let url: string | undefined;
+  if (recorder.recordHandle) {
+    if (recorder.providerId === "DouYin") {
+      url = recorder.recordHandle.url;
+    }
+  }
+
+  if (!url) {
+    // B站的fmp4流不需要referer验证
+    let formatName: FormatName | undefined;
+    let formatPriorities: Array<"flv" | "hls"> | undefined;
+    if (recorder.providerId === "Bilibili") {
+      formatName = "fmp4";
+    } else if (recorder.providerId === "TikTok") {
+      formatName = "hls";
+      formatPriorities = ["hls", "flv"];
+    }
+    const data = await recorder.getStream({
+      formatName: formatName,
+      formatPriorities: formatPriorities,
+    });
+    url = data.url;
+  }
+
+  return { url };
 }
 
 export async function getLiveInfo(ids: string[]) {
@@ -447,12 +520,14 @@ export default {
   getRecorders,
   getRecorderNum,
   getRecorder,
+  getRecorderInfo,
   addRecorder,
   updateRecorder,
   removeRecorder,
   startRecord,
   stopRecord,
   cutRecord,
+  getRecentRecordFolder,
   getLiveInfo,
   batchStartRecord,
   batchStopRecord,
@@ -460,4 +535,5 @@ export default {
   batchResolveChannel,
   getBiliStream,
   resolve,
+  getStreamUrl,
 };

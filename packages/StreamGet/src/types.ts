@@ -26,11 +26,12 @@ export interface LiveInfo {
   living: boolean;
   title: string;
   owner: string;
-  avatar?: string;
-  cover?: string;
+  avatar: string;
+  cover: string;
   liveStartTime?: Date;
+  area?: string;
   raw?: any; // 原始数据，供平台特定字段使用
-  [key: string]: any; // 平台特定字段
+  // [key: string]: any; // 平台特定字段
 }
 
 // 流信息（泛型，保留平台原生质量）
@@ -70,7 +71,7 @@ export abstract class PlatformParser<Q = any> {
 
   abstract matchURL(url: string): boolean;
   abstract extractRoomId(url: string): Promise<string>;
-  abstract getLiveInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo>;
+  abstract getRoomInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo>;
   abstract getStreams(roomId: string, opts?: RequestOptions): Promise<SourceInfo<Q>[]>;
 
   async parse(urlOrRoomId: string, opts?: RequestOptions): Promise<ParseResult<Q>> {
@@ -79,7 +80,7 @@ export abstract class PlatformParser<Q = any> {
     const mergedOpts = this.mergeOptions(opts);
 
     const [liveInfo, sources] = await Promise.all([
-      this.getLiveInfo(roomId, mergedOpts),
+      this.getRoomInfo(roomId, mergedOpts),
       this.getStreams(roomId, mergedOpts),
     ]);
 

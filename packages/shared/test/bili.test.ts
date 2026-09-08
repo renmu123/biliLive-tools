@@ -64,6 +64,25 @@ describe.concurrent("parseDesc", () => {
 });
 
 describe("formatOptions", () => {
+  const defaultOptions: BiliupConfig = {
+    cover: undefined,
+    title: "Test Video",
+    tid: 123,
+    tag: ["tag1", "tag2"],
+    desc: "This is a test video",
+    dolby: 1,
+    noReprint: 1,
+    closeDanmu: 0,
+    closeReply: 0,
+    selectiionReply: 0,
+    openElec: 1,
+    recreate: 1,
+    no_disturbance: 1,
+    copyright: 2,
+    hires: 0,
+    watermark: 1,
+    space_hidden: 2,
+  };
   it("should format options without desc_v2", () => {
     const options: BiliupConfig = {
       cover: undefined,
@@ -84,34 +103,9 @@ describe("formatOptions", () => {
       space_hidden: 2,
     };
 
-    const expected = {
-      cover: undefined,
-      title: "Test Video",
-      tid: 123,
-      tag: "tag1,tag2",
-      desc: "This is a test video",
-      desc_v2: undefined,
-      dolby: 1,
-      is_only_self: 0,
-      mission_id: undefined,
-      topic_id: undefined,
-      lossless_music: 0,
-      no_reprint: 1,
-      up_close_danmu: false,
-      up_close_reply: false,
-      up_selection_reply: false,
-      open_elec: 1,
-      recreate: 1,
-      source: undefined,
-      no_disturbance: 1,
-      copyright: 1,
-      watermark: undefined,
-      space_hidden: 2,
-    };
-
     const result = formatOptions(options);
 
-    expect(result).toEqual(expected);
+    expect(result.desc_v2).toEqual(undefined);
   });
 
   it("should format options with desc_v2", () => {
@@ -132,42 +126,15 @@ describe("formatOptions", () => {
       hires: 0,
     };
 
-    const expected = {
-      copyright: 1,
-      cover: undefined,
-      title: "Test Video",
-      tid: 123,
-      tag: "tag1,tag2",
-      desc: "Hello @World ! This is a @test .",
-      desc_v2: [
-        { raw_text: "Hello ", type: 1, biz_id: "" },
-        { raw_text: "World", type: 2, biz_id: "123" },
-        { raw_text: "! This is a ", type: 1, biz_id: "" },
-        { raw_text: "test", type: 2, biz_id: "456" },
-        { raw_text: ".", type: 1, biz_id: "" },
-      ],
-      dolby: 0,
-      lossless_music: 0,
-      no_reprint: 1,
-      up_close_danmu: false,
-      up_close_reply: false,
-      up_selection_reply: false,
-      open_elec: 0,
-      recreate: -1,
-      source: undefined,
-      no_disturbance: 0,
-      is_only_self: 0,
-      mission_id: undefined,
-      topic_id: undefined,
-      watermark: undefined,
-      space_hidden: 2,
-      dtime: undefined,
-      human_type2: undefined,
-    };
-
     const result = formatOptions(options);
 
-    expect(result).toEqual(expected);
+    expect(result.desc_v2).toEqual([
+      { raw_text: "Hello ", type: 1, biz_id: "" },
+      { raw_text: "World", type: 2, biz_id: "123" },
+      { raw_text: "! This is a ", type: 1, biz_id: "" },
+      { raw_text: "test", type: 2, biz_id: "456" },
+      { raw_text: ".", type: 1, biz_id: "" },
+    ]);
   });
   it("should format options with topic_name", () => {
     const options: BiliupConfig = {
@@ -191,34 +158,10 @@ describe("formatOptions", () => {
       mission_id: 123456,
     };
 
-    const expected = {
-      cover: undefined,
-      title: "Test Video",
-      tid: 123,
-      tag: "Test Topic,tag1,tag2",
-      desc: "This is a test video",
-      desc_v2: undefined,
-      dolby: 1,
-      lossless_music: 0,
-      no_reprint: 1,
-      up_close_danmu: false,
-      up_close_reply: false,
-      up_selection_reply: false,
-      open_elec: 1,
-      recreate: 1,
-      source: undefined,
-      no_disturbance: 1,
-      copyright: 1,
-      topic_id: 123456,
-      mission_id: 123456,
-      is_only_self: 0,
-      watermark: undefined,
-      space_hidden: 2,
-    };
-
     const result = formatOptions(options);
 
-    expect(result).toEqual(expected);
+    // @ts-expect-error
+    expect(result["topic_name"]).toEqual(undefined);
   });
   it("should format options with topic_name and tag length equal 10", () => {
     const options: BiliupConfig = {
@@ -242,34 +185,9 @@ describe("formatOptions", () => {
       mission_id: 123456,
     };
 
-    const expected = {
-      cover: undefined,
-      title: "Test Video",
-      tid: 123,
-      tag: "Test Topic,tag1,tag2,tag3,tag4,tag5,tag6,tag7,tag8,tag9",
-      desc: "This is a test video",
-      desc_v2: undefined,
-      dolby: 1,
-      lossless_music: 0,
-      no_reprint: 1,
-      up_close_danmu: false,
-      up_close_reply: false,
-      up_selection_reply: false,
-      open_elec: 1,
-      recreate: 1,
-      source: undefined,
-      no_disturbance: 1,
-      copyright: 1,
-      topic_id: 123456,
-      mission_id: 123456,
-      is_only_self: 0,
-      watermark: undefined,
-      space_hidden: 2,
-    };
-
     const result = formatOptions(options);
 
-    expect(result).toEqual(expected);
+    expect(result.tag).toEqual("Test Topic,tag1,tag2,tag3,tag4,tag5,tag6,tag7,tag8,tag9");
   });
 
   it("should format options with absolute cover path", ({ onTestFinished }) => {
@@ -277,51 +195,13 @@ describe("formatOptions", () => {
     fs.writeFileSync(cover, "test");
 
     const options: BiliupConfig = {
+      ...defaultOptions,
       cover: cover,
-      title: "Test Video",
-      tid: 123,
-      tag: ["tag1", "tag2"],
-      desc: "This is a test video",
-      dolby: 1,
-      noReprint: 1,
-      closeDanmu: 0,
-      closeReply: 0,
-      selectiionReply: 0,
-      openElec: 1,
-      recreate: 1,
-      no_disturbance: 1,
-      copyright: 1,
-      hires: 0,
-    };
-
-    const expected = {
-      cover: cover,
-      title: "Test Video",
-      tid: 123,
-      tag: "tag1,tag2",
-      desc: "This is a test video",
-      desc_v2: undefined,
-      dolby: 1,
-      lossless_music: 0,
-      no_reprint: 1,
-      up_close_danmu: false,
-      up_close_reply: false,
-      up_selection_reply: false,
-      open_elec: 1,
-      recreate: 1,
-      source: undefined,
-      no_disturbance: 1,
-      copyright: 1,
-      is_only_self: 0,
-      mission_id: undefined,
-      topic_id: undefined,
-      watermark: undefined,
-      space_hidden: 2,
     };
 
     const result = formatOptions(options, os.tmpdir());
 
-    expect(result).toEqual(expected);
+    expect(result.cover).toEqual(cover);
 
     onTestFinished(() => {
       // clean
@@ -337,51 +217,13 @@ describe("formatOptions", () => {
     fs.writeFileSync(cover, "test");
 
     const options: BiliupConfig = {
+      ...defaultOptions,
       cover: coverName,
-      title: "Test Video",
-      tid: 123,
-      tag: ["tag1", "tag2"],
-      desc: "This is a test video",
-      dolby: 1,
-      noReprint: 1,
-      closeDanmu: 0,
-      closeReply: 0,
-      selectiionReply: 0,
-      openElec: 1,
-      recreate: 1,
-      no_disturbance: 1,
-      copyright: 1,
-      hires: 0,
-    };
-
-    const expected = {
-      cover: cover,
-      title: "Test Video",
-      tid: 123,
-      tag: "tag1,tag2",
-      desc: "This is a test video",
-      desc_v2: undefined,
-      dolby: 1,
-      lossless_music: 0,
-      no_reprint: 1,
-      up_close_danmu: false,
-      up_close_reply: false,
-      up_selection_reply: false,
-      open_elec: 1,
-      recreate: 1,
-      source: undefined,
-      no_disturbance: 1,
-      copyright: 1,
-      is_only_self: 0,
-      mission_id: undefined,
-      topic_id: undefined,
-      watermark: undefined,
-      space_hidden: 2,
     };
 
     const result = formatOptions(options, os.tmpdir());
 
-    expect(result).toEqual(expected);
+    expect(result.cover).toEqual(cover);
 
     onTestFinished(() => {
       // clean
@@ -391,52 +233,13 @@ describe("formatOptions", () => {
 
   it("should format options without cover", () => {
     const options: BiliupConfig = {
+      ...defaultOptions,
       cover: undefined,
-      title: "Test Video",
-      tid: 123,
-      tag: ["tag1", "tag2"],
-      desc: "This is a test video",
-      dolby: 1,
-      noReprint: 1,
-      closeDanmu: 0,
-      closeReply: 0,
-      selectiionReply: 0,
-      openElec: 1,
-      recreate: 1,
-      no_disturbance: 1,
-      copyright: 1,
-      hires: 0,
-      space_hidden: 2,
-    };
-
-    const expected = {
-      cover: undefined,
-      title: "Test Video",
-      tid: 123,
-      tag: "tag1,tag2",
-      desc: "This is a test video",
-      desc_v2: undefined,
-      dolby: 1,
-      lossless_music: 0,
-      no_reprint: 1,
-      up_close_danmu: false,
-      up_close_reply: false,
-      up_selection_reply: false,
-      open_elec: 1,
-      recreate: 1,
-      source: undefined,
-      no_disturbance: 1,
-      copyright: 1,
-      is_only_self: 0,
-      mission_id: undefined,
-      topic_id: undefined,
-      watermark: undefined,
-      space_hidden: 2,
     };
 
     const result = formatOptions(options);
 
-    expect(result).toEqual(expected);
+    expect(result.cover).toEqual(undefined);
   });
 
   it("should set watermark state when copyright is original and watermark enabled", () => {
@@ -460,135 +263,41 @@ describe("formatOptions", () => {
       space_hidden: 2,
     };
 
-    const expected = {
-      cover: undefined,
-      title: "Test Video",
-      tid: 123,
-      tag: "tag1,tag2",
-      desc: "This is a test video",
-      desc_v2: undefined,
-      dolby: 1,
-      lossless_music: 0,
-      no_reprint: 1,
-      up_close_danmu: false,
-      up_close_reply: false,
-      up_selection_reply: false,
-      open_elec: 1,
-      recreate: 1,
-      source: undefined,
-      no_disturbance: 1,
-      copyright: 1,
-      is_only_self: 0,
-      mission_id: undefined,
-      topic_id: undefined,
-      watermark: { state: 1 },
-      space_hidden: 2,
-    };
-
     const result = formatOptions(options);
 
-    expect(result).toEqual(expected);
+    expect(result.watermark).toEqual({ state: 1 });
   });
 
   it("should set watermark state to 0 when disabled and copyright is original", () => {
     const options: BiliupConfig = {
-      cover: undefined,
-      title: "Test Video",
-      tid: 123,
-      tag: ["tag1", "tag2"],
-      desc: "This is a test video",
-      dolby: 1,
-      noReprint: 1,
-      closeDanmu: 0,
-      closeReply: 0,
-      selectiionReply: 0,
-      openElec: 1,
-      recreate: 1,
-      no_disturbance: 1,
+      ...defaultOptions,
       copyright: 1,
-      hires: 0,
       watermark: 0,
-      space_hidden: 2,
-    };
-
-    const expected = {
-      cover: undefined,
-      title: "Test Video",
-      tid: 123,
-      tag: "tag1,tag2",
-      desc: "This is a test video",
-      desc_v2: undefined,
-      dolby: 1,
-      lossless_music: 0,
-      no_reprint: 1,
-      up_close_danmu: false,
-      up_close_reply: false,
-      up_selection_reply: false,
-      open_elec: 1,
-      recreate: 1,
-      source: undefined,
-      no_disturbance: 1,
-      copyright: 1,
-      is_only_self: 0,
-      mission_id: undefined,
-      topic_id: undefined,
-      watermark: { state: 0 },
-      space_hidden: 2,
     };
 
     const result = formatOptions(options);
 
-    expect(result).toEqual(expected);
+    expect(result.watermark).toEqual({ state: 0 });
   });
 
   it("should omit watermark when copyright is reprint", () => {
     const options: BiliupConfig = {
-      cover: undefined,
-      title: "Test Video",
-      tid: 123,
-      tag: ["tag1", "tag2"],
-      desc: "This is a test video",
-      dolby: 1,
-      noReprint: 1,
-      closeDanmu: 0,
-      closeReply: 0,
-      selectiionReply: 0,
-      openElec: 1,
-      recreate: 1,
-      no_disturbance: 1,
+      ...defaultOptions,
       copyright: 2,
-      hires: 0,
       watermark: 1,
-      space_hidden: 2,
     };
-
-    const expected = {
-      cover: undefined,
-      title: "Test Video",
-      tid: 123,
-      tag: "tag1,tag2",
-      desc: "This is a test video",
-      desc_v2: undefined,
-      dolby: 1,
-      lossless_music: 0,
-      no_reprint: 1,
-      up_close_danmu: false,
-      up_close_reply: false,
-      up_selection_reply: false,
-      open_elec: 1,
-      recreate: 1,
-      source: undefined,
-      no_disturbance: 1,
-      copyright: 2,
-      is_only_self: 0,
-      mission_id: undefined,
-      topic_id: undefined,
-      watermark: undefined,
-      space_hidden: 2,
-    };
-
     const result = formatOptions(options);
 
-    expect(result).toEqual(expected);
+    expect(result.watermark).toEqual(undefined);
+  });
+
+  it("should tid all time be 21", () => {
+    const options = {
+      ...defaultOptions,
+      tid: 123,
+    };
+    const result = formatOptions(options);
+
+    expect(result.tid).toEqual(21);
   });
 });

@@ -1,6 +1,9 @@
 <template>
   <div class="container">
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px">
+    <div
+      style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px"
+      class="filter-container"
+    >
       <n-input
         v-model:value="params.name"
         placeholder="备注或房间号"
@@ -15,7 +18,7 @@
         clearable
       />
       <n-select
-        v-model:value="params.recordStatus"
+        v-model:value="params.status"
         :options="statusOptions"
         placeholder="录制状态"
         style="width: 140px"
@@ -68,11 +71,19 @@
         @sort="handleSort"
         @startRecord="startRecord"
         @stopRecord="stopRecord"
+        @showDetail="viewStreamerDetail"
       >
+        <template #cornerAction="{ item }">
+          <div class="card-corner-action" @click.stop="viewStreamerDetail(item)">
+            <span class="card-corner-action__label">详情</span>
+          </div>
+        </template>
         <template #action="{ item }">
           <div style="margin-top: 10px" class="section-container">
             <div class="section" @click="startRecord(item.id)">开始录制</div>
-            <div class="section" @click="stopRecord(item.id)">停止录制</div>
+            <div v-if="item.recordHandle" class="section" @click="stopRecord(item.id)">
+              停止录制
+            </div>
             <div
               class="section"
               @click="cut(item.id)"
@@ -90,22 +101,23 @@
             <div class="section" @click="edit(item.id)">直播间设置</div>
             <div class="section" @click="refresh(item.id)">刷新直播间信息</div>
             <div
-              v-if="item.recordHandle?.savePath && false"
+              v-if="item.living"
               class="section"
-              @click="open(item.id, item?.recordHandle?.url)"
+              @click="open(item.id, item.owner || item.remarks)"
             >
-              打开直播
+              观看直播
             </div>
             <div
-              v-if="!isWeb && item.recordHandle?.savePath"
+              v-if="!isWeb"
               class="section"
-              @click="openSavePath(item.recordHandle?.savePath)"
+              @click="openSavePath(item.id, item.recordHandle?.savePath)"
             >
               打开录制文件夹
             </div>
 
             <div class="section" @click="toWebhook(item.channelId)">Webhook配置</div>
-            <div class="section" @click="viewHistory(item)">录制历史</div>
+            <div class="section" @click="viewStreamerDetail(item)">录制详情</div>
+            <div class="section" @click="viewHistory(item)" style="display: none">录制历史</div>
             <div class="section section-danger" @click="remove(item.id)">删除房间</div>
           </div>
         </template>
@@ -142,7 +154,6 @@
       v-model:visible="batchOperateModalVisible"
       @completed="handleBatchOperateCompleted"
     ></batchOperateModal>
-    <videoModal :id="editId" v-model:visible="videoModalVisible" :video-url="videoUrl"></videoModal>
   </div>
 </template>
 
@@ -154,19 +165,19 @@ import addModal from "./components/addModal.vue";
 import batchAddModal from "./components/batchAddModal.vue";
 import batchResultModal from "./components/batchResultModal.vue";
 import batchOperateModal from "./components/batchOperateModal.vue";
-import videoModal from "./components/videoModal.vue";
 import cardView from "./components/cardView.vue";
 import listView from "./components/listView.vue";
 import { useRouter } from "vue-router";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import ColumnSelector from "@renderer/components/ColumnSelector.vue";
 import { platformOptions } from "./data";
+import SortButton from "./components/SortButton.vue";
 
 import { useEventListener, useStorage } from "@vueuse/core";
 import eventBus from "@renderer/utils/eventBus";
+import { toLiveVideoPlayerPage } from "@renderer/utils/pages";
 
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
-import SortButton from "./components/SortButton.vue";
 
 defineOptions({
   name: "recorder",
@@ -192,7 +203,7 @@ const columnConfig = [
   { value: "living", label: "直播状态" },
   { value: "state", label: "录制状态" },
   { value: "recordParams", label: "录制参数" },
-  { value: "lastRecordTime", label: "最近录制时间" },
+  { value: "lastRecordTime", label: "上次录制" },
   { value: "monitorStatus", label: "监听状态" },
   { value: "actions", label: "操作" },
 ];
@@ -219,7 +230,7 @@ const recorderLocalParams = useStorage(
 
 const params = ref<Parameters<typeof recoderApi.infoList>[0]>({
   platform: undefined,
-  recordStatus: undefined,
+  status: undefined,
   name: undefined,
   autoCheck: undefined,
   page: 1,
@@ -231,8 +242,16 @@ const statusOptions = ref([
     value: "recording",
   },
   {
-    label: "未录制",
-    value: "unrecorded",
+    label: "空闲中",
+    value: "idle",
+  },
+  {
+    label: "检查错误",
+    value: "check-error",
+  },
+  {
+    label: "标题被屏蔽",
+    value: "title-blocked",
   },
 ]);
 const recordOptions = ref([
@@ -491,22 +510,23 @@ const edit = async (id: string) => {
   addModalVisible.value = true;
 };
 
-const videoModalVisible = ref(false);
-const videoUrl = ref("");
 /**
  * 打开直播间
  * @param id 内部直播间id
+ * @param owner 直播间主人名
  */
-const open = async (id: string, streamUrl: string) => {
-  editId.value = id;
-  videoUrl.value = streamUrl;
-  if (!streamUrl) {
-    notice.error({
-      title: "未找到直播流地址",
+const open = async (id: string, owner: string) => {
+  const info = await refresh(id, false);
+  if (info?.living === false) {
+    notice.warning({
+      title: "直播间未开播",
     });
     return;
   }
-  videoModalVisible.value = true;
+  toLiveVideoPlayerPage({
+    liveId: id,
+    owner: owner,
+  });
 };
 
 const getLiveInfo = async (forceRequest: boolean = false) => {
@@ -552,7 +572,7 @@ const getLiveInfo = async (forceRequest: boolean = false) => {
 };
 
 // 刷新单个直播间信息
-const refresh = async (id: string) => {
+const refresh = async (id: string, showNotification: boolean = true) => {
   const recorder = recorderList.value.find((item) => item.id === id);
   if (!recorder) return;
 
@@ -567,10 +587,12 @@ const refresh = async (id: string) => {
       [refreshedLiveInfo],
     );
   }
-
-  notice.success({
-    title: "刷新成功",
-  });
+  if (showNotification) {
+    notice.success({
+      title: "刷新成功",
+    });
+  }
+  return refreshedLiveInfo;
 };
 
 const handleModalClose = () => {
@@ -649,10 +671,23 @@ const isWeb = ref(window.isWeb);
 
 /**
  * 打开录制文件夹
- * @param path
+ * @param id 录制器ID
+ * @param recordingPath 录制文件路径
  */
-const openSavePath = (path: string) => {
-  window.api.openPath(window.path.dirname(path));
+const openSavePath = async (id: string, recordingPath?: string) => {
+  if (recordingPath) {
+    await window.api.openPath(window.path.dirname(recordingPath));
+    return;
+  }
+
+  try {
+    const { folderPath } = await recoderApi.getRecentRecordFolder(id);
+    await window.api.openPath(folderPath);
+  } catch (error: any) {
+    notice.error({
+      title: error?.message,
+    });
+  }
 };
 
 const toWebhook = (channelId: string) => {
@@ -675,6 +710,16 @@ const viewHistory = (item: any) => {
       id: item.id,
       channelId: item.channelId,
       platform: item.providerId,
+      name: item.owner,
+    },
+  });
+};
+
+const viewStreamerDetail = (item: any) => {
+  router.push({
+    path: "/streamerDetail",
+    query: {
+      recorderId: item.id,
       name: item.owner,
     },
   });
@@ -770,6 +815,11 @@ const handleActionClick = (key?: string | number) => {
     &.section-danger {
       color: var(--color-danger-text);
     }
+  }
+}
+@media (max-width: 1024px) {
+  .filter-container {
+    flex-wrap: wrap;
   }
 }
 

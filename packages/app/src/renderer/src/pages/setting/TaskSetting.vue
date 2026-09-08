@@ -1,7 +1,13 @@
 <template>
   <div class="">
-    <h2>并发处理数<Tip :tip="`-1为无限`"></Tip></h2>
+    <h2>任务队列</h2>
     <n-form label-placement="left" :label-width="140">
+      <n-form-item label="最大任务数量">
+        <n-input-number v-model:value="config.task.maxNum" :min="50" :step="10" />
+      </n-form-item>
+    </n-form>
+    <h2>并发处理数<Tip :tip="`-1为无限`"></Tip></h2>
+    <n-form label-placement="left" :label-width="labelWidth">
       <n-form-item>
         <template #label>
           <span class="inline-flex"> ffmpeg任务 </span>
@@ -42,10 +48,15 @@
 </template>
 
 <script setup lang="ts">
+import { useBreakpoints } from "@renderer/hooks";
 import type { AppConfig } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},
+});
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "140px";
 });
 </script>
 

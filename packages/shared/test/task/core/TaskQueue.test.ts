@@ -30,6 +30,45 @@ describe("TaskQueue", () => {
     expect(taskQueue.list()).toContain(task);
   });
 
+  it("should remove the oldest completed task when the maximum task count is reached", () => {
+    // @ts-ignore
+    taskQueue.appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { maxNum: 2 },
+      }),
+    };
+    const oldestCompletedTask = new TestTask();
+    oldestCompletedTask.status = "completed";
+    const latestCompletedTask = new TestTask();
+    latestCompletedTask.status = "completed";
+    const newTask = new TestTask();
+
+    taskQueue.addTask(oldestCompletedTask);
+    taskQueue.addTask(latestCompletedTask);
+    taskQueue.addTask(newTask);
+
+    expect(taskQueue.list()).toEqual([latestCompletedTask, newTask]);
+  });
+
+  it("should not remove unfinished tasks when the maximum task count is reached", () => {
+    // @ts-ignore
+    taskQueue.appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { maxNum: 2 },
+      }),
+    };
+    const pendingTask = new TestTask();
+    const runningTask = new TestTask();
+    runningTask.status = "running";
+    const newTask = new TestTask();
+
+    taskQueue.addTask(pendingTask);
+    taskQueue.addTask(runningTask);
+    taskQueue.addTask(newTask);
+
+    expect(taskQueue.list()).toEqual([pendingTask, runningTask, newTask]);
+  });
+
   it("should start a pending task", () => {
     const task = new TestTask();
     taskQueue.addTask(task, false);

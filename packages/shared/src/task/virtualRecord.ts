@@ -144,7 +144,7 @@ const getMatchingFiles = async (
       const startTimeMs = extractStartTimeFromFilename(
         filename,
         config.startTimeAutoMatch,
-        result.value.birthtimeMs,
+        result.value.birthtimeMs || result.value.ctimeMs,
       );
       return (
         result.value.isFile() &&
@@ -157,7 +157,7 @@ const getMatchingFiles = async (
       const startTimeMs = extractStartTimeFromFilename(
         filename,
         config.startTimeAutoMatch,
-        result.value.birthtimeMs,
+        result.value.birthtimeMs || result.value.ctimeMs,
       );
       return {
         path: result.path,

@@ -1,4 +1,4 @@
-import CommonPreset from "./preset.js";
+﻿import CommonPreset from "./preset.js";
 
 import type { BiliupConfig, BiliupPreset } from "@biliLive-tools/types";
 import type { GlobalConfig } from "@biliLive-tools/types";
@@ -29,6 +29,8 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   topic_name: null,
   is_only_self: 0,
   space_hidden: 2,
+  act_reserve: undefined,
+
 };
 
 export class VideoPreset extends CommonPreset<BiliupConfig> {

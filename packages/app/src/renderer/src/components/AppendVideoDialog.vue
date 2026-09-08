@@ -1,21 +1,24 @@
 <template>
   <n-modal v-model:show="showModal" :mask-closable="false" auto-focus :on-after-enter="handleOpen">
     <n-card
-      style="width: calc(100% - 60px); max-height: 80%"
+      style="max-height: 80%"
       :bordered="false"
-      size="huge"
       role="dialog"
       aria-modal="true"
       class="card"
+      :style="{
+        width: isMobile ? '100%' : 'calc(100% - 60px)',
+      }"
     >
       <div>
         <p>续传只会增加分p，不会对稿件进行编辑</p>
-        <div style="display: flex; gap: 10px; align-items: center">
+        <div class="haeder" style="display: flex; gap: 10px; align-items: center">
           <n-pagination
             v-model:page="page"
             :page-count="pageCount"
-            size="medium"
             show-quick-jumper
+            :size="isMobile ? 'small' : 'medium'"
+            :page-slot="isMobile ? 6 : 9"
           />
 
           <n-button style="margin-left: auto" class="btn" @click="close">取消</n-button>
@@ -41,6 +44,7 @@
 <script setup lang="ts">
 import { useAppConfig } from "@renderer/stores";
 import { biliApi } from "@renderer/apis";
+import { useBreakpoints } from "@renderer/hooks";
 
 const { appConfig } = storeToRefs(useAppConfig());
 
@@ -50,6 +54,7 @@ const emits = defineEmits<{
   confirm: [aid: string];
 }>();
 const notice = useNotification();
+const { isMobile } = useBreakpoints();
 
 const list = ref<
   {
@@ -147,6 +152,16 @@ const selectMedia = (item) => {
     }
     &.selected {
       border-color: var(--color-primary-active);
+    }
+  }
+}
+.card {
+  @media (max-width: 628px) {
+    :deep(.n-card-content) {
+      padding: 10px;
+    }
+    .haeder {
+      flex-wrap: wrap;
     }
   }
 }

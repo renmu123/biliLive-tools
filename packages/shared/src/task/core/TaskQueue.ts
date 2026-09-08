@@ -71,8 +71,8 @@ export class TaskQueue {
    * @param autoRun 是否自动运行（true: 立即执行, false: 根据任务限制决定）
    */
   addTask(task: AbstractTask, autoRun = true): void {
-    task.emitter.on("task-end", ({ taskId }) => {
-      this.emitter.emit("task-end", { taskId });
+    task.emitter.on("task-end", ({ taskId, data }) => {
+      this.emitter.emit("task-end", { taskId, data });
     });
     task.emitter.on("task-error", ({ taskId, error }) => {
       this.emitter.emit("task-error", { taskId, error });
@@ -92,6 +92,16 @@ export class TaskQueue {
     task.emitter.on("task-cancel", ({ taskId, autoStart }) => {
       this.emitter.emit("task-cancel", { taskId, autoStart });
     });
+    // task.emitter.on("task-removed-queue", ({ taskId }) => {
+    //   this.emitter.emit("task-removed-queue", { taskId });
+    // });
+
+    const maxNum = this.appConfig.getAll()?.task?.maxNum ?? 300;
+    while (this.queue.length >= maxNum) {
+      const oldestCompletedTask = this.queue.find(({ status }) => status === "completed");
+      if (!oldestCompletedTask) break;
+      this.remove(oldestCompletedTask.taskId);
+    }
 
     this.queue.push(task);
 
@@ -169,17 +179,17 @@ export class TaskQueue {
   remove(taskId: string): void {
     const task = this.queryTask(taskId);
     if (!task) return;
+    task.emit("task-removed-queue", { taskId: task.taskId });
     const index = this.queue.indexOf(task);
     if (index !== -1) {
       this.queue.splice(index, 1);
     }
-    task.emit("task-removed-queue", { taskId: task.taskId });
   }
 
   /**
    * 暂停任务
    */
-  pasue(taskId: string): void {
+  pause(taskId: string): void {
     const task = this.queryTask(taskId);
     if (!task) return;
     task.pause();

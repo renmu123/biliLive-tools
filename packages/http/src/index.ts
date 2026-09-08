@@ -17,12 +17,13 @@ import commonRouter from "./routes/common.js";
 import userRouter from "./routes/user.js";
 import presetRouter from "./routes/preset.js";
 import SSERouter from "./routes/sse.js";
-import recocderRouter from "./routes/recorder.js";
+import recocderRouter, { handleRecorderUpgrade } from "./routes/recorder.js";
 import biliRouter from "./routes/bili.js";
 import taskRouter from "./routes/task.js";
 import assetsRouter from "./routes/assets.js";
 import videoRouter from "./routes/video.js";
 import recordHistoryRouter from "./routes/recordHistory.js";
+import filesRouter from "./routes/files.js";
 import danmaRouter from "./routes/danma.js";
 import syncRouter from "./routes/sync.js";
 import aiRouter from "./routes/ai.js";
@@ -117,6 +118,7 @@ export async function serverStart(
   app.use(taskRouter.routes());
   app.use(videoRouter.routes());
   app.use(recordHistoryRouter.routes());
+  app.use(filesRouter.routes());
   app.use(danmaRouter.routes());
   app.use(syncRouter.routes());
   app.use(aiRouter.routes());
@@ -160,6 +162,13 @@ async function createServer(options: { port: number; host: string }) {
     const httpServer = http.createServer(app.callback());
     httpServer.on("error", (err) => {
       logger.error("HTTP 服务器错误:", err);
+    });
+    httpServer.on("upgrade", (request, socket, head) => {
+      if (handleRecorderUpgrade(request, socket, head)) {
+        return;
+      }
+
+      socket.destroy();
     });
     httpServer.listen(options.port, options.host, () => {
       logger.info(`Server is running at http://${options.host}:${options.port}`);

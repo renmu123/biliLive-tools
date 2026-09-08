@@ -546,7 +546,10 @@ export const mergeXml = async (
   for (const file of inputFiles) {
     // 读取视频元数据获取时长
     const meta = await readVideoMeta(file.videoPath);
-    const duration = meta.format.duration || 0;
+    const duration = Number(meta.format.duration || 0);
+    if (duration === 0 || isNaN(duration)) {
+      throw new Error("视频无法读取到时间，无法进行处理");
+    }
 
     // 解析XML文件
     const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(file.danmakuPath, true);

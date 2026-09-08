@@ -1,5 +1,5 @@
 <template>
-  <n-form ref="formRef" label-width="130px" label-placement="left" label-align="right">
+  <n-form ref="formRef" :label-width="labelWidth" label-placement="left" label-align="right">
     <n-form-item>
       <template #label>
         <Tip text="预设"> 修改编码器时优先从预设中修改，不同的预设会有不同的默认参数 </Tip>
@@ -136,6 +136,22 @@
           placeholder="请选择预设"
         />
       </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip text="帧率">
+            使用 fps 滤镜控制输出帧率，留空时不生效。<br />
+            一般用于电台等帧率极低的视频，来避免滚动弹幕时出现卡顿
+          </Tip>
+        </template>
+        <n-input-number
+          v-model:value.number="ffmpegOptions.config.fps"
+          class="input-number"
+          :min="0.01"
+          :step="1"
+          placeholder="留空则不生效"
+          style="width: 120px; flex: none"
+        />
+      </n-form-item>
       <n-form-item v-if="['libsvtav1'].includes(ffmpegOptions.config.encoder)">
         <template #label>
           <Tip text="10bit">
@@ -266,6 +282,7 @@
             label-align="right"
             :show-feedback="false"
             label-width="40px"
+            style="flex-wrap: wrap"
           >
             <n-form-item label="x轴">
               <n-input-number
@@ -367,20 +384,14 @@
 
     <n-form-item>
       <template #label>
-        <n-popover trigger="hover">
-          <template #trigger>
-            <span
-              class="flex align-center"
-              :style="{
-                'justify-content': 'flex-end',
-              }"
-            >
-              音频编码器</span
-            >
-          </template>
-        </n-popover>
+        <Tip text="音频编码器"> 你也可以不选，在输出参数中完全自定义 </Tip>
       </template>
-      <n-select v-model:value="ffmpegOptions.config.audioCodec" :options="audioEncoders" />
+      <n-select
+        v-model:value="ffmpegOptions.config.audioCodec"
+        :options="audioEncoders"
+        clearable
+        placeholder="请选择音频编码器"
+      />
     </n-form-item>
 
     <n-form-item v-if="ffmpegOptions.config.encoder !== 'copy'">
@@ -453,7 +464,7 @@
 
 <script setup lang="ts">
 import { HelpCircleOutline } from "@vicons/ionicons5";
-import { useConfirm } from "@renderer/hooks";
+import { useConfirm, useBreakpoints } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 import { useFfmpegPreset, useAppConfig } from "@renderer/stores";
@@ -466,6 +477,10 @@ const notice = useNotification();
 const confirmDialog = useConfirm();
 const { ffmpegOptions: options } = storeToRefs(useFfmpegPreset());
 const { getPresetOptions } = useFfmpegPreset();
+const { isMobile } = useBreakpoints();
+const labelWidth = computed(() => {
+  return isMobile.value ? "90px" : "120px";
+});
 
 const emits = defineEmits<{
   (event: "change", value: FfmpegPreset): void;

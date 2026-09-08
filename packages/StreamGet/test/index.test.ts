@@ -26,6 +26,12 @@ describe("StreamParser", () => {
     expect(platform).toBe("huya");
   });
 
+  it("should detect tiktok platform", () => {
+    const parser = new StreamParser();
+    const platform = parser.detectPlatform("https://www.tiktok.com/@example/live");
+    expect(platform).toBe("tiktok");
+  });
+
   it("should return null for unsupported platform", () => {
     const parser = new StreamParser();
     const platform = parser.detectPlatform("https://example.com");

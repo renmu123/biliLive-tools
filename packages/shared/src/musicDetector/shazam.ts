@@ -226,6 +226,9 @@ async function shazamRecognizeWithSampling(file: string) {
   // 获取文件时长
   const meta = await readVideoMeta(file);
   const duration = Number(meta.format.duration || 0);
+  if (duration === 0 || isNaN(duration)) {
+    throw new Error("视频无法读取到时间，无法处理");
+  }
 
   if (duration < 10) {
     // 如果文件时长小于10秒，直接识别
@@ -331,7 +334,13 @@ export async function recognize(file: string, lyricOptimize: boolean) {
   const result = await shazamRecognizeWithSampling(file);
   // console.log("Shazam 识别结果：", JSON.stringify(result, null, 2));
   if (!result) return null;
-  const info = await shazamQueryInfo(result.trackId);
+  let info: (TrackInfo & { appleMusicId: string | undefined }) | null = null;
+
+  try {
+    info = await shazamQueryInfo(result.trackId);
+  } catch (error) {
+    console.error("Shazam 查询信息失败：", error);
+  }
 
   const appleMusicId = result.appleMusicId || info?.appleMusicId;
   const title = info?.title || result.title;

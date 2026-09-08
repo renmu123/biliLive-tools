@@ -406,6 +406,34 @@ describe("RecorderManager", () => {
 
       expect(path).toBe(`Test Provider/${year}-${month}-${date} ${hour}-${min}-${sec} Test Title`);
     });
+
+    it("应该支持在 ejs 模板中替换四字节字符", () => {
+      const manager = createRecorderManager({
+        providers: [testProvider],
+        savePathRule:
+          "{platform}/<%= replaceFourByteUnicode(owner) %>/<%= replaceFourByteUnicode(title) %>",
+        autoRemoveSystemReservedChars: true,
+      });
+
+      const recorder = manager.addRecorder({
+        id: "test-recorder",
+        providerId: "test",
+        channelId: "test-channel",
+        quality: "highest",
+        streamPriorities: [],
+        sourcePriorities: [],
+      });
+
+      const path = genSavePathFromRule(manager, recorder, {
+        owner: "Test 👋 ❤Owner",
+        title: "Live 🌍 Title",
+        startTime: Date.now(),
+        liveStartTime: new Date(),
+        recordStartTime: new Date(),
+      });
+
+      expect(path).toBe("Test Provider/Test _ ❤Owner/Live _ Title");
+    });
   });
 
   describe("multiThreadCheck", () => {

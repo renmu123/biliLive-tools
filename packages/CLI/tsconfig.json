@@ -4,11 +4,13 @@
     "outDir": "./lib",
     "rootDir": "./src",
     "target": "ESNext",
+    "strict": false,
     "esModuleInterop": true,
     "declaration": false,
     "resolveJsonModule": true,    
     "module": "ES2022",
     "moduleResolution": "bundler",
+    "types": ["*"],
   },
   "include": ["src/**/*.ts"]
 }
