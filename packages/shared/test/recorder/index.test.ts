@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const fakeManager = Object.assign(new EventEmitter(), {
   autoCheckInterval: 0,
@@ -67,6 +67,7 @@ vi.mock("../../src/task/video.js", () => ({
 vi.mock("../../src/utils/index.js", () => ({
   replaceExtName: vi.fn((file: string, ext: string) => file.replace(/\.[^.]+$/, ext)),
   calculateFileQuickHash: vi.fn(async () => "quick-hash"),
+  sendExternalEventRequest: vi.fn(async () => undefined),
 }));
 vi.mock("../../src/notify.js", () => ({
   sendBySystem: vi.fn(),
@@ -102,14 +103,19 @@ vi.mock("fs-extra", () => ({
   appendFileSync: vi.fn(),
 }));
 
+let createRecorderManager: typeof import("../../src/recorder/index.js").createRecorderManager;
+
 describe("shared recorder videoFileCompleted", () => {
+  beforeAll(async () => {
+    ({ createRecorderManager } = await import("../../src/recorder/index.js"));
+  });
+
   beforeEach(() => {
     fakeManager.removeAllListeners();
     updateLiveMock.mockReset();
   });
 
   it("should persist danma_stats_json from liveManager stats", async () => {
-    const { createRecorderManager } = await import("../../src/recorder/index.js");
     const appConfig = {
       getAll: () => ({
         port: 18010,

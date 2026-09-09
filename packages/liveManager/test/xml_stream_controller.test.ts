@@ -13,7 +13,7 @@ afterEach(async () => {
 });
 
 describe("createRecordExtraDataController", () => {
-  it("should aggregate danma count and 5-second buckets from comment messages", async () => {
+  it("should aggregate danma count and 10-second buckets from comment messages", async () => {
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "xml-stream-controller-"));
     tempDirs.push(tempDir);
 
@@ -28,19 +28,19 @@ describe("createRecordExtraDataController", () => {
     });
     controller.addMessage({
       type: "comment",
-      timestamp: startTimestamp + 4_999,
+      timestamp: startTimestamp + 9_999,
       text: "second",
       sender: { name: "u2", uid: "2" },
     });
     controller.addMessage({
       type: "comment",
-      timestamp: startTimestamp + 5_000,
+      timestamp: startTimestamp + 10_000,
       text: "third",
       sender: { name: "u1", uid: "1" },
     });
     controller.addMessage({
       type: "comment",
-      timestamp: startTimestamp + 12_000,
+      timestamp: startTimestamp + 22_000,
       text: "fourth",
       sender: { name: "u3", uid: "3" },
     });
@@ -52,7 +52,7 @@ describe("createRecordExtraDataController", () => {
       guardNum: 0,
       danmaStats: {
         danmaTimeline: {
-          interval: 5,
+          interval: 10,
           data: [2, 1, 1],
         },
       },
