@@ -51,3 +51,15 @@ minimumReleaseAgeExclude:
   - "@renmu/bili-api@2.15.0"
   - "@renmu/node-shazam@2.0.4"
   - '@renmu/bili-api@2.15.1'
+  - '@napi-rs/canvas-android-arm64@1.0.9'
+  - '@napi-rs/canvas-darwin-arm64@1.0.9'
+  - '@napi-rs/canvas-darwin-x64@1.0.9'
+  - '@napi-rs/canvas-linux-arm-gnueabihf@1.0.9'
+  - '@napi-rs/canvas-linux-arm64-gnu@1.0.9'
+  - '@napi-rs/canvas-linux-arm64-musl@1.0.9'
+  - '@napi-rs/canvas-linux-riscv64-gnu@1.0.9'
+  - '@napi-rs/canvas-linux-x64-gnu@1.0.9'
+  - '@napi-rs/canvas-linux-x64-musl@1.0.9'
+  - '@napi-rs/canvas-win32-arm64-msvc@1.0.9'
+  - '@napi-rs/canvas-win32-x64-msvc@1.0.9'
+  - '@napi-rs/canvas@1.0.9'

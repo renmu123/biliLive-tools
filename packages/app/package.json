@@ -26,7 +26,7 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
     "@imengyu/vue3-context-menu": "^1.5.2",
-    "@napi-rs/canvas": "^0.1.60",
+    "@napi-rs/canvas": "^1.0.9",
     "@renmu/node-shazam": "^2.0.4",
     "awilix": "^11.0.4",
     "better-sqlite3": "catalog:",

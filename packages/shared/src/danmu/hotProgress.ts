@@ -8,6 +8,11 @@ import { countByIntervalInSeconds } from "../utils/index.js";
 import type { HotProgressOptions } from "@biliLive-tools/types";
 
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+type ChartPoint = {
+  x: number;
+  y: number;
+  color: string;
+};
 
 export const genTimeData = async (input: string): Promise<number[]> => {
   const ext = path.extname(input);
@@ -61,19 +66,26 @@ export const generateDanmakuImage = async (
 
   const data = await generateDanmakuData(input, options);
   await fs.ensureDir(output);
+  const canvas = createCanvas(options.width, options.height);
+  const ctx = canvas.getContext("2d");
+  const points = createChartPoints(data, options.width, options.height);
+
   for (let i = 0; i < data.length; i++) {
     data[i].color = options.fillColor;
-    const canvas = await drawSmoothLineChart(data, options.width, options.height);
+    points[i].color = options.fillColor;
+    ctx.clearRect(0, 0, options.width, options.height);
+    drawSmoothCurve(ctx, points);
     const outputPath = path.join(output, `${String(i).padStart(4, "0")}.png`);
-    const stream = await canvas.encode("png");
-    await fs.promises.writeFile(outputPath, stream);
+    const png = await canvas.encode("png");
+    await fs.promises.writeFile(outputPath, png);
   }
   return data;
 };
 
 // 绘制平滑曲线
-function drawSmoothCurve(ctx, points) {
+function drawSmoothCurve(ctx, points: ChartPoint[]) {
   const len = points.length;
+  if (len < 2) return;
 
   let lastX = points[0].x;
   let lastY = points[0].y;
@@ -92,18 +104,14 @@ function drawSmoothCurve(ctx, points) {
   }
 }
 
-// 绘制平滑折线图
-async function drawSmoothLineChart(data, width: number, height: number) {
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext("2d");
-
+// 计算平滑折线图坐标。所有帧共用坐标，避免重复创建大量临时对象。
+function createChartPoints(data, width: number, height: number): ChartPoint[] {
   const length = data.length;
   const maxValue = Math.max(...data.map((item) => item.value));
-  // const minValue = Math.min(...data.map((item) => item.value));
   const xRation = width / (length - 1);
   const yRatio = height / maxValue;
 
-  const points: any[] = [];
+  const points: ChartPoint[] = [];
 
   // 计算数据点的坐标
   for (let i = 0; i < data.length; i++) {
@@ -118,6 +126,5 @@ async function drawSmoothLineChart(data, width: number, height: number) {
     });
   }
 
-  drawSmoothCurve(ctx, points);
-  return canvas;
+  return points;
 }
