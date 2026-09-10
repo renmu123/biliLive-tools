@@ -112,6 +112,27 @@ describe("EventBufferManager", () => {
 
       expect(manager.getBufferStatus()).toBe(2);
     });
+
+    it("should remove expired unpaired events when a new event arrives", () => {
+      vi.useFakeTimers();
+      const manager = new EventBufferManager(1000);
+      manager.addEvent(createMockEvent("FileOpening", "/path/to/old.mp4"));
+
+      vi.advanceTimersByTime(1001);
+      manager.addEvent(createMockEvent("FileOpening", "/path/to/new.mp4"));
+
+      expect(manager.getBufferStatus()).toBe(1);
+      vi.useRealTimers();
+    });
+
+    it("should cap the number of unpaired events", () => {
+      const manager = new EventBufferManager(60_000, 2);
+      manager.addEvent(createMockEvent("FileOpening", "/path/to/1.mp4"));
+      manager.addEvent(createMockEvent("FileOpening", "/path/to/2.mp4"));
+      manager.addEvent(createMockEvent("FileOpening", "/path/to/3.mp4"));
+
+      expect(manager.getBufferStatus()).toBe(2);
+    });
   });
 
   describe("clear", () => {
