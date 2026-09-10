@@ -4,12 +4,32 @@
       <n-form-item>
         <template #label>
           <Tip
-            text="线路"
-            tip="上传线路，自动会使用B站接口返回的第一个线路，如果上传失败请手动选择线路，切换后请上传测试线路能否实际使用。<br/>qn线路可能对海外机器有特效<br/>访问查询：<a href='https://member.bilibili.com/preupload?r=ping' target='_blank'>https://member.bilibili.com/preupload?r=ping</a>"
+            text="上传线路池"
+            tip="每个视频上传会话只会从所选线路池中选择一次线路，同一视频的全部分片不会中途换线。自动线路只能单独使用。"
             placement="bottom"
           ></Tip>
         </template>
-        <n-select v-model:value="config.biliUpload.line" :options="lineOptions" filterable tag />
+        <n-select
+          v-model:value="selectedLines"
+          :options="lineOptions"
+          filterable
+          multiple
+          :max-tag-count="'responsive'"
+          placeholder="请至少选择一条上传线路"
+        />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip
+            text="线路调度"
+            tip="单线路固定使用；轮询会按账号在每个新视频上传会话间依次切换；随机只会从所选线路池中选择。"
+          ></Tip>
+        </template>
+        <n-select
+          v-model:value="lineStrategy"
+          :options="lineStrategyOptions"
+          :disabled="selectedLines.length === 1"
+        />
       </n-form-item>
       <n-form-item>
         <template #label>
@@ -111,7 +131,14 @@
 
 <script setup lang="ts">
 import { useBreakpoints } from "@renderer/hooks";
-import type { AppConfig } from "@biliLive-tools/types";
+import {
+  BILI_UPLOAD_ACTIVE_LINE_SELECTORS,
+  BILI_UPLOAD_LEGACY_LINE_SELECTORS,
+  normalizeBiliUploadRouteConfig,
+} from "@biliLive-tools/shared/biliUploadRoute.js";
+import { resolveBiliUploadLineSelection } from "./biliUploadLines";
+
+import type { AppConfig, BiliUploadLineStrategy } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},
@@ -121,36 +148,52 @@ const labelWidth = computed(() => {
   return isMobile.value ? "90px" : "150px";
 });
 
+const selectedLines = computed<string[]>({
+  get() {
+    return normalizeBiliUploadRouteConfig(config.value.biliUpload).lines;
+  },
+  set(value) {
+    const lines = resolveBiliUploadLineSelection(value, selectedLines.value);
+    config.value.biliUpload.lines = lines;
+    config.value.biliUpload.line = lines[0];
+    if (lines.length === 1) {
+      config.value.biliUpload.lineStrategy = "fixed";
+    } else if (
+      config.value.biliUpload.lineStrategy !== "round-robin" &&
+      config.value.biliUpload.lineStrategy !== "random"
+    ) {
+      config.value.biliUpload.lineStrategy = "round-robin";
+    }
+  },
+});
+
+const lineStrategy = computed<BiliUploadLineStrategy>({
+  get() {
+    return normalizeBiliUploadRouteConfig(config.value.biliUpload).lineStrategy;
+  },
+  set(value) {
+    config.value.biliUpload.lineStrategy = selectedLines.value.length === 1 ? "fixed" : value;
+  },
+});
+
+const lineStrategyOptions = computed(() => {
+  if (selectedLines.value.length === 1) {
+    return [{ label: "固定", value: "fixed" }];
+  }
+  return [
+    { label: "轮询", value: "round-robin" },
+    { label: "随机", value: "random" },
+  ];
+});
+
 const lineOptions = [
   { label: "自动", value: "auto" },
-  { label: "cs-bda2", value: "cs-bda2" },
-  { label: "cs-bldsa", value: "cs-bldsa" },
-  { label: "cs-tx", value: "cs-tx" },
-  { label: "cs-qn", value: "cs-qn" },
-  { label: "cs-cnbldsa", value: "cs-cnbldsa" },
-  { label: "cs-akbd", value: "cs-akbd" },
-  { label: "cs-estx", value: "cs-estx" },
-  { label: "cs-cnbd", value: "cs-cnbd" },
-  { label: "cs-cntx", value: "cs-cntx" },
-  { label: "cs-andsa", value: "cs-andsa" },
-  { label: "cs-anbd", value: "cs-anbd" },
-  { label: "cs-antx", value: "cs-antx" },
-  { label: "cs-atdsa", value: "cs-atdsa" },
-  { label: "cs-atbd", value: "cs-atbd" },
-  { label: "cs-attx", value: "cs-attx" },
+  ...BILI_UPLOAD_ACTIVE_LINE_SELECTORS.map((line) => ({ label: line, value: line })),
   {
     type: "group",
     key: "outdated",
     label: "可能已失效线路（仅供测试）",
-    children: [
-      { label: "cs-txa", value: "cs-txa" },
-      { label: "cs-alia", value: "cs-alia" },
-      { label: "jd-bldsa", value: "jd-bldsa" },
-      { label: "jd-bd", value: "jd-bd" },
-      { label: "jd-tx", value: "jd-tx" },
-      { label: "jd-txa", value: "jd-txa" },
-      { label: "jd-alia", value: "jd-alia" },
-    ],
+    children: BILI_UPLOAD_LEGACY_LINE_SELECTORS.map((line) => ({ label: line, value: line })),
   },
 ];
 </script>

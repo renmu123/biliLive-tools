@@ -287,7 +287,9 @@
 
   // ===== B 站上传配置 =====
   biliUpload: {
-    line: "auto", // 上传线路: auto|kodo|bda2|upos|cos
+    line: "auto", // 兼容旧版本的上传线路；保存线路池时自动回填为 lines[0]
+    lines: ["auto"], // 上传线路池；auto 只能单独使用
+    lineStrategy: "fixed", // 调度策略: fixed|round-robin|random
     concurrency: 3, // 并发上传数
     limitRate: 0, // 上传限速 (KB/s, 0=不限制)
     retryTimes: 10, // 重试次数

@@ -20,6 +20,12 @@ import { sleep, encrypt, decrypt, getTempPath, trashItem, uuid } from "../utils/
 import { sendNotify } from "../notify.js";
 import { getBinPath, pasrseMetadata } from "./video.js";
 import { formatTitle, formatPartTitle, formatDesc, buildRoomLink } from "../utils/webhook.js";
+import {
+  biliUploadRouteScheduler,
+  getSanitizedUploadEndpointHost,
+  normalizeBiliUploadRouteConfig,
+  type RouteSelection,
+} from "../biliUploadRoute.js";
 
 import type { BiliupConfig, BiliUser, AppConfig as AppConfigType } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
@@ -424,22 +430,79 @@ export async function editMediaApi(
 /**
  * 格式化上传稿件参数，并非上传接口
  */
-function formatMediaOptions(options: AppConfigType["biliUpload"]) {
-  let line = options.line ?? "auto";
-  const splitedLine = line.split("-");
-  let zone = "";
-
-  if (splitedLine.length === 2) {
-    [zone, line] = splitedLine;
-  }
-
+function formatMediaOptions(options: AppConfigType["biliUpload"], route: RouteSelection) {
   return {
     ...options,
-    line: line,
-    zone: zone,
+    line: route.line,
+    zone: route.zone,
     limitRate: Math.floor((options.limitRate || 0) / (options.concurrency || 1)),
     bcutPreUpload: true,
   };
+}
+
+type RouteLogContext = {
+  selector: string;
+  strategy: string;
+  taskId: string;
+  accountId: string;
+};
+
+class RoutedWebVideoUploader extends WebVideoUploader {
+  constructor(
+    part: ConstructorParameters<typeof WebVideoUploader>[0],
+    auth: ConstructorParameters<typeof WebVideoUploader>[1],
+    options: ConstructorParameters<typeof WebVideoUploader>[2],
+    private readonly routeLogContext: RouteLogContext,
+  ) {
+    super(part, auth, options);
+  }
+
+  bindTask(taskId: string) {
+    this.routeLogContext.taskId = taskId;
+    const { selector, strategy, accountId } = this.routeLogContext;
+    log.info(
+      `[bili-upload] route selected selector=${selector} strategy=${strategy} taskId=${taskId} accountId=${accountId}`,
+    );
+  }
+
+  override async preupload() {
+    const result = await super.preupload();
+    const endpointHost = getSanitizedUploadEndpointHost(result.url);
+    const { selector, taskId, accountId } = this.routeLogContext;
+    log.info(
+      `[bili-upload] preupload resolved selector=${selector} endpointHost=${endpointHost} taskId=${taskId} accountId=${accountId}`,
+    );
+    return result;
+  }
+}
+
+function createRoutedUploader(
+  part: ConstructorParameters<typeof WebVideoUploader>[0],
+  auth: ConstructorParameters<typeof WebVideoUploader>[1],
+  uploadOptions: AppConfigType["biliUpload"],
+  context: { uid: number; taskId: string },
+) {
+  const routeConfig = normalizeBiliUploadRouteConfig(uploadOptions);
+  const accountId = String(context.uid);
+  const route = biliUploadRouteScheduler.select({
+    accountId,
+    taskId: context.taskId,
+    lines: routeConfig.lines,
+    strategy: routeConfig.lineStrategy,
+  });
+  const routeLogContext = {
+    selector: route.selector,
+    strategy: routeConfig.lineStrategy,
+    taskId: context.taskId,
+    accountId,
+  };
+
+  return new RoutedWebVideoUploader(
+    part,
+    auth,
+    formatMediaOptions(uploadOptions, route),
+    routeLogContext,
+  );
 }
 
 /**
@@ -808,7 +871,10 @@ async function addMedia(
   const config = appConfig.getAll();
   const uploadOptions = config.biliUpload;
   for (const part of videos) {
-    const uploader = new WebVideoUploader(part, client.auth, formatMediaOptions(uploadOptions));
+    const uploader = createRoutedUploader(part, client.auth, uploadOptions, {
+      uid,
+      taskId: pTask.taskId,
+    });
 
     const task = new BiliPartVideoTask(
       uploader,
@@ -820,6 +886,7 @@ async function addMedia(
       },
       {},
     );
+    uploader.bindTask(task.taskId);
 
     taskQueue.addTask(task, false);
     pTask.addTask(task);
@@ -911,7 +978,10 @@ export async function editMedia(
   const config = appConfig.getAll();
   const uploadOptions = config.biliUpload;
   for (const part of videos) {
-    const uploader = new WebVideoUploader(part, client.auth, formatMediaOptions(uploadOptions));
+    const uploader = createRoutedUploader(part, client.auth, uploadOptions, {
+      uid,
+      taskId: pTask.taskId,
+    });
 
     const task = new BiliPartVideoTask(
       uploader,
@@ -923,6 +993,7 @@ export async function editMedia(
       },
       {},
     );
+    uploader.bindTask(task.taskId);
 
     taskQueue.addTask(task, false);
     pTask.addTask(task);
@@ -950,7 +1021,10 @@ export function addExtraVideoTask(pTaskId: string, filePath: string, partName: s
     title: partName,
   };
   const client = createClient(pTask.uid);
-  const uploader = new WebVideoUploader(part, client.auth, formatMediaOptions(uploadOptions));
+  const uploader = createRoutedUploader(part, client.auth, uploadOptions, {
+    uid: pTask.uid,
+    taskId: pTask.taskId,
+  });
 
   const task = new BiliPartVideoTask(
     uploader,
@@ -962,6 +1036,7 @@ export function addExtraVideoTask(pTaskId: string, filePath: string, partName: s
     },
     {},
   );
+  uploader.bindTask(task.taskId);
 
   taskQueue.addTask(task, false);
   pTask.addTask(task);
