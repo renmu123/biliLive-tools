@@ -29,6 +29,11 @@ import {
   sendExternalEventRequest,
 } from "../utils/index.js";
 import RecorderConfig from "./config.js";
+import {
+  checkRecordingDuration,
+  getRecordingCompletionAction,
+  type RecordingDurationAnomaly,
+} from "./durationGuard.js";
 import { sendBySystem, send } from "../notify.js";
 import { danmaReport, parseDanmu } from "../danmu/index.js";
 
@@ -506,6 +511,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const channelId = recorder?.channelId;
     const liveId = recorder?.liveInfo?.liveId;
     const config = appConfig.getAll();
+    let durationAnomaly: RecordingDurationAnomaly | null = null;
+    let completionAction = getRecordingCompletionAction(durationAnomaly);
 
     try {
       const xmlFile = replaceExtName(filename, ".xml");
@@ -517,6 +524,28 @@ export async function createRecorderManager(appConfig: AppConfig) {
       } catch (error) {
         logger.error("读取视频元信息失败", { filename, error });
       }
+
+      const history = recordHistory.getRecord({
+        file: filename,
+        live_id: liveId,
+      });
+      if (history) {
+        durationAnomaly = checkRecordingDuration({
+          recordStartTime: history.record_start_time,
+          recordEndTime: endTime.getTime(),
+          mediaDuration: Number(duration),
+        });
+      }
+      if (durationAnomaly) {
+        logger.error("录制时长异常，保留文件并跳过自动处理", {
+          recorderId: recorder.id,
+          roomId: recorder.channelId,
+          platform: recorder.providerId,
+          filename,
+          ...durationAnomaly,
+        });
+      }
+      completionAction = getRecordingCompletionAction(durationAnomaly);
 
       // 提取文件名（不含后缀）
       const videoFilename = path.basename(filename, path.extname(filename));
@@ -567,7 +596,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
         );
       }
 
-      if (data?.convert2Mp4) {
+      if (completionAction.shouldRunPostProcess && data?.convert2Mp4) {
         try {
           await convert2Mp4(filename);
           await fs.unlink(filename);
@@ -579,16 +608,22 @@ export async function createRecorderManager(appConfig: AppConfig) {
     } catch (error) {
       logger.error("Update live error", { recorder, filename, error });
     } finally {
-      await sendRecorderExternalEvent("file_completed", {
+      await sendRecorderExternalEvent(completionAction.externalEvent, {
         filePath: filename,
         roomId: String(recorder.channelId),
         platform: recorder.providerId,
+        ...(durationAnomaly
+          ? {
+              reason: "recording duration mismatch",
+              ...durationAnomaly,
+            }
+          : {}),
       });
 
       if (data?.sendToWebhook) {
         const webhookUrl = `http://127.0.0.1:${config.port}/webhook/custom`;
         const payload = {
-          event: "FileClosed",
+          event: completionAction.webhookEvent,
           filePath: filename,
           roomId: channelId,
           time: endTime.toISOString(),
