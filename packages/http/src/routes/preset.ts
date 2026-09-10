@@ -3,8 +3,6 @@ import { container } from "../index.js";
 import { validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { uuid } from "@biliLive-tools/shared/utils/index.js";
 
-import { omit } from "lodash-es";
-
 const router = new Router({
   prefix: "/preset",
 });
@@ -46,7 +44,6 @@ router.post("/video", async (ctx) => {
   const preset = container.resolve("videoPreset");
   const data: any = ctx.request.body;
 
-  data.config = omit(data.config, ["dtime"]);
   const [status, msg] = validateBiliupConfig(data.config);
   if (!status) {
     throw new Error(msg || "配置验证失败");
@@ -61,7 +58,6 @@ router.put("/video/:id", async (ctx) => {
   const preset = container.resolve("videoPreset");
   const data: any = ctx.request.body;
 
-  data.config = omit(data.config, ["dtime"]);
   const [status, msg] = validateBiliupConfig(data.config);
   if (!status) {
     throw new Error(msg || "配置验证失败");

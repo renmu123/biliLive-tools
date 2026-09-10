@@ -169,9 +169,14 @@ function login() {
   return tv.login();
 }
 
-async function getArchiveDetail(bvid: string, uid?: number) {
+async function getArchiveDetail(id: string, uid?: number) {
   const client = createClient(uid);
-  return client.video.detail({ bvid });
+  // 兼容 BV 号与 AV 号（av123 或纯数字）
+  if (/^BV[0-9A-Za-z]+$/i.test(id)) {
+    return client.video.detail({ bvid: id });
+  }
+  const aid = Number(id.replace(/[^0-9]/g, ""));
+  return client.video.detail({ aid });
 }
 
 async function getPlayUrl(bvid: string, cid: number, uid?: number) {
@@ -328,12 +333,16 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     cover = undefined;
   }
 
+  // 联合投稿时自动设置copyright为3
+  const hasStaffs = !!(options.staffs && options.staffs.length > 0);
+  const finalCopyright = hasStaffs ? 3 : options.copyright;
+
   let creationStatement: { id: -1 | 1 | 2 | 3 | 4 } | undefined = undefined;
-  if (options.copyright === 1 || options.copyright === 3) {
+  if (finalCopyright === 1 || finalCopyright === 3) {
     if (options.creationStatement) {
       creationStatement = { id: options.creationStatement };
     }
-    if (options.copyright === 3 && !options.creationStatement) {
+    if (finalCopyright === 3 && !options.creationStatement) {
       creationStatement = { id: -1 };
     }
   }
@@ -345,7 +354,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     tid: 21,
     human_type2: options.human_type2,
     tag: tags.slice(0, 10).join(","),
-    copyright: options.copyright,
+    copyright: finalCopyright,
     source: options.source,
     dolby: options.dolby,
     lossless_music: options.hires,
@@ -364,8 +373,9 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     space_hidden: options.space_hidden || 2,
     dtime: options.dtime ? options.dtime : undefined,
     act_reserve: options.act_reserve ? options.act_reserve : undefined,
+    staffs: options.staffs && options.staffs.length > 0 ? options.staffs.map((s: any) => ({ title: s.title, mid: Number(s.mid) })) : undefined,
     watermark:
-      options.copyright === 2 || options.watermark === undefined
+      finalCopyright === 2 || options.watermark === undefined
         ? undefined
         : { state: options.watermark },
     creation_statement: creationStatement,
@@ -382,6 +392,52 @@ async function getSeasonList(uid: number) {
     pn: 1,
     ps: 100,
   });
+}
+
+// 搜索联合投稿UP主
+export async function searchStaffUser(uid: number, kw: string) {
+  try {
+    const cookie = getCookie(uid);
+    const cookieStr = Object.entries(cookie).map(([k, v]) => `${k}=${v}`).join("; ");
+    const res = await axios.get("https://member.bilibili.com/x/web/staff/user/search", {
+      params: { kw, t: Date.now() },
+      headers: {
+        Cookie: cookieStr,
+        Referer: "https://member.bilibili.com/platform/upload/video/frame",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+    });
+    return res.data;
+  } catch (e: any) {
+    log.error("搜索联合投稿UP主失败", e?.message);
+    return { data: { users: [] } };
+  }
+}
+
+// 获取联合投稿剩余次数
+export async function getStaffRemaining(uid: number) {
+  try {
+    const cookie = getCookie(uid);
+    const cookieStr = Object.entries(cookie).map(([k, v]) => `${k}=${v}`).join("; ");
+    const res = await axios.get("https://member.bilibili.com/x/vupre/web/archive/pre", {
+      params: { lang: "cn", t: Date.now() },
+      headers: {
+        Cookie: cookieStr,
+        Referer: "https://member.bilibili.com/platform/upload/video/frame",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+    });
+    const body = res.data;
+    const cntRemaining = body?.data?.myinfo?.staff_qualification?.cnt_remaining;
+    const tips = body?.data?.myinfo?.staff_qualification_v2?.tips?.cnt_remaining_tips;
+    return {
+      cnt_remaining: typeof cntRemaining === "number" ? cntRemaining : -1,
+      tips: Array.isArray(tips) ? tips.map((item: any) => item.text).join("") : "",
+    };
+  } catch (e: any) {
+    log.error("获取联合投稿剩余次数失败", e?.message);
+    return { cnt_remaining: -1, tips: "" };
+  }
 }
 
 /**
@@ -1279,6 +1335,8 @@ export const biliApi = {
   editMedia,
   getSeasonList,
   getReserveList,
+  searchStaffUser,
+  getStaffRemaining,
   getArchiveDetail,
   download,
   getSessionId,
