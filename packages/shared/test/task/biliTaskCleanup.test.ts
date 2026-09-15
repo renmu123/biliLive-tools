@@ -1,5 +1,5 @@
 import EventEmitter from "node:events";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { BiliupConfig } from "@biliLive-tools/types";
 import type { WebVideoUploader } from "@renmu/bili-api";
@@ -71,6 +71,30 @@ function createCompletedPartTask() {
     filePath: command.filePath,
   };
   return { task, emitter };
+}
+
+function createUploadingPartTask() {
+  const emitter = new EventEmitter();
+  const command = {
+    emitter,
+    filePath: "C:/videos/part.mp4",
+    title: "part",
+    upload: vi.fn(),
+    pause: vi.fn(),
+    start: vi.fn(),
+    cancel: vi.fn(),
+  };
+  const task = new BiliPartVideoTask(
+    command as unknown as WebVideoUploader,
+    {
+      name: "上传视频：part",
+      pid: "parent-task",
+      limitTime: [],
+      uid: 1,
+    },
+    {},
+  );
+  return { task, command, emitter };
 }
 
 describe("B站投稿任务资源清理", () => {

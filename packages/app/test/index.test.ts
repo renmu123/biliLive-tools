@@ -17,7 +17,7 @@ describe("PowerSaveController", () => {
     controller.setEnabled(false);
 
     expect(blocker.start).toHaveBeenCalledOnce();
-    expect(blocker.start).toHaveBeenCalledWith("prevent-app-suspension");
+    expect(blocker.start).toHaveBeenCalledWith("prevent-display-sleep");
     expect(blocker.stop).toHaveBeenCalledOnce();
     expect(blocker.stop).toHaveBeenCalledWith(7);
   });
