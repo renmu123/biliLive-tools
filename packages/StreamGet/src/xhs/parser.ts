@@ -2,7 +2,7 @@ import { PlatformParser } from "../types.js";
 import type { RequestOptions, LiveInfo, SourceInfo, StreamInfo } from "../types.js";
 import { ParseError } from "../errors.js";
 import { HttpClient } from "../http.js";
-import { getXhsStreamUrl, userSearch, getUserInfo } from "./api.js";
+import { getXhsStreamUrl, userSearch, getUserInfo, getCurrentRoomInfo } from "./api.js";
 
 export default class XhsParser extends PlatformParser<string> {
   readonly platform = "xhs";
@@ -76,29 +76,29 @@ export default class XhsParser extends PlatformParser<string> {
 
   async getRoomInfo(
     roomId: string,
-    opts: {
-      raw?: boolean;
-    } = {},
+    opts?: { cookie?: string; source?: string; raw?: boolean },
   ): Promise<LiveInfo> {
-    const mergedOpts = {
-      raw: false,
-      ...opts,
-    };
-
     try {
-      const streamInfo = await getXhsStreamUrl(this.httpClient, roomId);
+      const response = await getCurrentRoomInfo(this.httpClient, roomId, {
+        cookie: opts?.cookie ?? this.options?.cookie,
+        source: opts?.source ?? this.options?.source,
+      });
+      if (!response.success || !response.data?.room_info) {
+        throw new ParseError(response.msg || "直播间信息为空", this.platform);
+      }
 
+      const { room_info: roomInfo, host_info: hostInfo } = response.data;
       return {
         platform: this.platform,
-        roomId,
-        living: streamInfo.is_live,
-        title: streamInfo.title || "",
-        owner: streamInfo.anchor_name || "",
-        avatar: streamInfo.avatar || "",
-        cover: streamInfo.cover || "",
+        roomId: roomInfo.room_id || roomId,
+        living:
+          roomInfo.status === 2 && !!roomInfo.room_title && !roomInfo.room_title.includes("回放"),
+        title: roomInfo.room_title || "",
+        owner: hostInfo?.nick_name || "",
+        avatar: hostInfo?.avatar || "",
+        cover: roomInfo.room_cover || "",
         area: "",
         liveStartTime: undefined,
-        raw: mergedOpts.raw ? streamInfo : undefined,
       };
     } catch (error) {
       throw new ParseError(`获取直播间信息失败: ${(error as Error).message}`, this.platform);
@@ -107,7 +107,7 @@ export default class XhsParser extends PlatformParser<string> {
 
   async getStreams(
     roomId: string,
-    opts: { raw?: boolean; format?: Array<"flv" | "hls"> } = {},
+    opts: { cookie?: string; source?: string; raw?: boolean; format?: Array<"flv" | "hls"> } = {},
   ): Promise<SourceInfo<string>[]> {
     const mergedOpts = {
       raw: false,
@@ -116,7 +116,10 @@ export default class XhsParser extends PlatformParser<string> {
     };
 
     try {
-      const streamInfo = await getXhsStreamUrl(this.httpClient, roomId);
+      const streamInfo = await getXhsStreamUrl(this.httpClient, roomId, {
+        cookie: opts.cookie ?? this.options?.cookie,
+        source: opts.source ?? this.options?.source,
+      });
 
       if (!streamInfo.is_live) {
         return [];

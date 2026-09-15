@@ -4,10 +4,25 @@
 
 import type { HttpClient } from "../http.js";
 import { ParseError } from "../errors.js";
-import type { InitialState, LiveInfoResponse } from "./types.js";
+import type { CurrentRoomInfoResponse, LiveInfoResponse } from "./types.js";
 
 import { Client } from "xhshow-js";
+import type { RequestPayload } from "xhshow-js";
 import cookie from "cookie";
+
+function signXS(
+  client: Client,
+  cookieStr: string,
+  method: "GET" | "POST",
+  uri: string,
+  payload: RequestPayload,
+) {
+  const a1Value = cookie.parse(cookieStr).a1;
+  if (!a1Value) {
+    throw new ParseError("cookie 中缺少 a1 字段，无法生成 X-s", "xhs");
+  }
+  return client.signXS(method, uri, a1Value, "xhs-pc-web", payload);
+}
 
 function sign(cookieStr: string, redId: string) {
   const parsed = cookie.parse(cookieStr);
@@ -31,7 +46,7 @@ function sign(cookieStr: string, redId: string) {
     },
   };
 
-  const xs = client.signXS(method, uri, a1Value, "xhs-pc-web", payload);
+  const xs = signXS(client, cookieStr, method, uri, payload);
   const xt = client.getXT();
   const b3TraceId = client.getB3TraceId();
   const xrayTraceId = client.getXrayTraceId();
@@ -112,64 +127,61 @@ export async function getUserInfo(http: HttpClient, uid: string) {
   }
 }
 
+/** 获取分享页当前直播间信息，根据 Cookie 中的 a1 生成本次请求的 X-s。 */
+export async function getCurrentRoomInfo(
+  http: HttpClient,
+  roomId: string,
+  opts?: { cookie?: string; source?: string },
+): Promise<CurrentRoomInfoResponse> {
+  const url = new URL(
+    "https://live-room.xiaohongshu.com/api/sns/red/live/h5/v1/room/current_room_info",
+  );
+  const source = opts?.source ?? "share_out_of_app";
+  url.searchParams.set("room_id", roomId);
+  url.searchParams.set("source", source);
+  const xs = signXS(new Client(), opts?.cookie || "a1=1221", "GET", url.pathname, {
+    room_id: roomId,
+    source,
+  });
+
+  return http.get<CurrentRoomInfoResponse>(url.toString(), {
+    headers: {
+      Accept: "application/json, text/plain, */*",
+      "Accept-Language": "zh-CN,zh;q=0.9,zh-TW;q=0.8,zh-HK;q=0.7,en-US;q=0.6,en;q=0.5",
+      "X-s": xs,
+      Cookie: opts?.cookie || "",
+    },
+  });
+}
+
 /**
  * 获取小红书直播流信息
  */
-export async function getXhsStreamUrl(http: HttpClient, roomId: string): Promise<LiveInfoResponse> {
-  const headers = {
-    "User-Agent": "ios/7.830 (ios 17.0; ; iPhone 15 (A2846/A3089/A3090/A3092))",
-    "xy-common-params": "platform=iOS&sid=session.1722166379345546829388",
-    referer: "https://app.xhs.cn/",
-  };
-
-  // 获取页面 HTML
-  const html = await http.getText(`https://www.xiaohongshu.com/livestream/${roomId}`, { headers });
-
-  // 提取初始状态数据
-  const matchData = html.match(/<script>window\.__INITIAL_STATE__=(.*?)<\/script>/);
-  if (!matchData) {
-    throw new ParseError("无法找到初始状态数据", "xhs");
+export async function getXhsStreamUrl(
+  http: HttpClient,
+  roomId: string,
+  opts?: { cookie?: string; source?: string },
+): Promise<LiveInfoResponse> {
+  const response = await getCurrentRoomInfo(http, roomId, opts);
+  if (!response.success || !response.data?.room_info) {
+    throw new ParseError(response.msg || "直播间信息为空", "xhs");
   }
 
-  try {
-    const jsonStr = matchData[1].replace(/undefined/g, "null");
-    const jsonData: InitialState = JSON.parse(jsonStr);
-
-    if (jsonData.liveStream) {
-      const streamData = jsonData.liveStream;
-
-      if (streamData.liveStatus === "success" && streamData.roomData) {
-        const roomInfo = streamData.roomData.roomInfo;
-        const title = roomInfo.roomTitle;
-
-        // 排除回放
-        if (title && !title.includes("回放")) {
-          const anchorName = streamData.roomData.hostInfo.nickName;
-          const avatar = streamData.roomData.hostInfo.avatar;
-          const title = roomInfo.roomTitle;
-          const roomId = roomInfo.roomId;
-          const roomCover = roomInfo.roomCover;
-
-          const finalFlvUrl = `http://live-source-play.xhscdn.com/live/${roomId}.flv`;
-          const m3u8Url = `http://live-source-play.xhscdn.com/live/${roomId}.m3u8`;
-
-          return {
-            anchor_name: anchorName || "",
-            avatar,
-            is_live: true,
-            title,
-            flv_url: finalFlvUrl,
-            m3u8_url: m3u8Url,
-            cover: roomCover,
-          };
-        }
-      }
-    }
-  } catch (error) {
-    throw new ParseError(`解析直播信息失败: ${(error as Error).message}`, "xhs");
+  const { room_info: roomInfo, host_info: hostInfo } = response.data;
+  const title = roomInfo.room_title || "";
+  // 排除回放
+  if (roomInfo.status !== 2 || !title || title.includes("回放")) {
+    return { is_live: false };
   }
 
+  const liveRoomId = roomInfo.room_id || roomId;
   return {
-    is_live: false,
+    anchor_name: hostInfo?.nick_name || "",
+    avatar: hostInfo?.avatar,
+    is_live: true,
+    title,
+    flv_url: `http://live-source-play.xhscdn.com/live/${liveRoomId}.flv`,
+    m3u8_url: `http://live-source-play.xhscdn.com/live/${liveRoomId}.m3u8`,
+    cover: roomInfo.room_cover,
   };
 }

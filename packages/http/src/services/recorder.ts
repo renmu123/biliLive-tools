@@ -449,12 +449,15 @@ export async function getLiveInfo(ids: string[]) {
   const requests = recorders
     .filter((recorder) => ids.includes(recorder.id))
     .map(async (recorder) => {
+      console.log("getLiveInfo", recorder.id, recorder.channelId, recorder.providerId, recorder);
       const liveInfo = await recorder.getLiveInfo();
       return {
         ...liveInfo,
         channelId: recorder.channelId,
       };
     });
+  console.log(requests);
+
   const list: {
     owner: string;
     title: string;
@@ -463,7 +466,10 @@ export async function getLiveInfo(ids: string[]) {
     channelId: string;
     living: boolean;
   }[] = (await Promise.allSettled(requests))
-    .filter((item) => item.status === "fulfilled")
+    .filter((item) => {
+      console.log("getLiveInfo result", item);
+      return item.status === "fulfilled";
+    })
     .map((item) => item.value);
   return list;
 }
