@@ -47,6 +47,15 @@
             >
             </n-input>
           </n-form-item>
+          <n-form-item v-if="config.providerId === 'XHS'">
+            <template #label>
+              <Tip
+                text="小红书号"
+                tip="如果需要使用cookie，那么这个选项必须填写，否则无法使用cookie"
+              ></Tip>
+            </template>
+            <n-input v-model:value.trim="xhsRedId" placeholder="请输入小红书号（可选）" />
+          </n-form-item>
           <n-form-item :disabled="isEdit">
             <template #label>
               <span class="inline-flex"> 备注 </span>
@@ -880,6 +889,13 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
 
 const recordConfig = cloneDeep(defaultRecordConfig);
 const config = ref(recordConfig);
+const xhsRedId = computed({
+  get: () => String(config.value.uid ?? "").split("-")[1] ?? "",
+  set: (value: string) => {
+    const roomId = String(config.value.uid ?? "").split("-")[0];
+    config.value.uid = `${roomId}-${value}`;
+  },
+});
 
 const confirmDialog = useConfirm();
 const confirm = async () => {

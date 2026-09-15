@@ -340,7 +340,7 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
       title: info.title,
       owner: info.owner,
       avatar: info.avatar,
-      uid: `${roomId}-11`,
+      uid: `${roomId}-`,
     };
   },
 
