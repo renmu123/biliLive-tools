@@ -149,7 +149,7 @@ export class TikTokParser extends PlatformParser<string> {
     return {
       platform: this.platform,
       roomId,
-      living: Number(user?.status ?? 4) === 2,
+      living: Number(user?.status ?? 4) === 2 && Boolean(room?.streamData),
       title: room?.title ?? "",
       owner: user?.nickname ?? user?.uniqueId ?? "",
       avatar: user?.avatarMedium ?? "",
