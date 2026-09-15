@@ -165,9 +165,13 @@ class DanmaClient extends EventEmitter {
         this.emit("Message", gift);
       },
       onGift: (msg) => {
+        let timestamp = this.useServerTimestamp ? msg?.raw?.data?.timestamp * 1000 : Date.now();
+        if (msg.type === "SEND_GIFT_V2") {
+          timestamp = this.useServerTimestamp ? msg.timestamp : Date.now();
+        }
         const gift: GiveGift = {
           type: "give_gift",
-          timestamp: this.useServerTimestamp ? msg?.raw?.data?.timestamp * 1000 : Date.now(),
+          timestamp: timestamp,
           name: msg.body.gift_name,
           count: msg.body.amount,
           price: msg.body.coin_type === "silver" ? 0 : msg.body.price / 1000,
