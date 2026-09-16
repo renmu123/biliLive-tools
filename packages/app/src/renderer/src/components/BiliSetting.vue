@@ -525,9 +525,15 @@ const options: Ref<BiliupPreset> = ref({
   },
 });
 const handlePresetChange = async (id: string) => {
+  // 备份当前的联合投稿合作者（加载预设后保留，不被清空）
+  const currentStaffs = options.value?.config?.staffs;
   const preset = await videoPresetApi.get(id);
   if (preset) {
     options.value = preset;
+    // 恢复联合投稿合作者（仅本次投稿有效，不因加载预设而清空）
+    if (currentStaffs && options.value?.config) {
+      options.value.config.staffs = currentStaffs;
+    }
   } else {
     // @ts-ignore
     options.value = {
@@ -847,11 +853,34 @@ const savePreset = async () => {
     return false;
   }
 
+  // 备份联合投稿合作者（不保存到配置文件，但保存后保留在当前页面）
+  const staffsBackup = options.value?.config?.staffs;
+
+  // 从要保存的数据里删除联合投稿合作者（和定时发布一样，不保存到配置文件）
+  if (options.value?.config) {
+    delete options.value.config.staffs;
+  }
+
   const data = options.value;
   if (userInfoStore.userInfo?.uid) {
     data.config.uid = userInfoStore.userInfo.uid;
   }
   await saveUploadPreset(options.value);
+
+  // 保存后恢复当前页面上的联合投稿合作者
+  if (staffsBackup && options.value?.config) {
+    options.value.config.staffs = staffsBackup;
+  }
+
+  // 如果有联合投稿合作者，显示警告（和定时发布一样的提示方式）
+  if (staffsBackup && staffsBackup.length > 0) {
+    notice.warning({
+      title: "保存成功，但联合投稿合作者不会保存到配置文件中",
+      duration: 1000,
+    });
+    return true;
+  }
+
   if (options.value.config.dtime) {
     notice.warning({
       title: "保存成功，但定时发布不会保存到配置文件中",
