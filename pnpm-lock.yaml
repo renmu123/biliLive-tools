@@ -575,8 +575,8 @@ importers:
         specifier: ^14.0.0
         version: 14.0.0
       '@renmu/bili-api':
-        specifier: 2.15.1
-        version: 2.15.1
+        specifier: 2.15.2
+        version: 2.15.2
       awilix:
         specifier: ^11.0.4
         version: 11.0.4
@@ -703,8 +703,8 @@ importers:
         specifier: ^1.0.9
         version: 1.0.9
       '@renmu/bili-api':
-        specifier: 2.15.1
-        version: 2.15.1
+        specifier: 2.15.2
+        version: 2.15.2
       '@renmu/fluent-ffmpeg':
         specifier: 2.3.3
         version: 2.3.3
@@ -816,8 +816,8 @@ importers:
         version: 2.1.2
     devDependencies:
       '@renmu/bili-api':
-        specifier: 2.15.1
-        version: 2.15.1
+        specifier: 2.15.2
+        version: 2.15.2
 
 packages:
 
@@ -1830,8 +1830,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@2.15.1':
-    resolution: {integrity: sha512-/zQhuAVYYUlFihB4XTvvnAyyGM5fto6+wu104dOU6CvoUX6SFyithwp7zRStxoadnRepkyyPGKIXdTY7CP/WMQ==}
+  '@renmu/bili-api@2.15.2':
+    resolution: {integrity: sha512-oY3gnIZWVQ6t73+P+B5537QXIeEQykk1V/vxecV90qaUNLoOCEc6+AjWLyS5iEpT+nSYzmR/0mCPwXWqY43zQw==}
     engines: {node: '>=18'}
 
   '@renmu/fluent-ffmpeg@2.3.3':
@@ -7506,7 +7506,7 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@2.15.1':
+  '@renmu/bili-api@2.15.2':
     dependencies:
       '@bufbuild/protobuf': 2.13.0
       '@renmu/throttle': 1.0.3

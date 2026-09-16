@@ -126,11 +126,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       liveStartTimeFromSearch = info.liveStartTime;
     }
 
-    console.log("roomid", roomId);
     if (!roomId) return null;
 
     const liveInfo = await getInfo(roomId);
-    console.log("liveInfo", liveInfo);
     // @ts-ignore
     this.liveInfo = liveInfo!;
     if (liveStartTimeFromSearch) {

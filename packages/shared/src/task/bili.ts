@@ -447,6 +447,7 @@ function formatMediaOptions(options: AppConfigType["biliUpload"]) {
     zone: zone,
     limitRate: Math.floor((options.limitRate || 0) / (options.concurrency || 1)),
     bcutPreUpload: true,
+    lineBlacklist: ["cs-bldsa"],
   };
 }
 

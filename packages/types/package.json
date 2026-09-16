@@ -23,7 +23,7 @@
     "arktype": "^2.1.2"
   },
   "devDependencies": {
-    "@renmu/bili-api": "2.15.1"
+    "@renmu/bili-api": "2.15.2"
   },
   "scripts": {
     "build": "tsc",

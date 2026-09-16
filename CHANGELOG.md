@@ -10,6 +10,7 @@
 - 录制：B站录制兼容 `SEND_GIFT_V2` 礼物类型
 - 录制：优化tiktok的会员直播判断为不在线
 - 录制：优化B站上传 [#555](https://github.com/renmu123/biliLive-tools/pull/555)
+- B站上传：自动线路默认屏蔽掉 `cs-bldsa`
 
 ## Bug修复
 
