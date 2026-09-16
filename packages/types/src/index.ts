@@ -1119,7 +1119,7 @@ export interface BiliupConfig {
   /** 定时发布：10位秒级时间戳。必须距离提交时间>7200秒 */
   dtime?: number;
   /** 关联预约 */
-act_reserve?: { sid: number };
+  act_reserve?: { sid: number };
   /** 联合投稿 */
   staffs?: Array<{ title: string; mid: number; name?: string }>;
   // 表示按照cid顺序上传，编辑接口会根据这个参数对pathArray进行排序后上传，如果没有这个参数，则按照pathArray的顺序上传

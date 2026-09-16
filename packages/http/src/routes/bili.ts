@@ -9,6 +9,7 @@ import {
   formatDesc,
   uuid,
 } from "@biliLive-tools/shared/utils/index.js";
+import { appConfig } from "../index.js";
 import type { BiliupConfig, PartTitleFormatOptions } from "@biliLive-tools/types";
 
 const router = new Router({
@@ -125,6 +126,11 @@ router.post("/upload", async (ctx) => {
     ctx.body = "config required when upload video";
     ctx.status = 400;
     return;
+  }
+  if (data.config.staffs && data.config.staffs.length > 0) {
+    if (appConfig?.get("biliUpload")?.useBCutAPI) {
+      throw new Error("联合投稿暂不支持必剪接口");
+    }
   }
 
   if (data.vid) {

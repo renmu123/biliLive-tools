@@ -368,7 +368,10 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     space_hidden: options.space_hidden || 2,
     dtime: options.dtime ? options.dtime : undefined,
     act_reserve: options.act_reserve ? options.act_reserve : undefined,
-    staffs: options.staffs && options.staffs.length > 0 ? options.staffs.map((s: any) => ({ title: s.title, mid: Number(s.mid) })) : undefined,
+    staffs:
+      options.staffs && options.staffs.length > 0
+        ? options.staffs.map((s: any) => ({ title: s.title, mid: Number(s.mid) }))
+        : undefined,
     watermark:
       finalCopyright === 2 || options.watermark === undefined
         ? undefined
@@ -1263,29 +1266,34 @@ export async function getBuvidConf(): Promise<{
  */
 async function getReserveList(uid: number) {
   const cookie = getCookie(uid);
-  const cookieStr = Object.entries(cookie).map(([k, v]) => `${k}=${v}`).join("; ");
+  const cookieStr = Object.entries(cookie)
+    .map(([k, v]) => `${k}=${v}`)
+    .join("; ");
   const res = await axios.get("https://member.bilibili.com/x/vupre/web/archive/pre", {
     headers: {
       Cookie: cookieStr,
       Referer: "https://member.bilibili.com/platform/upload/video/frame",
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     },
   });
   return res.data;
 }
 
-
 // 搜索联合投稿UP主
 export async function searchStaffUser(uid: number, kw: string) {
   try {
     const cookie = getCookie(uid);
-    const cookieStr = Object.entries(cookie).map(([k, v]) => `${k}=${v}`).join("; ");
+    const cookieStr = Object.entries(cookie)
+      .map(([k, v]) => `${k}=${v}`)
+      .join("; ");
     const res = await axios.get("https://member.bilibili.com/x/web/staff/user/search", {
       params: { kw, t: Date.now() },
       headers: {
         Cookie: cookieStr,
         Referer: "https://member.bilibili.com/platform/upload/video/frame",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       },
     });
     return res.data;
@@ -1299,13 +1307,16 @@ export async function searchStaffUser(uid: number, kw: string) {
 export async function getStaffRemaining(uid: number) {
   try {
     const cookie = getCookie(uid);
-    const cookieStr = Object.entries(cookie).map(([k, v]) => `${k}=${v}`).join("; ");
+    const cookieStr = Object.entries(cookie)
+      .map(([k, v]) => `${k}=${v}`)
+      .join("; ");
     const res = await axios.get("https://member.bilibili.com/x/vupre/web/archive/pre", {
       params: { lang: "cn", t: Date.now() },
       headers: {
         Cookie: cookieStr,
         Referer: "https://member.bilibili.com/platform/upload/video/frame",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       },
     });
     const body = res.data;
@@ -1323,19 +1334,26 @@ export async function getStaffRemaining(uid: number) {
       // 备用：staff_activity_conf.titles 或 staff_conf.titles 是对象数组，提取 name
       const activityTitles = body?.data?.staff_activity_conf?.titles;
       const confTitles = body?.data?.staff_conf?.titles;
-      const titlesArr = Array.isArray(activityTitles) ? activityTitles : (Array.isArray(confTitles) ? confTitles : []);
+      const titlesArr = Array.isArray(activityTitles)
+        ? activityTitles
+        : Array.isArray(confTitles)
+          ? confTitles
+          : [];
       if (titlesArr.length > 0 && typeof titlesArr[0] === "object") {
         staffTitles = titlesArr.map((item: any) => item.name || item.translate_name || item);
       }
     }
+    const staffEnabled = body?.data?.myinfo?.staff_qualification_v2?.staff_auth;
+
     return {
       cnt_remaining: cntRemaining ?? -1,
       tips: typeof tips === "string" ? tips : "",
       staff_titles: staffTitles,
+      enabled: Boolean(staffEnabled),
     };
   } catch (e: any) {
     log.error("获取联合投稿剩余次数失败", e?.message);
-    return { cnt_remaining: -1, tips: "", staff_titles: [] };
+    return { cnt_remaining: -1, tips: "", staff_titles: [], enabled: false };
   }
 }
 
