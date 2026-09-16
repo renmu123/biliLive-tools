@@ -1,5 +1,9 @@
 # Next
 
+## 功能
+
+- B站上传：添加联合投稿功能 [#557](https://github.com/renmu123/biliLive-tools/pull/557)
+
 ## 优化
 
 - 优化“高能弹幕条”渲染时间及内存优化
