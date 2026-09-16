@@ -46,7 +46,7 @@ router.post("/video", async (ctx) => {
   const preset = container.resolve("videoPreset");
   const data: any = ctx.request.body;
 
-  data.config = omit(data.config, ["dtime"]);
+  data.config = omit(data.config, ["dtime", "staffs"]);
   const [status, msg] = validateBiliupConfig(data.config);
   if (!status) {
     throw new Error(msg || "配置验证失败");
@@ -61,7 +61,7 @@ router.put("/video/:id", async (ctx) => {
   const preset = container.resolve("videoPreset");
   const data: any = ctx.request.body;
 
-  data.config = omit(data.config, ["dtime"]);
+  data.config = omit(data.config, ["dtime", "staffs"]);
   const [status, msg] = validateBiliupConfig(data.config);
   if (!status) {
     throw new Error(msg || "配置验证失败");

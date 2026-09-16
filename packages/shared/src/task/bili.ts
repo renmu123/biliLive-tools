@@ -328,12 +328,16 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     cover = undefined;
   }
 
+  // 联合投稿时自动设置copyright为3
+  const hasStaffs = !!(options.staffs && options.staffs.length > 0);
+  const finalCopyright = hasStaffs ? 3 : options.copyright;
+
   let creationStatement: { id: -1 | 1 | 2 | 3 | 4 } | undefined = undefined;
-  if (options.copyright === 1 || options.copyright === 3) {
+  if (finalCopyright === 1 || finalCopyright === 3) {
     if (options.creationStatement) {
       creationStatement = { id: options.creationStatement };
     }
-    if (options.copyright === 3 && !options.creationStatement) {
+    if (finalCopyright === 3 && !options.creationStatement) {
       creationStatement = { id: -1 };
     }
   }
@@ -345,7 +349,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     tid: 21,
     human_type2: options.human_type2,
     tag: tags.slice(0, 10).join(","),
-    copyright: options.copyright,
+    copyright: finalCopyright,
     source: options.source,
     dolby: options.dolby,
     lossless_music: options.hires,
@@ -364,8 +368,12 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     space_hidden: options.space_hidden || 2,
     dtime: options.dtime ? options.dtime : undefined,
     act_reserve: options.act_reserve ? options.act_reserve : undefined,
+    staffs:
+      options.staffs && options.staffs.length > 0
+        ? options.staffs.map((s: any) => ({ title: s.title, mid: Number(s.mid) }))
+        : undefined,
     watermark:
-      options.copyright === 2 || options.watermark === undefined
+      finalCopyright === 2 || options.watermark === undefined
         ? undefined
         : { state: options.watermark },
     creation_statement: creationStatement,
@@ -1258,16 +1266,97 @@ export async function getBuvidConf(): Promise<{
  */
 async function getReserveList(uid: number) {
   const cookie = getCookie(uid);
-  const cookieStr = Object.entries(cookie).map(([k, v]) => `${k}=${v}`).join("; ");
+  const cookieStr = Object.entries(cookie)
+    .map(([k, v]) => `${k}=${v}`)
+    .join("; ");
   const res = await axios.get("https://member.bilibili.com/x/vupre/web/archive/pre", {
     headers: {
       Cookie: cookieStr,
       Referer: "https://member.bilibili.com/platform/upload/video/frame",
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     },
   });
   return res.data;
 }
+
+// 搜索联合投稿UP主
+export async function searchStaffUser(uid: number, kw: string) {
+  try {
+    const cookie = getCookie(uid);
+    const cookieStr = Object.entries(cookie)
+      .map(([k, v]) => `${k}=${v}`)
+      .join("; ");
+    const res = await axios.get("https://member.bilibili.com/x/web/staff/user/search", {
+      params: { kw, t: Date.now() },
+      headers: {
+        Cookie: cookieStr,
+        Referer: "https://member.bilibili.com/platform/upload/video/frame",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+    });
+    return res.data;
+  } catch (e: any) {
+    log.error("搜索联合投稿UP主失败", e?.message);
+    return { data: { users: [] } };
+  }
+}
+
+// 获取联合投稿剩余次数
+export async function getStaffRemaining(uid: number) {
+  try {
+    const cookie = getCookie(uid);
+    const cookieStr = Object.entries(cookie)
+      .map(([k, v]) => `${k}=${v}`)
+      .join("; ");
+    const res = await axios.get("https://member.bilibili.com/x/vupre/web/archive/pre", {
+      params: { lang: "cn", t: Date.now() },
+      headers: {
+        Cookie: cookieStr,
+        Referer: "https://member.bilibili.com/platform/upload/video/frame",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+    });
+    const body = res.data;
+    const cntRemaining = body?.data?.myinfo?.staff_qualification?.cnt_remaining;
+    const tips = body?.data?.myinfo?.staff_qualification_v2?.tips?.cnt_remaining_tips;
+    // 从接口返回数据中提取职位选项
+    // 正确字段名: data.common_staff_conf.titles (字符串数组)
+    // 备用字段名: data.staff_activity_conf.titles / data.staff_conf.titles (对象数组)
+    let staffTitles: any[] = [];
+    const commonTitles = body?.data?.common_staff_conf?.titles;
+    if (Array.isArray(commonTitles) && commonTitles.length > 0) {
+      // common_staff_conf.titles 是字符串数组，直接用
+      staffTitles = commonTitles;
+    } else {
+      // 备用：staff_activity_conf.titles 或 staff_conf.titles 是对象数组，提取 name
+      const activityTitles = body?.data?.staff_activity_conf?.titles;
+      const confTitles = body?.data?.staff_conf?.titles;
+      const titlesArr = Array.isArray(activityTitles)
+        ? activityTitles
+        : Array.isArray(confTitles)
+          ? confTitles
+          : [];
+      if (titlesArr.length > 0 && typeof titlesArr[0] === "object") {
+        staffTitles = titlesArr.map((item: any) => item.name || item.translate_name || item);
+      }
+    }
+    const staffEnabled = body?.data?.myinfo?.staff_qualification_v2?.staff_auth;
+
+    return {
+      cnt_remaining: cntRemaining ?? -1,
+      tips: typeof tips === "string" ? tips : "",
+      staff_titles: staffTitles,
+      enabled: Boolean(staffEnabled),
+    };
+  } catch (e: any) {
+    log.error("获取联合投稿剩余次数失败", e?.message);
+    return { cnt_remaining: -1, tips: "", staff_titles: [], enabled: false };
+  }
+}
+
 export const biliApi = {
   getArchives,
   checkTag,
@@ -1279,6 +1368,8 @@ export const biliApi = {
   editMedia,
   getSeasonList,
   getReserveList,
+  searchStaffUser,
+  getStaffRemaining,
   getArchiveDetail,
   download,
   getSessionId,
