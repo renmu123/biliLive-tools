@@ -53,6 +53,7 @@
               'Home',
               'Dashboard',
               'Upload',
+              'EditArchive',
               'DanmakuFactory',
               'Convert2Mp4',
               'VideoMerge',
@@ -293,6 +294,19 @@ const menuOptions = computed<MenuOption[]>(() => {
           { default: () => "B站上传" },
         ),
     },
+    // {
+    //   key: "EditArchive",
+    //   label: () =>
+    //     h(
+    //       RouterLink,
+    //       {
+    //         to: {
+    //           name: "EditArchive",
+    //         },
+    //       },
+    //       { default: () => "编辑稿件" },
+    //     ),
+    // },
     {
       key: "DanmakuFactory",
       label: () =>

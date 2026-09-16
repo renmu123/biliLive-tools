@@ -53,6 +53,10 @@ import CoverDesigner from "./CoverDesigner.vue";
 const filename = defineModel<string | undefined>({ required: true, default: "" });
 const src = computed(() => {
   if (filename.value) {
+    // 支持远程 URL（http/https）
+    if (filename.value.startsWith("http://") || filename.value.startsWith("https://")) {
+      return filename.value;
+    }
     if (window.path.isAbsolute(filename.value)) {
       return filename.value;
     } else {
