@@ -41,3 +41,24 @@ export interface LiveInfoResponse {
   avatar?: string;
   cover?: string;
 }
+
+export interface CurrentRoomInfoResponse {
+  success: boolean;
+  code: number;
+  msg?: string;
+  data?: {
+    room_info?: {
+      room_id?: string;
+      room_title?: string;
+      room_cover?: string;
+      status?: number;
+      [key: string]: unknown;
+    };
+    host_info?: {
+      nick_name?: string;
+      avatar?: string;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+}
