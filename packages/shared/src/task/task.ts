@@ -305,6 +305,7 @@ type WithoutPromise<T> = T extends Promise<infer U> ? U : T;
  * B站视频上传任务
  */
 export class BiliPartVideoTask extends AbstractTask {
+  private static readonly stalledProgressTimeout = 30 * 60 * 1000;
   command?: WebVideoUploader;
   type = TaskType.biliUpload;
   callback: {
@@ -316,6 +317,7 @@ export class BiliPartVideoTask extends AbstractTask {
   useUploadPartPersistence: boolean;
   completedPart: { cid: number; filename: string; title: string; filePath: string } | null = null;
   private speedCalculator: SpeedCalculator;
+  private stalledProgressTimer?: NodeJS.Timeout;
   uid: number;
   constructor(
     command: WebVideoUploader,
@@ -352,6 +354,7 @@ export class BiliPartVideoTask extends AbstractTask {
     command.emitter.on(
       "completed",
       async (data: { cid: number; filename: string; title: string }) => {
+        this.clearStalledProgressTimer();
         log.info(`task ${this.taskId} end`, data);
         this.status = "completed";
         this.progress = 100;
@@ -385,6 +388,7 @@ export class BiliPartVideoTask extends AbstractTask {
       },
     );
     command.emitter.on("error", (err) => {
+      this.clearStalledProgressTimer();
       log.error(`task ${this.taskId} error: ${err}`);
       this.status = "error";
       this.error = String(err);
@@ -399,7 +403,11 @@ export class BiliPartVideoTask extends AbstractTask {
 
     command.emitter.on("progress", (event) => {
       let progress = event.progress * 100;
+      const progressChanged = progress !== this.progress;
       this.progress = progress;
+      if (this.status === "running" && progressChanged) {
+        this.scheduleStalledProgressTimer();
+      }
 
       // 计算上传速度
       if (event.data && event.data.loaded !== undefined) {
@@ -455,6 +463,7 @@ export class BiliPartVideoTask extends AbstractTask {
     this.status = "running";
     this.startTime = Date.now();
     this.emitter.emit("task-start", { taskId: this.taskId });
+    this.scheduleStalledProgressTimer();
     command.upload();
 
     try {
@@ -467,6 +476,7 @@ export class BiliPartVideoTask extends AbstractTask {
   pause() {
     if (this.status !== "running") return;
 
+    this.clearStalledProgressTimer();
     this.command?.pause();
     log.warn(`task ${this.taskId} paused`);
     this.status = "paused";
@@ -478,6 +488,7 @@ export class BiliPartVideoTask extends AbstractTask {
     this.command?.start();
     log.warn(`task ${this.taskId} resumed`);
     this.status = "running";
+    this.scheduleStalledProgressTimer();
     this.emitter.emit("task-resume", { taskId: this.taskId });
     return true;
   }
@@ -485,6 +496,7 @@ export class BiliPartVideoTask extends AbstractTask {
     if (this.status === "completed" || this.status === "error" || this.status === "canceled")
       return;
     log.warn(`task ${this.taskId} killed`);
+    this.clearStalledProgressTimer();
     this.status = "canceled";
     this.command?.cancel();
     // 重置进度追踪
@@ -499,9 +511,36 @@ export class BiliPartVideoTask extends AbstractTask {
    * 释放上传器持有的请求、文件流和取消信号，同时保留任务历史信息。
    */
   releaseCommand() {
+    this.clearStalledProgressTimer();
     if (!this.command) return;
     this.command.emitter.removeAllListeners();
     this.command = undefined;
+  }
+
+  private clearStalledProgressTimer() {
+    if (this.stalledProgressTimer) {
+      clearTimeout(this.stalledProgressTimer);
+      this.stalledProgressTimer = undefined;
+    }
+  }
+
+  private scheduleStalledProgressTimer() {
+    this.clearStalledProgressTimer();
+    if (this.status !== "running" || !this.command) return;
+
+    const progress = this.progress;
+    this.stalledProgressTimer = setTimeout(() => {
+      this.stalledProgressTimer = undefined;
+      if (this.status !== "running" || !this.command || this.progress !== progress) return;
+
+      log.warn(`task ${this.taskId} progress stalled for 30 minutes, restarting upload`);
+      if (this.pause()) {
+        setTimeout(() => {
+          this.resume();
+        }, 5000);
+      }
+    }, BiliPartVideoTask.stalledProgressTimeout);
+    this.stalledProgressTimer.unref();
   }
 }
 
