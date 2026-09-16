@@ -11,12 +11,7 @@
         @keyup.enter="loadArchive"
       />
       <n-button type="primary" :loading="loading" @click="loadArchive">加载稿件</n-button>
-      <n-button
-        type="primary"
-        :disabled="!canSubmit"
-        :loading="submitLoading"
-        @click="submitEdit"
-      >
+      <n-button type="primary" :disabled="!canSubmit" :loading="submitLoading" @click="submitEdit">
         提交编辑
       </n-button>
     </div>
@@ -56,11 +51,7 @@
 
     <!-- 投稿配置 -->
     <n-card v-if="archiveView" title="投稿配置（已自动填充，可修改）">
-      <BiliSetting
-        ref="biliSettingRef"
-        mode="edit-only"
-        :show-action-buttons="false"
-      ></BiliSetting>
+      <BiliSetting ref="biliSettingRef" mode="edit-only" :show-action-buttons="false"></BiliSetting>
     </n-card>
   </div>
 </template>
@@ -238,7 +229,7 @@ const loadArchive = async () => {
 const loadArchiveConfig = async (aidNum: number) => {
   try {
     const res: any = await biliApi.getPlatformArchiveDetail(aidNum, userInfo.value.uid!);
-    const archive = res?.data?.archive;
+    const archive = res?.archive;
     if (!archive) {
       notice.warning({ title: "未能获取创作中心稿件配置，请手动填写表单", duration: 2000 });
       return;
@@ -247,7 +238,9 @@ const loadArchiveConfig = async (aidNum: number) => {
       title: archive.title,
       desc: archive.desc,
       tag:
-        typeof archive.tag === "string" ? archive.tag.split(",").filter(Boolean) : archive.tag || [],
+        typeof archive.tag === "string"
+          ? archive.tag.split(",").filter(Boolean)
+          : archive.tag || [],
       tid: archive.tid,
       copyright: archive.copyright,
       cover: archive.cover ? String(archive.cover).replace(/^http:\/\//, "https://") : "",

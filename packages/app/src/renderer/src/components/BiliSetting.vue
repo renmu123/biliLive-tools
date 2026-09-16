@@ -177,7 +177,7 @@
         <template #label>
           <Tip
             text="定时发布"
-            tip="可选择距离当前最早≥2小时/最晚≤15天的时间，花火稿件或距发布不足5分钟时不可修改/取消，会保存到配置中"
+            tip="可选择距离当前最早≥2小时/最晚≤15天的时间，花火稿件或距发布不足5分钟时不可修改/取消，不会保存到配置中"
           ></Tip>
         </template>
         <n-date-picker
@@ -192,9 +192,9 @@
           "
         ></n-date-picker>
       </n-form-item>
-      
+
       <n-form-item label="关联预约">
-        <div v-if="reserveOptions.length" style="display: flex; flex-direction: column; gap: 8px;">
+        <div v-if="reserveOptions.length" style="display: flex; flex-direction: column; gap: 8px">
           <n-checkbox
             v-for="item in reserveOptions"
             :key="item.value"
@@ -204,30 +204,75 @@
             {{ item.label }}
           </n-checkbox>
         </div>
-        <div v-else style="color: #999; font-size: 12px;">
-          暂无可用预约，<span @click="loadReserveList" style="cursor: pointer; color: #2080f0;">点击刷新</span>
+        <div v-else style="color: #999; font-size: 12px">
+          暂无可用预约，<span @click="loadReserveList" style="cursor: pointer; color: #2080f0"
+            >点击刷新</span
+          >
         </div>
       </n-form-item>
 
       <n-form-item label="联合投稿">
-        <div style="display: flex; flex-direction: column; gap: 0;">
-          <div style="font-size: 12px; color: #999; margin-bottom: 8px; line-height: 1.8;">
-            <div>{{ staffRemaining >= 0 ? (staffRemainingTips || ('本月剩余联合投稿发起次数：' + staffRemaining + '次/6次')) : '剩余次数获取中...' }}</div>
+        <div style="display: flex; flex-direction: column; gap: 0">
+          <div style="font-size: 12px; color: #999; margin-bottom: 8px; line-height: 1.8">
+            <div>
+              {{
+                staffRemaining >= 0
+                  ? staffRemainingTips || "本月剩余联合投稿发起次数：" + staffRemaining + "次/6次"
+                  : "剩余次数获取中..."
+              }}
+            </div>
             <div>最多10名合作者</div>
           </div>
-          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-            <n-input v-model:value="staffSearchKeyword" placeholder="输入昵称或者UID搜索" style="flex: 1;" @keyup.enter="searchStaff" />
-            <n-button type="primary" :loading="staffSearchLoading" @click="searchStaff">搜索</n-button>
+          <div style="display: flex; gap: 8px; margin-bottom: 8px">
+            <n-input
+              v-model:value="staffSearchKeyword"
+              placeholder="输入昵称或者UID搜索"
+              style="flex: 1"
+              @keyup.enter="searchStaff"
+            />
+            <n-button type="primary" :loading="staffSearchLoading" @click="searchStaff"
+              >搜索</n-button
+            >
           </div>
-          <div v-for="user in staffSearchResults" :key="user.mid" style="display: flex; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f0f0f0;">
-            <img :src="user.face" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 12px;" />
-            <span style="flex: 1; font-size: 14px;">{{ user.name }}</span>
-            <n-button type="primary" @click="addStaff(user)" style="margin-right: 8px;">添加</n-button>
+          <div
+            v-for="user in staffSearchResults"
+            :key="user.mid"
+            style="
+              display: flex;
+              align-items: center;
+              padding: 8px 12px;
+              border-bottom: 1px solid #f0f0f0;
+            "
+          >
+            <img
+              :src="user.face"
+              style="width: 32px; height: 32px; border-radius: 50%; margin-right: 12px"
+            />
+            <span style="flex: 1; font-size: 14px">{{ user.name }}</span>
+            <n-button type="primary" @click="addStaff(user)" style="margin-right: 8px"
+              >添加</n-button
+            >
             <n-button type="error" @click="removeSearchResult(user.mid)">删除</n-button>
           </div>
-          <div v-for="(staff, index) in options.config.staffs" :key="staff.mid" style="display: flex; align-items: center; padding: 8px 12px; background: #fafafa; border-bottom: 1px solid #f0f0f0;">
-            <span style="flex: 1; margin-right: 12px; font-size: 14px;">{{ staff.title }} - {{ staff.name || 'UID:' + staff.mid }}</span>
-            <n-select v-model:value="staff.title" :options="staffTitleOptions" style="width: 120px; margin-right: 8px;" />
+          <div
+            v-for="(staff, index) in options.config.staffs"
+            :key="staff.mid"
+            style="
+              display: flex;
+              align-items: center;
+              padding: 8px 12px;
+              background: #fafafa;
+              border-bottom: 1px solid #f0f0f0;
+            "
+          >
+            <span style="flex: 1; margin-right: 12px; font-size: 14px"
+              >{{ staff.title }} - {{ staff.name || "UID:" + staff.mid }}</span
+            >
+            <n-select
+              v-model:value="staff.title"
+              :options="staffTitleOptions"
+              style="width: 120px; margin-right: 8px"
+            />
             <n-button type="error" @click="removeStaff(index)">删除</n-button>
           </div>
         </div>
@@ -845,10 +890,15 @@ const savePreset = async () => {
   }
   const hasStaffs = Array.isArray(data.config.staffs) && data.config.staffs.length > 0;
   // 合作者不保存到预设配置文件中
-  const saveData = hasStaffs
-    ? { ...data, config: { ...data.config, staffs: undefined } }
-    : data;
+  const saveData = hasStaffs ? { ...data, config: { ...data.config, staffs: undefined } } : data;
   await saveUploadPreset(saveData);
+
+  if (options.value.config.dtime) {
+    notice.warning({
+      title: "保存成功，但定时发布不会保存到配置文件中",
+      duration: 1000,
+    });
+  }
   notice.success({
     title: "保存成功",
     content: hasStaffs ? "合作者仅本次投稿有效，不会保存到配置文件中" : undefined,
