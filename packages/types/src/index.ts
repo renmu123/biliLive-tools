@@ -1120,6 +1120,8 @@ export interface BiliupConfig {
   dtime?: number;
   /** 关联预约 */
 act_reserve?: { sid: number };
+  /** 联合投稿 */
+  staffs?: Array<{ title: string; mid: number; name?: string }>;
   // 表示按照cid顺序上传，编辑接口会根据这个参数对pathArray进行排序后上传，如果没有这个参数，则按照pathArray的顺序上传
   sortByCid?: Array<number>;
   // 创作声明，仅当copyright=1、3时有效，// -1: 内容无需标注，1: 含AI生成内容，2：含虚构演绎内容，3：内容含营销信息，4：个人观点，仅供参考

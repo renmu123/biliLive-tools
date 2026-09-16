@@ -204,8 +204,56 @@
             {{ item.label }}
           </n-checkbox>
         </div>
-        <div v-else style="color: #999; font-size: 12px;">
-          暂无可用预约，<span @click="loadReserveList" style="cursor: pointer; color: #2080f0;">点击刷新</span>
+        <div v-else style="display: flex; align-items: center; gap: 8px;">
+          <span style="color: #999; font-size: 12px;">暂无可用预约</span>
+          <n-button type="success" size="small" @click="loadReserveList">点击刷新</n-button>
+        </div>
+      </n-form-item>
+
+      <n-form-item v-if="options.config.copyright !== 2">
+        <template #label>
+          <Tip text="联合投稿" tip="每次加载预设后清空联合投稿合作者（不保存到配置文件）"></Tip>
+        </template>
+        <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; font-size: 12px; color: #999; line-height: 1.8;">
+            <div>
+              <div>{{ staffRemaining >= 0 ? ((staffRemainingTips && typeof staffRemainingTips === "string" && staffRemainingTips.length > 0) ? staffRemainingTips : (staffRemaining === 0 ? '本月联合投稿使用次数已达上限（6次）' : '本月剩余联合投稿发起次数：' + staffRemaining + '次/6次')) : '剩余次数获取中...' }}</div>
+              <div>最多10名合作者</div>
+            </div>
+            <n-button type="success" size="small" :loading="staffRemainingLoading" @click="loadStaffRemaining">刷新</n-button>
+          </div>
+          <n-input
+            v-model:value="staffSearchKeyword"
+            placeholder="输入昵称或者UID搜索"
+            :loading="staffSearchLoading"
+            clearable
+            @input="searchStaffRemote"
+            @keyup.enter="searchStaffRemote"
+            style="width: 100%;"
+          />
+          <div v-if="staffSearchOptions.length" style="display: flex; flex-direction: column; border: 1px solid #f0f0f0; border-radius: 4px; max-height: 200px; overflow-y: auto;">
+            <div
+              v-for="user in staffSearchOptions"
+              :key="user.value"
+              style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0;"
+              @click="addStaff(user)"
+              @mouseenter="$event.currentTarget.style.background = '#f5f5f5'"
+              @mouseleave="$event.currentTarget.style.background = ''"
+            >
+              <img :src="user.face" style="width: 24px; height: 24px; border-radius: 50%;" referrerpolicy="no-referrer" />
+              <div style="display: flex; flex-direction: column;">
+                <span style="font-size: 13px;">{{ user.label }}</span>
+                <span style="font-size: 11px; color: #999;">UID: {{ user.value }}</span>
+              </div>
+            </div>
+          </div>
+          <div v-if="options.config.staffs?.length" style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <div v-for="(staff, index) in options.config.staffs" :key="staff.mid" style="display: flex; align-items: center; gap: 4px; background: #f5f5f5; border-radius: 4px; padding: 4px 8px;">
+              <span style="font-size: 13px;">{{ staff.name || 'UID:' + staff.mid }}</span>
+              <n-select v-model:value="staff.title" :options="staffTitleOptions" size="small" style="width: 100px;" />
+              <n-button text type="error" size="small" @click="removeStaff(index)">×</n-button>
+            </div>
+          </div>
         </div>
       </n-form-item>
 
@@ -501,6 +549,17 @@ watch(
   },
 );
 
+
+
+// 比较配置时忽略联合投稿合作者（staffs 仅本次投稿有效，不因保存刷新预设而清空）
+const compareConfigIgnoringStaffs = (a: Record<string, unknown>, b: Record<string, unknown>) => {
+  const copyA = { ...(a || {}) };
+  const copyB = { ...(b || {}) };
+  delete copyA.staffs;
+  delete copyB.staffs;
+  return isEqual(copyA, copyB);
+};
+
 watch(uploadPresetVersion, () => {
   if (activePresetId.value) {
     // 判断当前options是否与uploaPresetsOptions中的activePresetId匹配的options相同，如果不相同则更新options
@@ -508,7 +567,7 @@ watch(uploadPresetVersion, () => {
       (preset) => preset.value === activePresetId.value,
     )?.options;
     if (currentOptions) {
-      if (!isEqual(options.value.config, currentOptions)) {
+      if (!compareConfigIgnoringStaffs(options.value.config, currentOptions)) {
         console.log("options已过时，更新options");
         handlePresetChange(activePresetId.value);
       }
@@ -627,9 +686,112 @@ const loadReserveList = async () => {
   }
 };
 
-onMounted(() => {
-  loadReserveList();
-});
+
+// 联合投稿相关
+const staffSearchKeyword = ref("");
+const staffSearchOptions = ref<any[]>([]);
+const staffSearchLoading = ref(false);
+const staffRemaining = ref(-1);
+const staffRemainingTips = ref("");
+const staffRemainingLoading = ref(false);
+const loadStaffRemaining = async () => {
+  if (!userInfoStore.userInfo?.uid) {
+    staffRemaining.value = -1;
+    staffRemainingTips.value = "";
+    return;
+  }
+  staffRemainingLoading.value = true;
+  try {
+    const res: any = await biliApi.getStaffRemaining(userInfoStore.userInfo.uid);
+    console.log("联合投稿接口返回:", res);
+    if (res?.cnt_remaining !== undefined && res.cnt_remaining >= 0) {
+      staffRemaining.value = Number(res.cnt_remaining);
+      staffRemainingTips.value = typeof res?.tips === "string" ? res.tips : "";
+    } else {
+      staffRemaining.value = 0;
+      staffRemainingTips.value = res?.tips || "暂无联合投稿权限";
+    }
+    // 从接口返回中提取职位选项（确保label和value都是字符串）
+    if (res?.staff_titles && Array.isArray(res.staff_titles) && res.staff_titles.length > 0) {
+      const titles = res.staff_titles.map((item: any) => {
+        if (typeof item === "string") {
+          return { label: item, value: item };
+        }
+        const name = String(item?.name || item?.title || item?.label || item?.text || item?.value || "");
+        return { label: name, value: name };
+      }).filter((item: any) => item.label && item.value);
+      staffTitleOptions.value = titles;
+      console.log("联合投稿职位选项已从接口加载:", titles);
+    }
+  } catch (e: any) {
+    console.error("获取联合投稿剩余次数失败:", e);
+    staffRemaining.value = 0;
+    staffRemainingTips.value = "获取失败，请稍后重试";
+  } finally {
+    staffRemainingLoading.value = false;
+    console.log("联合投稿加载完成, staffRemaining:", staffRemaining.value, "loading:", staffRemainingLoading.value);
+  }
+};
+// 联合投稿职位选项（从接口动态获取）
+const staffTitleOptions = ref<any[]>([
+  { label: "主演", value: "主演" }, { label: "参演", value: "参演" },
+  { label: "嘉宾", value: "嘉宾" }, { label: "配音", value: "配音" },
+  { label: "动作捕捉", value: "动作捕捉" }, { label: "编剧", value: "编剧" },
+  { label: "导演", value: "导演" }, { label: "原画", value: "原画" },
+  { label: "声优", value: "声优" }, { label: "其他", value: "其他" },
+]);
+const searchStaffRemote = async () => {
+  if (!staffSearchKeyword.value.trim()) {
+    staffSearchOptions.value = [];
+    return;
+  }
+  if (!userInfoStore.userInfo?.uid) return;
+  staffSearchLoading.value = true;
+  try {
+    const res: any = await biliApi.searchStaffUser(staffSearchKeyword.value.trim(), userInfoStore.userInfo.uid);
+    if (res?.code === 0) {
+      const users = res.data?.users || res?.users || [];
+      staffSearchOptions.value = users.map((u: any) => ({
+        label: u.name,
+        value: u.mid,
+        name: u.name,
+        face: u.face,
+      }));
+    } else {
+      staffSearchOptions.value = [];
+    }
+  } catch (e: any) {
+    staffSearchOptions.value = [];
+  } finally { staffSearchLoading.value = false; }
+};
+const addStaff = (user: any) => {
+  const currentStaffs = options.value.config.staffs || [];
+  if (currentStaffs.length >= 10) {
+    notice.warning({ title: "联合投稿最多支持10名合作者", duration: 2000 });
+    return;
+  }
+  if (currentStaffs.some((s: any) => s.mid === user.value)) {
+    notice.warning({ title: "该用户已添加", duration: 2000 });
+    return;
+  }
+  // 检查是否开启了必剪API，必剪API不支持联合投稿
+  if (appConfig.value.biliUpload?.useBCutAPI) {
+    notice.warning({
+      title: "联合投稿在必剪API模式下不生效",
+      content: "当前已开启必剪API（useBCutAPI），必剪API没有联合投稿端口，即使添加了合作者，投稿时联合投稿也会被忽略。请在设置中关闭必剪API后再投稿。",
+      duration: 5000,
+    });
+  }
+  options.value.config.staffs = [...currentStaffs, { title: "参演", mid: user.value, name: user.label }];
+  staffSearchKeyword.value = "";
+  staffSearchOptions.value = [];
+};
+const removeStaff = (index: number) => {
+  if (!options.value.config.staffs) return;
+  const newStaffs = [...options.value.config.staffs];
+  newStaffs.splice(index, 1);
+  options.value.config.staffs = newStaffs;
+};
 
 const saveAnotherPresetConfirm = async () => {
   if (!tempPresetName.value) {
@@ -727,6 +889,20 @@ watchEffect(() => {
 
 // 合集
 const userInfoStore = useUserInfoStore();
+
+// 用户登录后自动加载联合投稿次数
+watch(
+  () => userInfoStore.userInfo?.uid,
+  (uid) => {
+    if (uid) {
+      loadStaffRemaining();
+    }
+  },
+  {
+    immediate: true,
+  },
+);
+
 const seasonList = ref<
   {
     label: string;
