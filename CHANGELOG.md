@@ -15,6 +15,8 @@
 ## Bug修复
 
 - 录制：修复xhs内部的解析错误 [#556](https://github.com/renmu123/biliLive-tools/pull/556)
+- 切片：修复修改字幕颜色后渲染失败的bug
+- 切片：修复字幕配置加载时使用初始化值的bug
 
 # 其他
 

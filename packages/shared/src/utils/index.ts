@@ -666,17 +666,29 @@ export function replaceFourByteUnicode(str: string, replacement: string = "_"): 
 }
 
 /**
- * 将RGB颜色转换为BGR颜色
- * @param color
- * @returns
+ * 将十六进制 RGB 或 RGBA 颜色转换为 BGR 或 ABGR 颜色。
+ *
+ * 输入可带或不带 `#`，格式为 `RRGGBB` 或 `RRGGBBAA`；返回值始终带 `#`。
+ * RGBA 输入默认会反转 alpha（`FF - AA`）。例如：`#112233` 转换为 `#332211`，
+ * `#11223344` 转换为 `#bb332211`；将 `reverseAlpha` 设为 `false` 时转换为 `#44332211`。
+ *
+ * @param color RGB 或 RGBA 十六进制颜色
+ * @param reverseAlpha 是否反转 RGBA 的 alpha，默认为 `true`
+ * @returns BGR 或 ABGR 十六进制颜色
+ * @throws 输入不是 6 位或 8 位十六进制颜色时抛出错误
  */
-export function RGB2BGR(color: string): string {
-  if (!/^#?[0-9A-Fa-f]{6}$/.test(color)) {
-    throw new Error("Invalid color format. Expected hex string like '#RRGGBB'.");
+export function RGB2BGR(color: string, reverseAlpha = true): string {
+  if (!/^#?(?:[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(color)) {
+    throw new Error("Invalid color format. Expected hex string like '#RRGGBB' or '#RRGGBBAA'.");
   }
   const hex = color.replace("#", "");
   const r = hex.slice(0, 2);
   const g = hex.slice(2, 4);
   const b = hex.slice(4, 6);
-  return `#${b}${g}${r}`;
+  const originalAlpha = hex.slice(6, 8);
+  const alpha =
+    originalAlpha && reverseAlpha
+      ? (0xff - Number.parseInt(originalAlpha, 16)).toString(16).padStart(2, "0")
+      : originalAlpha;
+  return `#${alpha}${b}${g}${r}`;
 }

@@ -99,7 +99,7 @@
   <!-- 字幕样式配置弹框 -->
   <SubtitleStyleModal
     v-model="showSubtitleStyleModal"
-    :initial-config="currentSubtitleStyle"
+    :id="exportOptions.subtitleStyleId || 'default'"
     @confirm="handleSubtitleStyleConfirm"
   />
 </template>
@@ -272,8 +272,9 @@ const initSubtitleStyle = async () => {
 };
 
 // 处理字幕样式配置确认
-const handleSubtitleStyleConfirm = async (config: SubtitleOptions) => {
+const handleSubtitleStyleConfirm = async (config: SubtitleOptions, id: string) => {
   currentSubtitleStyle.value = config;
+  exportOptions.subtitleStyleId = id;
 };
 
 // 当弹框打开时初始化字幕样式

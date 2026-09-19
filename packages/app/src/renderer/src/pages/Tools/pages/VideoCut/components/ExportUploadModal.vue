@@ -82,7 +82,7 @@
 
   <SubtitleStyleModal
     v-model="showSubtitleStyleModal"
-    :initial-config="currentSubtitleStyle"
+    :id="exportOptions.subtitleStyleId || 'default'"
     @confirm="handleSubtitleStyleConfirm"
   />
   <BiliPresetEditDialog
@@ -297,8 +297,9 @@ const initSubtitleStyle = async () => {
   currentSubtitleStyle.value = data.config;
 };
 
-const handleSubtitleStyleConfirm = async (config: SubtitleOptions) => {
+const handleSubtitleStyleConfirm = async (config: SubtitleOptions, id: string) => {
   currentSubtitleStyle.value = config;
+  exportOptions.subtitleStyleId = id;
 };
 
 watch(visible, (newVal) => {

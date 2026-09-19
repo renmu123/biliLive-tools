@@ -215,8 +215,11 @@ import type { SubtitleOptions } from "@biliLive-tools/types";
 import type { SubtitleStylePreset } from "@renderer/apis/presets/subtitleStyle";
 
 const visible = defineModel<boolean>({ required: true, default: false });
+const props = defineProps<{
+  id: string;
+}>();
 const emit = defineEmits<{
-  (event: "confirm", value: SubtitleOptions): void;
+  (event: "confirm", value: SubtitleOptions, id: string): void;
 }>();
 
 const notice = useNotification();
@@ -302,6 +305,15 @@ const loadPresets = async () => {
   }
 };
 
+const loadPreset = async (id: string) => {
+  try {
+    currentPreset.value = await subtitleStylePresetApi.get(id);
+    styleConfig.value = { ...currentPreset.value.config };
+  } catch (error) {
+    console.error("Failed to load preset:", error);
+  }
+};
+
 // 预览容器样式
 const previewContainerStyle = computed(() => {
   const alignment = styleConfig.value.alignment ?? 2;
@@ -371,6 +383,11 @@ watch(
     if (newVal) {
       await loadPresets();
       getFonts();
+      if (presetId.value === props.id) {
+        await loadPreset(props.id);
+      } else {
+        presetId.value = props.id;
+      }
     }
   },
 );
@@ -379,13 +396,7 @@ watch(
   () => presetId.value,
   async (val) => {
     if (val) {
-      console.log("Selected preset ID:", val);
-      try {
-        currentPreset.value = await subtitleStylePresetApi.get(val);
-        styleConfig.value = { ...currentPreset.value.config };
-      } catch (error) {
-        console.error("Failed to load preset:", error);
-      }
+      await loadPreset(val);
     }
   },
 );
@@ -408,7 +419,7 @@ const saveConfig = async () => {
 };
 
 const confirm = () => {
-  emit("confirm", styleConfig.value);
+  emit("confirm", styleConfig.value, presetId.value);
   visible.value = false;
 };
 

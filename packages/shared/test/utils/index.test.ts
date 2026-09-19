@@ -11,6 +11,7 @@ import {
   parseSavePath,
   isBetweenTimeRange,
   buildRoomLink,
+  RGB2BGR,
 } from "../../src/utils/index";
 
 export const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -27,6 +28,31 @@ describe("escaped", () => {
     const output = escaped(input);
     expect(output).toEqual("file\\\\:with\\\\:colons.txt");
   });
+});
+
+describe("RGB2BGR", () => {
+  it.each([
+    ["#112233", "#332211"],
+    ["112233", "#332211"],
+    ["#11223344", "#bb332211"],
+    ["#11223300", "#ff332211"],
+    ["#112233FF", "#00332211"],
+  ])("should convert %s to %s", (input, expected) => {
+    expect(RGB2BGR(input)).toBe(expected);
+  });
+
+  it("should preserve alpha when reverseAlpha is false", () => {
+    expect(RGB2BGR("aAbBcCdD", false)).toBe("#dDcCbBaA");
+  });
+
+  it.each(["#12345", "#1234567", "#123456789", "#GGHHII", "rgba(1, 2, 3, 4)"])(
+    "should reject invalid color %s",
+    (input) => {
+      expect(() => RGB2BGR(input)).toThrow(
+        "Invalid color format. Expected hex string like '#RRGGBB' or '#RRGGBBAA'.",
+      );
+    },
+  );
 });
 
 describe.concurrent("getHardwareAcceleration", () => {
