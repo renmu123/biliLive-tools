@@ -3,6 +3,7 @@
 ## 功能
 
 - B站上传：添加联合投稿功能 [#557](https://github.com/renmu123/biliLive-tools/pull/557)
+- 录制：某些场景下优化抖音流连续失效时切换流格式来支持录制 [#559](https://github.com/renmu123/biliLive-tools/pull/559)
 
 ## 优化
 
