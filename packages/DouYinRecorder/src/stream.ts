@@ -67,6 +67,8 @@ export async function getStream(
     uid?: string | number;
     // 是否为电台直播
     isLiveRadio?: boolean;
+    /** 优先尝试用户格式优先级中的备用格式 */
+    preferAlternativeStream?: boolean;
   },
 ) {
   let api = opts.api ?? "web";
@@ -96,7 +98,10 @@ export async function getStream(
 
   // 抖音为自动cdn，所以指定选择第一个
   const sources = info.sources[0];
-  const formatPriorities = opts.formatPriorities || ["flv", "hls"];
+  const formatPriorities = getFormatPriorities(
+    opts.formatPriorities || ["flv", "hls"],
+    opts.preferAlternativeStream,
+  );
 
   // 查找指定质量的流
   let targetStream = sources.streams.find((s) => s.quality === opts.quality);
@@ -147,4 +152,15 @@ export async function getStream(
       onlyAudio,
     },
   };
+}
+
+export function getFormatPriorities(
+  formatPriorities: Array<"flv" | "hls">,
+  preferAlternativeStream = false,
+): Array<"flv" | "hls"> {
+  if (!preferAlternativeStream || formatPriorities.length < 2) {
+    return [...formatPriorities];
+  }
+
+  return [formatPriorities[1], formatPriorities[0]];
 }

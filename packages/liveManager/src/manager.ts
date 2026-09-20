@@ -77,6 +77,26 @@ export interface RecorderProvider<E extends AnyObject> {
 }
 
 const RECORDER_TIMELINE_LIMIT = 40;
+const SHORT_RECORDING_THRESHOLD = 12 * 1000;
+const SHORT_RECORDING_RETRY_COUNT = 2;
+const SHORT_RECORDING_REASON_BLACKLIST = new Set([
+  "manual stop",
+  "remove recorder",
+  "直播间标题包含关键词",
+  "标题变更分段",
+]);
+
+interface RecordAttempt {
+  recorderId: string;
+  liveId?: string;
+  startedAt: number;
+}
+
+interface ShortRecordingState {
+  liveId: string;
+  count: number;
+  preferAlternativeStream: boolean;
+}
 
 function normalizeTimelineText(text: string): string {
   return text.trim();
@@ -248,6 +268,20 @@ export function createRecorderManager<
 >(opts: RecorderManagerCreateOpts<ME, P, PE, E>): RecorderManager<ME, P, PE, E> {
   const recorders: Recorder<E>[] = [];
 
+  // 短录制检测仅用于当前进程，不需要持久化。
+  const recordAttempts = new Map<string, RecordAttempt>();
+  const shortRecordingStates = new Map<string, ShortRecordingState>();
+
+  const getStreamRetryHint = (recorder: Recorder<E>) => {
+    const state = shortRecordingStates.get(recorder.id);
+    if (!state?.preferAlternativeStream) return undefined;
+
+    return {
+      liveId: state.liveId,
+      preferAlternativeStream: true,
+    } as const;
+  };
+
   // 存储每个 provider 的 timer，key 为 providerId
   const checkLoopTimers = new Map<string, NodeJS.Timeout>();
 
@@ -268,6 +302,7 @@ export function createRecorderManager<
               return genSavePathFromRule(manager, recorder, data);
             },
             banLiveId: tempBanObj[recorder.channelId],
+            streamRetryHint: getStreamRetryHint(recorder),
           });
         }
       }
@@ -314,6 +349,7 @@ export function createRecorderManager<
           return genSavePathFromRule(manager, recorder, data);
         },
         banLiveId,
+        streamRetryHint: getStreamRetryHint(recorder),
       });
     };
 
@@ -376,6 +412,22 @@ export function createRecorderManager<
       this.recorders.push(recorder);
 
       recorder.on("RecordStart", (recordHandle) => {
+        const liveId = recorder.liveInfo?.liveId;
+        recordAttempts.set(recordHandle.id, {
+          recorderId: recorder.id,
+          liveId,
+          startedAt: Date.now(),
+        });
+
+        const shortRecordingState = shortRecordingStates.get(recorder.id);
+        if (shortRecordingState) {
+          if (shortRecordingState.liveId === liveId) {
+            shortRecordingState.preferAlternativeStream = false;
+          } else {
+            shortRecordingStates.delete(recorder.id);
+          }
+        }
+
         recorder.appendTimeline?.({
           startTime: recorder.liveInfo?.recordStartTime?.getTime() ?? Date.now(),
           text: `开始录制：${recordHandle.stream}/${recordHandle.source}/${recordHandle.recorderType}/${recordHandle.url}`,
@@ -413,10 +465,40 @@ export function createRecorderManager<
         this.emit("RecorderDebugLog", { recorder: recorder, ...log }),
       );
       recorder.on("RecordStop", ({ recordHandle, reason }) => {
+        const stoppedAt = Date.now();
         recorder.appendTimeline?.({
-          startTime: Date.now(),
+          startTime: stoppedAt,
           text: reason ? `停止录制：${reason}` : "停止录制",
         });
+
+        const attempt = recordAttempts.get(recordHandle.id);
+        recordAttempts.delete(recordHandle.id);
+        if (attempt?.recorderId === recorder.id && attempt.liveId) {
+          const isReasonBlacklisted =
+            reason != null && SHORT_RECORDING_REASON_BLACKLIST.has(reason);
+          const duration = stoppedAt - attempt.startedAt;
+          const previousState = shortRecordingStates.get(recorder.id);
+
+          if (isReasonBlacklisted || duration >= SHORT_RECORDING_THRESHOLD) {
+            shortRecordingStates.delete(recorder.id);
+          } else {
+            const count = previousState?.liveId === attempt.liveId ? previousState.count + 1 : 1;
+            const preferAlternativeStream = count >= SHORT_RECORDING_RETRY_COUNT;
+            shortRecordingStates.set(recorder.id, {
+              liveId: attempt.liveId,
+              count,
+              preferAlternativeStream,
+            });
+
+            if (preferAlternativeStream && !previousState?.preferAlternativeStream) {
+              recorder.appendTimeline?.({
+                startTime: stoppedAt,
+                text: `连续 ${SHORT_RECORDING_RETRY_COUNT} 次录制在 ${SHORT_RECORDING_THRESHOLD / 1000} 秒内结束，下次可能尝试切换流格式（仅抖音）`,
+              });
+            }
+          }
+        }
+
         this.emit("RecordStop", { recorder: recorder.toJSON(), recordHandle, reason });
         const maxRetryCount = 10;
         // 默认策略下，如果录制被中断，那么会在下一个检查周期时重新检查直播状态并重新开始录制，这种策略的问题就是一部分时间会被漏掉。
@@ -456,6 +538,7 @@ export function createRecorderManager<
               getSavePath(data) {
                 return genSavePathFromRule(manager, recorder, data);
               },
+              streamRetryHint: getStreamRetryHint(recorder),
             });
           }, 1000);
         }
@@ -511,6 +594,10 @@ export function createRecorderManager<
       Object.keys(chargeLiveObj).forEach((k) => {
         if (k.startsWith(keyPrefix)) delete chargeLiveObj[k];
       });
+      shortRecordingStates.delete(recorder.id);
+      for (const [recordHandleId, attempt] of recordAttempts) {
+        if (attempt.recorderId === recorder.id) recordAttempts.delete(recordHandleId);
+      }
       this.emit("RecorderRemoved", recorder.toJSON());
     },
     getRecorder(id) {
@@ -530,6 +617,7 @@ export function createRecorderManager<
           return genSavePathFromRule(manager, recorder, data);
         },
         isManualStart: true,
+        streamRetryHint: getStreamRetryHint(recorder),
       });
       delete tempBanObj[recorder.channelId];
       recorder.tempStopIntervalCheck = false;

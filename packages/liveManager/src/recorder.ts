@@ -146,6 +146,11 @@ export interface AppendRecorderTimelineArgs {
   text: string;
 }
 
+export interface StreamRetryHint {
+  liveId: string;
+  preferAlternativeStream: boolean;
+}
+
 export interface RecordHandle {
   // 表示这一次录制操作的唯一 id
   id: string;
@@ -240,6 +245,8 @@ export interface Recorder<E extends AnyObject = UnknownObject>
       getSavePath: GetSavePath;
       banLiveId?: string;
       isManualStart?: boolean;
+      /** 上一次使用的流疑似不可用，录制器可在同一场直播中优先尝试备用流 */
+      streamRetryHint?: StreamRetryHint;
     },
   ) => Promise<RecordHandle | null>;
   // 正在进行的录制的操作接口
