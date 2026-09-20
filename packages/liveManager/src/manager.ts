@@ -77,7 +77,7 @@ export interface RecorderProvider<E extends AnyObject> {
 }
 
 const RECORDER_TIMELINE_LIMIT = 40;
-const SHORT_RECORDING_THRESHOLD = 10 * 1000;
+const SHORT_RECORDING_THRESHOLD = 12 * 1000;
 const SHORT_RECORDING_RETRY_COUNT = 2;
 const SHORT_RECORDING_REASON_BLACKLIST = new Set([
   "manual stop",
