@@ -253,7 +253,7 @@ describe("RecorderManager", () => {
       vi.useRealTimers();
     });
 
-    it("达到 10 秒会清空连续短录制计数", async () => {
+    it("达到 12 秒会清空连续短录制计数", async () => {
       const recorder = manager.addRecorder({
         id: "reset-short-recording",
         providerId: "test",
@@ -264,7 +264,7 @@ describe("RecorderManager", () => {
       });
 
       emitRecording(recorder, "record-1", "live-1", 9_999);
-      emitRecording(recorder, "record-2", "live-1", 10_000);
+      emitRecording(recorder, "record-2", "live-1", 12_000);
       emitRecording(recorder, "record-3", "live-1", 9_999);
 
       await manager.startRecord(recorder.id);

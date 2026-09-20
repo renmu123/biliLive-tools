@@ -238,7 +238,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       debugLevel: this.debugLevel ?? "none",
       onlyAudio: stream.onlyAudio,
       headers: {
-        Cookie: this.auth,
+        Origin: "https://live.douyin.com",
+        Referer: "https://live.douyin.com/",
+        // Cookie: this.auth,
       },
       proxy: this.proxy,
     },
