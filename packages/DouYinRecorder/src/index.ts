@@ -102,6 +102,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   getSavePath,
   banLiveId,
   isManualStart,
+  streamRetryHint,
 }) {
   // 如果已经在录制中,只在需要检查标题关键词时才获取最新信息
   if (this.recordHandle != null) {
@@ -174,6 +175,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       api: this.api as APIType,
       uid: this.uid,
       isLiveRadio: isLiveRadio,
+      preferAlternativeStream:
+        streamRetryHint?.preferAlternativeStream === true &&
+        streamRetryHint.liveId === this.liveInfo.liveId,
     });
     this.liveInfo.owner = res.owner;
     this.liveInfo.title = res.title;
