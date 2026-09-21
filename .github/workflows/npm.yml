@@ -40,4 +40,4 @@ jobs:
 
       - name: Publish to npm
         shell: bash
-        run: pnpm publish --filter=huya-danma-listener
+        run: pnpm publish --filter=huya-danma-listener --publish-branch npm-publish --access public --no-git-checks
