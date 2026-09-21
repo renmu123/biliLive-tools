@@ -8,125 +8,53 @@ on:
 
 jobs:
   build:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        service: [frontend, backend, fullstack]
+    name: Build ${{ matrix.service }} image
+    uses: docker/github-builder/.github/workflows/build.yml@v1
     permissions:
       contents: read
+      id-token: write
       packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push ${{ matrix.service }} image
-        uses: docker/build-push-action@v6
-        if: matrix.service != 'fullstack'
-        with:
-          file: ./docker/Dockerfile
-          target: ${{ matrix.service }}
-          platforms: linux/amd64,linux/arm64
-          push: true
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:latest
-            ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:${{ github.ref_name }}
-            ghcr.io/${{ github.repository_owner }}/bililive-tools-${{ matrix.service }}:latest
-            ghcr.io/${{ github.repository_owner }}/bililive-tools-${{ matrix.service }}:${{ github.ref_name }}
-
-      - name: Build and push fullstack image
-        uses: docker/build-push-action@v6
-        if: matrix.service == 'fullstack'
-        with:
-          file: ./docker/Dockerfile
-          target: fullstack
-          platforms: linux/amd64,linux/arm64
-          push: true
-          cache-from: type=gha,scope=fullstack
-          cache-to: type=gha,mode=max,scope=fullstack
-          build-args: |
-            VITE_DEFAULT_SERVER=/api
-            VITE_FULLSTACK=true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/bililive-tools:latest
-            ${{ secrets.DOCKER_USERNAME }}/bililive-tools:${{ github.ref_name }}
-            ghcr.io/${{ github.repository_owner }}/bililive-tools:latest
-            ghcr.io/${{ github.repository_owner }}/bililive-tools:${{ github.ref_name }}
-
-  manual-build:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [frontend, backend, fullstack]
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
+        include:
+          - service: frontend
+            image: bililive-tools-frontend
+            build-args: ""
+          - service: backend
+            image: bililive-tools-backend
+            build-args: ""
+          - service: fullstack
+            image: bililive-tools
+            build-args: |
+              VITE_DEFAULT_SERVER=/api
+              VITE_FULLSTACK=true
+    with:
+      runner: |
+        default=ubuntu-24.04
+        linux/amd64=ubuntu-24.04
+        linux/arm64=ubuntu-24.04-arm
+      output: image
+      push: true
+      file: ./docker/Dockerfile
+      target: ${{ matrix.service }}
+      platforms: linux/amd64,linux/arm64
+      build-args: ${{ matrix.build-args }}
+      cache: true
+      cache-scope: ${{ matrix.service }}
+      cache-mode: max
+      job-name-prefix: ${{ matrix.service }}
+      meta-images: |
+        ${{ github.repository_owner }}/${{ matrix.image }}
+        ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+      meta-tags: |
+        type=raw,value=latest,enable=${{ github.event_name == 'push' }}
+        type=ref,event=tag,enable=${{ github.event_name == 'push' }}
+        type=raw,value=test,enable=${{ github.event_name == 'workflow_dispatch' }}
+    secrets:
+      registry-auths: |
+        - registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
+        - registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push ${{ matrix.service }} image
-        uses: docker/build-push-action@v6
-        if: matrix.service != 'fullstack'
-        with:
-          file: ./docker/Dockerfile
-          target: ${{ matrix.service }}
-          platforms: linux/amd64,linux/arm64
-          push: true
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:test
-            ghcr.io/${{ github.repository_owner }}/bililive-tools-${{ matrix.service }}:test
-
-      - name: Build and push fullstack image
-        uses: docker/build-push-action@v6
-        if: matrix.service == 'fullstack'
-        with:
-          file: ./docker/Dockerfile
-          target: fullstack
-          platforms: linux/amd64,linux/arm64
-          push: true
-          cache-from: type=gha,scope=fullstack
-          cache-to: type=gha,mode=max,scope=fullstack
-          build-args: |
-            VITE_DEFAULT_SERVER=/api
-            VITE_FULLSTACK=true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/bililive-tools:test
-            ghcr.io/${{ github.repository_owner }}/bililive-tools:test
+          password: ${{ github.token }}
