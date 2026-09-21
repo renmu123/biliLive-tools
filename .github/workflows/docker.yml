@@ -43,7 +43,7 @@ jobs:
       cache-mode: max
       job-name-prefix: ${{ matrix.service }}
       meta-images: |
-        ${{ github.repository_owner }}/${{ matrix.image }}
+        renmu1234/${{ matrix.image }}
         ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
       meta-tags: |
         type=raw,value=latest,enable=${{ github.event_name == 'push' }}
