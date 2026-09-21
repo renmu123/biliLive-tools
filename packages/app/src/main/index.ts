@@ -18,7 +18,7 @@ import {
 } from "electron";
 import { createContainer } from "awilix";
 
-import installExtension from "electron-devtools-installer";
+import { installExtension } from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
 import log from "./utils/log";
