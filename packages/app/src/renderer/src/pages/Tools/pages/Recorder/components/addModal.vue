@@ -352,6 +352,19 @@
             </n-form-item>
             <n-form-item>
               <template #label>
+                <Tip :text="textInfo.douyu.cookie.text" :tip="textInfo.douyu.cookie.tip"></Tip>
+              </template>
+              <n-input
+                v-model:value="config.cookie"
+                type="password"
+                :disabled="globalFieldsObj.cookie"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.cookie" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
                 <Tip
                   :text="textInfo.common.titleKeywords.text"
                   :tip="textInfo.common.titleKeywords.tip"
@@ -1105,7 +1118,9 @@ watch(
       config.value.recorderType = appConfig.value.recorder.recorderType;
     }
     if (val.cookie) {
-      if (config.value.providerId === "DouYin") {
+      if (config.value.providerId === "DouYu") {
+        config.value.cookie = appConfig.value.recorder.douyu.cookie;
+      } else if (config.value.providerId === "DouYin") {
         config.value.cookie = appConfig.value.recorder.douyin.cookie;
       } else if (config.value.providerId === "XHS") {
         config.value.cookie = appConfig.value.recorder.xhs.cookie;

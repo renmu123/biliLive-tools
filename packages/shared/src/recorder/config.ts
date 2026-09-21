@@ -70,7 +70,9 @@ export default class RecorderConfig {
         } else if (key === "source") {
           return get(globalConfig, "douyu.source");
         } else if (key === "cookie") {
-          if (setting.providerId === "DouYin") {
+          if (setting.providerId === "DouYu") {
+            return get(globalConfig, "douyu.cookie");
+          } else if (setting.providerId === "DouYin") {
             return get(globalConfig, "douyin.cookie");
           } else if (setting.providerId === "XHS") {
             return get(globalConfig, "xhs.cookie");
@@ -154,6 +156,8 @@ export default class RecorderConfig {
           console.error(error);
         }
       }
+    } else if (setting.providerId === "DouYu") {
+      auth = getValue("cookie");
     } else if (setting.providerId === "DouYin") {
       auth = getValue("cookie");
       uid = setting?.uid;

@@ -362,6 +362,24 @@
               :options="douyuStreamCodecOptions"
             />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.douyu.cookie.text" :tip="textInfo.douyu.cookie.tip"></Tip>
+            </template>
+            <n-input
+              v-model:value="config.recorder.douyu.cookie"
+              type="password"
+              show-password-on="click"
+            />
+            <n-button
+              v-if="!isWeb"
+              type="primary"
+              style="margin-left: 10px"
+              @click="douyuLogin"
+              title="登录后退出即可获取cookie"
+              >登录</n-button
+            >
+          </n-form-item>
 
           <div class="divider"></div>
           <n-form-item>
@@ -524,7 +542,11 @@
             <template #label>
               <Tip text="Cookie" tip="使用mobile接口时Cookie不会被应用"></Tip>
             </template>
-            <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
+            <n-input
+              v-model:value="config.recorder.douyin.cookie"
+              type="password"
+              show-password-on="click"
+            />
             <n-button
               v-if="!isWeb"
               type="primary"
@@ -597,7 +619,11 @@
             <template #label>
               <Tip text="Cookie" tip="用于自动监听"></Tip>
             </template>
-            <n-input v-model:value="config.recorder.xhs.cookie" type="password" />
+            <n-input
+              v-model:value="config.recorder.xhs.cookie"
+              type="password"
+              show-password-on="click"
+            />
             <n-button
               v-if="!isWeb"
               type="primary"
@@ -696,7 +722,11 @@
             <template #label>
               <Tip text="Cookie" tip="遇到年龄限制或风控时可填写 TikTok Cookie"></Tip>
             </template>
-            <n-input v-model:value="config.recorder.tiktok.cookie" type="password" />
+            <n-input
+              v-model:value="config.recorder.tiktok.cookie"
+              type="password"
+              show-password-on="click"
+            />
           </n-form-item>
           <n-form-item>
             <template #label>
@@ -950,6 +980,14 @@ const douyinLogin = async () => {
 
   const cookie = await window.api.cookie.douyinLogin();
   config.value.recorder.douyin.cookie = cookie;
+};
+
+const douyuLogin = async () => {
+  const status = await confirmCookieLoginRisk("斗鱼");
+  if (!status) return;
+
+  const cookie = await window.api.cookie.douyuLogin();
+  config.value.recorder.douyu.cookie = cookie;
 };
 </script>
 

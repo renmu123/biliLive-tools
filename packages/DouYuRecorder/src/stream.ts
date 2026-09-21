@@ -1,7 +1,10 @@
 import { DouyuQualities, Recorder, utils } from "@bililive-tools/manager";
 import { DouyuParser } from "@bililive-tools/stream-get";
 
-export async function getInfo(channelId: string): Promise<{
+export async function getInfo(
+  channelId: string,
+  auth?: string,
+): Promise<{
   living: boolean;
   owner: string;
   title: string;
@@ -18,7 +21,7 @@ export async function getInfo(channelId: string): Promise<{
   //   cost: number;
   // }[];
 }> {
-  const parser = new DouyuParser();
+  const parser = new DouyuParser({ cookie: auth });
   const data = await parser.getRoomInfo(channelId);
 
   const startTime = data.liveStartTime || new Date();
@@ -38,6 +41,7 @@ export async function getInfo(channelId: string): Promise<{
 
 export async function getStream(
   opts: Pick<Recorder, "channelId" | "quality" | "api" | "codecName"> & {
+    auth?: string;
     rejectCache?: boolean;
     strictQuality?: boolean;
     source?: string;
@@ -53,7 +57,7 @@ export async function getStream(
   if (opts.source === "auto" && opts.avoidEdgeCDN) {
     cdn = "hw-h5";
   }
-  const parser = new DouyuParser();
+  const parser = new DouyuParser({ cookie: opts.auth });
   const shouldHevc = opts.codecName === "hevc";
   const isOldApi = opts.api === "old";
   let liveInfo = await parser.getLiveInfo(opts.channelId, {
@@ -89,18 +93,18 @@ export async function getStream(
   }
 
   // 是否存在画质下没有source的情况，可能需要切换画质
-  if (liveInfo.currentStream.rate !== qn) {
-    if (liveInfo.streams.length === 0) {
-      throw new Error("Can not get expect quality because of no available stream");
-    } else {
-      liveInfo = await parser.getLiveInfo(opts.channelId, {
-        rate: liveInfo.streams[0].rate,
-        onlyAudio: opts.onlyAudio,
-        hevc: shouldHevc,
-      });
-      if (!liveInfo.living) throw new Error("It must be called getStream when living");
-    }
-  }
+  // if (liveInfo.currentStream.rate !== qn) {
+  //   if (liveInfo.streams.length === 0) {
+  //     throw new Error("Can not get expect quality because of no available stream");
+  //   } else {
+  //     liveInfo = await parser.getLiveInfo(opts.channelId, {
+  //       rate: liveInfo.streams[0].rate,
+  //       onlyAudio: opts.onlyAudio,
+  //       hevc: shouldHevc,
+  //     });
+  //     if (!liveInfo.living) throw new Error("It must be called getStream when living");
+  //   }
+  // }
 
   return liveInfo;
 }

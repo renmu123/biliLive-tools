@@ -287,6 +287,41 @@ describe("RecorderConfig", () => {
         }
       });
     });
+    describe("斗鱼 Cookie", () => {
+      it("支持跟随全局配置和单独覆盖", () => {
+        mockAppConfig.get.mockImplementation((key: string) => {
+          if (key === "recorder") {
+            return {
+              douyu: {
+                cookie: "global-cookie",
+              },
+            };
+          }
+          if (key === "recorders") {
+            return [
+              {
+                id: "global",
+                providerId: "DouYu",
+                channelId: "123",
+                noGlobalFollowFields: [],
+                cookie: "local-cookie",
+              },
+              {
+                id: "local",
+                providerId: "DouYu",
+                channelId: "456",
+                noGlobalFollowFields: ["cookie"],
+                cookie: "local-cookie",
+              },
+            ];
+          }
+          return null;
+        });
+
+        expect(recorderConfig.get("global")?.auth).toBe("global-cookie");
+        expect(recorderConfig.get("local")?.auth).toBe("local-cookie");
+      });
+    });
     describe("TikTok 代理：proxy", () => {
       it("支持跟随全局配置和单独覆盖", () => {
         mockAppConfig.get.mockImplementation((key: string) => {
