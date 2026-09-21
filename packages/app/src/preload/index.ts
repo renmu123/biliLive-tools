@@ -30,6 +30,9 @@ export const api = {
     douyinLogin: () => {
       return ipcRenderer.invoke("cookie:douyin");
     },
+    douyuLogin: () => {
+      return ipcRenderer.invoke("cookie:douyu");
+    },
   },
   common: {
     readFile: (path: string) => {

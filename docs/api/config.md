@@ -334,9 +334,10 @@
       maxThreadCount: undefined,
       waitTime: undefined,
     },
-    douyu: { // 抖音特定配置
+    douyu: { // 斗鱼特定配置
       quality: 0,
       source: "auto",
+      cookie: "", // 斗鱼 Cookie
       checkInterval: undefined,
       maxThreadCount: undefined,
       waitTime: undefined,

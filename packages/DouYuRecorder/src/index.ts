@@ -69,6 +69,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         avoidEdgeCDN: true,
         codecName: this.codecName,
         api: this.api,
+        auth: this.auth,
       });
       return res.currentStream;
     },
@@ -151,6 +152,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       avoidEdgeCDN: true,
       codecName: this.codecName,
       api: this.api,
+      auth: this.auth,
     });
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);

@@ -63,6 +63,7 @@ export class HttpClient {
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          ...(mergedOpts.cookie ? { Cookie: mergedOpts.cookie } : {}),
           ...mergedOpts.headers,
         },
         body: mergedOpts.body,
@@ -91,6 +92,7 @@ export class HttpClient {
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          ...(mergedOpts.cookie ? { Cookie: mergedOpts.cookie } : {}),
           ...mergedOpts?.headers,
         },
         dispatcher: agent,
@@ -137,6 +139,7 @@ export class HttpClient {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
           "Content-Type": contentType,
+          ...(mergedOpts.cookie ? { Cookie: mergedOpts.cookie } : {}),
           ...mergedOpts?.headers,
         },
         body: requestBody,
@@ -167,6 +170,7 @@ export class HttpClient {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
           Accept: "*/*",
+          ...(mergedOpts.cookie ? { Cookie: mergedOpts.cookie } : {}),
           ...mergedOpts?.headers,
         },
         dispatcher: agent,

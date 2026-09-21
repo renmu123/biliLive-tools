@@ -407,6 +407,8 @@ interface DouyuRecorderConfig extends RecorderCheckConfig {
   /** 流编码 */
   codecName: CodecName;
   api: "auto" | "newAPI" | "oldAPI";
+  /** 斗鱼 Cookie */
+  cookie: string;
 }
 
 interface HuyaRecorderConfig extends RecorderCheckConfig {
@@ -577,7 +579,7 @@ export interface Recorder {
   liveEndNotification?: boolean;
   /** 权重 */
   weight: number;
-  /** 抖音、TikTok cookie */
+  /** 平台 Cookie */
   cookie?: string;
   /** 请求和录制使用的代理 */
   proxy?: string;
