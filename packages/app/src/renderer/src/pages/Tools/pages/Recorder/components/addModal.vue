@@ -930,6 +930,16 @@ const confirm = async () => {
     if (!status) return;
   }
 
+  if (config.value.providerId === "DouYu" && !config.value.cookie) {
+    const [status] = await confirmDialog.warning({
+      title: "确认添加",
+      content: `斗鱼录制高清画质需要设置Cookie，未设置Cookie也会导致流过期时间为五分钟，你可能尚未设置，尽可能使用使用小号，使用此功能默认需要你为可能的风控负责，是否继续？`,
+      showCheckbox: true,
+      showAgainKey: "recorder-douyu-account",
+    });
+    if (!status) return;
+  }
+
   config.value.noGlobalFollowFields = (
     Object.keys(globalFieldsObj.value) as Recorder["noGlobalFollowFields"]
   ).filter((key) => !globalFieldsObj.value[key]);
