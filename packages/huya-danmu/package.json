@@ -25,5 +25,9 @@
     "to-arraybuffer": "^1.0.1",
     "ws": "^4.1.0"
   },
-  "homepage": "https://github.com/renmu123/biliLive-tools/tree/master/packages/huya-danmu"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renmu123/biliLive-tools",
+    "directory": "packages/huya-danma"
+  }
 }

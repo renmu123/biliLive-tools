@@ -35,7 +35,11 @@
     "录制",
     "抖音"
   ],
-  "repository": "https://github.com/renmu123/biliLive-tools/tree/master/packages/DouYinRecorder",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renmu123/biliLive-tools",
+    "directory": "packages/DouYinRecorder"
+  },
   "author": "WhiteMind",
   "license": "LGPL",
   "dependencies": {
