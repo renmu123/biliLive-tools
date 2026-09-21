@@ -34,7 +34,11 @@
     "录制",
     "斗鱼"
   ],
-  "repository": "https://github.com/renmu123/biliLive-tools/tree/master/packages/DouYuRecorder",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renmu123/biliLive-tools",
+    "directory": "packages/DouYuRecorder"
+  },
   "author": "renmu123",
   "license": "LGPL",
   "dependencies": {

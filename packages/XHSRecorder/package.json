@@ -34,7 +34,11 @@
     "录制",
     "小红书"
   ],
-  "repository": "https://github.com/renmu123/biliLive-tools/tree/master/packages/XHSRecorder",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renmu123/biliLive-tools",
+    "directory": "packages/XHSRecorder"
+  },
   "author": "renmu123",
   "license": "LGPL",
   "dependencies": {

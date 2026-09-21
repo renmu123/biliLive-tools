@@ -6,6 +6,11 @@
   "author": "renmu123",
   "license": "GPL-3.0",
   "homepage": "https://github.com/renmu123/biliLive-tools",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renmu123/biliLive-tools",
+    "directory": "packages/app"
+  },
   "type": "module",
   "scripts": {
     "dev": "electron-vite dev",
