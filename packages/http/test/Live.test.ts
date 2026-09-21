@@ -1315,6 +1315,38 @@ describe("LiveManager", () => {
       expect(liveManager.getCount()).toBe(2);
       expect(liveManager.getAllLives()).toEqual([live1, live2]);
     });
+
+    it("应该限制已结束直播数量并保留活跃直播", () => {
+      const manager = new LiveManager(2);
+      const createLive = (eventId: string, status: "handled" | "recording") => {
+        const live = new Live({
+          eventId,
+          platform: "blrec",
+          roomId: eventId,
+          title: eventId,
+          username: "测试主播",
+          startTime: 1640995200000,
+        });
+        live.addPart({
+          filePath: `/path/to/${eventId}.mp4`,
+          recordStatus: status,
+          title: eventId,
+        });
+        return live;
+      };
+
+      const active = createLive("active", "recording");
+      manager.addLive(createLive("completed-1", "handled"));
+      manager.addLive(active);
+      manager.addLive(createLive("completed-2", "handled"));
+      manager.addLive(createLive("completed-3", "handled"));
+
+      expect(manager.getAllLives()).toEqual([
+        active,
+        expect.objectContaining({ eventId: "completed-2" }),
+        expect.objectContaining({ eventId: "completed-3" }),
+      ]);
+    });
   });
 
   describe("liveData getter/setter", () => {
