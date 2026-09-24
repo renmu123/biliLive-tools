@@ -94,6 +94,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   biliUploadFileNameType: "ask",
   cutPageInNewWindow: false,
   bilibiliUser: {},
+  douyuUser: {},
   tool: {
     home: {
       uploadPresetId: "default",
@@ -386,9 +387,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       waitTime: undefined,
     },
     douyu: {
+      uid: undefined,
       quality: 0,
       source: "auto",
-      cookie: "",
       checkInterval: undefined,
       maxThreadCount: undefined,
       waitTime: undefined,

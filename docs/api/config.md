@@ -335,9 +335,9 @@
       waitTime: undefined,
     },
     douyu: { // 斗鱼特定配置
+      uid: undefined, // 在用户页登录后获得的斗鱼账号 UID
       quality: 0,
       source: "auto",
-      cookie: "", // 斗鱼 Cookie
       checkInterval: undefined,
       maxThreadCount: undefined,
       waitTime: undefined,

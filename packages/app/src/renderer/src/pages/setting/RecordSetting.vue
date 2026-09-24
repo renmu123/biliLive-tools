@@ -364,21 +364,16 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip :text="textInfo.douyu.cookie.text" :tip="textInfo.douyu.cookie.tip"></Tip>
+              <Tip text="账号" tip="未选择账号时将以未登录状态请求斗鱼接口"></Tip>
             </template>
-            <n-input
-              v-model:value="config.recorder.douyu.cookie"
-              type="password"
-              show-password-on="click"
+            <n-select
+              v-model:value="config.recorder.douyu.uid"
+              :options="douyuUserList"
+              label-field="name"
+              value-field="uid"
+              clearable
+              placeholder="请先在用户页登录斗鱼账号"
             />
-            <n-button
-              v-if="!isWeb"
-              type="primary"
-              style="margin-left: 10px"
-              @click="douyuLogin"
-              title="登录后退出即可获取cookie"
-              >登录</n-button
-            >
           </n-form-item>
 
           <div class="divider"></div>
@@ -798,7 +793,7 @@ import { FolderOpenOutline } from "@vicons/ionicons5";
 import { templateRef } from "@vueuse/core";
 import { useBreakpoints } from "@renderer/hooks";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
-import { useUserInfoStore } from "@renderer/stores";
+import { useUserInfoStore, useDouyuUserStore } from "@renderer/stores";
 import { useConfirm } from "@renderer/hooks";
 import {
   biliQualityOptions,
@@ -833,6 +828,7 @@ const labelWidth = computed(() => {
 });
 
 const { userList } = storeToRefs(useUserInfoStore());
+const { userList: douyuUserList } = storeToRefs(useDouyuUserStore());
 const isWeb = computed(() => window.isWeb);
 
 const selectFolder = async () => {
@@ -980,14 +976,6 @@ const douyinLogin = async () => {
 
   const cookie = await window.api.cookie.douyinLogin();
   config.value.recorder.douyin.cookie = cookie;
-};
-
-const douyuLogin = async () => {
-  const status = await confirmCookieLoginRisk("斗鱼");
-  if (!status) return;
-
-  const cookie = await window.api.cookie.douyuLogin();
-  config.value.recorder.douyu.cookie = cookie;
 };
 </script>
 

@@ -352,14 +352,17 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <Tip :text="textInfo.douyu.cookie.text" :tip="textInfo.douyu.cookie.tip"></Tip>
+                <Tip text="账号" tip="未选择账号时将以未登录状态请求斗鱼接口"></Tip>
               </template>
-              <n-input
-                v-model:value="config.cookie"
-                type="password"
-                :disabled="globalFieldsObj.cookie"
+              <n-select
+                v-model:value="config.uid"
+                :options="douyuUserList"
+                label-field="name"
+                value-field="uid"
+                clearable
+                :disabled="globalFieldsObj.uid"
               />
-              <n-checkbox v-model:checked="globalFieldsObj.cookie" class="global-checkbox"
+              <n-checkbox v-model:checked="globalFieldsObj.uid" class="global-checkbox"
                 >全局</n-checkbox
               >
             </n-form-item>
@@ -826,7 +829,7 @@
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
 import { useAppConfig } from "@renderer/stores";
-import { useUserInfoStore } from "@renderer/stores";
+import { useUserInfoStore, useDouyuUserStore } from "@renderer/stores";
 import {
   qualityOptions,
   biliQualityOptions,
@@ -861,6 +864,7 @@ interface Props {
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
 const { userList } = storeToRefs(useUserInfoStore());
+const { userList: douyuUserList } = storeToRefs(useDouyuUserStore());
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const props = defineProps<Props>();
@@ -930,10 +934,10 @@ const confirm = async () => {
     if (!status) return;
   }
 
-  if (config.value.providerId === "DouYu" && !config.value.cookie) {
+  if (config.value.providerId === "DouYu" && !config.value.uid) {
     const [status] = await confirmDialog.warning({
       title: "确认添加",
-      content: `斗鱼录制高清画质需要设置Cookie，未设置Cookie也会导致流过期时间为五分钟，你可能尚未设置，尽可能使用使用小号，使用此功能默认需要你为可能的风控负责，是否继续？`,
+      content: `斗鱼录制高清画质需要设置账号，未登录也可能导致流过期时间为五分钟。你可能尚未设置账号，是否继续？`,
       showCheckbox: true,
       showAgainKey: "recorder-douyu-account",
     });
@@ -1088,6 +1092,8 @@ watch(
     if (val.uid) {
       if (config.value.providerId === "Bilibili") {
         config.value.uid = appConfig.value.recorder.bilibili.uid;
+      } else if (config.value.providerId === "DouYu") {
+        config.value.uid = appConfig.value.recorder.douyu.uid;
       }
     }
     if (val.saveCover) {
@@ -1128,9 +1134,7 @@ watch(
       config.value.recorderType = appConfig.value.recorder.recorderType;
     }
     if (val.cookie) {
-      if (config.value.providerId === "DouYu") {
-        config.value.cookie = appConfig.value.recorder.douyu.cookie;
-      } else if (config.value.providerId === "DouYin") {
+      if (config.value.providerId === "DouYin") {
         config.value.cookie = appConfig.value.recorder.douyin.cookie;
       } else if (config.value.providerId === "XHS") {
         config.value.cookie = appConfig.value.recorder.xhs.cookie;

@@ -401,14 +401,14 @@ interface BilibiliRecorderConfig extends RecorderCheckConfig {
   segmentOnTitleChange: boolean;
 }
 interface DouyuRecorderConfig extends RecorderCheckConfig {
+  /** 登录账号 */
+  uid?: number;
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
   quality: 0 | 2 | 3 | 4 | 8;
   source: string;
   /** 流编码 */
   codecName: CodecName;
   api: "auto" | "newAPI" | "oldAPI";
-  /** 斗鱼 Cookie */
-  cookie: string;
 }
 
 interface HuyaRecorderConfig extends RecorderCheckConfig {
@@ -678,6 +678,10 @@ export interface AppConfig {
   };
   /** 加密后的B站登录信息 */
   bilibiliUser: {
+    [uid: number]: string;
+  };
+  /** 加密后的斗鱼登录信息 */
+  douyuUser: {
     [uid: number]: string;
   };
   /** 当前使用的b站uid */
@@ -1155,6 +1159,18 @@ export interface BiliUser {
   accessToken: string;
   refreshToken: string;
   platform: "TV";
+}
+
+export interface DouyuLoginCookies {
+  passport: string;
+  main: string;
+}
+
+export interface DouyuUser {
+  uid: number;
+  name: string;
+  avatar?: string;
+  loginCookies: DouyuLoginCookies;
 }
 
 export type HotProgressOptions = {

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import RecorderConfig from "../../src/recorder/config.js";
 import { getCookie } from "../../src/task/bili.js";
+import { readDouyuUser } from "../../src/recorder/douyu.js";
 
 import { provider as providerForDouYu } from "@bililive-tools/douyu-recorder";
 import { provider as providerForHuYa } from "@bililive-tools/huya-recorder";
@@ -12,6 +13,9 @@ import { provider as providerForTikTok } from "@bililive-tools/tiktok-recorder";
 // 模拟 getCookie 函数
 vi.mock("../../src/task/bili.js", () => ({
   getCookie: vi.fn(),
+}));
+vi.mock("../../src/recorder/douyu.js", () => ({
+  readDouyuUser: vi.fn(),
 }));
 
 const defaultRecorderConfig = {
@@ -287,13 +291,21 @@ describe("RecorderConfig", () => {
         }
       });
     });
-    describe("斗鱼 Cookie", () => {
-      it("支持跟随全局配置和单独覆盖", () => {
+    describe("斗鱼账号", () => {
+      it("支持按全局或单独配置的 UID 读取账号 Cookie", () => {
+        vi.mocked(readDouyuUser).mockImplementation((uid) => ({
+          uid,
+          name: String(uid),
+          loginCookies: {
+            passport: `passport-${uid}`,
+            main: `cookie-${uid}`,
+          },
+        }));
         mockAppConfig.get.mockImplementation((key: string) => {
           if (key === "recorder") {
             return {
               douyu: {
-                cookie: "global-cookie",
+                uid: 100,
               },
             };
           }
@@ -304,22 +316,22 @@ describe("RecorderConfig", () => {
                 providerId: "DouYu",
                 channelId: "123",
                 noGlobalFollowFields: [],
-                cookie: "local-cookie",
+                uid: 200,
               },
               {
                 id: "local",
                 providerId: "DouYu",
                 channelId: "456",
-                noGlobalFollowFields: ["cookie"],
-                cookie: "local-cookie",
+                noGlobalFollowFields: ["uid"],
+                uid: 200,
               },
             ];
           }
           return null;
         });
 
-        expect(recorderConfig.get("global")?.auth).toBe("global-cookie");
-        expect(recorderConfig.get("local")?.auth).toBe("local-cookie");
+        expect(recorderConfig.get("global")?.auth).toBe("cookie-100");
+        expect(recorderConfig.get("local")?.auth).toBe("cookie-200");
       });
     });
     describe("TikTok 代理：proxy", () => {

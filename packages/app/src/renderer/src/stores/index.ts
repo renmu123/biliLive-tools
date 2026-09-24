@@ -11,6 +11,7 @@ import {
   configApi,
   taskApi,
   commonApi,
+  douyuApi,
 } from "@renderer/apis";
 import { deepRaw } from "@renderer/utils";
 import { useSubtitles } from "./subtitles";
@@ -72,6 +73,15 @@ export const useUserInfoStore = defineStore("userInfo", () => {
   });
 
   return { userInfo, getUsers, userList, changeUser };
+});
+
+export const useDouyuUserStore = defineStore("douyuUser", () => {
+  const userList = ref<{ uid: number; name: string; avatar?: string }[]>([]);
+  async function getUsers() {
+    userList.value = await douyuApi.getUsers();
+  }
+  getUsers();
+  return { userList, getUsers };
 });
 
 export const useDanmuPreset = defineStore("danmuPreset", () => {

@@ -149,3 +149,22 @@ SESSDATA=xxx; bili_jct=xxx; DedeUserID=xxx; buvid3=xxx
 ::: warning 安全提示
 此接口涉及用户敏感信息,请妥善保管 Cookie 数据,不要泄露给他人。
 ::: -->
+
+# 斗鱼账号
+
+## 创建二维码登录
+
+`POST /douyu/login` 创建登录会话，返回二维码内容 `url`、会话 `id` 和过期时间 `expiresAt`。
+
+## 轮询登录状态
+
+`GET /douyu/login/poll?id=:id` 返回 `scan`、`completed` 或 `error`。登录成功后会分别获取 passport 和主站登录态，并将账号加密保存。
+
+## 取消登录
+
+`POST /douyu/login/cancel`，请求体为 `{ "id": "登录会话 ID" }`。
+
+## 账号列表与退出
+
+- `GET /douyu/user/list` 返回不包含 Cookie 的斗鱼账号列表。
+- `POST /douyu/user/delete`，请求体为 `{ "uid": 斗鱼 UID }`。退出账号不会清除录制配置中的 UID 引用。

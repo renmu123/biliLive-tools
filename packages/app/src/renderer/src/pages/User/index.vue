@@ -1,62 +1,99 @@
 <template>
   <div>
-    <div class="user-info">
-      <div class="login-btns">
-        <n-button type="primary" @click="login">登录账号</n-button>
-        <n-button @click="exportAllAccounts">导出用户</n-button>
-        <n-button @click="triggerImportAll">导入用户</n-button>
-        <input
-          ref="allImportInput"
-          type="file"
-          accept="application/json"
-          style="display: none"
-          @change="onImportAllFileChange"
-        />
-      </div>
-    </div>
-    <div class="container">
-      <div
-        v-for="item in userList"
-        :key="item.uid"
-        class="card"
-        :class="{
-          active: item.uid === userInfo.uid,
-        }"
-      >
-        <div v-if="item.expiresText" class="expires">{{ item.expiresText }}</div>
-
-        <span class="username">{{ item.name }}</span>
-        <img :src="item.face" alt="" referrerpolicy="no-referrer" class="face" />
-        <n-popover placement="right-start" trigger="hover">
-          <template #trigger>
-            <n-icon size="25" class="pointer menu">
-              <EllipsisHorizontalOutline />
-            </n-icon>
-          </template>
-          <div style="padding: 5px 10px">uid: {{ item.uid }}</div>
-          <div v-if="item.uid !== userInfo.uid" class="section" @click="changeAccount(item.uid)">
-            使用
+    <n-tabs type="segment">
+      <n-tab-pane name="bilibili" tab="B站">
+        <div class="user-info">
+          <div class="login-btns">
+            <n-button type="primary" @click="login">登录账号</n-button>
+            <n-button @click="exportAllAccounts">导出用户</n-button>
+            <n-button @click="triggerImportAll">导入用户</n-button>
+            <input
+              ref="allImportInput"
+              type="file"
+              accept="application/json"
+              style="display: none"
+              @change="onImportAllFileChange"
+            />
           </div>
-          <div class="section" @click="updateAccountInfo(item.uid)">刷新信息</div>
-          <div class="section" @click="updateAuth(item.uid)">更新授权</div>
-          <div class="section" @click="getCookie(item.uid)">复制cookie</div>
-          <div class="section" @click="exportCurrentAccount(item.uid)">导出</div>
-          <div class="section section-danger" @click="logout(item.uid)">退出账号</div>
-        </n-popover>
-      </div>
-    </div>
-    <BiliLoginDialog v-model="loginTvDialogVisible" @confirm="loginConfirm"></BiliLoginDialog>
+        </div>
+        <div class="container">
+          <div
+            v-for="item in userList"
+            :key="item.uid"
+            class="card"
+            :class="{
+              active: item.uid === userInfo.uid,
+            }"
+          >
+            <div v-if="item.expiresText" class="expires">{{ item.expiresText }}</div>
+
+            <span class="username">{{ item.name }}</span>
+            <img :src="item.face" alt="" referrerpolicy="no-referrer" class="face" />
+            <n-popover placement="right-start" trigger="hover">
+              <template #trigger>
+                <n-icon size="25" class="pointer menu">
+                  <EllipsisHorizontalOutline />
+                </n-icon>
+              </template>
+              <div style="padding: 5px 10px">uid: {{ item.uid }}</div>
+              <div
+                v-if="item.uid !== userInfo.uid"
+                class="section"
+                @click="changeAccount(item.uid)"
+              >
+                使用
+              </div>
+              <div class="section" @click="updateAccountInfo(item.uid)">刷新信息</div>
+              <div class="section" @click="updateAuth(item.uid)">更新授权</div>
+              <div class="section" @click="getCookie(item.uid)">复制cookie</div>
+              <div class="section" @click="exportCurrentAccount(item.uid)">导出</div>
+              <div class="section section-danger" @click="logout(item.uid)">退出账号</div>
+            </n-popover>
+          </div>
+        </div>
+        <BiliLoginDialog v-model="loginTvDialogVisible" @confirm="loginConfirm"></BiliLoginDialog>
+      </n-tab-pane>
+      <n-tab-pane name="douyu" tab="斗鱼">
+        <div class="user-info">
+          <div class="login-btns">
+            <n-button type="primary" @click="douyuLogin">登录账号</n-button>
+          </div>
+        </div>
+        <div class="container">
+          <div v-for="item in douyuUserList" :key="item.uid" class="card">
+            <span class="username">{{ item.name }}</span>
+            <img
+              v-if="item.avatar"
+              :src="item.avatar"
+              alt=""
+              referrerpolicy="no-referrer"
+              class="face"
+            />
+            <div v-else class="face-placeholder">{{ item.uid }}</div>
+            <n-popover placement="right-start" trigger="hover">
+              <template #trigger>
+                <n-icon size="25" class="pointer menu"><EllipsisHorizontalOutline /></n-icon>
+              </template>
+              <div style="padding: 5px 10px">uid: {{ item.uid }}</div>
+              <div class="section section-danger" @click="douyuLogout(item.uid)">退出账号</div>
+            </n-popover>
+          </div>
+        </div>
+        <DouyuLoginDialog v-model="douyuLoginVisible" @confirm="douyuLoginConfirm" />
+      </n-tab-pane>
+    </n-tabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import { userApi, taskApi } from "@renderer/apis";
+import { userApi, taskApi, douyuApi } from "@renderer/apis";
 import { verifyBiliKey } from "@renderer/utils";
 import { useClipboard } from "@vueuse/core";
 import type { BiliUser } from "@biliLive-tools/types";
 
-import { useUserInfoStore, useAppConfig } from "@renderer/stores";
+import { useUserInfoStore, useAppConfig, useDouyuUserStore } from "@renderer/stores";
 import BiliLoginDialog from "./components/BiliLoginDialog.vue";
+import DouyuLoginDialog from "./components/DouyuLoginDialog.vue";
 import { useConfirm } from "@renderer/hooks";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 
@@ -68,6 +105,9 @@ const { getUsers, changeUser } = useUserInfoStore();
 const { appConfig } = storeToRefs(useAppConfig());
 const { userInfo, userList } = storeToRefs(useUserInfoStore());
 const notice = useNotification();
+const { userList: douyuUserList } = storeToRefs(useDouyuUserStore());
+const { getUsers: getDouyuUsers } = useDouyuUserStore();
+const douyuLoginVisible = ref(false);
 
 const loginTvDialogVisible = ref(false);
 const login = async () => {
@@ -88,6 +128,32 @@ const login = async () => {
 };
 
 const confirm = useConfirm();
+
+const douyuLogin = async () => {
+  const [status] = await confirm.warning({
+    title: "斗鱼登录提示",
+    content: [
+      "Cookie 会用于斗鱼录制相关请求，建议使用小号。",
+      "程序请求与浏览器正常使用的请求不完全一致，继续即表示你了解并愿意承担账号风险。",
+    ].join("\n"),
+    positiveText: "继续登录",
+    negativeText: "取消",
+  });
+  if (status) douyuLoginVisible.value = true;
+};
+
+const douyuLoginConfirm = async () => {
+  await getDouyuUsers();
+};
+
+const douyuLogout = async (uid: number) => {
+  const [status] = await confirm.warning({
+    content: "确认退出该斗鱼账号？录制配置中已有的 UID 引用将会保留。",
+  });
+  if (!status) return;
+  await douyuApi.deleteUser(uid);
+  await getDouyuUsers();
+};
 
 const logout = async (uid: number) => {
   const uids = [
@@ -308,6 +374,7 @@ const getCookie = async (uid: number) => {
 
 onActivated(() => {
   getUsers();
+  getDouyuUsers();
 });
 </script>
 
@@ -389,5 +456,14 @@ onActivated(() => {
 }
 .username {
   color: var(--text-primary);
+}
+.face-placeholder {
+  width: 80%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  background: var(--bg-hover);
 }
 </style>

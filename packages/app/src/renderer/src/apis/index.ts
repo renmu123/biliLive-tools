@@ -6,6 +6,7 @@ import taskApi from "./task";
 import commonApi from "./common";
 import fileBrowserApi from "./fileBrowser";
 import biliApi from "./bili";
+import douyuApi from "./douyu";
 import api from "./request";
 import videoApi from "./video";
 import recordHistoryApi from "./recordHistory";
@@ -22,6 +23,7 @@ export {
   commonApi,
   fileBrowserApi,
   biliApi,
+  douyuApi,
   api,
   videoApi,
   syncApi,
