@@ -19,6 +19,12 @@ const BaseLiveHistory = z.object({
   danma_num: z.number().optional(),
   // 互动人数
   interact_num: z.number().optional(),
+  // 弹幕统计 JSON，
+  // {danmaTimeline: {
+  //   interval: 5,
+  //   data: [2, 1],
+  // }}
+  danma_stats_json: z.string().optional(),
   // 直播id
   live_id: z.string().optional(),
   // 文件快速哈希值
@@ -58,7 +64,8 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
         video_filename TEXT,                                 -- 视频文件名，不含后缀
         video_duration REAL,                                 -- 视频持续时长，浮点数，秒
         danma_num INTEGER,                                   -- 弹幕数量
-        interact_num INTEGER,                                 -- 互动人数
+        interact_num INTEGER,                                -- 互动人数
+        danma_stats_json TEXT,                               -- 弹幕统计JSON
         quick_hash TEXT,                                     -- 文件快速哈希值
         FOREIGN KEY (streamer_id) REFERENCES streamer(id)    -- 外键约束
       ) STRICT;
@@ -135,6 +142,8 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
       // @ts-ignore
       const hasInteractNumColumn = columns.some((col) => col.name === "interact_num");
       // @ts-ignore
+      const hasDanmaStatsJsonColumn = columns.some((col) => col.name === "danma_stats_json");
+      // @ts-ignore
       const hasLiveIdColumn = columns.some((col) => col.name === "live_id");
       // @ts-ignore
       const hasQuickHashColumn = columns.some((col) => col.name === "quick_hash");
@@ -157,6 +166,12 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
         // 添加interactNum列
         this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN interact_num INTEGER`).run();
         logger.info(`已为${this.tableName}表添加interactNum列`);
+      }
+
+      if (!hasDanmaStatsJsonColumn) {
+        // 添加danma_stats_json列
+        this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN danma_stats_json TEXT`).run();
+        logger.info(`已为${this.tableName}表添加danma_stats_json列`);
       }
 
       if (!hasLiveIdColumn) {
