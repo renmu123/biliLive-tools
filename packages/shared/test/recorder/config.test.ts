@@ -296,6 +296,8 @@ describe("RecorderConfig", () => {
         vi.mocked(readDouyuUser).mockImplementation((uid) => ({
           uid,
           name: String(uid),
+          createdAt: 1000,
+          updatedAt: 1000,
           loginCookies: {
             passport: `passport-${uid}`,
             main: `cookie-${uid}`,

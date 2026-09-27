@@ -18,7 +18,9 @@ const loginCancel = async (id: string) => {
   return res.data;
 };
 
-const getUsers = async (): Promise<{ uid: number; name: string; avatar?: string }[]> => {
+const getUsers = async (): Promise<
+  { uid: number; name: string; avatar?: string; createdAt: number; updatedAt: number }[]
+> => {
   const res = await request.get("/douyu/user/list");
   return res.data;
 };
@@ -28,4 +30,9 @@ const deleteUser = async (uid: number) => {
   return res.data;
 };
 
-export default { qrcode, loginPoll, loginCancel, getUsers, deleteUser };
+const updateAuth = async (uid: number) => {
+  const res = await request.post("/douyu/user/update_auth", { uid });
+  return res.data;
+};
+
+export default { qrcode, loginPoll, loginCancel, getUsers, deleteUser, updateAuth };

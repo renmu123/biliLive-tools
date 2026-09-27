@@ -352,7 +352,10 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <Tip text="账号" tip="未选择账号时将以未登录状态请求斗鱼接口"></Tip>
+                <Tip
+                  text="账号"
+                  tip="未选择账号时将以未登录状态请求斗鱼接口，请先在用户页登录斗鱼账号"
+                ></Tip>
               </template>
               <n-select
                 v-model:value="config.uid"

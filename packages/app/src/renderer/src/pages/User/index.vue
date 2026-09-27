@@ -54,6 +54,7 @@
         <BiliLoginDialog v-model="loginTvDialogVisible" @confirm="loginConfirm"></BiliLoginDialog>
       </n-tab-pane>
       <n-tab-pane name="douyu" tab="斗鱼">
+        <p>Cookie有效期为6天</p>
         <div class="user-info">
           <div class="login-btns">
             <n-button type="primary" @click="douyuLogin">登录账号</n-button>
@@ -75,6 +76,7 @@
                 <n-icon size="25" class="pointer menu"><EllipsisHorizontalOutline /></n-icon>
               </template>
               <div style="padding: 5px 10px">uid: {{ item.uid }}</div>
+              <div class="section" @click="douyuUpdateAuth(item.uid)">更新授权</div>
               <div class="section section-danger" @click="douyuLogout(item.uid)">退出账号</div>
             </n-popover>
           </div>
@@ -146,9 +148,18 @@ const douyuLoginConfirm = async () => {
   await getDouyuUsers();
 };
 
+const douyuUpdateAuth = async (uid: number) => {
+  await douyuApi.updateAuth(uid);
+  notice.success({
+    title: "已更新授权",
+    duration: 1000,
+  });
+  await getDouyuUsers();
+};
+
 const douyuLogout = async (uid: number) => {
   const [status] = await confirm.warning({
-    content: "确认退出该斗鱼账号？录制配置中已有的 UID 引用将会保留。",
+    content: "确认退出该斗鱼账号？",
   });
   if (!status) return;
   await douyuApi.deleteUser(uid);

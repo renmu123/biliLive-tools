@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 
 import { appConfig } from "../config.js";
 import { decrypt, encrypt } from "../utils/index.js";
+import log from "../utils/log.js";
 
 import type { DouyuLoginCookies, DouyuUser } from "@biliLive-tools/types";
 
@@ -26,9 +27,11 @@ type CheckResponse = {
   data?: { url?: string };
 };
 
+type DouyuUserInput = Omit<DouyuUser, "createdAt" | "updatedAt">;
+
 export type DouyuLoginPollResult =
   | { status: "scan" }
-  | { status: "completed"; user: DouyuUser }
+  | { status: "completed"; user: DouyuUserInput }
   | { status: "error"; failReason: string };
 
 const getPassKey = () =>
@@ -189,7 +192,7 @@ export class DouyuQrcodeLogin {
       const mainCookies = parseCookie(mainCookie);
       const uid = Number(mainCookies.acf_uid);
       if (!Number.isSafeInteger(uid) || uid <= 0) throw new Error("登录成功但未获取到斗鱼 UID");
-      const user: DouyuUser = {
+      const user: DouyuUserInput = {
         uid,
         name:
           decodeCookieValue(profile.name) ||
@@ -242,12 +245,15 @@ export class DouyuQrcodeLogin {
   }
 }
 
-export const writeDouyuUser = (user: DouyuUser) => {
+export const writeDouyuUser = (user: DouyuUserInput) => {
+  const now = Date.now();
   const users = appConfig.get("douyuUser") || {};
   const storedUser: DouyuUser = {
     uid: user.uid,
     name: user.name,
     avatar: user.avatar,
+    createdAt: now,
+    updatedAt: now,
     loginCookies: {
       passport: user.loginCookies.passport,
       main: user.loginCookies.main,
@@ -262,20 +268,20 @@ export const readDouyuUser = (uid: number): DouyuUser | undefined => {
   if (!value) return undefined;
   const storedUser = JSON.parse(decrypt(value, getPassKey())) as DouyuUser & {
     cookie?: string;
-    loginCookies?: DouyuLoginCookies & { yuba?: string };
+    loginCookies?: DouyuLoginCookies;
   };
   const user: DouyuUser = {
     uid: storedUser.uid,
     name: storedUser.name,
     avatar: storedUser.avatar,
+    createdAt: storedUser.createdAt,
+    updatedAt: storedUser.updatedAt,
     loginCookies: {
       passport: storedUser.loginCookies?.passport || "",
       main: storedUser.loginCookies?.main || storedUser.cookie || "",
     },
   };
-  if (storedUser.cookie !== undefined || storedUser.loginCookies?.yuba !== undefined) {
-    writeDouyuUser(user);
-  }
+
   return user;
 };
 
@@ -290,6 +296,90 @@ export const deleteDouyuUser = (uid: number) => {
   const users = appConfig.get("douyuUser") || {};
   delete users[uid];
   appConfig.set("douyuUser", users);
+};
+
+const refreshRequests = new Map<number, Promise<void>>();
+
+/** 刷新主站 Cookie，保留本次登录记录的创建时间。 */
+export const refreshDouyuUser = (uid: number): Promise<void> => {
+  const pending = refreshRequests.get(uid);
+  if (pending) return pending;
+  const request = refreshDouyuUserInternal(uid).finally(() => refreshRequests.delete(uid));
+  refreshRequests.set(uid, request);
+  return request;
+};
+
+const refreshDouyuUserInternal = async (uid: number) => {
+  const user = readDouyuUser(uid);
+  if (!user) return;
+  const passport = parseCookie(user.loginCookies.passport);
+  const main = parseCookie(user.loginCookies.main);
+  const did = passport.dy_did || main.dy_did;
+  if (!did || !passport.LTP0) throw new Error("斗鱼刷新缺少 dy_did 或 LTP0");
+  const timestamp = String(Date.now());
+  const url = new URL("https://passport.douyu.com/lapi/passport/iframe/safeAuth");
+  url.search = new URLSearchParams({
+    client_id: "1",
+    t: timestamp,
+    _: timestamp,
+    callback: "axiosJsonpCallback",
+  }).toString();
+  const response = await fetch(url.toString(), {
+    headers: {
+      Cookie: `dy_did=${did}; LTP0=${passport.LTP0}`,
+      "User-Agent": USER_AGENT,
+      Referer: `${MAIN_ORIGIN}/`,
+      Origin: MAIN_ORIGIN,
+    },
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!response.ok) throw new Error(`斗鱼刷新请求失败（${response.status}）`);
+  const body = parseJsonp(await response.text());
+  if (body?.error !== undefined && Number(body.error) !== 0) {
+    throw new Error("斗鱼刷新登录态失败");
+  }
+  if (!getSetCookieHeaders(response.headers).some((header) => parseSetCookiePair(header))) {
+    throw new Error("斗鱼刷新未返回 Cookie");
+  }
+  const cookie = mergeCookies(user.loginCookies.main, response.headers);
+  if (Number(parseCookie(cookie).acf_uid) !== uid) throw new Error("斗鱼刷新账号 UID 不匹配");
+  const users = appConfig.get("douyuUser") || {};
+
+  users[uid] = encrypt(
+    JSON.stringify({
+      ...user,
+      loginCookies: { ...user.loginCookies, main: cookie },
+      updatedAt: Date.now(),
+    }),
+    getPassKey(),
+  );
+  appConfig.set("douyuUser", users);
+};
+
+export const checkDouyuAccounts = async () => {
+  const now = Date.now();
+  for (const uid of Object.keys(appConfig.get("douyuUser") || {})) {
+    try {
+      const user = readDouyuUser(Number(uid));
+      if (user && now - (user.updatedAt ?? 0) > 4 * 24 * 60 * 60 * 1000) {
+        await refreshDouyuUser(user.uid);
+      }
+    } catch {
+      // 不输出响应、请求头或 Cookie。
+      log.warn(`斗鱼账号 ${uid} Cookie 刷新失败，将在下次检查时重试`);
+    }
+  }
+};
+
+// 斗鱼账号cookie刷新检查，每天一次
+export const checkDouyuAccountLoop = async () => {
+  try {
+    await checkDouyuAccounts();
+  } catch {
+    log.warn("斗鱼账号检查失败，将在下次检查时重试");
+  } finally {
+    setTimeout(checkDouyuAccountLoop, 24 * 60 * 60 * 1000);
+  }
 };
 
 export type { DouyuLoginCookies };

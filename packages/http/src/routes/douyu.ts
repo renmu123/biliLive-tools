@@ -6,6 +6,7 @@ import {
   DouyuQrcodeLogin,
   readDouyuUserList,
   writeDouyuUser,
+  refreshDouyuUser,
 } from "@biliLive-tools/shared/recorder/douyu.js";
 
 const router = new Router({ prefix: "/douyu" });
@@ -72,7 +73,24 @@ router.post("/login/cancel", async (ctx) => {
 });
 
 router.get("/user/list", (ctx) => {
-  ctx.body = readDouyuUserList().map(({ uid, name, avatar }) => ({ uid, name, avatar }));
+  ctx.body = readDouyuUserList().map(({ uid, name, avatar, createdAt, updatedAt }) => ({
+    uid,
+    name,
+    avatar,
+    createdAt,
+    updatedAt,
+  }));
+});
+
+router.post("/user/update_auth", async (ctx) => {
+  const uid = Number((ctx.request.body as { uid?: number })?.uid);
+  if (!Number.isSafeInteger(uid) || uid <= 0) {
+    ctx.status = 400;
+    ctx.body = "valid uid required";
+    return;
+  }
+  await refreshDouyuUser(uid);
+  ctx.body = "success";
 });
 
 router.post("/user/delete", (ctx) => {

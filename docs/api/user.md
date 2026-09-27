@@ -166,5 +166,5 @@ SESSDATA=xxx; bili_jct=xxx; DedeUserID=xxx; buvid3=xxx
 
 ## 账号列表与退出
 
-- `GET /douyu/user/list` 返回不包含 Cookie 的斗鱼账号列表。
+- `GET /douyu/user/list` 返回不包含 Cookie 的斗鱼账号列表，包含 `createdAt`（当前登录记录的创建时间）与 `updatedAt`（最近更新登录信息时间），均为 Unix 毫秒时间戳。同 UID 重新登录时同时重置创建时间和更新时间；自动刷新 Cookie 成功时只更新 `updatedAt`。
 - `POST /douyu/user/delete`，请求体为 `{ "uid": 斗鱼 UID }`。退出账号不会清除录制配置中的 UID 引用。

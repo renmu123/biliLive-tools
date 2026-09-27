@@ -1214,7 +1214,7 @@ export const getCookie = (uid: number) => {
 };
 
 // 检查b站账号有效期
-export const checkAccountLoop = () => {
+export const checkBiliAccountLoop = () => {
   const canAutoCheck = appConfig.get("biliUpload")?.accountAutoCheck ?? false;
   let interval = 24 * 60 * 60 * 1000;
   try {
@@ -1240,7 +1240,7 @@ export const checkAccountLoop = () => {
     console.log("检查授权失败", e);
   } finally {
     // 24小时检查一次
-    setTimeout(checkAccountLoop, interval);
+    setTimeout(checkBiliAccountLoop, interval);
   }
 };
 

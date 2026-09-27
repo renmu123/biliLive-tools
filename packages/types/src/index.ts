@@ -1171,6 +1171,10 @@ export interface DouyuUser {
   name: string;
   avatar?: string;
   loginCookies: DouyuLoginCookies;
+  /** 当前登录记录的创建时间，重新登录时重置，Unix 毫秒时间戳 */
+  createdAt: number;
+  /** 最近更新登录信息的时间，Unix 毫秒时间戳 */
+  updatedAt: number;
 }
 
 export type HotProgressOptions = {
