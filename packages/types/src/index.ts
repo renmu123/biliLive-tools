@@ -706,6 +706,8 @@ export interface AppConfig {
       douyuDownload: NotificationTaskStatus[];
       mediaStatusCheck: NotificationTaskStatus[];
       sync: NotificationTaskStatus[];
+      /** 斗鱼账号预计过期前提醒（按登录创建时间起 60 天计算） */
+      douyuAccountExpiry: boolean;
       diskSpaceCheck: {
         values: Array<"bilirecorder" | "bililiveTools">;
         /** 磁盘空间不足阈值，单位GB */
@@ -715,7 +717,7 @@ export interface AppConfig {
     /** 通知配置项 */
     setting: {
       // 通知类型，支持server酱和邮件
-      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne" | "customHttp";
+      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne" | "customHttp" | null;
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
@@ -727,6 +729,7 @@ export interface AppConfig {
     taskNotificationType: {
       liveStart: AppConfig["notification"]["setting"]["type"];
       chargeLive?: AppConfig["notification"]["setting"]["type"];
+      douyuAccountExpiry?: AppConfig["notification"]["setting"]["type"];
     };
   };
   // 同步

@@ -76,7 +76,7 @@ export const useUserInfoStore = defineStore("userInfo", () => {
 });
 
 export const useDouyuUserStore = defineStore("douyuUser", () => {
-  const userList = ref<{ uid: number; name: string; avatar?: string }[]>([]);
+  const userList = ref<Awaited<ReturnType<typeof douyuApi.getUsers>>>([]);
   async function getUsers() {
     userList.value = await douyuApi.getUsers();
   }

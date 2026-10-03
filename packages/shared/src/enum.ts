@@ -196,6 +196,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
         threshold: 10,
       },
       sync: [],
+      douyuAccountExpiry: false,
     },
     setting: {
       type: undefined,
@@ -233,6 +234,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     taskNotificationType: {
       liveStart: "system",
       chargeLive: "system",
+      douyuAccountExpiry: null,
     },
   },
   sync: {

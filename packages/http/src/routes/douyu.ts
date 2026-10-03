@@ -7,6 +7,7 @@ import {
   readDouyuUserList,
   writeDouyuUser,
   refreshDouyuUser,
+  validateDouyuUser,
 } from "@biliLive-tools/shared/recorder/douyu.js";
 
 const router = new Router({ prefix: "/douyu" });
@@ -91,6 +92,16 @@ router.post("/user/update_auth", async (ctx) => {
   }
   await refreshDouyuUser(uid);
   ctx.body = "success";
+});
+
+router.post("/user/validate", async (ctx) => {
+  const uid = Number((ctx.request.body as { uid?: number })?.uid);
+  if (!Number.isSafeInteger(uid) || uid <= 0) {
+    ctx.status = 400;
+    ctx.body = "valid uid required";
+    return;
+  }
+  ctx.body = { valid: await validateDouyuUser(uid) };
 });
 
 router.post("/user/delete", (ctx) => {

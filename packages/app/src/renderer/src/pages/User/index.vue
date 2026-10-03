@@ -54,14 +54,16 @@
         <BiliLoginDialog v-model="loginTvDialogVisible" @confirm="loginConfirm"></BiliLoginDialog>
       </n-tab-pane>
       <n-tab-pane name="douyu" tab="斗鱼">
-        <p>Cookie有效期为6天</p>
         <div class="user-info">
           <div class="login-btns">
             <n-button type="primary" @click="douyuLogin">登录账号</n-button>
           </div>
         </div>
         <div class="container">
-          <div v-for="item in douyuUserList" :key="item.uid" class="card">
+          <div v-for="item in douyuUserList" :key="item.uid" class="card douyu-card">
+            <div class="expires" :class="{ expired: douyuRemainingDays(item.createdAt) === 0 }">
+              {{ douyuExpiryText(item.createdAt) }}
+            </div>
             <span class="username">{{ item.name }}</span>
             <img
               v-if="item.avatar"
@@ -76,6 +78,7 @@
                 <n-icon size="25" class="pointer menu"><EllipsisHorizontalOutline /></n-icon>
               </template>
               <div style="padding: 5px 10px">uid: {{ item.uid }}</div>
+              <div class="section" @click="douyuValidate(item.uid)">校验有效性</div>
               <div class="section" @click="douyuUpdateAuth(item.uid)">更新授权</div>
               <div class="section section-danger" @click="douyuLogout(item.uid)">退出账号</div>
             </n-popover>
@@ -110,6 +113,33 @@ const notice = useNotification();
 const { userList: douyuUserList } = storeToRefs(useDouyuUserStore());
 const { getUsers: getDouyuUsers } = useDouyuUserStore();
 const douyuLoginVisible = ref(false);
+const DOUYU_VALID_DAYS = 60;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const currentTime = ref(Date.now());
+let expiryTimer: ReturnType<typeof setInterval> | undefined;
+
+const douyuRemainingDays = (createdAt: number): number | undefined => {
+  if (!Number.isFinite(createdAt) || createdAt <= 0) return undefined;
+  return Math.max(
+    0,
+    Math.ceil((createdAt + DOUYU_VALID_DAYS * DAY_MS - currentTime.value) / DAY_MS),
+  );
+};
+
+const douyuExpiryText = (createdAt: number): string => {
+  const remaining = douyuRemainingDays(createdAt);
+  return remaining === undefined ? "有效期未知" : `剩余 ${remaining} / ${DOUYU_VALID_DAYS} 天`;
+};
+
+onMounted(() => {
+  expiryTimer = setInterval(() => {
+    currentTime.value = Date.now();
+  }, 60 * 1000);
+});
+
+onUnmounted(() => {
+  if (expiryTimer) clearInterval(expiryTimer);
+});
 
 const loginTvDialogVisible = ref(false);
 const login = async () => {
@@ -155,6 +185,15 @@ const douyuUpdateAuth = async (uid: number) => {
     duration: 1000,
   });
   await getDouyuUsers();
+};
+
+const douyuValidate = async (uid: number) => {
+  const { valid } = await douyuApi.validate(uid);
+  if (valid) {
+    notice.success({ title: "Cookie 有效", duration: 2000 });
+  } else {
+    notice.warning({ title: "Cookie 已失效", duration: 3000 });
+  }
 };
 
 const douyuLogout = async (uid: number) => {
@@ -384,6 +423,7 @@ const getCookie = async (uid: number) => {
 };
 
 onActivated(() => {
+  currentTime.value = Date.now();
   getUsers();
   getDouyuUsers();
 });
@@ -464,6 +504,9 @@ onActivated(() => {
   padding: 4px 6px;
   border-radius: 0 10px 0 10px;
   font-size: 10px;
+  &.expired {
+    background: var(--color-danger-text);
+  }
 }
 .username {
   color: var(--text-primary);

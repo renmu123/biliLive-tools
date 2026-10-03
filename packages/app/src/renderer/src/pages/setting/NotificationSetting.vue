@@ -274,7 +274,7 @@
       <n-select
         v-model:value="config.notification.taskNotificationType.liveStart"
         :options="typeOptions"
-        placeholder="请选择通知类型，不选则使用全局通知类型"
+        placeholder="不选则使用全局通知类型"
         clearable
         style="width: 200px"
       />
@@ -283,7 +283,7 @@
       <n-select
         v-model:value="config.notification.taskNotificationType.chargeLive"
         :options="typeOptions"
-        placeholder="请选择通知类型，不选则使用全局通知类型"
+        placeholder="不选则使用全局通知类型"
         clearable
         style="width: 200px"
       />
@@ -309,6 +309,20 @@
       >
         <template #suffix> GB </template>
       </n-input-number>
+    </n-form-item>
+    <n-form-item>
+      <template #label>
+        <Tip tip="预计剩余不足 5 天时通知" text="斗鱼账号过期"></Tip>
+      </template>
+      <n-switch v-model:value="config.notification.task.douyuAccountExpiry" />
+      <n-select
+        v-if="config.notification.task.douyuAccountExpiry"
+        v-model:value="config.notification.taskNotificationType.douyuAccountExpiry"
+        :options="typeOptions"
+        placeholder="不选则使用全局通知类型"
+        clearable
+        style="width: 200px; margin-left: 10px"
+      />
     </n-form-item>
   </n-form>
 </template>

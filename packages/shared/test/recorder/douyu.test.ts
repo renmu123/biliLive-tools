@@ -5,6 +5,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { appConfig } from "../../src/config.js";
+import { send as sendNotify } from "../../src/notify.js";
 import { encrypt } from "../../src/utils/index.js";
 import {
   deleteDouyuUser,
@@ -14,7 +15,11 @@ import {
   writeDouyuUser,
   refreshDouyuUser,
   checkDouyuAccounts,
+  checkDouyuAccountExpiry,
+  validateDouyuUser,
 } from "../../src/recorder/douyu.js";
+
+vi.mock("../../src/notify.js", () => ({ send: vi.fn().mockResolvedValue(undefined) }));
 
 const jsonResponse = (data: unknown, cookies: string[] = []) => {
   const headers = new Headers({ "content-type": "application/json" });
@@ -33,6 +38,7 @@ describe("DouyuQrcodeLogin", () => {
   const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
+    vi.mocked(sendNotify).mockClear();
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "douyu-login-test-"));
     appConfig.init(path.join(tempDir, "config.json"), { douyuUser: {} });
   });
@@ -184,6 +190,30 @@ describe("DouyuQrcodeLogin", () => {
     expect(readDouyuUser(1)).toBeUndefined();
   });
 
+  it("通过粉丝牌接口校验主站 Cookie，且不修改账号", async () => {
+    writeDouyuUser({
+      uid: 1,
+      name: "用户",
+      loginCookies: { passport: "LTP0=passport", main: "acf_uid=1; acf_auth=main" },
+    });
+    const stored = appConfig.get("douyuUser")[1];
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(textResponse('<table class="fans-badge-list"><tr></tr></table>'))
+      .mockResolvedValueOnce(textResponse("<html>请登录</html>"))
+      .mockResolvedValueOnce(new Response("", { status: 401 }))
+      .mockResolvedValueOnce(new Response("", { status: 500 }));
+    globalThis.fetch = fetchMock;
+    await expect(validateDouyuUser(1)).resolves.toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe("https://www.douyu.com/member/cp/getFansBadgeList");
+    expect(fetchMock.mock.calls[0][1].headers.Cookie).toBe("acf_uid=1; acf_auth=main");
+    await expect(validateDouyuUser(1)).resolves.toBe(false);
+    await expect(validateDouyuUser(1)).resolves.toBe(false);
+    await expect(validateDouyuUser(1)).rejects.toThrow("500");
+    expect(appConfig.get("douyuUser")[1]).toBe(stored);
+    await expect(validateDouyuUser(2)).rejects.toThrow("斗鱼账号不存在");
+  });
+
   it("旧账号读取不伪造缺失的时间戳", () => {
     const clock = vi.spyOn(Date, "now").mockReturnValue(1000);
     const key =
@@ -202,6 +232,38 @@ describe("DouyuQrcodeLogin", () => {
     expect(readDouyuUser(1)).toMatchObject({ createdAt: undefined, updatedAt: undefined });
     clock.mockReturnValue(2000);
     expect(readDouyuUserList()[0]).toMatchObject({ createdAt: undefined, updatedAt: undefined });
+  });
+
+  it("过期提醒有独立开关，严格不足五天才通知，包含已过期账号", async () => {
+    const day = 24 * 60 * 60 * 1000;
+    const now = 100 * day;
+    const clock = vi.spyOn(Date, "now").mockReturnValue(now);
+    writeDouyuUser({
+      uid: 1,
+      name: "斗鱼用户",
+      loginCookies: { passport: "LTP0=secret", main: "acf_uid=1; token=secret" },
+    });
+    appConfig.set("notification.task.douyuAccountExpiry", false);
+    clock.mockReturnValue(now + 55 * day);
+    await checkDouyuAccountExpiry();
+    expect(sendNotify).not.toHaveBeenCalled();
+
+    appConfig.set("notification.task.douyuAccountExpiry", true);
+    await checkDouyuAccountExpiry();
+    expect(sendNotify).not.toHaveBeenCalled();
+    clock.mockReturnValue(now + 55 * day + 1);
+    await checkDouyuAccountExpiry();
+    expect(sendNotify).toHaveBeenCalledTimes(1);
+    expect(sendNotify).toHaveBeenCalledWith(
+      "斗鱼账号即将过期",
+      expect.stringContaining("斗鱼用户（UID：1）"),
+      expect.objectContaining({ type: "douyuAccountExpiry" }),
+    );
+    expect(JSON.stringify(vi.mocked(sendNotify).mock.calls)).not.toContain("secret");
+    clock.mockReturnValue(now + 61 * day);
+    await checkDouyuAccountExpiry();
+    expect(sendNotify).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(sendNotify).mock.calls[1][1]).toContain("预计已过期");
   });
 
   it("严格超过四天才刷新，合并所有返回 Cookie 并只更新更新时间", async () => {

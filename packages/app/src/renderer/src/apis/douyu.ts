@@ -35,4 +35,9 @@ const updateAuth = async (uid: number) => {
   return res.data;
 };
 
-export default { qrcode, loginPoll, loginCancel, getUsers, deleteUser, updateAuth };
+const validate = async (uid: number): Promise<{ valid: boolean }> => {
+  const res = await request.post("/douyu/user/validate", { uid });
+  return res.data;
+};
+
+export default { qrcode, loginPoll, loginCancel, getUsers, deleteUser, updateAuth, validate };
