@@ -17,8 +17,17 @@
         </n-breadcrumb>
 
         <n-space>
-          <n-button :disabled="!parentPath" @click="goParent">返回上级</n-button>
-          <n-button @click="refreshCurrent">刷新</n-button>
+          <n-button :disabled="!parentPath || deleting" @click="goParent">返回上级</n-button>
+          <n-button :disabled="deleting" @click="refreshCurrent">刷新</n-button>
+          <n-button
+            v-if="hasDeletableItems"
+            type="error"
+            :disabled="selectedFiles.length === 0 || loading || deleting"
+            :loading="deleting"
+            @click="removeSelectedFiles"
+          >
+            批量删除（{{ selectedFiles.length }}）
+          </n-button>
         </n-space>
       </div>
 
@@ -29,7 +38,14 @@
       </n-card>
 
       <n-spin :show="loading">
-        <n-data-table :columns="columns" :data="items" :pagination="false" />
+        <n-data-table
+          :columns="columns"
+          :data="items"
+          :row-key="rowKey"
+          :checked-row-keys="checkedRowKeys"
+          :pagination="false"
+          @update:checked-row-keys="onCheckedRowKeysChange"
+        />
       </n-spin>
     </n-space>
   </div>
@@ -42,7 +58,7 @@ import { useConfirm } from "@renderer/hooks";
 import { useNotice } from "@renderer/hooks/useNotice";
 import { toVideoPlayerPage } from "@renderer/utils/pages";
 
-import type { DataTableColumns } from "naive-ui";
+import type { DataTableColumns, DataTableRowKey } from "naive-ui";
 import type { FileBrowserItem } from "@renderer/apis/fileBrowser";
 
 defineOptions({
@@ -55,7 +71,9 @@ interface BreadcrumbItem {
 }
 
 const loading = ref(false);
+const deleting = ref(false);
 const items = ref<FileBrowserItem[]>([]);
+const checkedRowKeys = ref<DataTableRowKey[]>([]);
 const rootPath = ref("");
 const currentPath = ref("");
 const parentPath = ref<string | null>(null);
@@ -63,6 +81,18 @@ const deleteEnabled = ref(false);
 
 const confirm = useConfirm();
 const notice = useNotice();
+
+const rowKey = (row: FileBrowserItem) => row.path;
+const hasDeletableItems = computed(
+  () => deleteEnabled.value && items.value.some((item) => item.canDelete),
+);
+const selectedFiles = computed(() => {
+  const selectedPaths = new Set(checkedRowKeys.value);
+  return items.value.filter((item) => item.canDelete && selectedPaths.has(item.path));
+});
+const onCheckedRowKeysChange = (keys: DataTableRowKey[]) => {
+  checkedRowKeys.value = keys;
+};
 
 const pathSeparator = computed(() => (rootPath.value.includes("\\") ? "\\" : "/"));
 
@@ -143,6 +173,7 @@ const fetchList = async (path?: string) => {
     currentPath.value = data.currentPath;
     parentPath.value = data.parentPath;
     deleteEnabled.value = data.deleteEnabled;
+    checkedRowKeys.value = [];
   } catch (error: any) {
     notice.error({
       title: error?.message || error || "获取文件列表失败",
@@ -153,17 +184,19 @@ const fetchList = async (path?: string) => {
 };
 
 const goToPath = async (path: string) => {
+  if (deleting.value) return;
   await fetchList(path);
 };
 
 const goParent = async () => {
-  if (!parentPath.value) {
+  if (!parentPath.value || deleting.value) {
     return;
   }
   await fetchList(parentPath.value);
 };
 
 const refreshCurrent = async () => {
+  if (deleting.value) return;
   await fetchList(currentPath.value || undefined);
 };
 
@@ -187,24 +220,88 @@ const openPlayer = async (row: FileBrowserItem) => {
 };
 
 const removeFile = async (row: FileBrowserItem) => {
-  const [confirmed] = await confirm.warning({
-    content: `确定删除文件 ${row.name} 吗？此操作不可撤销。`,
-  });
-  if (!confirmed) {
-    return;
-  }
+  if (deleting.value || loading.value) return;
+  deleting.value = true;
   try {
+    const [confirmed] = await confirm.warning({
+      content: `确定删除文件 ${row.name} 吗？此操作不可撤销。`,
+    });
+    if (!confirmed) return;
     await fileBrowserApi.removeFile(row.path);
     notice.success("删除成功");
-    await refreshCurrent();
+    await fetchList(currentPath.value);
   } catch (error: any) {
     notice.error({
       title: error?.message || error || "删除失败",
     });
+  } finally {
+    deleting.value = false;
+  }
+};
+
+const removeSelectedFiles = async () => {
+  if (deleting.value || loading.value || selectedFiles.value.length === 0) return;
+  const files = [...selectedFiles.value];
+  deleting.value = true;
+  try {
+    const [confirmed] = await confirm.warning({
+      content: `确定删除选中的 ${files.length} 个文件吗？此操作不可撤销。`,
+    });
+    if (!confirmed) return;
+
+    const failed: { name: string; reason: unknown }[] = [];
+    let succeeded = 0;
+    const batchSize = 5;
+    for (let index = 0; index < files.length; index += batchSize) {
+      const batch = files.slice(index, index + batchSize);
+      const results = await Promise.allSettled(
+        batch.map((file) => fileBrowserApi.removeFile(file.path)),
+      );
+      results.forEach((result, resultIndex) => {
+        if (result.status === "fulfilled") {
+          succeeded++;
+        } else {
+          failed.push({ name: batch[resultIndex].name, reason: result.reason });
+        }
+      });
+    }
+
+    await fetchList(currentPath.value);
+    if (succeeded > 0) {
+      notice.success(`成功删除 ${succeeded} 个文件`);
+    }
+    if (failed.length > 0) {
+      notice.error({
+        title: `${failed.length} 个文件删除失败`,
+        content:
+          failed
+            .slice(0, 3)
+            .map(
+              ({ name, reason }) =>
+                `${name}：${reason instanceof Error ? reason.message : String(reason)}`,
+            )
+            .join("；") + (failed.length > 3 ? "；其余文件也未删除" : ""),
+        duration: 5000,
+      });
+    }
+  } catch (error: any) {
+    notice.error({
+      title: error?.message || error || "批量删除失败",
+    });
+  } finally {
+    deleting.value = false;
   }
 };
 
 const columns = computed<DataTableColumns<FileBrowserItem>>(() => [
+  ...(hasDeletableItems.value
+    ? [
+        {
+          type: "selection" as const,
+          disabled: (row: FileBrowserItem) => !row.canDelete || deleting.value,
+        },
+      ]
+    : []),
   {
     title: "名称",
     key: "name",
@@ -310,6 +407,7 @@ const columns = computed<DataTableColumns<FileBrowserItem>>(() => [
             {
               text: true,
               type: "error",
+              disabled: deleting.value || loading.value,
               onClick: () => removeFile(row),
             },
             { default: () => "删除" },
