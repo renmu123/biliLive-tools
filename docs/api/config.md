@@ -179,6 +179,7 @@
         threshold: 10, // 磁盘剩余空间阈值 (GB)
       },
       sync: [], // 文件同步完成通知
+      douyuAccountExpiry: false, // 斗鱼账号预计过期提醒：创建后 60 天过期，剩余不足 5 天时每日检查
     },
     setting: {
       type: undefined, // 通知类型: server|mail|tg|ntfy|allInOne|customHttp
@@ -215,6 +216,7 @@
     },
     taskNotificationType: {
       liveStart: "system", // 直播开始通知方式: system|server|...
+      douyuAccountExpiry: "system", // 斗鱼账号过期提醒的独立通知渠道
     },
   },
 
@@ -335,9 +337,9 @@
       waitTime: undefined,
     },
     douyu: { // 斗鱼特定配置
+      uid: undefined, // 在用户页登录后获得的斗鱼账号 UID
       quality: 0,
       source: "auto",
-      cookie: "", // 斗鱼 Cookie
       checkInterval: undefined,
       maxThreadCount: undefined,
       waitTime: undefined,

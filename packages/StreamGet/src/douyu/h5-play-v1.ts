@@ -1,6 +1,7 @@
 import type { HttpClient } from "../http.js";
 import { ParseError, NetworkError } from "../errors.js";
 import { md5 } from "../utils.js";
+import cookie from "cookie";
 import type { GetH5PlayOptions, GetH5PlayResponse } from "./h5-play.js";
 
 const DEFAULT_DID = "10000000000000000000000000001501";
@@ -93,7 +94,13 @@ export async function getH5PlayV1(
   http: HttpClient,
   opts: GetH5PlayOptions,
 ): Promise<GetH5PlayResponse> {
-  const did = DEFAULT_DID;
+  let did = DEFAULT_DID;
+  if (http?.defaultOptions?.cookie) {
+    const cookies = cookie.parse(http.defaultOptions.cookie);
+    if (cookies.dy_did) {
+      did = cookies.dy_did as string;
+    }
+  }
   const timestamp = Math.round(Date.now() / 1000);
   const encryptionData = await getEncryption(http, did);
   const auth = buildAuth(opts.channelId, timestamp, encryptionData);

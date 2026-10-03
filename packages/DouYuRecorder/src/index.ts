@@ -152,7 +152,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       avoidEdgeCDN: true,
       codecName: this.codecName,
       api: this.api,
-      auth: this.auth,
+      auth: this.auth || "",
     });
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);

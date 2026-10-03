@@ -39,7 +39,7 @@ async function decodeTextBody(
 export class HttpClient {
   private agent?: Agent | ProxyAgent;
 
-  constructor(private defaultOptions?: RequestOptions) {
+  constructor(public defaultOptions?: RequestOptions) {
     this.updateAgent(defaultOptions?.proxy);
   }
 
