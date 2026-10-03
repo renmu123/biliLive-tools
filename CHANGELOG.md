@@ -1,3 +1,9 @@
+# Next
+
+## 优化
+
+- 录制：列表模式支持头像显示 [#501](https://github.com/renmu123/biliLive-tools/issues/501)
+
 # 3.22.2(2026.10.03)
 
 ## 功能
