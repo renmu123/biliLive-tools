@@ -39,9 +39,15 @@
         </template>
       </div>
     </template>
-    <template v-else>
-      <h2>暂无任务，快去添加一个试试吧</h2>
-    </template>
+    <n-empty
+      v-else
+      class="empty-state"
+      :description="
+        queue.length === 0 && !store.params.type
+          ? '暂无任务，快去添加一个试试吧'
+          : '没有符合筛选条件的任务'
+      "
+    />
   </div>
 </template>
 
@@ -192,13 +198,17 @@ onActivated(() => {
   flex-direction: column;
   gap: 10px;
   .item {
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-secondary);
     padding: 10px 5px;
     padding-top: 0;
 
     .sub-item {
       margin-left: 15px;
     }
+  }
+
+  .empty-state {
+    padding: 48px 0;
   }
 }
 </style>
