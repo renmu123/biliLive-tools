@@ -242,17 +242,18 @@ router.post("/import", upload.single("file"), async (ctx) => {
           // 如果filename是 appConfig.json，那么替换掉ffmpegPath、ffprobePath、danmuFactoryPath配置
           if (filename === "appConfig.json") {
             const data = await fs.readJSON(path.join(userDataPath, `${filename}.backup`));
-            const appConfig = await fs.readJSON(configPath);
-            appConfig.ffmpegPath = data.ffmpegPath;
-            appConfig.ffprobePath = data.ffprobePath;
-            appConfig.danmuFactoryPath = data.danmuFactoryPath;
-            appConfig.mesioPath = data.mesioPath;
-            appConfig.bililiveRecorderPath = data.bililiveRecorderPath;
-            appConfig.audiowaveformPath = data.audiowaveformPath;
-            appConfig.webhook.recoderFolder = data.webhook.recoderFolder;
-            appConfig.recorder.savePath = data.recorder.savePath;
-            appConfig.losslessCutPath = data.losslessCutPath;
-            await fs.writeJSON(filePath, appConfig);
+            const importedConfig = await fs.readJSON(configPath);
+            importedConfig.ffmpegPath = data.ffmpegPath;
+            importedConfig.ffprobePath = data.ffprobePath;
+            importedConfig.danmuFactoryPath = data.danmuFactoryPath;
+            importedConfig.mesioPath = data.mesioPath;
+            importedConfig.bililiveRecorderPath = data.bililiveRecorderPath;
+            importedConfig.audiowaveformPath = data.audiowaveformPath;
+            importedConfig.webhook.recoderFolder = data.webhook.recoderFolder;
+            importedConfig.recorder.savePath = data.recorder.savePath;
+            importedConfig.losslessCutPath = data.losslessCutPath;
+            await fs.writeJSON(filePath, importedConfig);
+            appConfig.getAll();
           }
         } else if (filename === "app.db") {
           // 备份文件

@@ -5,6 +5,8 @@ import { readDouyuUser } from "./douyu.js";
 import type { Recorder } from "@biliLive-tools/types";
 import type { AppConfig } from "../config.js";
 
+type AuthCache = Map<string, string | undefined>;
+
 // 定义独立配置类
 export default class RecorderConfig {
   appConfig: AppConfig;
@@ -17,12 +19,36 @@ export default class RecorderConfig {
     return setting.find((setting) => setting.id === id);
   }
 
-  public get(id: string):
+  private getAuth(providerId: "Bilibili" | "DouYu", uid: number, authCache: AuthCache) {
+    const key = `${providerId}:${uid}`;
+    if (authCache.has(key)) return authCache.get(key);
+
+    let auth: string | undefined;
+    try {
+      if (providerId === "Bilibili") {
+        auth = Object.entries(getCookie(uid))
+          .map(([key, value]) => `${key}=${value}`)
+          .join("; ");
+      } else {
+        auth = readDouyuUser(uid)?.loginCookies.main;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    authCache.set(key, auth);
+    return auth;
+  }
+
+  public get(
+    id: string,
+    opts: { authCache?: AuthCache } = {},
+  ):
     | (Recorder & {
         auth?: string;
         formatPriorities?: Array<"hls" | "flv">;
       })
     | null {
+    const { authCache = new Map<string, string | undefined>() } = opts;
     const getValue = (key: any): any => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
         return setting?.[key];
@@ -137,8 +163,8 @@ export default class RecorderConfig {
       }
     };
 
-    const settings = this.appConfig.get("recorders");
-    const globalConfig = this.appConfig.get("recorder");
+    const settings = this.appConfig.get("recorders", true);
+    const globalConfig = this.appConfig.get("recorder", true);
 
     const setting = settings.find((setting) => setting.id === id)!;
     if (!setting) return null;
@@ -146,29 +172,10 @@ export default class RecorderConfig {
     // 授权处理
     let uid: number | string | undefined = undefined;
     let auth: string | undefined;
-    if (setting.providerId === "Bilibili") {
+    if (setting.providerId === "Bilibili" || setting.providerId === "DouYu") {
       uid = getValue("uid");
       if (uid) {
-        try {
-          const cookies = getCookie(Number(uid));
-          auth = Object.entries(cookies)
-            .map(([key, value]) => {
-              return `${key}=${value}`;
-            })
-            .join("; ");
-        } catch (error) {
-          console.error(error);
-        }
-      }
-    } else if (setting.providerId === "DouYu") {
-      uid = getValue("uid");
-      if (uid) {
-        try {
-          auth = readDouyuUser(Number(uid))?.loginCookies.main;
-          // console.log("pp", readDouyuUser(Number(uid)));
-        } catch (error) {
-          console.error(error);
-        }
+        auth = this.getAuth(setting.providerId, Number(uid), authCache);
       }
     } else if (setting.providerId === "DouYin") {
       auth = getValue("cookie");
@@ -252,9 +259,16 @@ export default class RecorderConfig {
   }
   public list() {
     const recorders = this.appConfig.get("recorders");
+    const authCache: AuthCache = new Map();
+    for (const uid of Object.keys(this.appConfig.get("bilibiliUser", true) || {})) {
+      this.getAuth("Bilibili", Number(uid), authCache);
+    }
+    for (const uid of Object.keys(this.appConfig.get("douyuUser", true) || {})) {
+      this.getAuth("DouYu", Number(uid), authCache);
+    }
     return recorders
       .map((recorder) => {
-        return this.get(recorder.id);
+        return this.get(recorder.id, { authCache });
       })
       .filter((recorder) => recorder != null);
   }

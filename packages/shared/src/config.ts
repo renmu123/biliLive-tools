@@ -11,7 +11,7 @@ import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/ty
 
 interface ConfigEvents {
   /** 更新配置时触发 */
-  update: (newData: any, oldData: any) => void;
+  update: (newData: any, oldData: any, key: string | number | null) => void;
 }
 
 export default class Config extends TypedEmitter<ConfigEvents> {
@@ -29,13 +29,13 @@ export default class Config extends TypedEmitter<ConfigEvents> {
     const oldData = cloneDeep(this.data);
     set(this.data, key, value);
     this.save();
-    this.emit("update", this.data, oldData);
+    this.emit("update", this.data, oldData, key);
   }
   setAll(data: { [propName: string]: any }) {
     const oldData = this.read();
     this.data = data;
     this.save();
-    this.emit("update", this.data, oldData);
+    this.emit("update", this.data, oldData, null);
   }
   get(key: string | number) {
     this.read();
@@ -107,9 +107,13 @@ export class AppConfig extends Config {
     const initData = defaultsDeep(data, APP_DEFAULT_CONFIG);
     super.init(filepath, initData);
   }
-  get<K extends keyof AppConfigType>(key: K): AppConfigType[K];
-  get<TPath extends string>(key: TPath): ReturnType<typeof get>;
-  get(key: keyof AppConfigType | string) {
+  /** withCache 为 true 时读取内存缓存，默认重新读取文件并刷新缓存。 */
+  get<K extends keyof AppConfigType>(key: K, withCache?: boolean): AppConfigType[K];
+  get<TPath extends string>(key: TPath, withCache?: boolean): ReturnType<typeof get>;
+  get(key: keyof AppConfigType | string, withCache = false) {
+    if (withCache) {
+      return get(this.data, key);
+    }
     return super.get(key);
   }
   // 使用lodash的get方法，保留type

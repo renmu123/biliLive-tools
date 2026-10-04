@@ -50,8 +50,10 @@ const init = async (config: GlobalConfig) => {
   const logLevel = appConfig.get("logLevel");
   initLogger(config.logPath, logLevel);
 
-  appConfig.on("update", (data) => {
-    setLogLevel(data.logLevel);
+  appConfig.on("update", (newData, oldData) => {
+    if (newData.logLevel !== oldData.logLevel) {
+      setLogLevel(newData.logLevel);
+    }
   });
 
   initDB(config.userDataPath);

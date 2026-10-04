@@ -121,7 +121,6 @@ import hotkeys from "hotkeys-js";
 import { useRouter } from "vue-router";
 
 import FileSelect from "@renderer/pages/Tools/pages/Burn/components/FileSelect.vue";
-import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
 import { formatFile, supportedVideoExtensions } from "@renderer/utils";
 import { taskApi, danmaApi } from "@renderer/apis";
