@@ -11,7 +11,7 @@ import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/ty
 
 interface ConfigEvents {
   /** 更新配置时触发 */
-  update: (newData: any, oldData: any) => void;
+  update: (newData: any, oldData: any, key: string | number | null) => void;
 }
 
 export default class Config extends TypedEmitter<ConfigEvents> {
@@ -29,13 +29,13 @@ export default class Config extends TypedEmitter<ConfigEvents> {
     const oldData = cloneDeep(this.data);
     set(this.data, key, value);
     this.save();
-    this.emit("update", this.data, oldData);
+    this.emit("update", this.data, oldData, key);
   }
   setAll(data: { [propName: string]: any }) {
     const oldData = this.read();
     this.data = data;
     this.save();
-    this.emit("update", this.data, oldData);
+    this.emit("update", this.data, oldData, null);
   }
   get(key: string | number) {
     this.read();

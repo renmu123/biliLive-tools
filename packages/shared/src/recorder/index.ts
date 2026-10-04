@@ -710,7 +710,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
     }
   });
 
-  appConfig.on("update", () => {
+  appConfig.on("update", (_newVal, _oldVal, key) => {
+    // @ts-ignore
+    if (["tool", "recorders"].includes(key)) return;
     const { ffmpegPath, mesioPath, bililiveRecorderPath } = getBinPath();
     setFFMPEGPath(ffmpegPath);
     setMesioPath(mesioPath);
