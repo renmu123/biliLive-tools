@@ -754,12 +754,12 @@ export async function createRecorderManager(appConfig: AppConfig) {
     manager,
     config: recorderConfig,
     addRecorder: async (recorder: RecorderConfigType) => {
-      const recorders = recorderConfig.list();
+      const recorders = appConfig.get("recorders");
       if (
-        recorders.findIndex(
+        recorders.some(
           (item) =>
             item.channelId === recorder.channelId && item.providerId === recorder.providerId,
-        ) !== -1
+        )
       ) {
         return null;
       }

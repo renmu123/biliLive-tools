@@ -107,9 +107,13 @@ export class AppConfig extends Config {
     const initData = defaultsDeep(data, APP_DEFAULT_CONFIG);
     super.init(filepath, initData);
   }
-  get<K extends keyof AppConfigType>(key: K): AppConfigType[K];
-  get<TPath extends string>(key: TPath): ReturnType<typeof get>;
-  get(key: keyof AppConfigType | string) {
+  /** withCache 为 true 时读取内存缓存，默认重新读取文件并刷新缓存。 */
+  get<K extends keyof AppConfigType>(key: K, withCache?: boolean): AppConfigType[K];
+  get<TPath extends string>(key: TPath, withCache?: boolean): ReturnType<typeof get>;
+  get(key: keyof AppConfigType | string, withCache = false) {
+    if (withCache) {
+      return get(this.data, key);
+    }
     return super.get(key);
   }
   // 使用lodash的get方法，保留type
