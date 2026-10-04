@@ -262,6 +262,7 @@ function transform(type, data) {
       "@_user": data["@_user"],
       "@_giftname": data["#text"],
       "@_giftcount": "1",
+      "@_price": "100",
     };
   }
 

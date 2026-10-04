@@ -9,6 +9,7 @@
       v-model="fileList"
       :sort="props.sort"
       :placeholder="props.inputPlaceholder"
+      :filename-clean="props.filenameClean"
     ></PartArea>
     <div v-else class="empty-area" :class="{ dragging: isOverDropZone }" @click="select">
       <div style="margin-bottom: 12px">
@@ -48,9 +49,11 @@ const props = withDefaults(
     inputPlaceholder?: string;
     areaPlaceholder?: string;
     extensions?: string[];
+    filenameClean?: boolean;
   }>(),
   {
     sort: true,
+    filenameClean: true,
     inputPlaceholder: "请输入",
     areaPlaceholder: "请选择视频文件",
     extensions: () => supportedVideoExtensions,

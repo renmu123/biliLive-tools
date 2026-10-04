@@ -1,8 +1,18 @@
 # Next
 
+## 功能
+
+- 客户端：新增“视图”菜单栏，支持前进，后退，新建窗口
+- 文件浏览器：支持批量删除
+
 ## 优化
 
-- 文件浏览器：支持批量删除
+- 录制：列表模式支持头像显示 [#501](https://github.com/renmu123/biliLive-tools/issues/501)
+- 部分工具页UI优化 [#569](https://github.com/renmu123/biliLive-tools/pull/569)
+
+## Bug修复
+
+- 上传：修复前端分P标题部分文本被意外过滤的bug
 
 # 3.22.2(2026.10.03)
 

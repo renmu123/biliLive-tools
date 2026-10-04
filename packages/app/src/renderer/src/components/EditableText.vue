@@ -31,7 +31,6 @@ const props = withDefaults(defineProps<Props>(), {
 const tempText = ref("");
 
 const enterIn = () => {
-  console.log("enterIn");
   tempText.value = modelValue.value;
 };
 const enterOut = () => {
