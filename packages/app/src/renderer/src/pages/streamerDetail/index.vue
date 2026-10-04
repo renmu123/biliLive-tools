@@ -69,6 +69,7 @@
               </n-button>
               <n-button type="warning" @click="goToHistory">录制历史</n-button>
               <n-button @click="openRecorderSetting">直播间设置</n-button>
+              <n-button :loading="loading" @click="handleQuery">刷新</n-button>
               <n-button @click="goBack">返回</n-button>
             </div>
           </div>
@@ -158,31 +159,42 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(session, index) in result.data" :key="session.sessionKey">
-                        <td class="title-cell">
-                          <div class="session-name">{{ session.title || "-" }}</div>
-                        </td>
-                        <td>{{ formatTime(session.recordStartTime) }}</td>
-                        <td>{{ formatTime(session.liveStartTime) }}</td>
-                        <td>{{ formatTime(session.lastRecordTime) }}</td>
-                        <td>{{ formatDuration(session.totalDuration, "00:00:00") }}</td>
-                        <td>{{ session.clipCount }}</td>
-                        <td>{{ formatNumber(session.totalDanmaNum) }}</td>
-                        <td>
-                          <n-tag size="small" round :type="resolveSessionStatus(index).type">
-                            {{ resolveSessionStatus(index).label }}
-                          </n-tag>
-                        </td>
-                        <td class="operation-cell">
-                          <n-button
-                            text
-                            type="primary"
+                      <template v-for="(session, index) in result.data" :key="session.sessionKey">
+                        <tr>
+                          <td class="title-cell">
+                            <div class="session-name">{{ session.title || "-" }}</div>
+                          </td>
+                          <td>{{ formatTime(session.liveStartTime) }}</td>
+                          <td>{{ formatTime(session.recordStartTime) }}</td>
+                          <td>{{ formatTime(session.lastRecordTime) }}</td>
+                          <td>{{ formatDuration(session.totalDuration, "00:00:00") }}</td>
+                          <td
                             @click="showSessionDetailPlaceholder(session)"
+                            style="cursor: pointer"
                           >
-                            详情
-                          </n-button>
-                        </td>
-                      </tr>
+                            {{ session.clipCount }}
+                          </td>
+                          <td>{{ formatNumber(session.totalDanmaNum) }}</td>
+                          <td>
+                            <n-tag size="small" round :type="resolveSessionStatus(index).type">
+                              {{ resolveSessionStatus(index).label }}
+                            </n-tag>
+                          </td>
+                          <td class="operation-cell">
+                            <n-button text type="primary" @click="toggleSessionDetail(session)">
+                              {{ expandedSessionKey === session.sessionKey ? "收起" : "详情" }}
+                            </n-button>
+                          </td>
+                        </tr>
+                        <tr v-if="expandedSessionKey === session.sessionKey" class="detail-row">
+                          <td colspan="9">
+                            <SessionDanmaStats
+                              :session="session"
+                              @toHistory="showSessionDetailPlaceholder"
+                            />
+                          </td>
+                        </tr>
+                      </template>
                     </tbody>
                   </table>
                 </div>
@@ -225,6 +237,7 @@ import { formatRecentRecordTime, formatTime, formatDuration } from "@renderer/ut
 import { useRoute, useRouter } from "vue-router";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import AddRecorderModal from "@renderer/pages/Tools/pages/Recorder/components/addModal.vue";
+import SessionDanmaStats from "./components/SessionDanmaStats.vue";
 import { useTitle } from "@vueuse/core";
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { RecentRecordClipItem } from "@renderer/apis/recordHistory";
@@ -257,6 +270,7 @@ const recentClipLoading = ref(false);
 const recorderSettingVisible = ref(false);
 const activeTab = ref("timeline");
 const recentClips = ref<RecentRecordClipItem[]>([]);
+const expandedSessionKey = ref<string | null>(null);
 const result = reactive<RecorderAPI["queryStreamerDetail"]["Resp"]>({
   recorderInfo: null,
   streamer: null,
@@ -497,6 +511,13 @@ const resolveSessionStatus = (index: number) => {
     label: "已完成",
     type: "success" as const,
   };
+};
+
+const toggleSessionDetail = (
+  session: RecorderAPI["queryStreamerDetail"]["Resp"]["data"][number],
+) => {
+  expandedSessionKey.value =
+    expandedSessionKey.value === session.sessionKey ? null : session.sessionKey;
 };
 
 const showSessionDetailPlaceholder = (
@@ -890,6 +911,10 @@ onMounted(() => {
 
   tbody tr:last-child td {
     border-bottom: none;
+  }
+
+  .detail-row td {
+    padding: 0 14px 16px;
   }
 }
 
