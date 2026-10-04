@@ -1,5 +1,9 @@
 # Next
 
+## 功能
+
+- 客户端：新增“视图”菜单栏，支持前进，后退，新建窗口
+
 ## 优化
 
 - 录制：列表模式支持头像显示 [#501](https://github.com/renmu123/biliLive-tools/issues/501)
