@@ -60,7 +60,7 @@
             :title="element.videoPath"
             :disabled="props.disableEdit"
           ></editableText>
-          <span style="margin-left: 8px" v-if="element.ext">{{ element.ext }}</span>
+          <span style="margin-left: 8px; flex: none" v-if="element.ext">{{ element.ext }}</span>
           <n-icon style="margin-left: auto" size="20" class="remove" @click="remove(index)">
             <CloseIcon />
           </n-icon>

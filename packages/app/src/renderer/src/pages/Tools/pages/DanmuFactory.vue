@@ -37,7 +37,7 @@
 
       <n-card class="workspace-card settings-card" :bordered="false">
         <template #header>
-          <div class="card-heading"><span class="step-number">2</span>转换设置</div>
+          <div class="card-heading"><span class="step-number">2</span>设置</div>
         </template>
 
         <div class="setting-section">
@@ -335,7 +335,7 @@ const openQueue = () => {
 
 .workspace-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(360px, 1fr);
+  grid-template-columns: minmax(0, 2fr) minmax(360px, 1fr);
   align-items: start;
   gap: 18px;
 }
