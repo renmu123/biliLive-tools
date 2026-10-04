@@ -48,11 +48,11 @@ describe("Config", () => {
 
     config.set("count", 2);
     expect(config.get("count")).toBe(2);
-    expect(onUpdate).toHaveBeenNthCalledWith(1, { count: 2 }, { count: 1 });
+    expect(onUpdate).toHaveBeenNthCalledWith(1, { count: 2 }, { count: 1 }, "count");
     expect(JSON.parse(fs.readFileSync(configPath, "utf-8"))).toEqual({ count: 2 });
 
     config.setAll({ enabled: true });
-    expect(onUpdate).toHaveBeenNthCalledWith(2, { enabled: true }, { count: 2 });
+    expect(onUpdate).toHaveBeenNthCalledWith(2, { enabled: true }, { count: 2 }, null);
     expect(JSON.parse(fs.readFileSync(configPath, "utf-8"))).toEqual({ enabled: true });
 
     config.clear();
@@ -90,6 +90,7 @@ describe("Config", () => {
           value: 1,
         },
       },
+      "nested.value",
     );
     expect(onUpdate).toHaveBeenNthCalledWith(
       2,
@@ -106,6 +107,7 @@ describe("Config", () => {
           value: 2,
         },
       },
+      "nested.extra.label",
     );
     expect(JSON.parse(fs.readFileSync(configPath, "utf-8"))).toEqual({
       nested: {
