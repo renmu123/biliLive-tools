@@ -64,6 +64,7 @@
               'User',
               'About',
               'FileSync',
+              'FileBrowser',
             ]"
           >
             <component :is="Component" />

@@ -10,6 +10,7 @@
 - 录制：列表模式支持头像显示 [#501](https://github.com/renmu123/biliLive-tools/issues/501)
 - 部分工具页UI优化 [#569](https://github.com/renmu123/biliLive-tools/pull/569)
 - 录制：优化某些场景下的性能问题 [571](https://github.com/renmu123/biliLive-tools/pull/571)
+- UI：文件浏览器页面加入页面缓存
 
 ## Bug修复
 
