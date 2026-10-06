@@ -438,6 +438,12 @@ onMounted(() => {
   padding: 20px;
 }
 
+@media (max-width: 628px) {
+  .file-browser-page {
+    padding: 0;
+  }
+}
+
 .toolbar {
   display: flex;
   align-items: center;

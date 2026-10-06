@@ -14,13 +14,13 @@
       >
         <n-menu
           v-model:value="activeKey"
+          v-model:expanded-keys="expandedMenuKeys"
           class="main-menu"
           :style="{ marginBottom: `${footerMenuOptions.length * 50}px` }"
           :collapsed="collapsed"
           :collapsed-width="64"
           :collapsed-icon-size="22"
           :options="menuOptions"
-          default-expand-all
         />
 
         <n-layout-footer position="absolute">
@@ -80,9 +80,9 @@
     >
       <n-menu
         v-model:value="activeKey"
+        v-model:expanded-keys="expandedMenuKeys"
         class="mobile-main-menu"
         :options="menuOptions"
-        default-expand-all
       />
       <n-menu
         v-model:value="activeKey"
@@ -138,6 +138,10 @@ const route = useRoute();
 const activeKey = ref("Home");
 activeKey.value = route.name as string;
 const collapsed = useStorage("collapsed", false);
+const expandedMenuKeys = useStorage<Array<string | number>>("menu-expanded-keys", [
+  "videoProcessing",
+  "tools",
+]);
 const mobileMenuVisible = ref(false);
 const { isMobile } = useBreakpoints();
 
@@ -476,20 +480,6 @@ const menuOptions = computed<MenuOption[]>(() => {
       key: "Queue",
       icon: renderQueueIcon(QueueIcon),
     },
-    {
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "User",
-            },
-          },
-          { default: () => "用户" },
-        ),
-      key: "User",
-      icon: renderImg(userInfo.value?.profile?.face || defaultUserAvatar),
-    },
   ];
   if (isWeb.value) {
     menus.push({
@@ -507,6 +497,21 @@ const menuOptions = computed<MenuOption[]>(() => {
       icon: renderIcon(FolderIcon),
     });
   }
+  menus.push({
+    label: () =>
+      h(
+        RouterLink,
+        {
+          to: {
+            name: "User",
+          },
+        },
+        { default: () => "用户" },
+      ),
+    key: "User",
+    icon: renderImg(userInfo.value?.profile?.face || defaultUserAvatar),
+  });
+
   return menus;
 });
 
@@ -627,16 +632,17 @@ initChanglog();
 }
 
 .mobile-main-menu {
-  flex: 1;
+  flex: 1 0 auto;
 }
 
 .mobile-footer-menu {
+  flex-shrink: 0;
   border-top: 1px solid var(--border-secondary);
 }
 
 .mobile-drawer-content {
   > .n-drawer-body {
-    overflow: initial;
+    min-height: 0;
   }
 }
 

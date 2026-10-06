@@ -2,7 +2,6 @@
   <n-modal
     v-model:show="showModal"
     :mask-closable="false"
-    auto-focus
     :on-after-enter="handleOpen"
     class="setting-modal"
     :class="breakpoint"

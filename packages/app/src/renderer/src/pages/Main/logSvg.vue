@@ -37,7 +37,7 @@ export default {
     },
     strokeColor: {
       type: String,
-      default: "#000",
+      default: "currentColor",
     },
   },
 };
