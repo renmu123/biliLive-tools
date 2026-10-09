@@ -513,8 +513,8 @@ export const matchUser = (str: string): string | null => {
   const oneLiveRecVideoRegex = /user_name: (.+)/;
 
   const regexes = [
-    bililiveRecorderRegex,
     blrecRegex,
+    bililiveRecorderRegex,
     bililiveRecorderVideoRegex,
     oneLiveRecVideoRegex,
   ];
@@ -533,8 +533,8 @@ export const matchUser = (str: string): string | null => {
  */
 export const matchPlatform = (str: string): string | null => {
   // 录播姬参数
-  if (str.includes("mikufans录播姬")) {
-    return "bilibili";
+  if (str.includes("<BililiveRecorderRecordInfo")) {
+    return "Bilibili";
   }
   // biliLive-tools
   const match = str.match(/<platform>(.+?)<\/platform>/);

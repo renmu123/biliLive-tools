@@ -66,11 +66,6 @@
             {{ options.saveOriginPath ? "输出文件将自动命名" : "提交时选择视频输出文件" }}
           </n-text>
         </div>
-
-        <div class="setting-section source-option">
-          <n-checkbox v-model:checked="options.keepFirstVideoMeta">保留首个视频的元数据</n-checkbox>
-          <n-text depth="3">保留首个视频的相关元数据</n-text>
-        </div>
       </n-card>
     </div>
 
@@ -256,7 +251,7 @@ const convert = async () => {
           {
             output: xmlOutput,
             saveOriginPath: taskOptions.saveOriginPath,
-            saveMeta: taskOptions.keepFirstVideoMeta,
+            saveMeta: true,
           },
         );
         submissionResult.value = { videoSubmitted: true, xmlMerged: true };
