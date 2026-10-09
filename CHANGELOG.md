@@ -11,6 +11,7 @@
 - 部分工具页UI优化 [#569](https://github.com/renmu123/biliLive-tools/pull/569)
 - 录制：优化某些场景下的性能问题 [571](https://github.com/renmu123/biliLive-tools/pull/571)
 - UI：文件浏览器页面加入页面缓存
+- 合并：优化弹幕合并中的元数据相关内容，移除“保留首个视频的元数据”，默认开启 [#576](https://github.com/renmu123/biliLive-tools/pull/576)
 
 ## Bug修复
 
