@@ -685,7 +685,7 @@ const scheduledDatetimeRule: FormItemRule = {
 };
 const scheduledTimestampMillis = computed({
   get() {
-    return options.value.config.dtime ? options.value.config.dtime * 1000 : undefined;
+    return options.value.config.dtime ? options.value.config.dtime * 1000 : null;
   },
   set(value) {
     options.value.config.dtime = value ? Math.floor(value / 1000) : undefined;
