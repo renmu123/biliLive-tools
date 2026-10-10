@@ -4,11 +4,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 import * as video from "../../src/task/video.js";
+import * as utils from "../../src/utils/index.js";
+import { taskQueue } from "../../src/task/task.js";
+import { DANMU_DEAFULT_CONFIG } from "../../src/presets/danmuPreset.js";
 import {
   processDanmuOffset,
   generateMergedXmlContent,
   processXmlItems,
   mergeXml,
+  convertXml2Ass,
 } from "../../src/task/danmu.js";
 
 describe("processDanmuOffset", () => {
@@ -294,7 +298,7 @@ describe("mergeXml", () => {
           video_start_time: "1724118487000",
         });
         if (styleTag === "BililiveRecorderXmlStyle") {
-          expect(parsed.i.metadata.BililiveRecorderVersion).toBe("2.0.0");
+          expect(parsed.i.BililiveRecorderVersion).toBe("2.0.0");
         } else {
           expect(parsed.i.metadata.platform).toBe("bilibili");
         }
@@ -303,6 +307,79 @@ describe("mergeXml", () => {
       }
     } finally {
       readVideoMeta.mockRestore();
+      await fs.remove(directory);
+    }
+  });
+});
+
+describe("genProcessedXml", () => {
+  it.each([
+    {
+      name: "原始录播姬文件",
+      metadataXml: `<BililiveRecorder version="2.0.0" />
+<BililiveRecorderRecordInfo roomid="123" name="主播" title="直播标题" start_time="2024-08-20T09:48:07+08:00" />`,
+    },
+    {
+      name: "已合并的录播姬文件",
+      metadataXml: `<BililiveRecorderVersion>2.0.0</BililiveRecorderVersion>
+<metadata>
+<user_name>主播</user_name>
+<room_id>123</room_id>
+<room_title>直播标题</room_title>
+<video_start_time>1724118487000</video_start_time>
+</metadata>`,
+    },
+  ])("处理$name 时应保留录播姬字段和样式", async ({ metadataXml }) => {
+    const directory = await fs.mkdtemp(join(tmpdir(), "bililive-processed-xml-"));
+    const getTempPath = vi.spyOn(utils, "getTempPath").mockReturnValue(directory);
+    const getBinPath = vi.spyOn(video, "getBinPath").mockReturnValue({
+      ffmpegPath: "",
+      ffprobePath: "",
+      mesioPath: "",
+      bililiveRecorderPath: "",
+      audiowaveformPath: "",
+      danmuFactoryPath: "",
+    });
+    // 只检查提交给转换任务的 XML，不启动外部转换程序。
+    const addTask = vi.spyOn(taskQueue, "addTask").mockImplementation(() => {});
+    try {
+      const input = join(directory, "input.xml");
+      await fs.writeFile(
+        input,
+        `<i>
+${metadataXml}
+<d p="1,1,25,16777215,0,0,123456,0" user="用户">保留弹幕</d>
+<d p="2,1,25,16777215,0,0,123456,0" user="用户">过滤弹幕</d>
+</i>`,
+      );
+
+      const task = await convertXml2Ass(
+        { input, output: "processed" },
+        {
+          ...DANMU_DEAFULT_CONFIG,
+          filterFunction: 'function filter(type, danmu) { return danmu["#text"] !== "过滤弹幕"; }',
+        },
+        { temp: true },
+      );
+      const xml = await fs.readFile(task.input, "utf8");
+      expect(XMLValidator.validate(xml)).toBe(true);
+      const parsed = new XMLParser({ ignoreAttributes: false, parseTagValue: false }).parse(xml);
+      expect(parsed.i.metadata).toMatchObject({
+        user_name: "主播",
+        room_id: "123",
+        room_title: "直播标题",
+        video_start_time: "1724118487000",
+      });
+      expect(parsed.i.BililiveRecorderVersion).toBe("2.0.0");
+      expect(parsed.i).toHaveProperty("BililiveRecorderXmlStyle");
+      expect(parsed.i).not.toHaveProperty("RecorderXmlStyle");
+      expect(parsed.i.d["#text"]).toBe("保留弹幕");
+      expect(xml).not.toContain("过滤弹幕");
+      expect(addTask).toHaveBeenCalledWith(task, true);
+    } finally {
+      addTask.mockRestore();
+      getBinPath.mockRestore();
+      getTempPath.mockRestore();
       await fs.remove(directory);
     }
   });

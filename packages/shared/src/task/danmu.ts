@@ -185,6 +185,25 @@ const createXmlEvents = (items: XmlItem[], sourceType: XmlDanmuItemType): XmlEve
   return result;
 };
 
+const parseXmlMetadata = async (
+  jObj: XmlItem,
+  files: { videoFilePath?: string; danmaFilePath: string },
+) => {
+  const parsedMeta = await parseMeta(files);
+  return {
+    user_name: parsedMeta.username,
+    room_id: parsedMeta.roomId,
+    room_title: parsedMeta.title,
+    video_start_time: parsedMeta.startTimestamp === null ? null : parsedMeta.startTimestamp * 1000,
+    platform: parsedMeta.platform,
+    BililiveRecorderVersion:
+      jObj.i?.BililiveRecorder?.["@_version"] ??
+      jObj.i?.BililiveRecorder?.version ??
+      jObj.i?.BililiveRecorderVersion ??
+      jObj.i?.metadata?.BililiveRecorderVersion,
+  };
+};
+
 /**
  * 生成经过自定义处理后的xml文件
  * @param input
@@ -194,6 +213,7 @@ const createXmlEvents = (items: XmlItem[], sourceType: XmlDanmuItemType): XmlEve
  */
 const genProcessedXml = async (input: string, output: string, filterFunction: string) => {
   const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(input, true);
+  const metadata = await parseXmlMetadata(jObj, { danmaFilePath: input });
   const events = [
     ...createXmlEvents(danmuku, "danmu"),
     ...createXmlEvents(sc, "sc"),
@@ -206,7 +226,7 @@ const genProcessedXml = async (input: string, output: string, filterFunction: st
     processedBuckets.gift,
     processedBuckets.sc,
     processedBuckets.guard,
-    jObj.i?.metadata || {},
+    metadata,
   );
   await fs.writeFile(output, xmlData);
   return output;
@@ -565,22 +585,10 @@ export const mergeXml = async (
     // 解析XML文件
     const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(file.danmakuPath, true);
 
-    const parsedMeta = await parseMeta({
+    const metadata = await parseXmlMetadata(jObj, {
       videoFilePath: file.videoPath,
       danmaFilePath: file.danmakuPath,
     });
-    const metadata = {
-      user_name: parsedMeta.username,
-      room_id: parsedMeta.roomId,
-      room_title: parsedMeta.title,
-      video_start_time:
-        parsedMeta.startTimestamp === null ? null : parsedMeta.startTimestamp * 1000,
-      platform: parsedMeta.platform,
-      BililiveRecorderVersion:
-        jObj.i?.BililiveRecorder?.["@_version"] ??
-        jObj.i?.BililiveRecorder?.version ??
-        jObj.i?.metadata?.BililiveRecorderVersion,
-    };
 
     videoData.push({
       path: file.danmakuPath,
