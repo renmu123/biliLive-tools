@@ -1101,6 +1101,8 @@ export interface BiliupConfig {
   selectiionReply?: 0 | 1;
   /** 合集id */
   seasonId?: number | null;
+  /** 合集中稿件的标题模板，默认 {{mediaTitle}}（视频标题） */
+  seasonTitleTemplate?: string;
   /** 小节id */
   sectionId?: number;
   /** 创建该预设的uid */

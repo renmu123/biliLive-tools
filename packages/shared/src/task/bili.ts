@@ -19,7 +19,13 @@ import log from "../utils/log.js";
 import { sleep, encrypt, decrypt, getTempPath, trashItem, uuid } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
 import { getBinPath, pasrseMetadata } from "./video.js";
-import { formatTitle, formatPartTitle, formatDesc, buildRoomLink } from "../utils/webhook.js";
+import {
+  formatTitle,
+  formatSeasonTitle,
+  formatPartTitle,
+  formatDesc,
+  buildRoomLink,
+} from "../utils/webhook.js";
 
 import type { BiliupConfig, BiliUser, AppConfig as AppConfigType } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
@@ -634,11 +640,36 @@ export async function preFormatOptions(
   const needParseForSource = options.copyright === 2 && !options.source;
   const needParseForPartTitle = hasTemplateVariable(options.partTitleTemplate);
   const needParseForDesc = hasTemplateVariable(options.desc);
+  const needParseForSeasonTitle =
+    !!options.seasonId &&
+    hasTemplateVariable(options.seasonTitleTemplate) &&
+    options.seasonTitleTemplate?.trim() !== "{{mediaTitle}}";
 
-  if (!needParseForTitle && !needParseForSource && !needParseForPartTitle && !needParseForDesc) {
+  const resultOptions = { ...options };
+  const formatSeasonOptions = (context?: UploadFormatContext | null) => {
+    if (options.seasonId) {
+      resultOptions.seasonTitleTemplate = formatSeasonTitle(
+        {
+          filename: path.parse(normalizedFiles[0].path).name,
+          ...context,
+          mediaTitle: resultOptions.title,
+        },
+        options.seasonTitleTemplate,
+      );
+    }
+  };
+
+  if (
+    !needParseForTitle &&
+    !needParseForSource &&
+    !needParseForPartTitle &&
+    !needParseForDesc &&
+    !needParseForSeasonTitle
+  ) {
+    formatSeasonOptions();
     // 不需要解析，直接返回
     return {
-      options,
+      options: resultOptions,
       videos: normalizedFiles.map((item) => ({
         path: item.path,
         title: item.title,
@@ -646,11 +677,11 @@ export async function preFormatOptions(
     };
   }
 
-  const resultOptions = { ...options };
-  if (needParseForTitle || needParseForDesc || needParseForSource) {
+  let firstFormatContext: UploadFormatContext | null = null;
+  if (needParseForTitle || needParseForDesc || needParseForSource || needParseForSeasonTitle) {
     const firstFile = normalizedFiles[0];
     const firstMeta = await resolveUploadFileMeta(firstFile, "解析视频文件信息失败");
-    const firstFormatContext = getUploadFormatContext(firstMeta, firstFile.path);
+    firstFormatContext = getUploadFormatContext(firstMeta, firstFile.path);
 
     // 格式化主标题
     if (needParseForTitle && firstFormatContext) {
@@ -680,6 +711,8 @@ export async function preFormatOptions(
       }
     }
   }
+
+  formatSeasonOptions(firstFormatContext);
 
   // 格式化分P标题
   const videos: { path: string; title: string }[] = [];
@@ -754,13 +787,16 @@ async function addMedia(
               sectionId = (await client.platform.getSeasonDetail(formattedOptions.seasonId))
                 .sections.sections[0].id;
             }
+            if (!sectionId) {
+              throw new Error("无法获取合集分区ID");
+            }
             client.platform.addMedia2Season({
-              sectionId: sectionId!,
+              sectionId: sectionId,
               episodes: [
                 {
                   aid: data.aid,
                   cid: cid,
-                  title: formattedOptions.title,
+                  title: formattedOptions.seasonTitleTemplate || formattedOptions.title,
                 },
               ],
             });

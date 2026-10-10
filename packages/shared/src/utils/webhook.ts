@@ -31,6 +31,7 @@ export function formatTitle(
     time: string;
     roomId: string | number;
     filename: string;
+    mediaTitle?: string;
   },
   template: string,
 ) {
@@ -43,6 +44,7 @@ export function formatTitle(
       time: new Date(options.time),
       roomId: options.roomId,
       filename: options.filename,
+      mediaTitle: options.mediaTitle,
     };
     renderText = ejs.render(template, renderOptions);
   } catch (error) {
@@ -61,10 +63,31 @@ export function formatTitle(
     .replaceAll("{{mm}}", minutes)
     .replaceAll("{{ss}}", seconds)
     .replaceAll("{{filename}}", options.filename)
+    .replaceAll("{{mediaTitle}}", () => options.mediaTitle ?? "{{mediaTitle}}")
     .trim()
     .slice(0, 80);
 
   return title;
+}
+
+/** 合集中稿件的标题，mediaTitle 为最终的视频标题 */
+export function formatSeasonTitle(
+  options: Partial<Parameters<typeof formatTitle>[0]> & { mediaTitle: string },
+  template = "{{mediaTitle}}",
+) {
+  return (
+    formatTitle(
+      {
+        title: "",
+        username: "",
+        roomId: "",
+        filename: "",
+        time: "",
+        ...options,
+      },
+      template.trim() || "{{mediaTitle}}",
+    ) || options.mediaTitle
+  );
 }
 
 /**
