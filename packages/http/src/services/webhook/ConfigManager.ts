@@ -4,6 +4,8 @@ import type { AppConfig } from "@biliLive-tools/shared/config.js";
 export interface RoomConfig {
   /* 是否需要压制弹幕 */
   danmu: boolean;
+  /** 弹幕为空或不存在时仍进行压制 */
+  burnWithoutDanmu: boolean;
   /* 是否合并到一个文件中 */
   mergePart: boolean;
   /* 最小文件大小 */
@@ -141,6 +143,7 @@ export class ConfigManager {
     const roomSetting: AppRoomConfig | undefined = appConfigAll.webhook?.rooms?.[roomId];
 
     const danmu = this.getRoomSetting("danmu", roomSetting) ?? false;
+    const burnWithoutDanmu = this.getRoomSetting("burnWithoutDanmu", roomSetting) ?? false;
     const mergePart = this.getRoomSetting("autoPartMerge", roomSetting) ?? false;
     const minSize = this.getRoomSetting("minSize", roomSetting) ?? 10;
     const uploadPresetId = this.getRoomSetting("uploadPresetId", roomSetting) || "default";
@@ -207,6 +210,7 @@ export class ConfigManager {
 
     return {
       danmu,
+      burnWithoutDanmu,
       mergePart,
       minSize,
       uploadPresetId,
