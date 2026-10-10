@@ -1,6 +1,24 @@
 import { describe, it, expect } from "vitest";
 
-import { formatPartTitle, formatTime, formatTitle } from "../../src/utils/webhook";
+import {
+  formatPartTitle,
+  formatSeasonTitle,
+  formatTime,
+  formatTitle,
+} from "../../src/utils/webhook";
+
+describe("formatSeasonTitle", () => {
+  it("默认模板保留视频标题中的特殊字符和占位符文本", () => {
+    const mediaTitle = "视频 $& {{title}}";
+    expect(formatSeasonTitle({ mediaTitle })).toBe(mediaTitle);
+  });
+
+  it("自定义合集标题去除首尾空白并限制80字", () => {
+    expect(formatSeasonTitle({ mediaTitle: "视频标题" }, `  ${"合".repeat(90)}  `)).toBe(
+      "合".repeat(80),
+    );
+  });
+});
 
 describe("formatTime", () => {
   it("should format the time correctly", () => {

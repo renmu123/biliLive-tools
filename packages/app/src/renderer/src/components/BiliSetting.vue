@@ -463,6 +463,34 @@
           <n-button @click="getSeasonList(true)" type="primary">强制刷新</n-button>
         </div>
       </n-form-item>
+      <n-form-item v-if="options.config.seasonId" label="合集标题" style="margin-bottom: 10px">
+        <template #label>
+          <Tip :tip="seasonTitleTip" text="合集标题"></Tip>
+        </template>
+        <n-input
+          ref="seasonTitleInput"
+          v-model:value="options.config.seasonTitleTemplate"
+          placeholder="默认使用视频标题"
+          clearable
+          style="margin-right: 10px"
+          spellcheck="false"
+        />
+        <n-button
+          style="margin-right: 10px"
+          @click="previewSeasonTitle(options.config.seasonTitleTemplate || '')"
+          >预览</n-button
+        >
+        <template #feedback>
+          <span
+            v-for="item in seasonTitleList"
+            :key="item.value"
+            :title="item.label"
+            class="title-var"
+            @click="setSeasonTitleVar(item.value)"
+            >{{ item.value }}</span
+          >
+        </template>
+      </n-form-item>
     </n-form>
 
     <div v-if="props.showActionButtons" style="text-align: right">
@@ -550,6 +578,7 @@ const options: Ref<BiliupPreset> = ref({
   config: {
     uid: undefined,
     seasonId: undefined,
+    seasonTitleTemplate: "{{mediaTitle}}",
   },
 });
 const handlePresetChange = async (id: string) => {
@@ -1092,6 +1121,39 @@ const titleTip = computed(() => {
     })
     .reduce((prev, cur) => prev + cur, base);
 });
+
+const seasonTitleList = computed(() => [
+  { label: "视频标题", value: "{{mediaTitle}}" },
+  ...titleList.value,
+]);
+const seasonTitleTip = computed(() => {
+  const base = `设置稿件在合集中的显示标题<br/>
+  默认{{mediaTitle}}，使用最终的视频标题，留空也使用视频标题。<br/>
+  支持与视频标题相同的占位符和模板引擎，更多高级用法见文档。<br/>`;
+  return seasonTitleList.value
+    .map((item) => `${item.label}：${item.value}<br/>`)
+    .reduce((prev, cur) => prev + cur, base);
+});
+const seasonTitleInput = templateRef("seasonTitleInput");
+const setSeasonTitleVar = async (value: string) => {
+  const input = seasonTitleInput.value?.inputElRef;
+  const currentValue = options.value.config.seasonTitleTemplate || "";
+  if (input) {
+    const start = input.selectionStart ?? currentValue.length;
+    const end = input.selectionEnd ?? currentValue.length;
+    options.value.config.seasonTitleTemplate =
+      currentValue.slice(0, start) + value + currentValue.slice(end);
+    input.focus();
+    await nextTick();
+    input.setSelectionRange(start + value.length, start + value.length);
+  } else {
+    options.value.config.seasonTitleTemplate = currentValue + value;
+  }
+};
+const previewSeasonTitle = async (template: string) => {
+  const data = await biliApi.formatWebhookSeasonTitle(template, options.value.config.title);
+  notice.info({ title: data, duration: 3000 });
+};
 
 const partTitleList = ref([
   {
