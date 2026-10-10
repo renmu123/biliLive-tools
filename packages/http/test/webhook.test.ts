@@ -1,10 +1,11 @@
 import fs from "fs-extra";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
 import { WebhookHandler } from "../src/services/webhook/webhook.js";
 import { Live, Part } from "../src/services/webhook/Live.js";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import * as utils from "@biliLive-tools/shared/utils/index.js";
 import * as syncTask from "@biliLive-tools/shared/task/sync.js";
+import * as danmuTask from "@biliLive-tools/shared/task/danmu.js";
 
 import type { Options } from "../src/types/webhook.js";
 
@@ -2802,6 +2803,104 @@ describe("Live", () => {
         await webhookHandler.processMediaFiles(context, options, config);
 
         expect(processRegularVideoSpy).toHaveBeenCalled();
+      });
+    });
+
+    describe("processDanmuVideo - 无弹幕仍压制", () => {
+      let pathExistsSpy: ReturnType<typeof vi.spyOn>;
+      let emptyDanmuSpy: ReturnType<typeof vi.spyOn>;
+
+      beforeEach(() => {
+        pathExistsSpy = vi.spyOn(fs, "pathExists");
+        emptyDanmuSpy = vi.spyOn(danmuTask, "isEmptyDanmu");
+        // @ts-ignore
+        webhookHandler.danmuPreset = {
+          get: vi.fn().mockResolvedValue({ config: { fontname: "测试字体" } }),
+        };
+        // @ts-ignore
+        webhookHandler.ffmpegPreset = {
+          get: vi.fn().mockResolvedValue({ config: { encoder: "libx264" } }),
+        };
+      });
+
+      afterEach(() => {
+        pathExistsSpy.mockRestore();
+        emptyDanmuSpy.mockRestore();
+      });
+
+      it.each([
+        { exists: false, empty: true, enabled: false },
+        { exists: true, empty: true, enabled: false },
+        { exists: false, empty: true, enabled: true },
+        { exists: true, empty: true, enabled: true },
+        { exists: true, empty: false, enabled: false },
+        { exists: true, empty: false, enabled: true },
+      ])("应根据弹幕状态和开关决定是否压制: %j", async ({ exists, empty, enabled }) => {
+        pathExistsSpy.mockResolvedValue(exists);
+        emptyDanmuSpy.mockResolvedValue(empty);
+        const live = new Live({
+          eventId: "test",
+          platform: "blrec",
+          roomId: "123",
+          startTime: Date.now(),
+          title: "Test",
+          username: "user",
+        });
+        const part = live.addPart({
+          partId: "part-1",
+          filePath: "/path/to/file.mp4",
+          recordStatus: "prehandled",
+          title: "Part 1",
+        });
+        const config = {
+          danmu: true,
+          burnWithoutDanmu: enabled,
+          danmuPresetId: "danmu",
+          videoPresetId: "video",
+          hotProgress: true,
+          videoHandleTime: ["01:00:00", "05:00:00"],
+        };
+        const burnSpy = vi
+          .spyOn(webhookHandler, "burn")
+          .mockResolvedValue("/path/to/file-弹幕版.mp4");
+        // @ts-ignore
+        const result = await webhookHandler.processDanmuVideo(
+          { live, part },
+          { filePath: "/path/to/file.mp4" },
+          config,
+          "/path/to/file.xml",
+        );
+        const hasDanmu = exists && !empty;
+        const shouldBurn = hasDanmu || enabled;
+        expect(result).toEqual({
+          conversionSuccessful: shouldBurn,
+          danmuConversionSuccessful: hasDanmu,
+        });
+        expect(part.recordStatus).toBe("handled");
+        expect(part.uploadStatus).toBe("pending");
+        expect(part.rawFilePath).toBe("/path/to/file.mp4");
+        if (shouldBurn) {
+          expect(part.filePath).toBe("/path/to/file-弹幕版.mp4");
+          expect(burnSpy).toHaveBeenCalledWith(
+            {
+              videoFilePath: "/path/to/file.mp4",
+              subtitleFilePath: "/path/to/file.xml",
+            },
+            expect.objectContaining({
+              danmaOptions: { fontname: "测试字体" },
+              ffmpegOptions: { encoder: "libx264" },
+              hasHotProgress: true,
+              ignoreDanmu: !hasDanmu,
+              limitTime: config.videoHandleTime,
+              removeVideo: false,
+              removeDanmu: false,
+            }),
+          );
+        } else {
+          expect(part.filePath).toBe("/path/to/file.mp4");
+          expect(burnSpy).not.toHaveBeenCalled();
+        }
+        if (!exists) expect(emptyDanmuSpy).not.toHaveBeenCalled();
       });
     });
 

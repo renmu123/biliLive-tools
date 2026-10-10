@@ -37,6 +37,7 @@
     }, // 直播间配置对象 {roomId: {uid, open, ...}}
     ffmpegPreset: undefined, // 默认转码预设
     danmuPreset: undefined, // 默认弹幕预设
+    burnWithoutDanmu: false, // 弹幕压制开启时，弹幕为空或不存在仍进行压制
     afterConvertAction: [], // 转码后执行的操作，removeXml|removeVideo|removeSmallFile|removeAfterConvert2Mp4
     hotProgress: false, // 是否生成高能进度条
     useLiveCover: false, // 是否使用直播封面

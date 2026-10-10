@@ -397,7 +397,8 @@ export class WebhookHandler {
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
     try {
       // 验证弹幕文件
-      if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
+      const hasDanmu = (await fs.pathExists(xmlFilePath)) && !(await isEmptyDanmu(xmlFilePath));
+      if (!hasDanmu && !config.burnWithoutDanmu) {
         context.part.recordStatus = "handled";
         context.part.uploadStatus = "pending";
         log.warn(`弹幕文件不存在或为空，跳过弹幕压制: ${xmlFilePath}`);
@@ -428,6 +429,7 @@ export class WebhookHandler {
           danmaOptions: danmuConfig.config,
           ffmpegOptions: ffmpegPreset.config,
           hasHotProgress: config.hotProgress,
+          ignoreDanmu: !hasDanmu,
           hotProgressOptions: {
             interval: config.hotProgressSample || 30,
             color: config.hotProgressColor || "#f9f5f3",
@@ -443,7 +445,7 @@ export class WebhookHandler {
       context.part.filePath = output;
       context.part.recordStatus = "handled";
 
-      return { conversionSuccessful: true, danmuConversionSuccessful: true };
+      return { conversionSuccessful: true, danmuConversionSuccessful: hasDanmu };
     } catch (error) {
       log.error(error);
       context.part.uploadStatus = "error";
@@ -863,6 +865,8 @@ export class WebhookHandler {
       ffmpegOptions: FfmpegOptions;
       hotProgressOptions: Omit<HotProgressOptions, "videoPath">;
       hasHotProgress: boolean;
+      /** 跳过弹幕转换、渲染和高能进度条，仍保留弹幕文件路径 */
+      ignoreDanmu?: boolean;
       removeVideo?: boolean;
       removeDanmu?: boolean;
       limitTime?: [string, string];
