@@ -1361,6 +1361,8 @@ export const burn = async (
     ffmpegOptions: FfmpegOptions;
     hotProgressOptions: Omit<HotProgressOptions, "videoPath">;
     hasHotProgress: boolean;
+    /** 跳过弹幕转换、渲染和高能进度条，仍读取 XML 时间戳 */
+    ignoreDanmu?: boolean;
     override?: boolean;
     removeOrigin?: boolean;
     /** 支持绝对路径和相对路径 */
@@ -1375,7 +1377,7 @@ export const burn = async (
   }
 
   const { videoFilePath, subtitleFilePath } = files;
-  let assFilePath = subtitleFilePath;
+  let assFilePath: string | undefined = options.ignoreDanmu ? undefined : subtitleFilePath;
   let hotProgressInput: string | undefined = undefined;
   let startTimestamp = 0;
   let timestampFont: string | undefined = undefined;
@@ -1391,34 +1393,36 @@ export const burn = async (
 
   // 弹幕转换
   if (subtitleFilePath.endsWith(".xml")) {
-    if (await isEmptyDanmu(subtitleFilePath)) {
-      throw new Error("弹幕文件为空，无需压制");
+    if (!options.ignoreDanmu) {
+      if (await isEmptyDanmu(subtitleFilePath)) {
+        throw new Error("弹幕文件为空，无需压制");
+      }
+      const name = uuid();
+      const danmaOptions = options.danmaOptions;
+      // 开启跟随视频分辨率
+      if (danmaOptions.resolutionResponsive && width && height) {
+        danmaOptions.resolution[0] = width;
+        danmaOptions.resolution[1] = height;
+      }
+      const task = await convertXml2Ass(
+        {
+          input: subtitleFilePath,
+          output: name,
+        },
+        options.danmaOptions,
+        {
+          saveRadio: 2,
+          savePath: getTempPath(),
+          removeOrigin: removeOrigin,
+        },
+      );
+      log.debug("convertXml2Ass task start", task.taskId);
+      await promiseTask(task);
+      log.debug("convertXml2Ass task end", task.taskId);
+      assFilePath = task.output!;
     }
-    const name = uuid();
-    const danmaOptions = options.danmaOptions;
-    // 开启跟随视频分辨率
-    if (danmaOptions.resolutionResponsive && width && height) {
-      danmaOptions.resolution[0] = width;
-      danmaOptions.resolution[1] = height;
-    }
-    const task = await convertXml2Ass(
-      {
-        input: subtitleFilePath,
-        output: name,
-      },
-      options.danmaOptions,
-      {
-        saveRadio: 2,
-        savePath: getTempPath(),
-        removeOrigin: removeOrigin,
-      },
-    );
-    log.debug("convertXml2Ass task start", task.taskId);
-    await promiseTask(task);
-    log.debug("convertXml2Ass task end", task.taskId);
-    assFilePath = task.output!;
     if (options.ffmpegOptions.addTimestamp) {
-      startTimestamp = await readXmlTimestamp(files.subtitleFilePath);
+      startTimestamp = await readXmlTimestamp(subtitleFilePath);
       log.debug("readXmlTimestamp end", startTimestamp);
     }
     if (options.ffmpegOptions.timestampFollowDanmu) {
@@ -1426,9 +1430,9 @@ export const burn = async (
     }
   }
   // 高能进度条转换
-  if (hasHotProgress) {
+  if (hasHotProgress && !options.ignoreDanmu) {
     const hotProgressOptions = options.hotProgressOptions;
-    const task = await genHotProgress(files.subtitleFilePath, {
+    const task = await genHotProgress(subtitleFilePath, {
       ...hotProgressOptions,
       width,
       duration,

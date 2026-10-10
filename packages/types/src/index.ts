@@ -105,6 +105,8 @@ export type CommonRoomConfig = {
   title: string;
   uploadPresetId?: string;
   danmu: boolean;
+  /** 弹幕为空或不存在时仍进行压制 */
+  burnWithoutDanmu?: boolean;
   ffmpegPreset?: string | null;
   danmuPreset?: string | null;
   autoPartMerge: boolean;

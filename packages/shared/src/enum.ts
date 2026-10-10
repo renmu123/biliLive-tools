@@ -55,6 +55,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     uploadPresetId: undefined,
     blacklist: "",
     danmu: false,
+    burnWithoutDanmu: false,
     rooms: {},
     ffmpegPreset: undefined,
     danmuPreset: undefined,
