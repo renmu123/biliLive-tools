@@ -5,6 +5,7 @@ import type { GlobalConfig } from "@biliLive-tools/types";
 
 export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   title: "",
+  seasonTitleTemplate: "{{mediaTitle}}",
   desc: "",
   dolby: 0,
   hires: 0,
@@ -30,7 +31,6 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   is_only_self: 0,
   space_hidden: 2,
   act_reserve: undefined,
-
 };
 
 export class VideoPreset extends CommonPreset<BiliupConfig> {

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import RecorderConfig from "../../src/recorder/config.js";
 import { getCookie } from "../../src/task/bili.js";
+import { readDouyuUser } from "../../src/recorder/douyu.js";
 
 import { provider as providerForDouYu } from "@bililive-tools/douyu-recorder";
 import { provider as providerForHuYa } from "@bililive-tools/huya-recorder";
@@ -12,6 +13,9 @@ import { provider as providerForTikTok } from "@bililive-tools/tiktok-recorder";
 // 模拟 getCookie 函数
 vi.mock("../../src/task/bili.js", () => ({
   getCookie: vi.fn(),
+}));
+vi.mock("../../src/recorder/douyu.js", () => ({
+  readDouyuUser: vi.fn(),
 }));
 
 const defaultRecorderConfig = {
@@ -287,6 +291,51 @@ describe("RecorderConfig", () => {
         }
       });
     });
+    describe("斗鱼账号", () => {
+      it("支持按全局或单独配置的 UID 读取账号 Cookie", () => {
+        vi.mocked(readDouyuUser).mockImplementation((uid) => ({
+          uid,
+          name: String(uid),
+          createdAt: 1000,
+          updatedAt: 1000,
+          loginCookies: {
+            passport: `passport-${uid}`,
+            main: `cookie-${uid}`,
+          },
+        }));
+        mockAppConfig.get.mockImplementation((key: string) => {
+          if (key === "recorder") {
+            return {
+              douyu: {
+                uid: 100,
+              },
+            };
+          }
+          if (key === "recorders") {
+            return [
+              {
+                id: "global",
+                providerId: "DouYu",
+                channelId: "123",
+                noGlobalFollowFields: [],
+                uid: 200,
+              },
+              {
+                id: "local",
+                providerId: "DouYu",
+                channelId: "456",
+                noGlobalFollowFields: ["uid"],
+                uid: 200,
+              },
+            ];
+          }
+          return null;
+        });
+
+        expect(recorderConfig.get("global")?.auth).toBe("cookie-100");
+        expect(recorderConfig.get("local")?.auth).toBe("cookie-200");
+      });
+    });
     describe("TikTok 代理：proxy", () => {
       it("支持跟随全局配置和单独覆盖", () => {
         mockAppConfig.get.mockImplementation((key: string) => {
@@ -459,9 +508,76 @@ describe("RecorderConfig", () => {
       const result = recorderConfig.get("non_existent_id");
       expect(result).toBeNull();
     });
+
+    it("支持传入授权缓存，并按平台区分相同 UID", () => {
+      mockAppConfig.get.mockImplementation((key: string) => {
+        if (key === "recorder") {
+          return { bilibili: { uid: 100 }, douyu: { uid: 100 } };
+        }
+        if (key === "recorders") {
+          return [
+            { id: "bili", providerId: "Bilibili", channelId: "1" },
+            { id: "douyu", providerId: "DouYu", channelId: "2" },
+          ];
+        }
+        return null;
+      });
+      const authCache = new Map([
+        ["Bilibili:100", "bili-cookie"],
+        ["DouYu:100", "douyu-cookie"],
+      ]);
+
+      expect(recorderConfig.get("bili", { authCache })?.auth).toBe("bili-cookie");
+      expect(recorderConfig.get("douyu", { authCache })?.auth).toBe("douyu-cookie");
+      expect(getCookie).not.toHaveBeenCalled();
+      expect(readDouyuUser).not.toHaveBeenCalled();
+    });
+
+    it("未传入 opts 时仍读取账号授权", () => {
+      vi.mocked(getCookie).mockReturnValue({ SESSDATA: "test_sessdata" });
+
+      expect(recorderConfig.get("test1")?.auth).toBe("SESSDATA=test_sessdata");
+      expect(getCookie).toHaveBeenCalledWith(123456);
+    });
   });
 
   describe("list", () => {
+    const setupAccounts = () => {
+      mockAppConfig.get.mockImplementation((key: string) => {
+        if (key === "recorder") {
+          return { bilibili: { uid: 100 }, douyu: { uid: 100 } };
+        }
+        if (key === "recorders") {
+          return [
+            ...Array.from({ length: 500 }, (_, i) => ({
+              id: `bili-${i}`,
+              providerId: "Bilibili",
+              channelId: String(i),
+            })),
+            { id: "douyu", providerId: "DouYu", channelId: "1" },
+            {
+              id: "local",
+              providerId: "Bilibili",
+              channelId: "501",
+              uid: 200,
+              noGlobalFollowFields: ["uid"],
+            },
+          ];
+        }
+        if (key === "bilibiliUser") return { 100: "encrypted", 200: "encrypted", 300: "encrypted" };
+        if (key === "douyuUser") return { 100: "encrypted" };
+        return null;
+      });
+      vi.mocked(getCookie).mockImplementation((uid) => ({ SESSDATA: `bili-${uid}` }));
+      vi.mocked(readDouyuUser).mockImplementation((uid) => ({
+        uid,
+        name: String(uid),
+        createdAt: 1000,
+        updatedAt: 1000,
+        loginCookies: { passport: "", main: `douyu-${uid}` },
+      }));
+    };
+
     it("应该返回所有有效的录制器配置", () => {
       // 模拟 getCookie 返回
       (getCookie as any).mockReturnValue({
@@ -472,6 +588,67 @@ describe("RecorderConfig", () => {
       expect(result).toHaveLength(4);
       expect(result[0]?.id).toBe("test1");
       expect(result[1]?.id).toBe("test2");
+    });
+
+    it("预先读取所有账号，每个账号只解密一次，并复用房间配置缓存", () => {
+      setupAccounts();
+
+      const result = recorderConfig.list();
+
+      expect(result).toHaveLength(502);
+      expect(result.slice(0, 500).every((item) => item.auth === "SESSDATA=bili-100")).toBe(true);
+      expect(result[500]?.auth).toBe("douyu-100");
+      expect(result[501]?.auth).toBe("SESSDATA=bili-200");
+      expect(getCookie).toHaveBeenCalledTimes(3);
+      expect(getCookie).toHaveBeenCalledWith(300);
+      expect(readDouyuUser).toHaveBeenCalledTimes(1);
+      expect(mockAppConfig.get.mock.calls.filter(([, withCache]) => !withCache)).toEqual([
+        ["recorders"],
+      ]);
+    });
+
+    it("账号解密失败不会中断列表，也不会为每个房间重复尝试", () => {
+      setupAccounts();
+      vi.mocked(getCookie).mockImplementation((uid) => {
+        if (uid === 100) throw new Error("invalid account");
+        return { SESSDATA: `bili-${uid}` };
+      });
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      try {
+        const result = recorderConfig.list();
+
+        expect(result).toHaveLength(502);
+        expect(result.slice(0, 500).every((item) => item.auth === undefined)).toBe(true);
+        expect(result[500]?.auth).toBe("douyu-100");
+        expect(result[501]?.auth).toBe("SESSDATA=bili-200");
+        expect(getCookie).toHaveBeenCalledTimes(3);
+        expect(errorSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        errorSpy.mockRestore();
+      }
+    });
+
+    it("不存在的账号在同一次列表读取中只查询一次", () => {
+      setupAccounts();
+      const originalGet = mockAppConfig.get.getMockImplementation();
+      mockAppConfig.get.mockImplementation((key: string) =>
+        key === "bilibiliUser" ? {} : originalGet(key),
+      );
+      vi.mocked(getCookie).mockReturnValue({ SESSDATA: "fallback" });
+
+      const result = recorderConfig.list();
+
+      expect(result[0]?.auth).toBe("SESSDATA=fallback");
+      expect(getCookie).toHaveBeenCalledTimes(2);
+    });
+
+    it("每次 list 都重新读取账号，避免沿用旧 Cookie", () => {
+      setupAccounts();
+      expect(recorderConfig.list()[0]?.auth).toBe("SESSDATA=bili-100");
+      vi.mocked(getCookie).mockReturnValue({ SESSDATA: "updated" });
+
+      expect(recorderConfig.list()[0]?.auth).toBe("SESSDATA=updated");
+      expect(getCookie).toHaveBeenCalledTimes(6);
     });
   });
 

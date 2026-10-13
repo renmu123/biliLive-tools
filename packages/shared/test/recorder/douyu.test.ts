@@ -1,0 +1,328 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { appConfig } from "../../src/config.js";
+import { send as sendNotify } from "../../src/notify.js";
+import { encrypt } from "../../src/utils/index.js";
+import {
+  deleteDouyuUser,
+  DouyuQrcodeLogin,
+  readDouyuUser,
+  readDouyuUserList,
+  writeDouyuUser,
+  refreshDouyuUser,
+  checkDouyuAccounts,
+  checkDouyuAccountExpiry,
+  validateDouyuUser,
+} from "../../src/recorder/douyu.js";
+
+vi.mock("../../src/notify.js", () => ({ send: vi.fn().mockResolvedValue(undefined) }));
+
+const jsonResponse = (data: unknown, cookies: string[] = []) => {
+  const headers = new Headers({ "content-type": "application/json" });
+  cookies.forEach((cookie) => headers.append("set-cookie", cookie));
+  return new Response(JSON.stringify(data), { status: 200, headers });
+};
+
+const textResponse = (data: string, cookies: string[] = []) => {
+  const headers = new Headers();
+  cookies.forEach((cookie) => headers.append("set-cookie", cookie));
+  return new Response(data, { status: 200, headers });
+};
+
+describe("DouyuQrcodeLogin", () => {
+  let tempDir: string;
+  const originalFetch = globalThis.fetch;
+
+  beforeEach(() => {
+    vi.mocked(sendNotify).mockClear();
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "douyu-login-test-"));
+    appConfig.init(path.join(tempDir, "config.json"), { douyuUser: {} });
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+    vi.restoreAllMocks();
+  });
+
+  it("按 passport、main 两组获取并保存全部 Cookie", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse(
+          {
+            error: 0,
+            data: {
+              code: "qr-code",
+              expire: 120,
+              url: "https://passport.douyu.com/scan/checkLogin?scan_code=qr-code",
+            },
+          },
+          ["generate_extra=generate-value; Path=/"],
+        ),
+      )
+      .mockResolvedValueOnce(jsonResponse({ error: -2, msg: "等待扫码" }))
+      .mockResolvedValueOnce(
+        jsonResponse(
+          {
+            error: 0,
+            data: { url: "https://www.douyu.com/api/passport/login?code=token&uid=123" },
+          },
+          [
+            "LTP0=passport-token; Path=/",
+            "dy_accounts_main=1; Path=/",
+            "passport_extra=passport-value; Path=/",
+          ],
+        ),
+      )
+      .mockResolvedValueOnce(
+        textResponse('appClient_json_callback({"error":0,"data":{"nickname":"测试用户"}})', [
+          "acf_uid=123; Path=/",
+          "acf_username=123; Path=/",
+          "acf_auth=main-auth; Path=/",
+          "dy_auth=dy-auth; Path=/",
+          "acf_stk=main-stk; Path=/",
+          "acf_ltkid=456; Path=/",
+          "acf_biz=1; Path=/",
+          "acf_ct=0; Path=/",
+          "main_extra=main-value; Path=/",
+        ]),
+      );
+    globalThis.fetch = fetchMock;
+
+    const login = await DouyuQrcodeLogin.create();
+    expect(login.url).toContain("scan_code=qr-code");
+    await expect(login.poll()).resolves.toEqual({ status: "scan" });
+    const result = await login.poll();
+    expect(result.status).toBe("completed");
+    if (result.status === "completed") {
+      expect(result.user).toMatchObject({ uid: 123, name: "测试用户" });
+      expect(result.user.loginCookies.passport).toContain("LTP0=passport-token");
+      expect(result.user.loginCookies.passport).toContain("generate_extra=generate-value");
+      expect(result.user.loginCookies.passport).toContain("passport_extra=passport-value");
+      expect(result.user.loginCookies.passport).toMatch(/dy_did=b[a-z0-9]{31}/);
+      expect(result.user.loginCookies.main).toContain("acf_auth=main-auth");
+      expect(result.user.loginCookies.main).toContain("acf_uid=123");
+      expect(result.user.loginCookies.main).toContain("main_extra=main-value");
+      expect(result.user.loginCookies.main).not.toContain("LTP0=");
+    }
+
+    const generateHeaders = fetchMock.mock.calls[0][1].headers;
+    expect(generateHeaders.cookie).toMatch(/dy_did=b[a-z0-9]{31}/);
+    expect(String(fetchMock.mock.calls[0][1].body)).toContain("isMultiAccount=0");
+    expect(fetchMock.mock.calls[1][0]).toContain("/japi/scan/auth");
+    expect(fetchMock.mock.calls[3][1].headers.get("cookie")).toContain("LTP0=passport-token");
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("处理生成失败、取消以及主站 UID 缺失", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(jsonResponse({ error: 2, msg: "繁忙" }));
+    await expect(DouyuQrcodeLogin.create()).rejects.toThrow("繁忙");
+
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(
+      jsonResponse({
+        error: 0,
+        data: { code: "code", expire: 120, url: "https://passport.douyu.com/scan/test" },
+      }),
+    );
+    const cancelled = await DouyuQrcodeLogin.create();
+    cancelled.cancel();
+    await expect(cancelled.poll()).resolves.toEqual({ status: "error", failReason: "登录已取消" });
+
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse({
+          error: 0,
+          data: { code: "code", expire: 120, url: "https://passport.douyu.com/scan/test" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse(
+          {
+            error: 0,
+            data: { url: "https://www.douyu.com/api/passport/login?uid=1" },
+          },
+          ["LTP0=passport-token; Path=/"],
+        ),
+      )
+      .mockResolvedValueOnce(
+        textResponse('appClient_json_callback({"error":0})', [
+          "acf_auth=auth; Path=/",
+          "acf_stk=stk; Path=/",
+          "acf_ltkid=1; Path=/",
+          "acf_biz=1; Path=/",
+          "acf_ct=0; Path=/",
+        ]),
+      );
+    const missingUid = await DouyuQrcodeLogin.create();
+    const result = await missingUid.poll();
+    expect(result).toMatchObject({ status: "error" });
+    if (result.status === "error") expect(result.failReason).toBe("登录成功但未获取到斗鱼 UID");
+  });
+
+  it("加密保存、覆盖、列出和删除账号", () => {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(1000);
+    writeDouyuUser({
+      uid: 1,
+      name: "旧昵称",
+      loginCookies: { passport: "LTP0=old", main: "acf_uid=1" },
+    });
+    expect(appConfig.get("douyuUser")[1]).not.toContain("acf_uid=1");
+    expect(readDouyuUser(1)).toMatchObject({ createdAt: 1000, updatedAt: 1000 });
+    clock.mockReturnValue(2000);
+    writeDouyuUser({
+      uid: 1,
+      name: "新昵称",
+      loginCookies: { passport: "LTP0=new", main: "acf_uid=1; token=new" },
+    } as unknown as Parameters<typeof writeDouyuUser>[0]);
+    expect(readDouyuUser(1)?.name).toBe("新昵称");
+    expect(readDouyuUser(1)).toMatchObject({ createdAt: 2000, updatedAt: 2000 });
+    clock.mockReturnValue(3000);
+    expect(readDouyuUser(1)).toMatchObject({ createdAt: 2000, updatedAt: 2000 });
+    expect(readDouyuUser(1)?.loginCookies.main).toContain("token=new");
+    expect(readDouyuUserList()).toHaveLength(1);
+    deleteDouyuUser(1);
+    expect(readDouyuUser(1)).toBeUndefined();
+  });
+
+  it("通过粉丝牌接口校验主站 Cookie，且不修改账号", async () => {
+    writeDouyuUser({
+      uid: 1,
+      name: "用户",
+      loginCookies: { passport: "LTP0=passport", main: "acf_uid=1; acf_auth=main" },
+    });
+    const stored = appConfig.get("douyuUser")[1];
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(textResponse('<table class="fans-badge-list"><tr></tr></table>'))
+      .mockResolvedValueOnce(textResponse("<html>请登录</html>"))
+      .mockResolvedValueOnce(new Response("", { status: 401 }))
+      .mockResolvedValueOnce(new Response("", { status: 500 }));
+    globalThis.fetch = fetchMock;
+    await expect(validateDouyuUser(1)).resolves.toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe("https://www.douyu.com/member/cp/getFansBadgeList");
+    expect(fetchMock.mock.calls[0][1].headers.Cookie).toBe("acf_uid=1; acf_auth=main");
+    await expect(validateDouyuUser(1)).resolves.toBe(false);
+    await expect(validateDouyuUser(1)).resolves.toBe(false);
+    await expect(validateDouyuUser(1)).rejects.toThrow("500");
+    expect(appConfig.get("douyuUser")[1]).toBe(stored);
+    await expect(validateDouyuUser(2)).rejects.toThrow("斗鱼账号不存在");
+  });
+
+  it("旧账号读取不伪造缺失的时间戳", () => {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(1000);
+    const key =
+      process.env.BILILIVE_TOOLS_BILIKEY ||
+      "7d628cb145deba521d5b0195924c466cae6559289cf5a335624ad8e6d7ef0085";
+    appConfig.set("douyuUser", {
+      1: encrypt(
+        JSON.stringify({
+          uid: 1,
+          name: "旧账号",
+          loginCookies: { passport: "", main: "acf_uid=1" },
+        }),
+        key,
+      ),
+    });
+    expect(readDouyuUser(1)).toMatchObject({ createdAt: undefined, updatedAt: undefined });
+    clock.mockReturnValue(2000);
+    expect(readDouyuUserList()[0]).toMatchObject({ createdAt: undefined, updatedAt: undefined });
+  });
+
+  it("过期提醒有独立开关，严格不足五天才通知，包含已过期账号", async () => {
+    const day = 24 * 60 * 60 * 1000;
+    const now = 100 * day;
+    const clock = vi.spyOn(Date, "now").mockReturnValue(now);
+    writeDouyuUser({
+      uid: 1,
+      name: "斗鱼用户",
+      loginCookies: { passport: "LTP0=secret", main: "acf_uid=1; token=secret" },
+    });
+    appConfig.set("notification.task.douyuAccountExpiry", false);
+    clock.mockReturnValue(now + 55 * day);
+    await checkDouyuAccountExpiry();
+    expect(sendNotify).not.toHaveBeenCalled();
+
+    appConfig.set("notification.task.douyuAccountExpiry", true);
+    await checkDouyuAccountExpiry();
+    expect(sendNotify).not.toHaveBeenCalled();
+    clock.mockReturnValue(now + 55 * day + 1);
+    await checkDouyuAccountExpiry();
+    expect(sendNotify).toHaveBeenCalledTimes(1);
+    expect(sendNotify).toHaveBeenCalledWith(
+      "斗鱼账号即将过期",
+      expect.stringContaining("斗鱼用户（UID：1）"),
+      expect.objectContaining({ type: "douyuAccountExpiry" }),
+    );
+    expect(JSON.stringify(vi.mocked(sendNotify).mock.calls)).not.toContain("secret");
+    clock.mockReturnValue(now + 61 * day);
+    await checkDouyuAccountExpiry();
+    expect(sendNotify).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(sendNotify).mock.calls[1][1]).toContain("预计已过期");
+  });
+
+  it("严格超过四天才刷新，合并所有返回 Cookie 并只更新更新时间", async () => {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(1000);
+    writeDouyuUser({
+      uid: 1,
+      name: "用户",
+      loginCookies: {
+        passport: "dy_did=device; LTP0=passport",
+        main: "acf_uid=1; old=keep; token=old",
+      },
+    });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        textResponse('axiosJsonpCallback({"error":0})', [
+          "token=new; Path=/",
+          "extra=value; Path=/",
+        ]),
+      );
+    globalThis.fetch = fetchMock;
+    const threshold = 1000 + 4 * 24 * 60 * 60 * 1000;
+    clock.mockReturnValue(threshold);
+    await checkDouyuAccounts();
+    expect(fetchMock).not.toHaveBeenCalled();
+    clock.mockReturnValue(threshold + 1);
+    await checkDouyuAccounts();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(new URL(url).searchParams.get("client_id")).toBe("1");
+    expect(options.headers.Cookie).toBe("dy_did=device; LTP0=passport");
+    expect(readDouyuUser(1)).toMatchObject({ createdAt: 1000, updatedAt: threshold + 1 });
+    expect(readDouyuUser(1)?.loginCookies).toEqual({
+      passport: "dy_did=device; LTP0=passport",
+      main: "acf_uid=1; old=keep; token=new; extra=value",
+    });
+    await checkDouyuAccounts();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["network", "empty", "error", "uid"])("刷新失败保留账号数据：%s", async (failure) => {
+    writeDouyuUser({
+      uid: 1,
+      name: "用户",
+      loginCookies: { passport: "dy_did=device; LTP0=passport", main: "acf_uid=1" },
+    });
+    const before = appConfig.get("douyuUser")[1];
+    globalThis.fetch =
+      failure === "network"
+        ? vi.fn().mockRejectedValue(new Error("network"))
+        : vi
+            .fn()
+            .mockResolvedValue(
+              textResponse(
+                failure === "error" ? '({"error":1})' : '({"error":0})',
+                failure === "empty" ? [] : [failure === "uid" ? "acf_uid=2" : "token=new"],
+              ),
+            );
+    await expect(refreshDouyuUser(1)).rejects.toThrow();
+    expect(appConfig.get("douyuUser")[1]).toBe(before);
+  });
+});

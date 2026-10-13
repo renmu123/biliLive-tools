@@ -37,6 +37,7 @@
     }, // 直播间配置对象 {roomId: {uid, open, ...}}
     ffmpegPreset: undefined, // 默认转码预设
     danmuPreset: undefined, // 默认弹幕预设
+    burnWithoutDanmu: false, // 弹幕压制开启时，弹幕为空或不存在仍进行压制
     afterConvertAction: [], // 转码后执行的操作，removeXml|removeVideo|removeSmallFile|removeAfterConvert2Mp4
     hotProgress: false, // 是否生成高能进度条
     useLiveCover: false, // 是否使用直播封面
@@ -179,6 +180,7 @@
         threshold: 10, // 磁盘剩余空间阈值 (GB)
       },
       sync: [], // 文件同步完成通知
+      douyuAccountExpiry: false, // 斗鱼账号预计过期提醒：创建后 60 天过期，剩余不足 5 天时每日检查
     },
     setting: {
       type: undefined, // 通知类型: server|mail|tg|ntfy|allInOne|customHttp
@@ -215,6 +217,7 @@
     },
     taskNotificationType: {
       liveStart: "system", // 直播开始通知方式: system|server|...
+      douyuAccountExpiry: "system", // 斗鱼账号过期提醒的独立通知渠道
     },
   },
 
@@ -334,7 +337,8 @@
       maxThreadCount: undefined,
       waitTime: undefined,
     },
-    douyu: { // 抖音特定配置
+    douyu: { // 斗鱼特定配置
+      uid: undefined, // 在用户页登录后获得的斗鱼账号 UID
       quality: 0,
       source: "auto",
       checkInterval: undefined,

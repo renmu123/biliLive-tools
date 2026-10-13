@@ -1,3 +1,44 @@
+# Next
+
+## 功能
+
+- 客户端：新增“视图”菜单栏，支持前进，后退，新建窗口
+- 文件浏览器：支持批量删除 [#570](https://github.com/renmu123/biliLive-tools/pull/570)
+- Webhook：新增选项“无弹幕仍压制”，用于在不存在弹幕时仍应用ffmpeg预设 [#578](https://github.com/renmu123/biliLive-tools/pull/578)
+- B站上传：合集标题支持格式化 [#579](https://github.com/renmu123/biliLive-tools/pull/579)
+
+## 优化
+
+- 录制：列表模式支持头像显示 [#501](https://github.com/renmu123/biliLive-tools/issues/501)
+- 部分工具页UI优化 [#569](https://github.com/renmu123/biliLive-tools/pull/569)
+- 录制：优化某些场景下的性能问题 [571](https://github.com/renmu123/biliLive-tools/pull/571)
+- UI：文件浏览器页面加入页面缓存
+- 合并：优化弹幕合并中的元数据相关内容，移除“保留首个视频的元数据”，默认开启 [#576](https://github.com/renmu123/biliLive-tools/pull/576)
+
+## Bug修复
+
+- 上传：修复前端分P标题部分文本被意外过滤的bug
+- 上传：修复切换预设时“定时发布”UI显示错误
+- 弹幕转换：修复添加“自定义函数”时，录播姬弹幕文件礼物数据出错的bug
+
+## 其他
+
+- CI：npm 发布使用新信任发布
+
+# 3.22.2(2026.10.03)
+
+## 功能
+
+- 斗鱼支持扫码登录与多账号管理，录制配置改为选择账号 UID（升级后旧的斗鱼 Cookie 配置会被移除，需要在“用户”页重新扫码登录。）
+
+# 3.22.1(2026.09.21)
+
+## 优化
+
+2026.9.21 日起，斗鱼web接口已经无法获取最高画质，以及录制流过期时间为五分钟，你需要添加cookie来避免问题
+
+- 斗鱼支持cookie参数（仅在获取流接口时启用） [#562](https://github.com/renmu123/biliLive-tools/pull/562)
+
 # 3.22.0(2026.09.21)
 
 ## 功能

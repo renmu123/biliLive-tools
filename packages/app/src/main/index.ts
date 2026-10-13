@@ -114,7 +114,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:setTheme", setTheme);
   ipcMain.handle("common:setMenuBarVisible", setMenuBarVisible);
-  ipcMain.handle("common:createSubWindow", createSubWindow);
+  ipcMain.handle("common:createSubWindow", (_event, options) => createSubWindow(options));
   ipcMain.handle("common:checkUpdate", manualCheckUpdate);
 
   registerHandlers(ipcMain, ffmpegHandlers);
@@ -123,16 +123,13 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, cookieHandlers);
 };
 
-function createSubWindow(
-  _event: IpcMainInvokeEvent,
-  options: {
-    routeName: string;
-    hideAside?: boolean;
-    hideMenuBar?: boolean;
-    maximized?: boolean;
-    query?: Record<string, string>;
-  },
-) {
+function createSubWindow(options: {
+  routeName: string;
+  hideAside?: boolean;
+  hideMenuBar?: boolean;
+  maximized?: boolean;
+  query?: Record<string, string>;
+}) {
   const css = `
   .layout>div>aside {
     display: none;
@@ -458,6 +455,39 @@ function createMenu(): void {
     {
       label: "开发者工具",
       role: "viewMenu",
+    },
+    {
+      label: "视图",
+      submenu: [
+        {
+          label: "后退",
+          accelerator: isMac ? "Cmd+[" : "Alt+Left",
+          click: () => {
+            const history = BrowserWindow.getFocusedWindow()?.webContents.navigationHistory;
+            if (history?.canGoBack()) {
+              history.goBack();
+            }
+          },
+        },
+        {
+          label: "前进",
+          accelerator: isMac ? "Cmd+]" : "Alt+Right",
+          click: () => {
+            const history = BrowserWindow.getFocusedWindow()?.webContents.navigationHistory;
+            if (history?.canGoForward()) {
+              history.goForward();
+            }
+          },
+        },
+        { type: "separator" },
+        {
+          label: "新建窗口",
+          accelerator: "CmdOrCtrl+N",
+          click: () => {
+            createSubWindow({ routeName: "" });
+          },
+        },
+      ],
     },
     {
       label: "帮助",

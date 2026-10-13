@@ -5,6 +5,7 @@ import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.
 import { TvQrcodeLogin } from "@renmu/bili-api";
 import {
   formatTitle,
+  formatSeasonTitle,
   formatPartTitle,
   formatDesc,
   uuid,
@@ -244,6 +245,27 @@ router.post("/formatTitle", async (ctx) => {
   ctx.body = title;
 });
 
+router.post("/formatSeasonTitle", async (ctx) => {
+  const { template, mediaTitleTemplate } = ctx.request.body as {
+    template?: string;
+    mediaTitleTemplate?: string;
+  };
+  const options = {
+    title: "标题",
+    username: "主播名",
+    time: new Date().toISOString(),
+    roomId: 123456,
+    filename: "文件名",
+  };
+  ctx.body = formatSeasonTitle(
+    {
+      ...options,
+      mediaTitle: formatTitle(options, mediaTitleTemplate || options.title),
+    },
+    template,
+  );
+});
+
 router.post("/formatPartTitle", async (ctx) => {
   const data = ctx.request.body as {
     template: string;
@@ -284,8 +306,6 @@ router.post("/formatDesc", async (ctx) => {
   );
   ctx.body = desc;
 });
-
-
 
 // 搜索联合投稿UP主
 router.get("/searchStaff", async (ctx) => {

@@ -59,7 +59,16 @@
         <td v-if="isColumnVisible('channelId')">
           <a class="link" target="_blank" :href="item.channelURL">{{ item.channelId }}</a>
         </td>
-        <td v-if="isColumnVisible('owner')">{{ item.owner || item.remarks }}</td>
+        <td v-if="isColumnVisible('owner')">
+          <div style="display: flex; align-items: center">
+            <img
+              :src="item.avatar"
+              referrerpolicy="no-referrer"
+              style="width: 25px; height: 25px; border-radius: 50%; margin-right: 4px"
+            />
+            <span>{{ item.owner || item.remarks }}</span>
+          </div>
+        </td>
         <td v-if="isColumnVisible('remark')">{{ item.remarks }}</td>
         <td v-if="isColumnVisible('roomTitle')">{{ item.roomTitle }}</td>
         <td

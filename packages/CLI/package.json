@@ -1,12 +1,17 @@
 {
   "name": "bililive-cli",
-  "version": "3.22.0",
+  "version": "3.22.2",
   "type": "module",
   "description": "biliLive-tools的cli程序",
   "main": "./lib/index.js",
   "author": "renmu123",
   "license": "GPL-3.0",
   "homepage": "https://github.com/renmu123/biliLive-tools",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renmu123/biliLive-tools",
+    "directory": "packages/CLI"
+  },
   "scripts": {
     "start": "tsx src/index.ts",
     "dev": "rollup --config rollup.config.js -w",

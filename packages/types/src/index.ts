@@ -105,6 +105,8 @@ export type CommonRoomConfig = {
   title: string;
   uploadPresetId?: string;
   danmu: boolean;
+  /** 弹幕为空或不存在时仍进行压制 */
+  burnWithoutDanmu?: boolean;
   ffmpegPreset?: string | null;
   danmuPreset?: string | null;
   autoPartMerge: boolean;
@@ -401,6 +403,8 @@ interface BilibiliRecorderConfig extends RecorderCheckConfig {
   segmentOnTitleChange: boolean;
 }
 interface DouyuRecorderConfig extends RecorderCheckConfig {
+  /** 登录账号 */
+  uid?: number;
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
   quality: 0 | 2 | 3 | 4 | 8;
   source: string;
@@ -577,7 +581,7 @@ export interface Recorder {
   liveEndNotification?: boolean;
   /** 权重 */
   weight: number;
-  /** 抖音、TikTok cookie */
+  /** 平台 Cookie */
   cookie?: string;
   /** 请求和录制使用的代理 */
   proxy?: string;
@@ -678,6 +682,10 @@ export interface AppConfig {
   bilibiliUser: {
     [uid: number]: string;
   };
+  /** 加密后的斗鱼登录信息 */
+  douyuUser: {
+    [uid: number]: string;
+  };
   /** 当前使用的b站uid */
   uid?: number;
   /** 工具页配置 */
@@ -700,6 +708,8 @@ export interface AppConfig {
       douyuDownload: NotificationTaskStatus[];
       mediaStatusCheck: NotificationTaskStatus[];
       sync: NotificationTaskStatus[];
+      /** 斗鱼账号预计过期前提醒（按登录创建时间起 60 天计算） */
+      douyuAccountExpiry: boolean;
       diskSpaceCheck: {
         values: Array<"bilirecorder" | "bililiveTools">;
         /** 磁盘空间不足阈值，单位GB */
@@ -709,7 +719,7 @@ export interface AppConfig {
     /** 通知配置项 */
     setting: {
       // 通知类型，支持server酱和邮件
-      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne" | "customHttp";
+      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne" | "customHttp" | null;
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
@@ -721,6 +731,7 @@ export interface AppConfig {
     taskNotificationType: {
       liveStart: AppConfig["notification"]["setting"]["type"];
       chargeLive?: AppConfig["notification"]["setting"]["type"];
+      douyuAccountExpiry?: AppConfig["notification"]["setting"]["type"];
     };
   };
   // 同步
@@ -1090,6 +1101,8 @@ export interface BiliupConfig {
   selectiionReply?: 0 | 1;
   /** 合集id */
   seasonId?: number | null;
+  /** 合集中稿件的标题模板，默认 {{mediaTitle}}（视频标题） */
+  seasonTitleTemplate?: string;
   /** 小节id */
   sectionId?: number;
   /** 创建该预设的uid */
@@ -1153,6 +1166,22 @@ export interface BiliUser {
   accessToken: string;
   refreshToken: string;
   platform: "TV";
+}
+
+export interface DouyuLoginCookies {
+  passport: string;
+  main: string;
+}
+
+export interface DouyuUser {
+  uid: number;
+  name: string;
+  avatar?: string;
+  loginCookies: DouyuLoginCookies;
+  /** 当前登录记录的创建时间，重新登录时重置，Unix 毫秒时间戳 */
+  createdAt: number;
+  /** 最近更新登录信息的时间，Unix 毫秒时间戳 */
+  updatedAt: number;
 }
 
 export type HotProgressOptions = {

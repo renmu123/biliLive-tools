@@ -151,6 +151,17 @@ export const formatWebhookTitle = async (
   return res.data;
 };
 
+export const formatWebhookSeasonTitle = async (
+  template: string,
+  mediaTitleTemplate: string,
+): Promise<string> => {
+  const res = await request.post("/bili/formatSeasonTitle", {
+    template,
+    mediaTitleTemplate,
+  });
+  return res.data;
+};
+
 export const formatWebhookPartTitle = async (
   template: string,
   options?: PartTitleFormatOptions,
@@ -202,6 +213,7 @@ const bili = {
   loginPoll,
   upload,
   formatWebhookTitle,
+  formatWebhookSeasonTitle,
   formatWebhookPartTitle,
   formatWebhookDesc,
 };

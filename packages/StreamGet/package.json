@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/stream-get",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "parse live stream url",
   "main": "./lib/index.js",
   "type": "module",
@@ -33,7 +33,11 @@
     "url",
     "parser"
   ],
-  "repository": "https://github.com/renmu123/biliLive-tools",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renmu123/biliLive-tools",
+    "directory": "packages/StreamGet"
+  },
   "author": "renmu123",
   "license": "MIT",
   "dependencies": {

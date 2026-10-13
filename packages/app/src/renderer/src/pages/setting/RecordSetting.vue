@@ -362,6 +362,22 @@
               :options="douyuStreamCodecOptions"
             />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="账号"
+                tip="未选择账号时将以未登录状态请求斗鱼接口，请先在用户页登录斗鱼账号"
+              ></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.douyu.uid"
+              :options="douyuUserList"
+              label-field="name"
+              value-field="uid"
+              clearable
+              placeholder="请先在用户页登录斗鱼账号"
+            />
+          </n-form-item>
 
           <div class="divider"></div>
           <n-form-item>
@@ -524,7 +540,11 @@
             <template #label>
               <Tip text="Cookie" tip="使用mobile接口时Cookie不会被应用"></Tip>
             </template>
-            <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
+            <n-input
+              v-model:value="config.recorder.douyin.cookie"
+              type="password"
+              show-password-on="click"
+            />
             <n-button
               v-if="!isWeb"
               type="primary"
@@ -597,7 +617,11 @@
             <template #label>
               <Tip text="Cookie" tip="用于自动监听"></Tip>
             </template>
-            <n-input v-model:value="config.recorder.xhs.cookie" type="password" />
+            <n-input
+              v-model:value="config.recorder.xhs.cookie"
+              type="password"
+              show-password-on="click"
+            />
             <n-button
               v-if="!isWeb"
               type="primary"
@@ -696,7 +720,11 @@
             <template #label>
               <Tip text="Cookie" tip="遇到年龄限制或风控时可填写 TikTok Cookie"></Tip>
             </template>
-            <n-input v-model:value="config.recorder.tiktok.cookie" type="password" />
+            <n-input
+              v-model:value="config.recorder.tiktok.cookie"
+              type="password"
+              show-password-on="click"
+            />
           </n-form-item>
           <n-form-item>
             <template #label>
@@ -768,7 +796,7 @@ import { FolderOpenOutline } from "@vicons/ionicons5";
 import { templateRef } from "@vueuse/core";
 import { useBreakpoints } from "@renderer/hooks";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
-import { useUserInfoStore } from "@renderer/stores";
+import { useUserInfoStore, useDouyuUserStore } from "@renderer/stores";
 import { useConfirm } from "@renderer/hooks";
 import {
   biliQualityOptions,
@@ -803,6 +831,7 @@ const labelWidth = computed(() => {
 });
 
 const { userList } = storeToRefs(useUserInfoStore());
+const { userList: douyuUserList } = storeToRefs(useDouyuUserStore());
 const isWeb = computed(() => window.isWeb);
 
 const selectFolder = async () => {

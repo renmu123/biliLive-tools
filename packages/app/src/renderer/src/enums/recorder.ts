@@ -534,6 +534,10 @@ export const textInfo = {
       text: "请求接口",
       tip: `自动使用新接口，除了新接口额外支持hevc之外，我也不知道有啥区别，但还是保留了此选项`,
     },
+    cookie: {
+      text: "Cookie",
+      tip: "2026.9.21 日起，斗鱼web接口已经无法获取最高画质，以及录制流过期时间为五分钟，你需要添加cookie来避免问题",
+    },
   },
   huya: {
     qualityRetry: qualityRetry,
