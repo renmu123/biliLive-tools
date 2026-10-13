@@ -13,11 +13,15 @@ export class PathResolver {
    * @returns 弹幕文件路径
    */
   static getDanmuPath(videoPath: string, danmuPath?: string): string {
-    const file = danmuPath || replaceExtName(videoPath, ".xml");
-    if (file && fs.pathExistsSync(file)) {
-      return file;
+    try {
+      const file = danmuPath || replaceExtName(videoPath, ".xml");
+      if (file && fs.pathExistsSync(file)) {
+        return file;
+      }
+      return "";
+    } catch (error) {
+      return "";
     }
-    return "";
   }
 
   /**
@@ -27,31 +31,35 @@ export class PathResolver {
    * @returns 封面路径，如果不存在则返回 ""
    */
   static getCoverPath(videoPath: string, coverPath?: string): string {
-    if (coverPath && fs.pathExistsSync(coverPath)) {
-      return coverPath;
+    try {
+      if (coverPath && fs.pathExistsSync(coverPath)) {
+        return coverPath;
+      }
+
+      const { name, dir } = path.parse(videoPath);
+      const coverWithSuffix = path.join(dir, `${name}.cover.jpg`);
+      const coverJpg = path.join(dir, `${name}.jpg`);
+      const coverPng = path.join(dir, `${name}.png`);
+
+      // 检查 .png
+      if (fs.pathExistsSync(coverPng)) {
+        return coverPng;
+      }
+
+      // 优先检查 .cover.jpg
+      if (fs.pathExistsSync(coverWithSuffix)) {
+        return coverWithSuffix;
+      }
+
+      // 其次检查 .jpg
+      if (fs.pathExistsSync(coverJpg)) {
+        return coverJpg;
+      }
+
+      return "";
+    } catch (error) {
+      return "";
     }
-
-    const { name, dir } = path.parse(videoPath);
-    const coverWithSuffix = path.join(dir, `${name}.cover.jpg`);
-    const coverJpg = path.join(dir, `${name}.jpg`);
-    const coverPng = path.join(dir, `${name}.png`);
-
-    // 检查 .png
-    if (fs.pathExistsSync(coverPng)) {
-      return coverPng;
-    }
-
-    // 优先检查 .cover.jpg
-    if (fs.pathExistsSync(coverWithSuffix)) {
-      return coverWithSuffix;
-    }
-
-    // 其次检查 .jpg
-    if (fs.pathExistsSync(coverJpg)) {
-      return coverJpg;
-    }
-
-    return "";
   }
 
   /**
