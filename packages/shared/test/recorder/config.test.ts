@@ -31,6 +31,7 @@ const defaultRecorderConfig = {
   disableProvideCommentsWhenRecording: true,
   saveGiftDanma: false,
   saveSCDanma: true,
+  saveDanmaStats2DB: false,
   saveCover: false,
   segment: "90",
   videoFormat: "auto" as const,
@@ -76,6 +77,20 @@ const buildRecorders = (
 };
 
 const globalFollowCases = [
+  {
+    title: "弹幕统计入库：saveDanmaStats2DB",
+    key: "saveDanmaStats2DB",
+    globalValue: true,
+    localValue: false,
+    providerIds: allProviderIds,
+  },
+  {
+    title: "弹幕统计入库（单独开启）：saveDanmaStats2DB",
+    key: "saveDanmaStats2DB",
+    globalValue: false,
+    localValue: true,
+    providerIds: allProviderIds,
+  },
   {
     title: "转封装为MP4：convert2Mp4",
     key: "convert2Mp4",

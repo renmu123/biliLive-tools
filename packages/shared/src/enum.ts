@@ -376,6 +376,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     recorderType: "bililive",
     useServerTimestamp: false,
     recordRetryImmediately: true,
+    saveDanmaStats2DB: false,
     bilibili: {
       uid: undefined,
       quality: 10000,
@@ -868,6 +869,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   disableProvideCommentsWhenRecording: false,
   saveGiftDanma: false,
   saveSCDanma: true,
+  saveDanmaStats2DB: false,
   streamPriorities: [],
   sourcePriorities: [],
   disableAutoCheck: false,

@@ -542,7 +542,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
         },
       );
 
-      if (stats) {
+      if (data?.saveDanmaStats2DB && stats) {
         recordHistory.upadteLive(
           {
             video_file: filename,

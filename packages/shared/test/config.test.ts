@@ -172,6 +172,7 @@ describe("AppConfig", () => {
 
     expect(config.get("host")).toBe("0.0.0.0");
     expect(config.get("port")).toBe(18010);
+    expect(config.get("recorder.saveDanmaStats2DB")).toBe(false);
     expect(config.getDeep("tool.download.savePath")).toBe("D:/records");
     expect(config.getDeep("tool.download.override")).toBe(false);
 
@@ -179,6 +180,14 @@ describe("AppConfig", () => {
     expect(persisted.host).toBe("0.0.0.0");
     expect(persisted.tool.download.savePath).toBe("D:/records");
     expect(persisted.port).toBe(18010);
+  });
+
+  it.each([undefined, true, false])("已有配置的弹幕统计入库选项为 %s 时会正确合并", (enabled) => {
+    fs.writeFileSync(configPath, JSON.stringify({ recorder: { saveDanmaStats2DB: enabled } }));
+
+    const config = new AppConfig(configPath);
+
+    expect(config.get("recorder.saveDanmaStats2DB")).toBe(enabled ?? false);
   });
 
   it("支持通过点路径更新和读取嵌套配置", () => {

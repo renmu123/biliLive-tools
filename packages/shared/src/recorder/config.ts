@@ -234,6 +234,7 @@ export default class RecorderConfig {
       disableProvideCommentsWhenRecording: disableProvideCommentsWhenRecording,
       saveGiftDanma: getValue("saveGiftDanma") ?? false,
       saveSCDanma: getValue("saveSCDanma") ?? true,
+      saveDanmaStats2DB: getValue("saveDanmaStats2DB") ?? false,
       saveCover: getValue("saveCover") ?? false,
       convert2Mp4: getValue("convert2Mp4") ?? false,
       segment: getValue("segment") ?? 90,

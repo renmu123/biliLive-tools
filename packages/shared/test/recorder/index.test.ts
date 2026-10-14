@@ -1,6 +1,8 @@
 import { EventEmitter } from "node:events";
+import fs from "fs-extra";
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { danmaReport } from "../../src/danmu/index.js";
 
 const fakeManager = Object.assign(new EventEmitter(), {
   autoCheckInterval: 0,
@@ -19,6 +21,7 @@ const fakeManager = Object.assign(new EventEmitter(), {
 });
 
 const updateLiveMock = vi.fn();
+const getRecorderConfigMock = vi.fn();
 const recordHistoryMock = {
   addWithStreamer: vi.fn(),
   upadteLive: updateLiveMock,
@@ -29,7 +32,7 @@ const recordHistoryMock = {
 class MockRecorderConfig {
   constructor(_appConfig: unknown) {}
 
-  get = vi.fn(() => undefined);
+  get = getRecorderConfigMock;
 
   list = vi.fn(() => []);
 }
@@ -113,78 +116,116 @@ describe("shared recorder videoFileCompleted", () => {
   beforeEach(() => {
     fakeManager.removeAllListeners();
     updateLiveMock.mockReset();
+    vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+    vi.mocked(danmaReport).mockReset();
+    vi.mocked(danmaReport).mockResolvedValue({ danmaNum: 4, uniqMember: 3 } as any);
   });
 
-  it("should persist danma_stats_json from liveManager stats", async () => {
-    const appConfig = {
-      getAll: () => ({
-        port: 18010,
-        recorder: {
-          savePath: "records",
-          nameRule: "{title}",
-          autoRecord: false,
-          saveDanma2DB: false,
-          recordRetryImmediately: false,
-          bilibili: {},
-          douyu: {},
-          huya: {},
-          douyin: {},
-          xhs: {},
-        },
-        notification: {
-          setting: {},
-          taskNotificationType: {},
-        },
-      }),
-      on: vi.fn(),
-    } as any;
-
-    await createRecorderManager(appConfig);
-
-    fakeManager.emit("videoFileCompleted", {
-      recorder: {
-        id: "recorder-1",
-        providerId: "Bilibili",
-        channelId: "1000",
-        liveInfo: {
-          title: "live title",
-          owner: "主播",
-          liveId: "live-1",
-        },
-      },
-      filename: "C:/records/test.ts",
-      stats: {
-        danmaNum: 4,
-        uniqMember: 3,
-        scNum: 0,
-        guardNum: 0,
-        danmaStats: {
-          danmaTimeline: {
-            interval: 5,
-            data: [2, 1, 1],
+  it.each([
+    { saveDanmaStats2DB: true, hasStats: true },
+    { saveDanmaStats2DB: false, hasStats: true },
+    { saveDanmaStats2DB: undefined, hasStats: true },
+    { saveDanmaStats2DB: true, hasStats: false },
+    { saveDanmaStats2DB: false, hasStats: false },
+    { saveDanmaStats2DB: undefined, hasStats: false },
+  ])(
+    "saveDanmaStats2DB=$saveDanmaStats2DB, hasStats=$hasStats",
+    async ({ saveDanmaStats2DB, hasStats }) => {
+      getRecorderConfigMock.mockReturnValue({ saveDanmaStats2DB });
+      const appConfig = {
+        getAll: () => ({
+          port: 18010,
+          recorder: {
+            savePath: "records",
+            nameRule: "{title}",
+            autoRecord: false,
+            saveDanma2DB: false,
+            saveDanmaStats2DB: !saveDanmaStats2DB,
+            recordRetryImmediately: false,
+            bilibili: {},
+            douyu: {},
+            huya: {},
+            douyin: {},
+            xhs: {},
           },
-        },
-      },
-    });
-
-    await new Promise((resolve) => setImmediate(resolve));
-    await new Promise((resolve) => setImmediate(resolve));
-
-    expect(updateLiveMock).toHaveBeenCalledWith(
-      {
-        video_file: "C:/records/test.ts",
-        live_id: "live-1",
-      },
-      expect.objectContaining({
-        danma_num: 4,
-        interact_num: 3,
-        danma_stats_json: JSON.stringify({
-          danmaTimeline: {
-            interval: 5,
-            data: [2, 1, 1],
+          notification: {
+            setting: {},
+            taskNotificationType: {},
           },
         }),
-      }),
-    );
-  });
+        on: vi.fn(),
+      } as any;
+
+      await createRecorderManager(appConfig);
+
+      fakeManager.emit("videoFileCompleted", {
+        recorder: {
+          id: "recorder-1",
+          providerId: "Bilibili",
+          channelId: "1000",
+          liveInfo: {
+            title: "live title",
+            owner: "主播",
+            liveId: "live-1",
+          },
+        },
+        filename: "C:/records/test.ts",
+        stats: hasStats
+          ? {
+              danmaNum: 4,
+              uniqMember: 3,
+              scNum: 0,
+              guardNum: 0,
+              danmaStats: {
+                danmaTimeline: {
+                  interval: 5,
+                  data: [2, 1, 1],
+                },
+              },
+            }
+          : undefined,
+      });
+
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(updateLiveMock).toHaveBeenCalledWith(
+        {
+          video_file: "C:/records/test.ts",
+          live_id: "live-1",
+        },
+        expect.objectContaining({
+          video_duration: 62,
+          quick_hash: "quick-hash",
+        }),
+      );
+
+      expect(updateLiveMock).toHaveBeenCalledTimes(2);
+      expect(updateLiveMock).toHaveBeenCalledWith(
+        {
+          video_file: "C:/records/test.ts",
+          live_id: "live-1",
+        },
+        expect.objectContaining({
+          danma_num: 4,
+          interact_num: 3,
+          ...(saveDanmaStats2DB && hasStats
+            ? {
+                danma_stats_json: JSON.stringify({
+                  danmaTimeline: {
+                    interval: 5,
+                    data: [2, 1, 1],
+                  },
+                }),
+              }
+            : {}),
+        }),
+      );
+      if (!saveDanmaStats2DB || !hasStats) {
+        expect(danmaReport).toHaveBeenCalledWith("C:/records/test.xml");
+      } else {
+        expect(danmaReport).not.toHaveBeenCalled();
+      }
+    },
+  );
 });

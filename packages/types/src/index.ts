@@ -60,6 +60,7 @@ export const recorderNoGlobalFollowFields: Array<
   "disableProvideCommentsWhenRecording",
   "saveGiftDanma",
   "saveSCDanma",
+  "saveDanmaStats2DB",
   "segment",
   "uid",
   "saveCover",
@@ -496,6 +497,8 @@ export interface GlobalRecorder {
   recorderType: "auto" | "ffmpeg" | "mesio" | "bililive";
   /** 保存弹幕测试 */
   saveDanma2DB: boolean;
+  /** 将弹幕统计保存到数据库 */
+  saveDanmaStats2DB: boolean;
   /** B站特有的配置 */
   bilibili: BilibiliRecorderConfig;
   /** 斗鱼特有的配置 */
@@ -559,6 +562,8 @@ export interface Recorder {
   convert2Mp4?: boolean;
   /** 视频格式 */
   videoFormat: GlobalRecorder["videoFormat"];
+  /** 将弹幕统计保存到数据库 */
+  saveDanmaStats2DB?: GlobalRecorder["saveDanmaStats2DB"];
   /** 录制器类型 */
   recorderType: GlobalRecorder["recorderType"];
   qualityRetry: GlobalRecorder["qualityRetry"];
