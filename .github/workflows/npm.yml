@@ -6,6 +6,10 @@ on:
       - "*"
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   publish-npm:
     runs-on: ubuntu-22.04
@@ -15,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           run_install: false
 
@@ -24,9 +28,6 @@ jobs:
         with:
           node-version-file: ".node-version"
           cache: "pnpm"
-
-      - name: Configure npm authentication
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
 
       - name: Install dependencies
         run: pnpm install
@@ -39,6 +40,4 @@ jobs:
 
       - name: Publish to npm
         shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm publish --filter=huya-danma-listener --filter douyin-danma-listener --filter bililive-cli --filter @bililive-tools/* --access public --no-git-checks

@@ -5,10 +5,12 @@ import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.
 import { TvQrcodeLogin } from "@renmu/bili-api";
 import {
   formatTitle,
+  formatSeasonTitle,
   formatPartTitle,
   formatDesc,
   uuid,
 } from "@biliLive-tools/shared/utils/index.js";
+import { appConfig } from "../index.js";
 import type { BiliupConfig, PartTitleFormatOptions } from "@biliLive-tools/types";
 
 const router = new Router({
@@ -126,6 +128,11 @@ router.post("/upload", async (ctx) => {
     ctx.status = 400;
     return;
   }
+  if (data.config.staffs && data.config.staffs.length > 0) {
+    if (appConfig?.get("biliUpload")?.useBCutAPI) {
+      throw new Error("联合投稿暂不支持必剪接口");
+    }
+  }
 
   if (data.vid) {
     const task = await biliApi.editMedia(data.vid as number, data.videos, data.config, data.uid, {
@@ -238,6 +245,27 @@ router.post("/formatTitle", async (ctx) => {
   ctx.body = title;
 });
 
+router.post("/formatSeasonTitle", async (ctx) => {
+  const { template, mediaTitleTemplate } = ctx.request.body as {
+    template?: string;
+    mediaTitleTemplate?: string;
+  };
+  const options = {
+    title: "标题",
+    username: "主播名",
+    time: new Date().toISOString(),
+    roomId: 123456,
+    filename: "文件名",
+  };
+  ctx.body = formatSeasonTitle(
+    {
+      ...options,
+      mediaTitle: formatTitle(options, mediaTitleTemplate || options.title),
+    },
+    template,
+  );
+});
+
 router.post("/formatPartTitle", async (ctx) => {
   const data = ctx.request.body as {
     template: string;
@@ -277,6 +305,20 @@ router.post("/formatDesc", async (ctx) => {
     template,
   );
   ctx.body = desc;
+});
+
+// 搜索联合投稿UP主
+router.get("/searchStaff", async (ctx) => {
+  const { kw, uid } = ctx.request.query as unknown as { kw: string; uid: string };
+  const data = await biliApi.searchStaffUser(Number(uid), kw);
+  ctx.body = data;
+});
+
+// 获取联合投稿剩余次数
+router.get("/staffRemaining", async (ctx) => {
+  const { uid } = ctx.request.query as unknown as { uid: string };
+  const data = await biliApi.getStaffRemaining(Number(uid));
+  ctx.body = data;
 });
 
 export default router;

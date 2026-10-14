@@ -60,7 +60,7 @@
             :title="element.videoPath"
             :disabled="props.disableEdit"
           ></editableText>
-          <span style="margin-left: 8px" v-if="element.ext">{{ element.ext }}</span>
+          <span style="margin-left: 8px; flex: none" v-if="element.ext">{{ element.ext }}</span>
           <n-icon style="margin-left: auto" size="20" class="remove" @click="remove(index)">
             <CloseIcon />
           </n-icon>
@@ -92,11 +92,13 @@ const props = withDefaults(
     sort?: boolean;
     placeholder?: string;
     disableEdit?: boolean;
+    filenameClean?: boolean;
   }>(),
   {
     sort: true,
     placeholder: "请输入文件名",
     disableEdit: false,
+    filenameClean: true,
   },
 );
 const emits = defineEmits<{
@@ -119,6 +121,7 @@ const validate = (value: string) => {
   return value.trim() !== "";
 };
 const update = (value: string) => {
+  if (!props.filenameClean) return value;
   return filenamify(value.trim(), { replacement: "" });
 };
 

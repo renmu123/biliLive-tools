@@ -1,9 +1,6 @@
 <template>
   <div class="container">
-    <div
-      style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px"
-      class="filter-container"
-    >
+    <div class="filter-container">
       <n-input
         v-model:value="params.name"
         placeholder="备注或房间号"
@@ -816,6 +813,16 @@ const handleActionClick = (key?: string | number) => {
       color: var(--color-danger-text);
     }
   }
+}
+.filter-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--n-color);
+  padding-bottom: 15px;
 }
 @media (max-width: 1024px) {
   .filter-container {

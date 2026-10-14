@@ -61,6 +61,22 @@
     >
   </n-form-item>
 
+  <n-form-item v-if="data.danmu">
+    <template #label>
+      <Tip
+        text="无弹幕仍压制"
+        tip="开启后，弹幕文件为空或不存在时，仍按视频预设进行压制，不生成高能进度条"
+      ></Tip>
+    </template>
+    <n-switch v-model:value="data.burnWithoutDanmu" :disabled="globalFieldsObj.burnWithoutDanmu" />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.burnWithoutDanmu"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+
   <n-form-item>
     <template #label>
       <Tip
@@ -611,6 +627,7 @@ const data = defineModel<AppRoomConfig>("data", {
     minSize: 0,
     title: "",
     danmu: false,
+    burnWithoutDanmu: false,
     autoPartMerge: false,
     hotProgress: false,
     useLiveCover: false,

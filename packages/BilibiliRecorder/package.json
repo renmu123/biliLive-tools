@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/bilibili-recorder",
-  "version": "1.19.2",
+  "version": "1.19.3",
   "description": "bililive-tools bilibili recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
@@ -34,14 +34,17 @@
     "录制",
     "哔哩哔哩"
   ],
-  "repository": "https://github.com/renmu123/biliLive-tools/tree/master/packages/BilibiliRecorder",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renmu123/biliLive-tools",
+    "directory": "packages/BilibiliRecorder"
+  },
   "author": "renmu123",
   "license": "LGPL",
   "dependencies": {
     "@bililive-tools/manager": "workspace:^",
-    "blive-message-listener": "^0.5.5",
+    "blive-message-listener": "0.5.6-beta.1",
     "mitt": "catalog:",
-    "tiny-bilibili-ws": "^1.0.2",
     "lodash-es": "catalog:",
     "axios": "catalog:"
   }

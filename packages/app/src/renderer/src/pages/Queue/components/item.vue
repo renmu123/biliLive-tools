@@ -179,10 +179,11 @@
       type="line"
       :percentage="item.progress"
       :indicator-placement="'outside'"
-      :show-indicator="false"
+      :show-indicator="true"
       style="--n-rail-height: 6px"
-      :title="`${item?.progress?.toFixed(2)}%`"
-    />
+    >
+      {{ item?.progress && item.progress.toFixed(1) }}%
+    </n-progress>
 
     <div v-if="showInfo && item.startTime" class="detail-info">
       <span>开始时间：{{ new Date(item.startTime).toLocaleString() }}</span>

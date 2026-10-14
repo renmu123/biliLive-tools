@@ -36,7 +36,8 @@ type TaskType =
   | "douyuDownload"
   | "mediaStatusCheck"
   | "diskSpaceCheck"
-  | "sync";
+  | "sync"
+  | "douyuAccountExpiry";
 
 /**
  * 通知发送选项

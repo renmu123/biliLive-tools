@@ -1,11 +1,16 @@
 {
   "name": "biliLive-tools",
-  "version": "3.21.0",
+  "version": "3.22.2",
   "description": "B站直播录制处理工具",
   "main": "./out/main/index.js",
   "author": "renmu123",
   "license": "GPL-3.0",
   "homepage": "https://github.com/renmu123/biliLive-tools",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renmu123/biliLive-tools",
+    "directory": "packages/app"
+  },
   "type": "module",
   "scripts": {
     "dev": "electron-vite dev",
@@ -26,7 +31,7 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
     "@imengyu/vue3-context-menu": "^1.5.2",
-    "@napi-rs/canvas": "^0.1.60",
+    "@napi-rs/canvas": "^1.0.9",
     "@renmu/node-shazam": "^2.0.4",
     "awilix": "^11.0.4",
     "better-sqlite3": "catalog:",

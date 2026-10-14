@@ -2,7 +2,6 @@
   <n-modal
     v-model:show="showModal"
     :mask-closable="false"
-    auto-focus
     :on-after-enter="handleOpen"
     class="setting-modal"
     :class="breakpoint"
@@ -696,6 +695,7 @@ const globalFields = ref([
   "title",
   "uploadPresetId",
   "danmu",
+  "burnWithoutDanmu",
   "ffmpegPreset",
   "danmuPreset",
   "autoPartMerge",
@@ -764,6 +764,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   uploadPresetId: "",
   remark: "",
   danmu: false,
+  burnWithoutDanmu: false,
   ffmpegPreset: undefined,
   danmuPreset: undefined,
   autoPartMerge: false,

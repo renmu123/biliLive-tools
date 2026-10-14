@@ -47,10 +47,10 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     },
 
     async getLiveInfo() {
-      const channelId = String(this.uid);
-      const info = await getInfo(channelId);
+      let [roomId, _] = String(this.uid).split("-");
+      const info = await getInfo(roomId);
       return {
-        channelId: channelId,
+        channelId: this.channelId,
         ...info,
       };
     },
@@ -126,11 +126,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       liveStartTimeFromSearch = info.liveStartTime;
     }
 
-    console.log("roomid", roomId);
     if (!roomId) return null;
 
     const liveInfo = await getInfo(roomId);
-    console.log("liveInfo", liveInfo);
     // @ts-ignore
     this.liveInfo = liveInfo!;
     if (liveStartTimeFromSearch) {
@@ -332,15 +330,15 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     const info = await parser.getRoomInfo(roomId);
 
     // 小红书ID用于基于cookie的自动监听
-    const data = await parser.getUserInfo(uid);
-    const redId = data?.user?.userPageData?.basicInfo?.redId;
+    // const data = await parser.getUserInfo(uid);
+    // const redId = data?.user?.userPageData?.basicInfo?.redId;
 
     return {
       id: uid,
       title: info.title,
       owner: info.owner,
       avatar: info.avatar,
-      uid: `${roomId}-${redId}`,
+      uid: `${roomId}-`,
     };
   },
 

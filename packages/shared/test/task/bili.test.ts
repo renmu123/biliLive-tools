@@ -27,6 +27,86 @@ describe("preFormatOptions", () => {
     vi.resetAllMocks();
   });
 
+  it.each([undefined, "", "   ", "{{mediaTitle}}"])(
+    "合集标题模板为 %s 时，无元数据也使用视频标题",
+    async (seasonTitleTemplate) => {
+      const config = createConfig({
+        title: "手动视频标题",
+        copyright: 1,
+        desc: "",
+        partTitleTemplate: "",
+        seasonId: 123,
+        seasonTitleTemplate,
+      });
+      const result = await preFormatOptions(config, ["C:/videos/part.mp4"]);
+      expect(result.options.seasonTitleTemplate).toBe("手动视频标题");
+      expect(pasrseMetadata).not.toHaveBeenCalled();
+      expect(config.seasonTitleTemplate).toBe(seasonTitleTemplate);
+    },
+  );
+
+  it.each([
+    ["{{mediaTitle}}", "主播A-直播标题"],
+    ["{{user}}-{{mediaTitle}}-{{filename}}", "主播A-主播A-直播标题-part"],
+    ["<%= user %>-<%= mediaTitle %>-<%= roomId %>", "主播A-主播A-直播标题-1000"],
+  ])("合集标题模板 %s 使用最终视频标题和直播元数据", async (template, expected) => {
+    const result = await preFormatOptions(
+      createConfig({ title: "{{user}}-{{title}}", seasonId: 123, seasonTitleTemplate: template }),
+      [
+        {
+          path: "C:/videos/part.mp4",
+          meta: {
+            title: "直播标题",
+            username: "主播A",
+            roomId: "1000",
+            startTimestamp: 1710000000,
+            platform: "bilibili",
+          },
+        },
+      ],
+    );
+    expect(result.options.title).toBe("主播A-直播标题");
+    expect(result.options.seasonTitleTemplate).toBe(expected);
+    expect(pasrseMetadata).not.toHaveBeenCalled();
+  });
+
+  it("只有合集标题需要元数据时仍解析首个文件", async () => {
+    vi.mocked(pasrseMetadata).mockResolvedValue({
+      title: "直播标题",
+      username: "主播A",
+      roomId: "1000",
+      startTimestamp: 1710000000,
+      platform: "bilibili",
+    });
+    const result = await preFormatOptions(
+      createConfig({
+        title: "固定标题",
+        copyright: 1,
+        desc: "",
+        partTitleTemplate: "",
+        seasonId: 123,
+        seasonTitleTemplate: "{{user}}-{{mediaTitle}}",
+      }),
+      ["C:/videos/part.mp4"],
+    );
+    expect(result.options.seasonTitleTemplate).toBe("主播A-固定标题");
+    expect(pasrseMetadata).toHaveBeenCalledTimes(1);
+  });
+
+  it("没有选择合集时不为合集标题解析元数据", async () => {
+    await preFormatOptions(
+      createConfig({
+        title: "固定标题",
+        copyright: 1,
+        desc: "",
+        partTitleTemplate: "",
+        seasonTitleTemplate: "{{user}}-{{mediaTitle}}",
+      }),
+      ["C:/videos/part.mp4"],
+    );
+    expect(pasrseMetadata).not.toHaveBeenCalled();
+  });
+
   it("存在 meta 时不再调用 pasrseMetadata", async () => {
     const result = await preFormatOptions(createConfig(), [
       {

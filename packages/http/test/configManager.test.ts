@@ -65,6 +65,29 @@ describe("ConfigManager", () => {
   });
 
   describe("getConfig", () => {
+    describe("burnWithoutDanmu", () => {
+      it.each([
+        { global: undefined, room: undefined, noGlobal: [], expected: false },
+        { global: true, room: undefined, noGlobal: [], expected: true },
+        { global: true, room: false, noGlobal: [], expected: true },
+        { global: true, room: false, noGlobal: ["burnWithoutDanmu"], expected: false },
+        { global: false, room: true, noGlobal: ["burnWithoutDanmu"], expected: true },
+      ])("应正确处理默认值、全局继承和房间覆盖: %j", ({ global, room, noGlobal, expected }) => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              burnWithoutDanmu: global,
+              rooms: { "123": { open: true, burnWithoutDanmu: room, noGlobal } },
+            },
+          }),
+        };
+        // @ts-ignore
+        const configManager = new ConfigManager(appConfig);
+        expect(configManager.getConfig("123").burnWithoutDanmu).toBe(expected);
+        expect(configManager.getConfig("456").burnWithoutDanmu).toBe(global ?? false);
+      });
+    });
+
     it("should partMergeMinute return -1 when mergePart is false", () => {
       const appConfig = {
         getAll: vi.fn().mockReturnValue({

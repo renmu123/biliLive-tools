@@ -56,6 +56,20 @@ const getReserveList = async (uid: number) => {
   return res.data;
 };
 
+const searchStaffUser = async (kw: string, uid: number) => {
+  const res = await request.get("/bili/searchStaff", {
+    params: { kw, uid },
+  });
+  return res.data;
+};
+
+const getStaffRemaining = async (uid: number) => {
+  const res = await request.get("/bili/staffRemaining", {
+    params: { uid },
+  });
+  return res.data;
+};
+
 const getSessionId = async (aid: number, uid: number) => {
   const res = await request.get(`/bili//season/${aid}`, {
     params: { uid },
@@ -137,6 +151,17 @@ export const formatWebhookTitle = async (
   return res.data;
 };
 
+export const formatWebhookSeasonTitle = async (
+  template: string,
+  mediaTitleTemplate: string,
+): Promise<string> => {
+  const res = await request.post("/bili/formatSeasonTitle", {
+    template,
+    mediaTitleTemplate,
+  });
+  return res.data;
+};
+
 export const formatWebhookPartTitle = async (
   template: string,
   options?: PartTitleFormatOptions,
@@ -175,6 +200,8 @@ const bili = {
   validUploadParams,
   getArchives,
   getReserveList,
+  searchStaffUser,
+  getStaffRemaining,
   checkTag,
   searchTopic,
   getSeasonList,
@@ -186,6 +213,7 @@ const bili = {
   loginPoll,
   upload,
   formatWebhookTitle,
+  formatWebhookSeasonTitle,
   formatWebhookPartTitle,
   formatWebhookDesc,
 };

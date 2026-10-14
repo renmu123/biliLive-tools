@@ -9,7 +9,8 @@ import { appConfig, AppConfig } from "./config.js";
 import { DanmuPreset, VideoPreset, FFmpegPreset, SubtitleStylePreset } from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import logger, { initLogger, setLogLevel } from "./utils/log.js";
-import { migrateBiliUser, checkAccountLoop } from "./task/bili.js";
+import { migrateBiliUser, checkBiliAccountLoop } from "./task/bili.js";
+import { checkDouyuAccountLoop } from "./recorder/douyu.js";
 import BiliCheckQueue from "./task/BiliCheckQueue.js";
 import { createInterval as checkSubLoop } from "./video/videoSub.js";
 import { check as checkVirtualRecordLoop } from "./task/virtualRecord.js";
@@ -49,8 +50,10 @@ const init = async (config: GlobalConfig) => {
   const logLevel = appConfig.get("logLevel");
   initLogger(config.logPath, logLevel);
 
-  appConfig.on("update", (data) => {
-    setLogLevel(data.logLevel);
+  appConfig.on("update", (newData, oldData) => {
+    if (newData.logLevel !== oldData.logLevel) {
+      setLogLevel(newData.logLevel);
+    }
   });
 
   initDB(config.userDataPath);
@@ -76,7 +79,8 @@ const init = async (config: GlobalConfig) => {
   try {
     const commentQueue = container.resolve("commentQueue");
     commentQueue.checkLoop();
-    checkAccountLoop();
+    checkBiliAccountLoop();
+    void checkDouyuAccountLoop();
     checkDiskSpaceLoop();
     checkSubLoop();
     checkVirtualRecordLoop();

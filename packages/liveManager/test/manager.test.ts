@@ -204,6 +204,165 @@ describe("RecorderManager", () => {
     manager.stopCheckLoop();
   });
 
+  describe("连续短录制切流提示", () => {
+    const createRecordHandle = (id: string): RecordHandle => ({
+      id,
+      stream: "原画",
+      source: "自动",
+      recorderType: "ffmpeg",
+      url: "https://example.com/live.flv",
+      savePath: `test-${id}.flv`,
+      stop: vi.fn(),
+      cut: vi.fn(),
+    });
+
+    const setLiveInfo = (recorder: Recorder, liveId: string) => {
+      const now = new Date();
+      recorder.liveInfo = {
+        living: true,
+        owner: "test-owner",
+        title: "test-title",
+        liveStartTime: now,
+        recordStartTime: now,
+        avatar: "",
+        cover: "",
+        liveId,
+      };
+    };
+
+    const emitRecording = (
+      recorder: Recorder,
+      recordHandleId: string,
+      liveId: string,
+      duration: number,
+      reason = "finished",
+    ) => {
+      setLiveInfo(recorder, liveId);
+      const recordHandle = createRecordHandle(recordHandleId);
+      recorder.emit("RecordStart", recordHandle);
+      vi.advanceTimersByTime(duration);
+      recorder.emit("RecordStop", { recordHandle, reason });
+    };
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-09-20T00:00:00.000Z"));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("达到 12 秒会清空连续短录制计数", async () => {
+      const recorder = manager.addRecorder({
+        id: "reset-short-recording",
+        providerId: "test",
+        channelId: "test-channel",
+        quality: "highest",
+        streamPriorities: [],
+        sourcePriorities: [],
+      });
+
+      emitRecording(recorder, "record-1", "live-1", 9_999);
+      emitRecording(recorder, "record-2", "live-1", 12_000);
+      emitRecording(recorder, "record-3", "live-1", 9_999);
+
+      await manager.startRecord(recorder.id);
+      expect(recorder.checkLiveStatusAndRecord).toHaveBeenLastCalledWith(
+        expect.objectContaining({ streamRetryHint: undefined }),
+      );
+    });
+
+    it.each(["manual stop", "remove recorder", "直播间标题包含关键词", "标题变更分段"])(
+      "黑名单停止原因 %s 不会计入短录制统计",
+      async (reason) => {
+        const recorder = manager.addRecorder({
+          id: `short-recording-reason-${reason}`,
+          providerId: "test",
+          channelId: "test-channel",
+          quality: "highest",
+          streamPriorities: [],
+          sourcePriorities: [],
+        });
+
+        emitRecording(recorder, "record-1", "live-1", 1_000);
+        emitRecording(recorder, "record-2", "live-1", 1_000, reason);
+        emitRecording(recorder, "record-3", "live-1", 1_000);
+
+        await manager.startRecord(recorder.id);
+        expect(recorder.checkLiveStatusAndRecord).toHaveBeenLastCalledWith(
+          expect.objectContaining({ streamRetryHint: undefined }),
+        );
+      },
+    );
+
+    it("不同录制器和不同 liveId 的短录制不会互相累计", async () => {
+      const recorder1 = manager.addRecorder({
+        id: "isolated-recording-1",
+        providerId: "test",
+        channelId: "test-channel-1",
+        quality: "highest",
+        streamPriorities: [],
+        sourcePriorities: [],
+      });
+      const recorder2 = manager.addRecorder({
+        id: "isolated-recording-2",
+        providerId: "test",
+        channelId: "test-channel-2",
+        quality: "highest",
+        streamPriorities: [],
+        sourcePriorities: [],
+      });
+
+      emitRecording(recorder1, "record-1", "live-1", 1_000);
+      emitRecording(recorder1, "record-2", "live-2", 1_000);
+      emitRecording(recorder2, "record-3", "live-1", 1_000);
+
+      await manager.startRecord(recorder1.id);
+      await manager.startRecord(recorder2.id);
+      expect(recorder1.checkLiveStatusAndRecord).toHaveBeenLastCalledWith(
+        expect.objectContaining({ streamRetryHint: undefined }),
+      );
+      expect(recorder2.checkLiveStatusAndRecord).toHaveBeenLastCalledWith(
+        expect.objectContaining({ streamRetryHint: undefined }),
+      );
+    });
+
+    it("成功启动备用流后消费提示，备用流再次短停时重新产生提示", async () => {
+      const recorder = manager.addRecorder({
+        id: "consume-retry-hint",
+        providerId: "test",
+        channelId: "test-channel",
+        quality: "highest",
+        streamPriorities: [],
+        sourcePriorities: [],
+      });
+
+      emitRecording(recorder, "record-1", "live-1", 1_000);
+      emitRecording(recorder, "record-2", "live-1", 1_000);
+
+      setLiveInfo(recorder, "live-1");
+      const alternativeHandle = createRecordHandle("record-3");
+      recorder.emit("RecordStart", alternativeHandle);
+      await manager.startRecord(recorder.id);
+      expect(recorder.checkLiveStatusAndRecord).toHaveBeenLastCalledWith(
+        expect.objectContaining({ streamRetryHint: undefined }),
+      );
+
+      vi.advanceTimersByTime(1_000);
+      recorder.emit("RecordStop", { recordHandle: alternativeHandle, reason: "finished" });
+      await manager.startRecord(recorder.id);
+      expect(recorder.checkLiveStatusAndRecord).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          streamRetryHint: {
+            liveId: "live-1",
+            preferAlternativeStream: true,
+          },
+        }),
+      );
+    });
+  });
+
   describe("创建和基本属性", () => {
     it("应该正确创建 RecorderManager", () => {
       expect(manager).toBeDefined();

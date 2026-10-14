@@ -9,6 +9,7 @@
       v-model="fileList"
       :sort="props.sort"
       :placeholder="props.inputPlaceholder"
+      :filename-clean="props.filenameClean"
       @add-danmaku="addDanmaku"
       :disableEdit="props.disableEdit"
     ></PartArea>
@@ -51,9 +52,11 @@ const props = withDefaults(
     areaPlaceholder?: string;
     extensions?: string[];
     disableEdit?: boolean;
+    filenameClean?: boolean;
   }>(),
   {
     sort: true,
+    filenameClean: true,
     inputPlaceholder: "请输入",
     areaPlaceholder: "请选择视频文件",
     extensions: () => supportedVideoExtensions,

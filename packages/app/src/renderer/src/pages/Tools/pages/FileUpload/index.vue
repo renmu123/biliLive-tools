@@ -17,6 +17,7 @@
       v-model="fileList"
       @change="fileChange"
       inputPlaceholder="输入内容将会被用为分P标题"
+      :filename-clean="false"
     ></FileSelect>
 
     <n-divider />
@@ -114,7 +115,6 @@ const upload = async () => {
 
   // 后端会处理标题格式化、转载来源等逻辑
   const videos = deepRaw(fileList.value);
-
   await biliApi.upload({
     uid: userInfo.value.uid!,
     videos,
