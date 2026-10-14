@@ -816,6 +816,23 @@
                 >全局</n-checkbox
               >
             </n-form-item>
+            <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+              <template #label>
+                <Tip
+                  text="弹幕统计入库"
+                  tip="录制结束后，将弹幕时间分布保存到数据库，供录制历史和主播详情展示"
+                ></Tip>
+              </template>
+              <n-switch
+                v-model:value="config.saveDanmaStats2DB"
+                :disabled="globalFieldsObj.saveDanmaStats2DB"
+              />
+              <n-checkbox
+                v-model:checked="globalFieldsObj.saveDanmaStats2DB"
+                class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
           </template>
         </template>
       </n-form>
@@ -885,6 +902,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     disableProvideCommentsWhenRecording: true,
     saveGiftDanma: true,
     saveSCDanma: true,
+    saveDanmaStats2DB: true,
     segment: true,
     uid: true,
     saveCover: true,
@@ -1012,6 +1030,7 @@ const initGlobalFields = () => {
     ),
     saveGiftDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
     saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
+    saveDanmaStats2DB: !(config.value?.noGlobalFollowFields ?? []).includes("saveDanmaStats2DB"),
     segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
     uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
     saveCover: !(config.value?.noGlobalFollowFields ?? []).includes("saveCover"),
@@ -1088,6 +1107,9 @@ watch(
     }
     if (val.saveSCDanma) {
       config.value.saveSCDanma = appConfig.value.recorder.saveSCDanma;
+    }
+    if (val.saveDanmaStats2DB) {
+      config.value.saveDanmaStats2DB = appConfig.value.recorder.saveDanmaStats2DB;
     }
     if (val.segment) {
       config.value.segment = appConfig.value.recorder.segment;

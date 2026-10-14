@@ -542,7 +542,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
         },
       );
 
-      if (stats) {
+      if (data?.saveDanmaStats2DB && stats) {
         recordHistory.upadteLive(
           {
             video_file: filename,
@@ -551,6 +551,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           {
             danma_num: stats.danmaNum,
             interact_num: stats.uniqMember,
+            danma_stats_json: JSON.stringify(stats.danmaStats),
           },
         );
       } else if (xmlFile && (await fs.pathExists(xmlFile))) {

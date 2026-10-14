@@ -203,6 +203,15 @@
             </template>
             <n-switch v-model:value="config.recorder.useServerTimestamp" />
           </n-form-item>
+          <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
+            <template #label>
+              <Tip
+                text="弹幕统计入库"
+                tip="录制结束后，将弹幕时间分布保存到数据库，供录制历史和主播详情展示"
+              ></Tip>
+            </template>
+            <n-switch v-model:value="config.recorder.saveDanmaStats2DB" />
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="bilibili" tab="B站" display-directive="show:lazy">
           <n-form-item>
