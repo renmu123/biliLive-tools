@@ -6,6 +6,7 @@
 - 文件浏览器：支持批量删除 [#570](https://github.com/renmu123/biliLive-tools/pull/570)
 - Webhook：新增选项“无弹幕仍压制”，用于在不存在弹幕时仍应用ffmpeg预设 [#578](https://github.com/renmu123/biliLive-tools/pull/578)
 - B站上传：合集标题支持格式化 [#579](https://github.com/renmu123/biliLive-tools/pull/579)
+- 录制：新增保存“弹幕统计”到数据库，默认关闭
 
 ## 优化
 
