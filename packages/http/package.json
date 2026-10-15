@@ -1,6 +1,6 @@
 {
   "name": "@biliLive-tools/http",
-  "version": "3.22.2",
+  "version": "4.0.0",
   "type": "module",
   "description": "",
   "main": "./lib/index.js",
