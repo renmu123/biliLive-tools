@@ -10,8 +10,8 @@ packages:
 catalog:
   lodash-es: ^4.17.21
   axios: ^1.15.0
-  better-sqlite3: 12.11.1
-  font-ls: 0.6.6
+  better-sqlite3: 13.0.3
+  font-ls: 0.6.7
   ntsuspend: ^1.0.2
   mitt: ^3.0.1
   "fast-xml-parser": "^5.9.3"
@@ -21,7 +21,7 @@ patchedDependencies:
 
 overrides:
   typescript: npm:typescript-native-bridge@6.0.3-bridge.15.tsgo.7.0.2
-  "node-abi": "3.92.0"
+  "node-abi": "3.98.0"
   "webworkify-webpack": "https://github.com/xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef"
 
 blockExoticSubdeps: false
@@ -63,3 +63,4 @@ minimumReleaseAgeExclude:
   - "@napi-rs/canvas-win32-x64-msvc@1.0.9"
   - "@napi-rs/canvas@1.0.9"
   - blive-message-listener@0.5.6-beta.1
+  - font-ls@0.6.7

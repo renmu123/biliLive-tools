@@ -1,6 +1,4 @@
-import path from "node:path";
 import http from "node:http";
-import { fileURLToPath } from "node:url";
 import https from "node:https";
 import Koa from "koa";
 import Router from "@koa/router";
@@ -40,8 +38,6 @@ export let handler!: WebhookHandler;
 export let appConfig!: AppConfig;
 export let container!: AwilixContainer<GlobalContainer>;
 export const fileCache = createFileCache();
-
-export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const authMiddleware = (passKey: string | number) => {
   return async (ctx: Koa.Context, next: Koa.Next) => {
