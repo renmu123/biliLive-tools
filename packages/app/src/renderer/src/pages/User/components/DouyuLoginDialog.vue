@@ -24,7 +24,7 @@
 import { douyuApi } from "@renderer/apis";
 
 const showModal = defineModel<boolean>({ required: true, default: false });
-const emits = defineEmits<{ confirm: []; close: [] }>();
+const emits = defineEmits<{ confirm: [uid: number]; close: [] }>();
 const notice = useNotification();
 const url = ref("");
 const id = ref("");
@@ -44,8 +44,8 @@ const poll = async () => {
     if (result.status === "completed") {
       completed = true;
       notice.success({ title: "斗鱼登录成功", duration: 1000 });
-      emits("confirm");
       showModal.value = false;
+      emits("confirm", result.uid);
       return;
     }
     if (result.status === "error") {

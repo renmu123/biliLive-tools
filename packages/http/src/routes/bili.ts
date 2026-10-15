@@ -162,6 +162,7 @@ const loginObj: {
     res: string;
     status: "scan" | "completed" | "error";
     failReason: string;
+    uid?: number;
   };
 } = {};
 router.post("/login", async (ctx) => {
@@ -186,10 +187,15 @@ router.post("/login", async (ctx) => {
   });
   tv.on("completed", async (res) => {
     loginObj[id].res = JSON.stringify(res);
-    loginObj[id].status = "completed";
-
-    const data = res.data;
-    await biliApi.addUser(data);
+    try {
+      const data = res.data;
+      await biliApi.addUser(data);
+      loginObj[id].uid = data.mid;
+      loginObj[id].status = "completed";
+    } catch (error) {
+      loginObj[id].failReason = error instanceof Error ? error.message : String(error);
+      loginObj[id].status = "error";
+    }
   });
   const url = await tv.login();
 

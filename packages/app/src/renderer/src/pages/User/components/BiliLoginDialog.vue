@@ -30,7 +30,7 @@ import { biliApi } from "@renderer/apis";
 const showModal = defineModel<boolean>({ required: true, default: false });
 const emits = defineEmits<{
   close: [];
-  confirm: [];
+  confirm: [uid?: number];
 }>();
 
 const notice = useNotification();
@@ -38,6 +38,7 @@ const notice = useNotification();
 const url = ref("");
 const id = ref("");
 const text = ref("");
+const uid = ref<number>();
 const interval = ref<number | null>(null);
 
 const clearLoginInterval = () => {
@@ -48,6 +49,7 @@ const clearLoginInterval = () => {
 };
 const onOpen = async () => {
   text.value = "";
+  uid.value = undefined;
   const res = await biliApi.qrcode();
   url.value = res.url;
   id.value = res.id;
@@ -58,6 +60,7 @@ const onOpen = async () => {
     console.log(res);
     if (res.status === "completed") {
       clearLoginInterval();
+      uid.value = res.uid;
       text.value = "登录成功，请关闭本窗口";
       notice.success({
         title: "登录成功",
@@ -80,8 +83,8 @@ const close = () => {
 };
 
 const confirm = () => {
-  emits("confirm");
   showModal.value = false;
+  emits("confirm", uid.value);
 };
 
 watch(

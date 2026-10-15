@@ -101,7 +101,12 @@ const loginCancel = async (id: string) => {
 
 const loginPoll = async (
   id: string,
-): Promise<{ res: string; status: "scan" | "completed" | "error"; failReason: string }> => {
+): Promise<
+  { res: string; failReason: string } & (
+    | { status: "completed"; uid: number }
+    | { status: "scan" | "error" }
+  )
+> => {
   const res = await request.get("/bili/login/poll", {
     params: { id },
   });

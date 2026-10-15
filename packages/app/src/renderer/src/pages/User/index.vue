@@ -1,6 +1,6 @@
 <template>
   <div>
-    <n-tabs type="segment">
+    <n-tabs v-model:value="activeTab" type="segment">
       <n-tab-pane name="bilibili" tab="B站">
         <div class="user-info">
           <div class="login-btns">
@@ -91,9 +91,10 @@
 </template>
 
 <script setup lang="ts">
-import { userApi, taskApi, douyuApi } from "@renderer/apis";
+import { userApi, taskApi, douyuApi, configApi } from "@renderer/apis";
 import { verifyBiliKey } from "@renderer/utils";
 import { useClipboard } from "@vueuse/core";
+import { useRoute, useRouter } from "vue-router";
 import type { BiliUser } from "@biliLive-tools/types";
 
 import { useUserInfoStore, useAppConfig, useDouyuUserStore } from "@renderer/stores";
@@ -106,8 +107,18 @@ defineOptions({
   name: "User",
 });
 
+const route = useRoute();
+const router = useRouter();
+const activeTab = computed({
+  get: () => (route.query.tab === "douyu" ? "douyu" : "bilibili"),
+  set: (tab: string) => {
+    router.replace({ query: { ...route.query, tab } });
+  },
+});
+
 const { getUsers, changeUser } = useUserInfoStore();
 const { appConfig } = storeToRefs(useAppConfig());
+const { set: setAppConfig } = useAppConfig();
 const { userInfo, userList } = storeToRefs(useUserInfoStore());
 const notice = useNotification();
 const { userList: douyuUserList } = storeToRefs(useDouyuUserStore());
@@ -174,8 +185,38 @@ const douyuLogin = async () => {
   if (status) douyuLoginVisible.value = true;
 };
 
-const douyuLoginConfirm = async () => {
+const configureGlobalRecorderAccount = async (platform: "bilibili" | "douyu", uid: number) => {
+  const platformName = platform === "bilibili" ? "B站" : "斗鱼";
+  try {
+    const config = await configApi.get();
+    if (config.recorder[platform].uid) return;
+
+    const [status] = await confirm.warning({
+      title: `配置${platformName}全局录制账号`,
+      content: `尚未配置${platformName}全局录制账号，需要配置后才能使用登录账号录制。是否将本次登录的账号设为全局录制账号？`,
+      positiveText: "立即配置",
+      negativeText: "稍后配置",
+    });
+    if (!status) return;
+
+    const latestConfig = await configApi.get();
+    if (latestConfig.recorder[platform].uid) return;
+    await setAppConfig("recorder", {
+      ...latestConfig.recorder,
+      [platform]: { ...latestConfig.recorder[platform], uid },
+    });
+    notice.success({ title: `${platformName}全局录制账号已配置`, duration: 2000 });
+  } catch (error) {
+    notice.error({
+      title: `${platformName}全局录制账号配置失败`,
+      description: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+const douyuLoginConfirm = async (uid: number) => {
   await getDouyuUsers();
+  await configureGlobalRecorderAccount("douyu", uid);
 };
 
 const douyuUpdateAuth = async (uid: number) => {
@@ -232,11 +273,12 @@ const changeAccount = async (uid: number) => {
   changeUser(uid);
 };
 
-const loginConfirm = async () => {
+const loginConfirm = async (uid?: number) => {
   await getUsers();
   if (!userInfo.value.uid) {
     changeAccount(userList.value[0]?.uid ?? "");
   }
+  if (uid) await configureGlobalRecorderAccount("bilibili", uid);
 };
 
 const updateAccountInfo = async (uid: number) => {

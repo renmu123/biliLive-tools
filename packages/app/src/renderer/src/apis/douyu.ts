@@ -7,7 +7,9 @@ const qrcode = async (): Promise<{ id: string; url: string; expiresAt: number }>
 
 const loginPoll = async (
   id: string,
-): Promise<{ status: "scan" | "completed" | "error"; failReason?: string }> => {
+): Promise<
+  { status: "completed"; uid: number } | { status: "scan" | "error"; failReason?: string }
+> => {
   const res = await request.get("/douyu/login/poll", { params: { id } });
   return res.data;
 };
