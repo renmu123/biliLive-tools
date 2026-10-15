@@ -23,6 +23,7 @@ overrides:
   typescript: npm:typescript-native-bridge@6.0.3-bridge.15.tsgo.7.0.2
   "node-abi": "3.98.0"
   "webworkify-webpack": "https://github.com/xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef"
+  tiny-bilibili-ws: "1.1.1"
 
 blockExoticSubdeps: false
 
@@ -64,3 +65,4 @@ minimumReleaseAgeExclude:
   - "@napi-rs/canvas@1.0.9"
   - blive-message-listener@0.5.6-beta.1
   - font-ls@0.6.7
+  - tiny-bilibili-ws@1.1.1
