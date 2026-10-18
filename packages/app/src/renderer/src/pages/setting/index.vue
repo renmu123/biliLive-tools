@@ -718,6 +718,7 @@ const roomGlobalCheckObj = ref<{
 const globalFields = ref([
   "uid",
   "minSize",
+  "autoVideoMergeMinute",
   "title",
   "uploadPresetId",
   "danmu",
@@ -786,6 +787,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   uid: undefined,
   open: true,
   minSize: 0,
+  autoVideoMergeMinute: 0,
   title: "",
   uploadPresetId: "",
   remark: "",
