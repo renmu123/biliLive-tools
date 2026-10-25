@@ -3,6 +3,7 @@
 ## 优化
 
 - 账号：账号登录后提示设置录制账号
+- 优化客户端由于electron的[更新](https://github.com/electron/electron/pull/49868)导致文件打开路径无法被记住的情况
 
 ## 其他
 
