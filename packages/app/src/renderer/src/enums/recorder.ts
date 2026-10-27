@@ -417,6 +417,12 @@ export const douyinStreamFormatOptions = [
   },
 ];
 
+export const douyinCookieModeOptions = [
+  { label: "全部", value: "all" },
+  { label: "仅直播流", value: "stream" },
+  { label: "仅弹幕", value: "danma" },
+];
+
 export const douyinApiTypeOptions = [
   { label: "随机", value: "random" },
   { label: "web接口", value: "web" },
@@ -553,6 +559,10 @@ export const textInfo = {
   },
   douyin: {
     qualityRetry: qualityRetry,
+    cookieMode: {
+      text: "Cookie模式",
+      tip: "全部：用于直播状态检测、取流和弹幕；仅流：用于直播状态检测和取流；仅弹幕：用于弹幕连接",
+    },
     quality: {
       text: "画质",
       tip: "如果无法找到对应画质，会结合其他选项后选择更清晰的画质，<b>真原画画质可能导致PK花屏</b>",
