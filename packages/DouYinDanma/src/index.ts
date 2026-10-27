@@ -105,7 +105,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     });
 
     this.ws.on("open", () => {
-      this.reconnectAttempts = 0;
       this.emit("open");
       this.startHeartbeat();
       this.startTimeoutCheck();
