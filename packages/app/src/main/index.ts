@@ -63,6 +63,9 @@ const getSentryMinidumpSubmitURL = (dsn: string) => {
   }
 };
 
+// 避免多个窗口的 SSE 长连接占满本地 HTTP 服务的连接池。
+app.commandLine.appendSwitch("ignore-connections-limit", "127.0.0.1");
+
 contextMenu({
   showSelectAll: false,
   showSearchWithGoogle: false,
