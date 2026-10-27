@@ -44,6 +44,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   convert2Mp4?: boolean;
   /** 身份验证 */
   auth?: string;
+  /** 抖音 Cookie 使用范围，默认为全部 */
+  cookieMode?: "all" | "stream" | "danma";
   /** cookie所有者uid,B站弹幕录制 */
   uid?: number | string;
   /** 画质匹配重试次数 */

@@ -133,6 +133,7 @@ export type UpdateRecorderArgs = Pick<
   | "weight"
   | "debugLevel"
   | "api"
+  | "cookieMode"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 
