@@ -8,6 +8,10 @@
 
 - 账号：账号登录后提示设置录制账号
 - 优化客户端由于electron的[更新](https://github.com/electron/electron/pull/49868)导致文件打开路径无法被记住的情况
+
+## Bug修复
+
+- 录制：修复B站礼物弹幕无法保存的bug [#593](https://github.com/renmu123/biliLive-tools/issues/593)
 - 优化客户端由于连接限制无法打开多个直播间页面的bug
 
 ## 其他
