@@ -40,9 +40,14 @@ declare class DouYinDanmaClient extends TypedEmitter<Events> {
       autoStart?: boolean;
       autoReconnect?: number;
       heartbeatInterval?: number;
+      reconnectInterval?: number;
       cookie?: string;
+      timeoutInterval?: number;
+      connectTimeout?: number;
+      host?: string;
     },
   );
   connect(): Promise<void>;
+  close(): void;
 }
 export default DouYinDanmaClient;
