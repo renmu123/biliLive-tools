@@ -155,6 +155,8 @@ function createSubWindow(options: {
       sandbox: false,
       webSecurity: false,
     },
+    width: 900,
+    height: 750,
     autoHideMenuBar: hideMenuBar,
   });
 

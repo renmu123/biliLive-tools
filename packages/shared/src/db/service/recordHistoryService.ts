@@ -91,6 +91,10 @@ export default class RecordHistoryService {
     return this.recordHistoryModel.getLastRecordTimes(streamerIds);
   }
 
+  getRecordStartTimes(streamerId: number, startTime: number, endTime: number): number[] {
+    return this.recordHistoryModel.getRecordStartTimes(streamerId, startTime, endTime);
+  }
+
   /**
    * 查询总视频时长，默认查询最近一个月
    * @param options 查询参数

@@ -231,6 +231,15 @@ export function queryStreamerDetail(args: StreamerDetailQueryArgs): StreamerDeta
   };
 }
 
+export function queryRecordStartTimes(
+  args: Pick<StreamerDetailQueryArgs, "room_id" | "platform" | "startTime" | "endTime">,
+): number[] {
+  const streamer = streamerService.query({ room_id: args.room_id, platform: args.platform });
+  if (!streamer || args.startTime === undefined || args.endTime === undefined) return [];
+  return recordHistoryService.getRecordStartTimes(streamer.id, args.startTime, args.endTime);
+}
+
 export default {
   queryStreamerDetail,
+  queryRecordStartTimes,
 };

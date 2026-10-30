@@ -67,7 +67,7 @@
               <n-button type="primary" :loading="recordActionLoading" @click="toggleRecording">
                 {{ isRecording ? "停止录制" : "开始录制" }}
               </n-button>
-              <n-button type="warning" @click="goToHistory">录制历史</n-button>
+              <n-button type="warning" @click="goToHistory()">录制历史</n-button>
               <n-button @click="openRecorderSetting">直播间设置</n-button>
               <n-button :loading="loading" @click="handleQuery">刷新</n-button>
               <n-button @click="goBack">返回</n-button>
@@ -112,6 +112,14 @@
               </div>
 
               <n-empty v-else description="暂无数据" />
+            </n-tab-pane>
+            <n-tab-pane name="calendar" tab="录制日历">
+              <RecordCalendar
+                v-if="activeTab === 'calendar'"
+                :recorder-id="streamerInfo.recorderId"
+                :refresh-key="calendarRefreshKey"
+                @select-date="goToHistory"
+              />
             </n-tab-pane>
 
             <n-tab-pane name="clips" tab="最近录制片段">
@@ -238,6 +246,7 @@ import { useRoute, useRouter } from "vue-router";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import AddRecorderModal from "@renderer/pages/Tools/pages/Recorder/components/addModal.vue";
 import SessionDanmaStats from "./components/SessionDanmaStats.vue";
+import RecordCalendar from "./components/RecordCalendar.vue";
 import { useTitle } from "@vueuse/core";
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { RecentRecordClipItem } from "@renderer/apis/recordHistory";
@@ -269,6 +278,7 @@ const recordActionLoading = ref(false);
 const recentClipLoading = ref(false);
 const recorderSettingVisible = ref(false);
 const activeTab = ref("timeline");
+const calendarRefreshKey = ref(0);
 const recentClips = ref<RecentRecordClipItem[]>([]);
 const expandedSessionKey = ref<string | null>(null);
 const result = reactive<RecorderAPI["queryStreamerDetail"]["Resp"]>({
@@ -388,6 +398,7 @@ const handleQuery = async () => {
     const payload = await recoderApi.queryStreamerDetail(queryParams);
     applyResult(payload);
     await queryRecentClips();
+    calendarRefreshKey.value++;
   } catch (error: any) {
     notice.error({
       title: error?.message || "查询主播详情失败",
@@ -452,7 +463,7 @@ const copyRoomId = async () => {
   }
 };
 
-const goToHistory = () => {
+const goToHistory = async (date?: string) => {
   if (!result.recorderInfo?.channelId || !result.recorderInfo?.providerId) {
     notice.warning({
       title: "当前缺少房间号或平台信息，无法跳转历史记录",
@@ -460,15 +471,29 @@ const goToHistory = () => {
     return;
   }
 
-  router.push({
-    path: "/liveHistory",
-    query: {
-      id: streamerInfo.recorderId,
-      channelId: result.recorderInfo.channelId,
-      platform: result.recorderInfo.providerId,
-      name: result.streamer?.name || streamerInfo.name,
-    },
-  });
+  const query = {
+    id: streamerInfo.recorderId,
+    channelId: result.recorderInfo.channelId,
+    platform: result.recorderInfo.providerId,
+    name: result.streamer?.name || streamerInfo.name,
+    ...(date ? { date } : {}),
+  };
+
+  if (date && !window.isWeb) {
+    try {
+      await window.api.common.createSubWindow({
+        routeName: "liveHistory",
+        hideAside: true,
+        hideMenuBar: true,
+        query: { ...query, calendarWindow: "1" },
+      });
+    } catch (error: any) {
+      notice.error({ title: error?.message || "打开录制历史窗口失败" });
+    }
+    return;
+  }
+
+  router.push({ path: "/liveHistory", query });
 };
 
 const toggleRecording = async () => {
