@@ -40,7 +40,7 @@ interface Events {
 }
 
 class DouYinDanmaClient extends TypedEmitter<Events> {
-  private ws!: WebSocket;
+  private ws?: WebSocket;
   private roomId: string;
   private heartbeatInterval: number;
   private heartbeatTimer!: NodeJS.Timeout;
@@ -54,7 +54,13 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   private lastMessageTime: number;
   private timeoutTimer!: NodeJS.Timeout;
   private isTimeoutCheckRunning: boolean = false;
-  private isReconnecting: boolean = false;
+  private connectTimeout: number;
+  private connectTimer?: NodeJS.Timeout;
+  private reconnectTimer?: NodeJS.Timeout;
+  private connectionController?: AbortController;
+  private connectionId: number = 0;
+  private connecting: boolean = false;
+  private stopped: boolean = false;
   private host: string;
 
   constructor(
@@ -66,6 +72,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       reconnectInterval?: number;
       cookie?: string;
       timeoutInterval?: number;
+      connectTimeout?: number;
       host?: string;
     } = {},
   ) {
@@ -78,6 +85,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.reconnectInterval = options.reconnectInterval ?? 10000;
     this.cookie = options.cookie;
     this.timeoutInterval = options.timeoutInterval ?? 100000; // 默认100秒
+    this.connectTimeout = options.connectTimeout ?? 15000;
     this.lastMessageTime = Date.now();
     this.host = options.host ?? "webcast100-ws-web-hl.douyin.com";
 
@@ -87,62 +95,116 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   async connect() {
-    const url = await this.getWsInfo(this.roomId);
-    if (!url) {
-      this.emit("error", new Error("获取抖音弹幕签名失败"));
+    if (this.connecting || this.ws?.readyState === WebSocket.OPEN) {
       return;
     }
-    this.emit("init", url);
-    const cookies = this.cookie || (await getCookie());
-    this.ws = new WebSocket(url, {
-      headers: {
-        Cookie: cookies,
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-        Origin: "https://live.douyin.com",
-        Referer: "https://live.douyin.com/",
-      },
-    });
 
-    this.ws.on("open", () => {
-      this.emit("open");
-      this.startHeartbeat();
-      this.startTimeoutCheck();
-    });
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = undefined;
+    this.stopped = false;
+    this.connecting = true;
+    const connectionId = ++this.connectionId;
+    const controller = new AbortController();
+    this.connectionController = controller;
+    // Cover signature/Cookie retrieval as well as the WebSocket handshake.
+    this.connectTimer = setTimeout(() => {
+      this.handleConnectionError(new Error("抖音弹幕连接超时"), connectionId);
+    }, this.connectTimeout);
 
-    this.ws.on("message", (data) => {
-      this.lastMessageTime = Date.now();
-      this.decode(data as Buffer);
-    });
+    try {
+      const url = await this.getWsInfo(this.roomId);
+      if (!this.isCurrentConnection(connectionId)) return;
+      if (!url) throw new Error("获取抖音弹幕签名失败");
+      this.emit("init", url);
+      if (!this.isCurrentConnection(connectionId)) return;
+      const cookies = this.cookie || (await getCookie(controller.signal));
+      if (!this.isCurrentConnection(connectionId)) return;
+      const ws = new WebSocket(url, {
+        headers: {
+          Cookie: cookies,
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+          Origin: "https://live.douyin.com",
+          Referer: "https://live.douyin.com/",
+        },
+      });
+      this.ws = ws;
 
-    this.ws.on("close", () => {
-      this.emit("close");
-      this.reconnect();
-    });
+      ws.on("open", () => {
+        if (!this.isCurrentConnection(connectionId)) return;
+        clearTimeout(this.connectTimer);
+        this.connectTimer = undefined;
+        this.connectionController = undefined;
+        this.connecting = false;
+        this.emit("open");
+        if (!this.isCurrentConnection(connectionId)) return;
+        this.startHeartbeat();
+        this.startTimeoutCheck();
+      });
 
-    this.ws.on("error", (error) => {
-      this.emit("error", error);
-      this.reconnect();
-    });
+      ws.on("message", (data) => {
+        if (!this.isCurrentConnection(connectionId)) return;
+        this.lastMessageTime = Date.now();
+        void this.decode(data as Buffer, connectionId).catch((error) => {
+          this.handleConnectionError(error, connectionId);
+        });
+      });
+
+      ws.on("close", () => {
+        if (!this.isCurrentConnection(connectionId)) return;
+        this.reconnect();
+        this.emit("close");
+      });
+
+      ws.on("error", (error) => {
+        this.handleConnectionError(error, connectionId);
+      });
+    } catch (error) {
+      this.handleConnectionError(error, connectionId);
+    }
+  }
+
+  private isCurrentConnection(connectionId: number) {
+    return !this.stopped && connectionId === this.connectionId;
+  }
+
+  private handleConnectionError(error: unknown, connectionId: number) {
+    if (!this.isCurrentConnection(connectionId)) return;
+    this.reconnect();
+    this.emit("error", error instanceof Error ? error : new Error(String(error)));
+  }
+
+  private clearConnection() {
+    // Invalidate callbacks before aborting requests or terminating the old socket.
+    this.connectionId++;
+    this.connecting = false;
+    clearTimeout(this.connectTimer);
+    this.connectTimer = undefined;
+    this.connectionController?.abort();
+    this.connectionController = undefined;
+    this.stopHeartbeat();
+    this.stopTimeoutCheck();
+    const ws = this.ws;
+    this.ws = undefined;
+    return ws;
   }
 
   send(data: any) {
-    if (!this.ws) {
+    if (this.ws?.readyState !== WebSocket.OPEN) {
       return;
     }
     this.ws.send(data);
   }
 
   close() {
-    if (!this.ws) {
-      return;
-    }
-    this.reconnectAttempts = this.autoReconnect;
-    this.stopHeartbeat();
-    this.stopTimeoutCheck();
-
-    if (this.ws.readyState === WebSocket.OPEN) {
-      this.ws.close();
+    this.stopped = true;
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = undefined;
+    const ws = this.clearConnection();
+    if (ws && ws.readyState !== WebSocket.CLOSED) {
+      ws.once("close", () => this.emit("close"));
+      if (ws.readyState === WebSocket.OPEN) ws.close();
+      else ws.terminate();
     }
   }
 
@@ -155,11 +217,9 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.isHeartbeatRunning = true;
 
     this.heartbeatTimer = setInterval(() => {
-      if (this.ws.readyState === WebSocket.OPEN) {
+      if (this.ws?.readyState === WebSocket.OPEN) {
         this.emit("heartbeat");
         this.send(":\x02hb");
-      } else {
-        console.log("连接未就绪，当前状态:", this.ws.readyState);
       }
     }, this.heartbeatInterval);
   }
@@ -200,20 +260,20 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   private reconnect() {
-    if (this.isReconnecting) {
+    if (this.stopped || this.reconnectTimer) {
       return;
     }
 
-    this.stopHeartbeat();
-    this.stopTimeoutCheck();
+    const ws = this.clearConnection();
+    if (ws && ws.readyState !== WebSocket.CLOSED) ws.terminate();
 
     if (this.reconnectAttempts < this.autoReconnect) {
-      this.isReconnecting = true;
       this.reconnectAttempts++;
-      setTimeout(() => {
-        this.connect();
-        this.isReconnecting = false;
+      this.reconnectTimer = setTimeout(() => {
+        this.reconnectTimer = undefined;
+        if (this.stopped) return;
         this.emit("reconnect", this.reconnectAttempts);
+        if (!this.stopped) void this.connect();
       }, this.reconnectInterval);
     }
   }
@@ -301,7 +361,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.emit("message", message);
   }
 
-  async decode(data: Buffer) {
+  async decode(data: Buffer, connectionId = this.connectionId) {
     // @ts-ignore
     const PushFrame = protobuf.douyin.PushFrame;
     // @ts-ignore
@@ -341,9 +401,12 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
         return;
       }
     } catch (e) {
+      if (!this.isCurrentConnection(connectionId)) return;
       this.emit("error", e as Error);
       return;
     }
+
+    if (!this.isCurrentConnection(connectionId)) return;
 
     const payloadPackage = Response.decode(decompressed);
 
@@ -361,6 +424,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     const msgs: any[] = [];
     // @ts-ignore
     for (const msg of payloadPackage.messagesList) {
+      if (!this.isCurrentConnection(connectionId)) break;
       // const now = new Date();
       try {
         if (msg.method === "WebcastChatMessage") {
@@ -400,7 +464,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
         console.error("error:", e, msg);
       }
     }
-    if (ack) {
+    if (ack && this.isCurrentConnection(connectionId)) {
       this.send(ack);
     }
     return [msgs, ack];

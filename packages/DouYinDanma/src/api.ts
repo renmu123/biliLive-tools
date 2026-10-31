@@ -1,6 +1,7 @@
-export const getCookie = async () => {
+export const getCookie = async (signal?: AbortSignal) => {
   const res = await fetch("https://live.douyin.com/", {
     method: "GET",
+    signal,
   });
 
   if (!res.headers.get("set-cookie")) {

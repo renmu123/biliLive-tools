@@ -31,9 +31,12 @@ client.connect();
 - `autoReconnect` (number): 自动重连次数，默认为 `10`
 - `heartbeatInterval` (number): 心跳包发送间隔，单位为毫秒，默认为 `10000`
 - `cookie` (string): 可选的 Cookie 字符串，某些直播间可能需要？
-- `timeoutInterval` (number): 没有数据返回但`ws`未被主动关闭时超时后重新连接，单位为秒，默认`100`
+- `connectTimeout` (number): 每次连接的超时时间，包含签名、Cookie 获取和 WebSocket 握手，单位为毫秒，默认 `15000`；超时后按 `autoReconnect` 和 `reconnectInterval` 重试
+- `timeoutInterval` (number): 连接成功后没有服务端数据返回时重新连接，单位为毫秒，默认 `100000`；不要求收到用户弹幕，其他服务端消息也会刷新超时时间
 - `reconnectInterval`： 重连等待时间
 - `host`：弹幕连接域名
+
+调用 `close()` 会取消正在进行的连接和待执行的自动重连；之后可以调用 `connect()` 再次连接。重连只处理弹幕连接，不会停止视频录制。`autoReconnect` 保持为客户端实例的重试次数上限，连接成功不会重置该计数。
 
 ## 事件
 
