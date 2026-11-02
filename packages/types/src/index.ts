@@ -75,6 +75,7 @@ export const recorderNoGlobalFollowFields: Array<
   "videoFormat",
   "recorderType",
   "cookie",
+  "cookieMode",
   "proxy",
   "doubleScreen",
   "useServerTimestamp",
@@ -428,6 +429,8 @@ interface DouyinRecorderConfig extends RecorderCheckConfig {
   quality: "origin" | "uhd" | "hd" | "sd" | "ld" | "ao" | "real_origin";
   /** 抖音cookie */
   cookie: string;
+  /** Cookie 使用范围，默认为全部 */
+  cookieMode: "all" | "stream" | "danma";
   /** 流格式 */
   formatName: FormatName;
   /** 是否使用双屏直播流 */
@@ -588,6 +591,8 @@ export interface Recorder {
   weight: number;
   /** 平台 Cookie */
   cookie?: string;
+  /** 抖音 Cookie 使用范围 */
+  cookieMode?: DouyinRecorderConfig["cookieMode"];
   /** 请求和录制使用的代理 */
   proxy?: string;
   /** 是否使用双屏直播流 */

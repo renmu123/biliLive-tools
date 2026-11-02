@@ -164,10 +164,33 @@ class DanmaClient extends EventEmitter {
         };
         this.emit("Message", gift);
       },
+      raw: {
+        SEND_GIFT_V2: (data) => {
+          const msg = data.data;
+
+          const timestamp = this.useServerTimestamp ? msg.timestamp * 1000 : Date.now();
+          const gift: GiveGift = {
+            type: "give_gift",
+            timestamp: timestamp,
+            name: msg.gift_name,
+            count: msg.num,
+            price: msg.coin_type === "silver" ? 0 : msg.price / 1000,
+            sender: {
+              uid: String(msg.uid),
+              name: msg.uname,
+              avatar: msg.face,
+            },
+          };
+          this.emit("Message", gift);
+        },
+      },
       onGift: (msg) => {
+        // 由于兼容性0.5.6-beta.1，与上游存在冲突
+        if (msg.type === "SEND_GIFT_V2") return;
+
         let timestamp = this.useServerTimestamp ? msg?.raw?.data?.timestamp * 1000 : Date.now();
         if (msg.type === "SEND_GIFT_V2") {
-          timestamp = this.useServerTimestamp ? msg.timestamp : Date.now();
+          timestamp = this.useServerTimestamp ? msg.timestamp * 1000 : Date.now();
         }
         const gift: GiveGift = {
           type: "give_gift",
