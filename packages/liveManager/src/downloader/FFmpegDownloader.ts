@@ -12,6 +12,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
   private command: ReturnType<typeof createFFMPEGBuilder>;
   private streamManager: StreamManager;
   private timeoutChecker: ReturnType<typeof utils.createTimeoutChecker>;
+  private segmentWatchdog: ReturnType<typeof setTimeout> | undefined;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
   readonly segment: Segment;
@@ -76,7 +77,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
       },
     );
     this.timeoutChecker = utils.createTimeoutChecker(
-      () => this.onEnd("ffmpeg timeout"),
+      () => this.endRecording("ffmpeg timeout"),
       3 * 10e3,
       false,
     );
@@ -90,6 +91,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
 
     this.command = this.createCommand();
     this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename, title }) => {
+      this.resetSegmentWatchdog();
       this.emit("videoFileCreated", { filename, cover, rawFilename, title });
     });
     this.streamManager.on("videoFileCompleted", (data) => {
@@ -137,15 +139,15 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
       .inputOptions(inputOptions)
       .outputOptions(outputOptions)
       .output(this.streamManager.videoFilePath)
-      .on("error", this.onEnd)
-      .on("end", () => this.onEnd("finished"))
+      .on("error", (...args) => this.endRecording(...args))
+      .on("end", () => this.endRecording("finished"))
       .on("stderr", async (stderrLine) => {
         assert(typeof stderrLine === "string");
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
         const [isInvalid, reason] = isInvalidStream(stderrLine);
         if (isInvalid) {
-          this.onEnd(reason);
+          this.endRecording(reason);
         }
 
         await this.streamManager.handleVideoStarted(stderrLine);
@@ -156,6 +158,33 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
       })
       .on("stderr", this.timeoutChecker?.update);
     return command;
+  }
+
+  private endRecording(...args: unknown[]) {
+    this.clearSegmentWatchdog();
+    this.onEnd(...args);
+  }
+
+  private resetSegmentWatchdog() {
+    this.clearSegmentWatchdog();
+    if (typeof this.segment !== "number" || this.segment <= 0) return;
+
+    const segmentDurationMs = this.segment * 60 * 1000;
+    const gracePeriodMs = Math.max(60 * 1000, segmentDurationMs * 0.1);
+    this.segmentWatchdog = setTimeout(() => {
+      this.segmentWatchdog = undefined;
+      this.emit("DebugLog", {
+        type: "error",
+        text: `Segment wall-clock timeout after ${segmentDurationMs + gracePeriodMs}ms`,
+      });
+      this.endRecording("segment wall-clock timeout");
+    }, segmentDurationMs + gracePeriodMs);
+  }
+
+  private clearSegmentWatchdog() {
+    if (!this.segmentWatchdog) return;
+    clearTimeout(this.segmentWatchdog);
+    this.segmentWatchdog = undefined;
   }
   buildOutputOptions() {
     const options: string[] = [];
@@ -215,6 +244,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
 
   public async stop() {
     this.timeoutChecker.stop();
+    this.clearSegmentWatchdog();
     try {
       // ts文件使用write("q")需要十来秒进行处理，直接中断，其他格式使用sigint会导致缺少数据
       if (this.streamManager.videoFilePath.endsWith(".ts")) {
