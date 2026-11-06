@@ -4,6 +4,7 @@ import chokidar from "chokidar";
 import sse from "koa-sse-stream";
 import { handleListTask } from "@biliLive-tools/shared/task/task.js";
 import { musicDetect } from "@biliLive-tools/shared/musicDetector/index.js";
+import type { Message, SerializedRecorder } from "@bililive-tools/manager";
 
 import { config, container } from "../index.js";
 
@@ -75,11 +76,22 @@ router.get(
     const id = ctx.query.id;
 
     const recorderManager = container.resolve("recorderManager");
-    recorderManager.manager.on("Message", ({ recorder, message }) => {
+    const handleMessage = ({
+      recorder,
+      message,
+    }: {
+      recorder: SerializedRecorder<any>;
+      message: Message;
+    }) => {
       if (recorder.id === id) {
         // @ts-ignore
         ctx.sse.send(JSON.stringify(message));
       }
+    };
+    recorderManager.manager.on("Message", handleMessage);
+
+    ctx.req.once("close", () => {
+      recorderManager.manager.off("Message", handleMessage);
     });
   },
 );
