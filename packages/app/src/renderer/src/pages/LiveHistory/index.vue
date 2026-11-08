@@ -20,7 +20,7 @@
       />
       <ColumnSelector v-model="visibleColumns" :columns="columnConfig" />
       <n-button type="primary" @click="handleQuery"> 查询 </n-button>
-      <n-button @click="goBack">返回</n-button>
+      <n-button @click="goBack">{{ isCalendarWindow ? "关闭" : "返回" }}</n-button>
     </div>
 
     <!-- 房间信息 -->
@@ -121,6 +121,21 @@ defineOptions({
 });
 const route = useRoute();
 const pageTitle = useTitle();
+const isCalendarWindow = route.query.calendarWindow === "1" && !window.isWeb;
+const parseRouteDate = (value: unknown): number | null => {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null;
+  }
+  return date.getTime();
+};
+const routeDate = parseRouteDate(route.query.date);
+const endOfLocalDay = (timestamp: number) => {
+  const date = new Date(timestamp);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1).getTime() - 1;
+};
 // 主播信息
 const streamerInfo = reactive<StreamerInfo>({
   platform: (route.query.platform as string) || "",
@@ -136,8 +151,8 @@ const queryParams = reactive<QueryParams>({
   liveId: (route.query.liveId as string) || undefined,
   page: 1,
   pageSize: 10,
-  startTime: null,
-  endTime: null,
+  startTime: routeDate,
+  endTime: routeDate,
 });
 
 // 状态变量
@@ -342,6 +357,7 @@ const handleQuery = async (): Promise<void> => {
   }
 
   // 将时间戳传递给API
+  const endTime = queryParams.endTime;
   const apiParams: QueryRecordsParams = {
     room_id: queryParams.room_id,
     platform: queryParams.platform,
@@ -349,7 +365,7 @@ const handleQuery = async (): Promise<void> => {
     page: queryParams.page,
     pageSize: queryParams.pageSize,
     startTime: queryParams.startTime ?? undefined,
-    endTime: queryParams.endTime ?? undefined,
+    endTime: endTime === null ? undefined : endOfLocalDay(endTime),
   };
 
   loading.value = true;
@@ -455,6 +471,10 @@ const removeRecord = async (id: number) => {
 
 const router = useRouter();
 const goBack = () => {
+  if (isCalendarWindow) {
+    window.close();
+    return;
+  }
   router.back();
 };
 

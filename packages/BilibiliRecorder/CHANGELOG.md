@@ -1,3 +1,7 @@
+# 1.9.5
+
+- 录制：修复B站礼物弹幕无法保存的bug [#593](https://github.com/renmu123/biliLive-tools/issues/593)
+
 # 1.19.3
 
 - 兼容 `SEND_GIFT_V2` 礼物类型
