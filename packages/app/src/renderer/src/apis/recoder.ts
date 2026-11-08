@@ -132,6 +132,13 @@ const queryStreamerDetail = async (
   return res.data.payload;
 };
 
+const queryRecordCalendar = async (
+  params: RecorderAPI["queryRecordCalendar"]["Args"],
+): Promise<RecorderAPI["queryRecordCalendar"]["Resp"]> => {
+  const res = await request.get(`/recorder/calendar`, { params });
+  return res.data.payload;
+};
+
 const recoder = {
   infoList,
   get,
@@ -150,6 +157,7 @@ const recoder = {
   cut,
   getRecentRecordFolder,
   queryStreamerDetail,
+  queryRecordCalendar,
 };
 
 export default recoder;

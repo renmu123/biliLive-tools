@@ -247,6 +247,17 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
     return resultMap;
   }
 
+  getRecordStartTimes(streamerId: number, startTime: number, endTime: number): number[] {
+    const rows = this.db
+      .prepare(
+        `SELECT record_start_time FROM ${this.tableName}
+         WHERE streamer_id = ? AND record_start_time >= ? AND record_start_time < ?
+         ORDER BY record_start_time`,
+      )
+      .all(streamerId, startTime, endTime) as Array<{ record_start_time: number }>;
+    return rows.map((row) => row.record_start_time);
+  }
+
   /**
    * 分页查询记录历史,支持时间范围过滤和排序
    * @param options 查询参数
