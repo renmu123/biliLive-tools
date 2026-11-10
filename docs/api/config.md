@@ -241,6 +241,15 @@
       clientSecret: "", // 123 云盘 Client Secret
       limitRate: 0, // 上传限速 (KB/s)
     },
+    quark: {
+      auth: {
+        accessToken: "", // OAuth 访问令牌
+        refreshToken: "", // OAuth 刷新令牌
+        deviceId: "",
+        userId: "",
+        clientDeviceId: "",
+      },
+    },
     syncConfigs: [], // 同步任务配置列表
   },
 

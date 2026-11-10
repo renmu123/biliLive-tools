@@ -617,7 +617,14 @@ export interface Recorder {
   noGlobalFollowFields: typeof recorderNoGlobalFollowFields;
 }
 
-export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "pan123" | "copy";
+export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "pan123" | "quark" | "copy";
+export interface QuarkAuth {
+  accessToken: string;
+  refreshToken: string;
+  deviceId: string;
+  userId: string;
+  clientDeviceId: string;
+}
 
 export type AliyunPanDriveType = "backup" | "resource";
 
@@ -763,6 +770,9 @@ export interface AppConfig {
       clientId: string;
       clientSecret: string;
       limitRate: number; // KB
+    };
+    quark: {
+      auth: QuarkAuth;
     };
     syncConfigs: SyncConfig[];
   };

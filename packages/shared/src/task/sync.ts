@@ -2,11 +2,11 @@ import { parse } from "node:path";
 
 import { appConfig } from "../config.js";
 import { SyncTask, taskQueue } from "./task.js";
-import { BaiduPCS, AliyunPan, Alist, LocalCopy, Pan123 } from "../sync/index.js";
+import { BaiduPCS, AliyunPan, Alist, LocalCopy, Pan123, Quark } from "../sync/index.js";
 import { pan123Login as pan123LoginAPi, getToken as getPan123AccessToken } from "../sync/pan123.js";
 import { trashItem } from "../utils/index.js";
 
-import type { SyncType, SyncConfig, AliyunPanDriveType } from "@biliLive-tools/types";
+import type { SyncType, SyncConfig, AliyunPanDriveType, QuarkAuth } from "@biliLive-tools/types";
 
 const getConfig = (type: SyncType) => {
   const config = appConfig.getAll();
@@ -33,6 +33,8 @@ const getConfig = (type: SyncType) => {
       clientSecret: config.sync[type as "pan123"].clientSecret,
       limitRate: config.sync[type as "pan123"].limitRate,
     };
+  } else if (type === "quark") {
+    return { auth: config.sync.quark.auth };
   } else {
     throw new Error("Unsupported type");
   }
@@ -48,6 +50,8 @@ const createUploadInstance = async (opts: {
   password?: string;
   clientId?: string;
   clientSecret?: string;
+  auth?: QuarkAuth;
+  onAuthChange?: (auth: QuarkAuth) => void;
   limitRate?: number;
   stringFilters?: SyncConfig["stringFilters"];
   retry?: number;
@@ -87,6 +91,13 @@ const createUploadInstance = async (opts: {
       remotePath: opts.remotePath ?? "",
       limitRate: opts.limitRate ?? 0,
     });
+  } else if (opts.type === "quark") {
+    if (!opts.auth?.accessToken) throw new Error("请先授权夸克网盘");
+    return new Quark({
+      auth: opts.auth,
+      remotePath: opts.remotePath,
+      onAuthChange: opts.onAuthChange,
+    });
   } else {
     throw new Error("Unsupported type");
   }
@@ -104,6 +115,7 @@ export const addSyncTask = async ({
   password,
   clientId,
   clientSecret,
+  auth,
   aliyunpanDriveType,
   stringFilters,
 }: {
@@ -119,6 +131,7 @@ export const addSyncTask = async ({
   password?: string;
   clientId?: string;
   clientSecret?: string;
+  auth?: QuarkAuth;
   aliyunpanDriveType?: AliyunPanDriveType;
   stringFilters?: SyncConfig["stringFilters"];
 }) => {
@@ -129,6 +142,7 @@ export const addSyncTask = async ({
     password: iPassword,
     clientId: iClientId,
     clientSecret: iClientSecret,
+    auth: iAuth,
     limitRate,
     retry,
   } = getConfig(type);
@@ -141,6 +155,9 @@ export const addSyncTask = async ({
     password: password ?? iPassword,
     clientId: clientId ?? iClientId,
     clientSecret: clientSecret ?? iClientSecret,
+    auth: auth ?? iAuth,
+    onAuthChange:
+      type === "quark" ? (updated) => appConfig.set("sync.quark.auth", updated) : undefined,
     aliyunpanDriveType,
     limitRate: limitRate ?? 0,
     stringFilters,
@@ -193,6 +210,7 @@ export const isLogin = async ({
   password,
   clientId,
   clientSecret,
+  auth,
 }: {
   execPath?: string;
   type: SyncType;
@@ -201,8 +219,9 @@ export const isLogin = async ({
   password?: string;
   clientId?: string;
   clientSecret?: string;
+  auth?: QuarkAuth;
 }) => {
-  const { binary: binaryPath } = getConfig(type);
+  const { binary: binaryPath, auth: configuredAuth } = getConfig(type);
   const instance = await createUploadInstance({
     type,
     execPath: execPath ?? binaryPath,
@@ -212,6 +231,9 @@ export const isLogin = async ({
     password,
     clientId,
     clientSecret,
+    auth: auth ?? configuredAuth,
+    onAuthChange:
+      type === "quark" ? (updated) => appConfig.set("sync.quark.auth", updated) : undefined,
   });
   if (type === "alist") {
     const status = await (instance as Alist).login();

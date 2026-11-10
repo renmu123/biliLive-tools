@@ -50,6 +50,14 @@
 
 ## 检查登录状态
 
+夸克网盘使用开放平台 OAuth 授权：
+
+1. `POST /sync/quarkAuthStart` 获取 `url`、`pageCode` 和 `clientDeviceId`，在浏览器打开 `url`。
+2. `POST /sync/quarkAuthPoll` 提交 `pageCode` 和 `clientDeviceId`，授权完成后返回 `auth`。
+3. `POST /sync/quarkCheck` 提交 `{ "auth": { ... } }` 检查令牌，返回 `valid` 和可能刷新的 `auth`。
+
+上传测试的 `POST /sync/uploadTest` 可传入 `auth`。同步任务使用应用中保存的授权信息，访问令牌过期时通过刷新令牌轮换。
+
 检查指定同步类型的登录状态。
 
 **接口地址:** `GET /sync/isLogin`

@@ -10,9 +10,11 @@ import {
   aliyunpanLogin,
   pan123Login,
 } from "@biliLive-tools/shared/task/sync.js";
+import { Quark, startQuarkAuth, pollQuarkAuth } from "@biliLive-tools/shared/sync/quark.js";
+import { appConfig } from "@biliLive-tools/shared/config.js";
 import { getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
 
-import type { SyncType } from "@biliLive-tools/types";
+import type { SyncType, QuarkAuth } from "@biliLive-tools/types";
 
 const router = new Router({
   prefix: "/sync",
@@ -27,6 +29,7 @@ async function uploadTest(params: {
   password?: string;
   clientId?: string;
   clientSecret?: string;
+  auth?: QuarkAuth;
 }) {
   const tempDir = getTempPath();
   // 在临时文件新建一个文件，内容为"biliLive-tools"
@@ -45,6 +48,7 @@ async function uploadTest(params: {
       password: params.password,
       clientId: params.clientId,
       clientSecret: params.clientSecret,
+      auth: params.auth,
     });
     task.on("task-end", (data) => {
       console.log("task-end", data);
@@ -126,6 +130,43 @@ router.get("/isLogin", async (ctx) => {
     clientSecret: clientSecret as string,
   });
   ctx.body = status;
+});
+
+router.post("/quarkAuthStart", async (ctx) => {
+  ctx.body = await startQuarkAuth();
+});
+
+router.post("/quarkAuthPoll", async (ctx) => {
+  const { pageCode, clientDeviceId } = ctx.request.body as {
+    pageCode?: string;
+    clientDeviceId?: string;
+  };
+  if (!pageCode || !clientDeviceId) {
+    ctx.status = 400;
+    return;
+  }
+  const auth = await pollQuarkAuth(pageCode, clientDeviceId);
+  if (auth) appConfig.set("sync.quark.auth", auth);
+  ctx.body = { auth };
+});
+
+router.post("/quarkCheck", async (ctx) => {
+  const { auth } = ctx.request.body as { auth?: QuarkAuth };
+  const activeAuth = auth ?? appConfig.get("sync.quark.auth");
+  if (!activeAuth?.accessToken) {
+    ctx.body = { valid: false };
+    return;
+  }
+  let currentAuth = activeAuth;
+  const client = new Quark({
+    auth: activeAuth,
+    onAuthChange: (updated) => {
+      currentAuth = updated;
+      appConfig.set("sync.quark.auth", updated);
+    },
+  });
+  const valid = await client.isLoggedIn();
+  ctx.body = { valid, auth: valid ? currentAuth : undefined };
 });
 
 router.get("/aliyunpanLogin", async (ctx) => {

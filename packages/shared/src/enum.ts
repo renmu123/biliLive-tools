@@ -257,6 +257,15 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       clientSecret: "",
       limitRate: 0,
     },
+    quark: {
+      auth: {
+        accessToken: "",
+        refreshToken: "",
+        deviceId: "",
+        userId: "",
+        clientDeviceId: "",
+      },
+    },
     syncConfigs: [],
   },
   llmPresets: [],
