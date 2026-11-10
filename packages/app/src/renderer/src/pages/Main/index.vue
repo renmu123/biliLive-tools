@@ -65,7 +65,6 @@
               'About',
               'FileSync',
               'FileBrowser',
-              'streamerDetail',
             ]"
           >
             <component :is="Component" />
