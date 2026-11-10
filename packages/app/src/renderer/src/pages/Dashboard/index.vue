@@ -159,7 +159,18 @@
         </div>
       </n-card>
 
-      <n-card class="stat-card" hoverable v-if="diskSpace">
+      <n-card
+        class="stat-card"
+        :class="
+          diskSpace && diskSpace.usedPercentage > 98
+            ? 'disk-space-error'
+            : diskSpace && diskSpace.usedPercentage > 90
+              ? 'disk-space-warning'
+              : ''
+        "
+        hoverable
+        v-if="diskSpace"
+      >
         <div class="stat-content">
           <div class="stat-icon disk-icon" :class="{ 'disk-icon-warning': diskSpace.free < 5 }">
             <svg
@@ -484,6 +495,14 @@ const navigateToQueue = () => {
 
 .stat-card {
   transition: all 0.3s ease;
+
+  &.disk-space-warning {
+    border-color: var(--color-warning);
+  }
+
+  &.disk-space-error {
+    border-color: var(--color-error);
+  }
 
   &.clickable {
     cursor: pointer;
