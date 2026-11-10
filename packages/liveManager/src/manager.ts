@@ -76,9 +76,14 @@ export interface RecorderProvider<E extends AnyObject> {
   setFFMPEGOutputArgs: (this: RecorderProvider<E>, args: string[]) => void;
 }
 
-const RECORDER_TIMELINE_LIMIT = 40;
-const SHORT_RECORDING_THRESHOLD = 12 * 1000;
-const SHORT_RECORDING_RETRY_COUNT = 2;
+/** 可由前端配置的录制器行为参数：默认值与合法范围 */
+export const RECORDER_LIMITS = {
+  timelineLimit: { default: 40, min: 5, max: 200 },
+  /** 单位：秒 */
+  shortRecordingThreshold: { default: 12, min: 1, max: 300 },
+  shortRecordingRetryCount: { default: 2, min: 1, max: 10 },
+} as const;
+
 const SHORT_RECORDING_REASON_BLACKLIST = new Set([
   "manual stop",
   "remove recorder",
@@ -102,9 +107,18 @@ function normalizeTimelineText(text: string): string {
   return text.trim();
 }
 
+function normalizeTimelineLimit(limit: number): number {
+  const value = Math.floor(limit);
+  if (!Number.isFinite(value) || value < 1) {
+    return RECORDER_LIMITS.timelineLimit.default;
+  }
+  return Math.min(value, RECORDER_LIMITS.timelineLimit.max);
+}
+
 function appendRecorderTimeline<E extends AnyObject>(
   recorder: Recorder<E>,
   args: AppendRecorderTimelineArgs,
+  timelineLimit: number,
 ) {
   const text = normalizeTimelineText(args.text);
   if (!text) {
@@ -121,15 +135,20 @@ function appendRecorderTimeline<E extends AnyObject>(
     return recorder.timeline;
   }
 
-  const nextTimeline = [...timeline, { startTime, text }].slice(-RECORDER_TIMELINE_LIMIT);
+  const nextTimeline = [...timeline, { startTime, text }].slice(
+    -normalizeTimelineLimit(timelineLimit),
+  );
   recorder.timeline = nextTimeline;
   return nextTimeline;
 }
 
-function ensureRecorderTimeline<E extends AnyObject>(recorder: Recorder<E>) {
+function ensureRecorderTimeline<E extends AnyObject>(
+  recorder: Recorder<E>,
+  getTimelineLimit: () => number,
+) {
   recorder.timeline = Array.isArray(recorder.timeline) ? recorder.timeline : [];
   recorder.appendTimeline = (args: AppendRecorderTimelineArgs) =>
-    appendRecorderTimeline(recorder, args);
+    appendRecorderTimeline(recorder, args, getTimelineLimit());
 }
 
 function getStateTimelineText(state: RecorderState, msg?: string) {
@@ -159,6 +178,9 @@ const configurableProps = [
   "ffmpegOutputArgs",
   "biliBatchQuery",
   "recordRetryImmediately",
+  "timelineLimit",
+  "shortRecordingThresholdMs",
+  "shortRecordingRetryCount",
   "providerCheckConfig",
 ] as const;
 type ConfigurableProp = (typeof configurableProps)[number];
@@ -236,6 +258,12 @@ export interface RecorderManager<
   biliBatchQuery: boolean;
   /** 下播延迟检查 */
   recordRetryImmediately: boolean;
+  /** 每个录制器时间线最多保留的事件条数 */
+  timelineLimit: number;
+  /** 短录制判定阈值，单位毫秒 */
+  shortRecordingThresholdMs: number;
+  /** 连续短录制达到该次数后，下次尝试切换流格式 */
+  shortRecordingRetryCount: number;
   /** 缓存系统 */
   cache: RecorderCache;
   /** 每个 provider 的检查配置 */
@@ -407,7 +435,7 @@ export function createRecorderManager<
 
       // 为录制器注入独立的缓存命名空间
       recorder.cache = this.cache.createNamespace(recorder.id);
-      ensureRecorderTimeline(recorder);
+      ensureRecorderTimeline(recorder, () => this.timelineLimit);
 
       this.recorders.push(recorder);
 
@@ -478,12 +506,23 @@ export function createRecorderManager<
             reason != null && SHORT_RECORDING_REASON_BLACKLIST.has(reason);
           const duration = stoppedAt - attempt.startedAt;
           const previousState = shortRecordingStates.get(recorder.id);
+          // 配置可能被手工编辑为非法值，这里兜底，避免 0 次导致首次短录制就切流
+          const thresholdMs =
+            Number.isFinite(manager.shortRecordingThresholdMs) &&
+            manager.shortRecordingThresholdMs > 0
+              ? manager.shortRecordingThresholdMs
+              : RECORDER_LIMITS.shortRecordingThreshold.default * 1000;
+          const retryCount =
+            Number.isFinite(manager.shortRecordingRetryCount) &&
+            manager.shortRecordingRetryCount >= 1
+              ? Math.floor(manager.shortRecordingRetryCount)
+              : RECORDER_LIMITS.shortRecordingRetryCount.default;
 
-          if (isReasonBlacklisted || duration >= SHORT_RECORDING_THRESHOLD) {
+          if (isReasonBlacklisted || duration >= thresholdMs) {
             shortRecordingStates.delete(recorder.id);
           } else {
             const count = previousState?.liveId === attempt.liveId ? previousState.count + 1 : 1;
-            const preferAlternativeStream = count >= SHORT_RECORDING_RETRY_COUNT;
+            const preferAlternativeStream = count >= retryCount;
             shortRecordingStates.set(recorder.id, {
               liveId: attempt.liveId,
               count,
@@ -493,7 +532,7 @@ export function createRecorderManager<
             if (preferAlternativeStream && !previousState?.preferAlternativeStream) {
               recorder.appendTimeline?.({
                 startTime: stoppedAt,
-                text: `连续 ${SHORT_RECORDING_RETRY_COUNT} 次录制在 ${SHORT_RECORDING_THRESHOLD / 1000} 秒内结束，下次可能尝试切换流格式（仅抖音）`,
+                text: `连续 ${retryCount} 次录制在 ${thresholdMs / 1000} 秒内结束，下次可能尝试切换流格式（仅抖音）`,
               });
             }
           }
@@ -710,6 +749,11 @@ export function createRecorderManager<
     autoRemoveSystemReservedChars: opts.autoRemoveSystemReservedChars ?? true,
     biliBatchQuery: opts.biliBatchQuery ?? false,
     recordRetryImmediately: opts.recordRetryImmediately ?? false,
+    timelineLimit: opts.timelineLimit ?? RECORDER_LIMITS.timelineLimit.default,
+    shortRecordingThresholdMs:
+      opts.shortRecordingThresholdMs ?? RECORDER_LIMITS.shortRecordingThreshold.default * 1000,
+    shortRecordingRetryCount:
+      opts.shortRecordingRetryCount ?? RECORDER_LIMITS.shortRecordingRetryCount.default,
 
     cache: opts.cache ?? new RecorderCacheImpl(new MemoryCacheStore()),
 
@@ -743,10 +787,20 @@ export function createRecorderManager<
 
   const proxyManager = new Proxy(manager, {
     set(obj, prop, value) {
+      const previousValue = Reflect.get(obj, prop);
       Reflect.set(obj, prop, value);
 
       if (prop === "ffmpegOutputArgs") {
         setProvidersFFMPEGOutputArgs(value);
+      }
+
+      // 阈值或次数变化后，旧的累计次数是按旧规则算出来的，清空后按新规则重新累计。
+      // 保留 recordAttempts，避免正在进行的录制丢失起始时间而漏掉一次判定。
+      if (
+        (prop === "shortRecordingThresholdMs" || prop === "shortRecordingRetryCount") &&
+        previousValue !== value
+      ) {
+        shortRecordingStates.clear();
       }
 
       if (isConfigurableProp(prop)) {

@@ -12,6 +12,7 @@ import { provider as providerForTikTok } from "@bililive-tools/tiktok-recorder";
 
 import {
   createRecorderManager as createManager,
+  RECORDER_LIMITS,
   setFFMPEGPath,
   setMesioPath,
   setBililivePath,
@@ -40,6 +41,17 @@ import type {
 import type { Recorder, ResolveChannelOptions } from "@bililive-tools/manager";
 
 export { RecorderConfig };
+
+/** 将用户配置钳制到合法范围，防止手工编辑配置文件导致 0 次即切流等异常 */
+function clampRecorderConfig(
+  value: unknown,
+  range: { readonly default: number; readonly min: number; readonly max: number },
+): number {
+  if (value == null || value === "") return range.default;
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return range.default;
+  return Math.min(range.max, Math.max(range.min, Math.round(num)));
+}
 
 // 缓存直播结束通知的最后触发时间，避免频繁通知
 const endLiveNotificationCache = new Map<string, number>();
@@ -254,6 +266,20 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
     const maxThreadCount = config?.recorder?.maxThreadCount ?? 3;
     const waitTime = config?.recorder?.waitTime ?? 0;
+    const timelineLimit = clampRecorderConfig(
+      config?.recorder?.timelineLimit,
+      RECORDER_LIMITS.timelineLimit,
+    );
+    // 前端配置单位是秒，manager 内部使用毫秒
+    const shortRecordingThresholdMs =
+      clampRecorderConfig(
+        config?.recorder?.shortRecordingThreshold,
+        RECORDER_LIMITS.shortRecordingThreshold,
+      ) * 1000;
+    const shortRecordingRetryCount = clampRecorderConfig(
+      config?.recorder?.shortRecordingRetryCount,
+      RECORDER_LIMITS.shortRecordingRetryCount,
+    );
 
     // 构建每个平台的检查配置
     const providerCheckConfig: Record<
@@ -310,6 +336,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
       savePathRule: savePathRule,
       biliBatchQuery: config?.recorder?.bilibili.useBatchQuery ?? false,
       recordRetryImmediately: config?.recorder?.recordRetryImmediately ?? false,
+      timelineLimit,
+      shortRecordingThresholdMs,
+      shortRecordingRetryCount,
       maxThreadCount: maxThreadCount,
       waitTime: waitTime,
       providerCheckConfig,
@@ -338,6 +367,10 @@ export async function createRecorderManager(appConfig: AppConfig) {
     manager.recordRetryImmediately = config?.recorder?.recordRetryImmediately ?? false;
 
     const managerOptions = await buildManagerOptions(config);
+
+    manager.timelineLimit = managerOptions.timelineLimit;
+    manager.shortRecordingThresholdMs = managerOptions.shortRecordingThresholdMs;
+    manager.shortRecordingRetryCount = managerOptions.shortRecordingRetryCount;
 
     // 更新每个平台的检查配置
     manager.providerCheckConfig = managerOptions.providerCheckConfig;

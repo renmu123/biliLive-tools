@@ -361,6 +361,103 @@ describe("RecorderManager", () => {
         }),
       );
     });
+
+    it("自定义的短录制阈值生效", async () => {
+      manager.shortRecordingThresholdMs = 3_000;
+      const recorder = manager.addRecorder({
+        id: "custom-threshold",
+        providerId: "test",
+        channelId: "test-channel",
+        quality: "highest",
+        streamPriorities: [],
+        sourcePriorities: [],
+      });
+
+      emitRecording(recorder, "record-1", "live-1", 1_000);
+      // 默认阈值 12 秒下这属于短录制，改成 3 秒后应视为正常录制并清空计数
+      emitRecording(recorder, "record-2", "live-1", 5_000);
+
+      await manager.startRecord(recorder.id);
+      expect(recorder.checkLiveStatusAndRecord).toHaveBeenLastCalledWith(
+        expect.objectContaining({ streamRetryHint: undefined }),
+      );
+    });
+
+    it("自定义的触发次数生效，且时间线提示文案跟随配置", async () => {
+      manager.shortRecordingThresholdMs = 3_000;
+      manager.shortRecordingRetryCount = 3;
+      const recorder = manager.addRecorder({
+        id: "custom-retry-count",
+        providerId: "test",
+        channelId: "test-channel",
+        quality: "highest",
+        streamPriorities: [],
+        sourcePriorities: [],
+      });
+
+      emitRecording(recorder, "record-1", "live-1", 1_000);
+      emitRecording(recorder, "record-2", "live-1", 1_000);
+
+      await manager.startRecord(recorder.id);
+      expect(recorder.checkLiveStatusAndRecord).toHaveBeenLastCalledWith(
+        expect.objectContaining({ streamRetryHint: undefined }),
+      );
+
+      emitRecording(recorder, "record-3", "live-1", 1_000);
+      expect(
+        recorder.timeline?.some((item) => item.text.includes("连续 3 次录制在 3 秒内结束")),
+      ).toBe(true);
+      await manager.startRecord(recorder.id);
+      expect(recorder.checkLiveStatusAndRecord).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          streamRetryHint: { liveId: "live-1", preferAlternativeStream: true },
+        }),
+      );
+    });
+
+    it("修改阈值或次数后清空已累计的短录制次数", async () => {
+      const recorder = manager.addRecorder({
+        id: "reset-state-on-config-change",
+        providerId: "test",
+        channelId: "test-channel",
+        quality: "highest",
+        streamPriorities: [],
+        sourcePriorities: [],
+      });
+
+      emitRecording(recorder, "record-1", "live-1", 1_000);
+      manager.shortRecordingThresholdMs = 5_000;
+      emitRecording(recorder, "record-2", "live-1", 1_000);
+
+      // 若不清空计数，默认 2 次就会触发切流提示
+      await manager.startRecord(recorder.id);
+      expect(recorder.checkLiveStatusAndRecord).toHaveBeenLastCalledWith(
+        expect.objectContaining({ streamRetryHint: undefined }),
+      );
+    });
+
+    it("时间线上限可配置，调小后不主动裁剪已有记录", () => {
+      manager.timelineLimit = 10;
+      const recorder = manager.addRecorder({
+        id: "custom-timeline-limit",
+        providerId: "test",
+        channelId: "test-channel",
+        quality: "highest",
+        streamPriorities: [],
+        sourcePriorities: [],
+      });
+
+      recorder.appendTimeline?.({ text: "事件A" });
+      recorder.appendTimeline?.({ text: "事件B" });
+      recorder.appendTimeline?.({ text: "事件C" });
+      expect(recorder.timeline).toHaveLength(3);
+
+      manager.timelineLimit = 2;
+      expect(recorder.timeline).toHaveLength(3);
+
+      recorder.appendTimeline?.({ text: "事件D" });
+      expect(recorder.timeline?.map((item) => item.text)).toEqual(["事件C", "事件D"]);
+    });
   });
 
   describe("创建和基本属性", () => {
