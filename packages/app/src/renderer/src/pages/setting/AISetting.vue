@@ -442,9 +442,10 @@ const deleteVendor = async (id: string) => {
   if (index === -1) return;
 
   const vendor = config.value.ai.vendors[index];
-  const status = await confirm.warning({
+  const [status] = await confirm.warning({
     content: `确定要删除供应商配置"${vendor.name}"吗？`,
   });
+  console.log("deleteVendor status:", status);
   if (!status) return;
 
   config.value.ai.vendors.splice(index, 1);

@@ -7,6 +7,7 @@
 ## Bug修复
 
 - 录制：修复主播详情仅能显示第一个的bug [#604](https://github.com/renmu123/biliLive-tools/issues/604)
+- 修复AI配置项删除时点击取消仍会生效的bug
 
 # 4.1.0(2026.11.8)
 
