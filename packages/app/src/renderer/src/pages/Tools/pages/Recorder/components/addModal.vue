@@ -196,7 +196,7 @@
               </template>
               <n-select
                 v-model:value="config.uid"
-                :options="userList"
+                :options="bilibiliAccountOptions"
                 label-field="name"
                 value-field="uid"
                 clearable
@@ -359,7 +359,7 @@
               </template>
               <n-select
                 v-model:value="config.uid"
-                :options="douyuUserList"
+                :options="douyuAccountOptions"
                 label-field="name"
                 value-field="uid"
                 clearable
@@ -900,8 +900,8 @@ interface Props {
 }
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
-const { userList } = storeToRefs(useUserInfoStore());
-const { userList: douyuUserList } = storeToRefs(useDouyuUserStore());
+const { recordingAccountOptions: bilibiliAccountOptions } = storeToRefs(useUserInfoStore());
+const { recordingAccountOptions: douyuAccountOptions } = storeToRefs(useDouyuUserStore());
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const props = defineProps<Props>();

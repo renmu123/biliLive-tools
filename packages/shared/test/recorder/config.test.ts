@@ -382,6 +382,76 @@ describe("RecorderConfig", () => {
         expect(recorderConfig.get("local")?.auth).toBe("cookie-200");
       });
     });
+    describe("随机录制账号", () => {
+      it.each([
+        { providerId: "Bilibili", accountKey: "bilibiliUser" },
+        { providerId: "DouYu", accountKey: "douyuUser" },
+      ])("$providerId 支持全局和单独随机选择", ({ providerId, accountKey }) => {
+        mockAppConfig.get.mockImplementation((key: string) => {
+          if (key === "recorder") {
+            return {
+              [providerId === "Bilibili" ? "bilibili" : "douyu"]: { uid: "random" },
+            };
+          }
+          if (key === "recorders") {
+            return [
+              { id: "global", providerId, channelId: "1", uid: 300 },
+              {
+                id: "local",
+                providerId,
+                channelId: "2",
+                uid: "random",
+                noGlobalFollowFields: ["uid"],
+              },
+            ];
+          }
+          if (key === accountKey) return { 100: "encrypted", 200: "encrypted" };
+          return null;
+        });
+        vi.mocked(getCookie).mockImplementation((uid) => ({ SESSDATA: `bili-${uid}` }));
+        vi.mocked(readDouyuUser).mockImplementation((uid) => ({
+          uid,
+          name: String(uid),
+          createdAt: 1000,
+          updatedAt: 1000,
+          loginCookies: { passport: "", main: `douyu-${uid}` },
+        }));
+        const randomSpy = vi
+          .spyOn(Math, "random")
+          .mockReturnValueOnce(0)
+          .mockReturnValueOnce(0.999);
+        try {
+          const first = recorderConfig.get("global");
+          const second = recorderConfig.get("local");
+          expect(first?.uid).toBe(100);
+          expect(second?.uid).toBe(200);
+          expect(first?.auth).toBe(providerId === "Bilibili" ? "SESSDATA=bili-100" : "douyu-100");
+          expect(second?.auth).toBe(providerId === "Bilibili" ? "SESSDATA=bili-200" : "douyu-200");
+        } finally {
+          randomSpy.mockRestore();
+        }
+      });
+
+      it.each([
+        { providerId: "Bilibili", accountKey: "bilibiliUser" },
+        { providerId: "DouYu", accountKey: "douyuUser" },
+      ])("$providerId 在账号全部删除后不读取授权", ({ providerId, accountKey }) => {
+        mockAppConfig.get.mockImplementation((key: string) => {
+          if (key === "recorder") {
+            return { [providerId === "Bilibili" ? "bilibili" : "douyu"]: { uid: "random" } };
+          }
+          if (key === "recorders") return [{ id: "random", providerId, channelId: "1" }];
+          if (key === accountKey) return {};
+          return null;
+        });
+
+        const result = recorderConfig.get("random");
+        expect(result?.uid).toBeUndefined();
+        expect(result?.auth).toBeUndefined();
+        expect(getCookie).not.toHaveBeenCalled();
+        expect(readDouyuUser).not.toHaveBeenCalled();
+      });
+    });
     describe("TikTok 代理：proxy", () => {
       it("支持跟随全局配置和单独覆盖", () => {
         mockAppConfig.get.mockImplementation((key: string) => {

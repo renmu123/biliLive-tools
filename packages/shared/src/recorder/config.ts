@@ -39,6 +39,14 @@ export default class RecorderConfig {
     return auth;
   }
 
+  private getRandomUid(providerId: "Bilibili" | "DouYu"): number | undefined {
+    const accountKey = providerId === "Bilibili" ? "bilibiliUser" : "douyuUser";
+    const uids = Object.keys(this.appConfig.get(accountKey, true) || {})
+      .map(Number)
+      .filter((uid) => Number.isSafeInteger(uid) && uid > 0);
+    return uids[Math.floor(Math.random() * uids.length)];
+  }
+
   public get(
     id: string,
     opts: { authCache?: AuthCache } = {},
@@ -178,6 +186,9 @@ export default class RecorderConfig {
     let auth: string | undefined;
     if (setting.providerId === "Bilibili" || setting.providerId === "DouYu") {
       uid = getValue("uid");
+      if (uid === "random") {
+        uid = this.getRandomUid(setting.providerId);
+      }
       if (uid) {
         auth = this.getAuth(setting.providerId, Number(uid), authCache);
       }

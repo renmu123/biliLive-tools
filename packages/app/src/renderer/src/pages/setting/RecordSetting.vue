@@ -220,7 +220,7 @@
             </template>
             <n-select
               v-model:value="config.recorder.bilibili.uid"
-              :options="userList"
+              :options="bilibiliAccountOptions"
               label-field="name"
               value-field="uid"
               clearable
@@ -353,7 +353,7 @@
             </template>
             <n-select
               v-model:value="config.recorder.douyu.uid"
-              :options="douyuUserList"
+              :options="douyuAccountOptions"
               label-field="name"
               value-field="uid"
               clearable
@@ -861,8 +861,8 @@ const labelWidth = computed(() => {
   return isMobile.value ? "90px" : "145px";
 });
 
-const { userList } = storeToRefs(useUserInfoStore());
-const { userList: douyuUserList } = storeToRefs(useDouyuUserStore());
+const { recordingAccountOptions: bilibiliAccountOptions } = storeToRefs(useUserInfoStore());
+const { recordingAccountOptions: douyuAccountOptions } = storeToRefs(useDouyuUserStore());
 const isWeb = computed(() => window.isWeb);
 
 const selectFolder = async () => {

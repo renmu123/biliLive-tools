@@ -388,7 +388,7 @@ interface RecorderCheckConfig {
 
 interface BilibiliRecorderConfig extends RecorderCheckConfig {
   /** 账号 */
-  uid?: number;
+  uid?: number | "random";
   /** 画质 30000：杜比 20000：4K 25000：原画真彩 15000：2K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
   quality: 30000 | 20000 | 25000 | 15000 | 10000 | 400 | 250 | 150 | 80;
   /** 使用批量查询接口  */
@@ -406,7 +406,7 @@ interface BilibiliRecorderConfig extends RecorderCheckConfig {
 }
 interface DouyuRecorderConfig extends RecorderCheckConfig {
   /** 登录账号 */
-  uid?: number;
+  uid?: number | "random";
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
   quality: 0 | 2 | 3 | 4 | 8;
   source: string;

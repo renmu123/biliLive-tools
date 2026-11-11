@@ -412,6 +412,14 @@ export async function createRecorderManager(appConfig: AppConfig) {
     // 录制结束通知，自动监听&开启推送时才会发送
     const config = recorderConfig.get(recorder.id);
     if (!config) return;
+    if (recorder.providerId === "Bilibili" || recorder.providerId === "DouYu") {
+      const activeRecorder = manager.getRecorder(recorder.id);
+      if (activeRecorder) {
+        // 下次录制重新解析账号；随机模式会在这里重新选择。
+        activeRecorder.uid = config.uid;
+        activeRecorder.auth = config.auth;
+      }
+    }
     if (config?.liveEndNotification && !config?.disableAutoCheck) {
       setTimeout(
         () => {

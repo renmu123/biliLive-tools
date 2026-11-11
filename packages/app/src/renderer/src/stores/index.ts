@@ -72,7 +72,13 @@ export const useUserInfoStore = defineStore("userInfo", () => {
     };
   });
 
-  return { userInfo, getUsers, userList, changeUser };
+  const recordingAccountOptions = computed(() =>
+    userList.value.length > 0
+      ? [{ uid: "random", name: "随机" }, ...userList.value]
+      : userList.value,
+  );
+
+  return { userInfo, getUsers, userList, recordingAccountOptions, changeUser };
 });
 
 export const useDouyuUserStore = defineStore("douyuUser", () => {
@@ -81,7 +87,12 @@ export const useDouyuUserStore = defineStore("douyuUser", () => {
     userList.value = await douyuApi.getUsers();
   }
   getUsers();
-  return { userList, getUsers };
+  const recordingAccountOptions = computed(() =>
+    userList.value.length > 0
+      ? [{ uid: "random", name: "随机" }, ...userList.value]
+      : userList.value,
+  );
+  return { userList, recordingAccountOptions, getUsers };
 });
 
 export const useDanmuPreset = defineStore("danmuPreset", () => {
