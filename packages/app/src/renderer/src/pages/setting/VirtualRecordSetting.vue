@@ -640,7 +640,7 @@ const editVirtualRecord = (index: number) => {
 
 // 删除虚拟录制配置
 const deleteVirtualRecord = async (index: number) => {
-  const status = await confirm.warning({
+  const [status] = await confirm.warning({
     content: `确定要删除？`,
   });
 

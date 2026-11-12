@@ -714,7 +714,7 @@ const deleteSyncConfig = async (index: number) => {
     return;
   }
 
-  const status = await confirm.warning({
+  const [status] = await confirm.warning({
     content: `确定要删除同步配置？`,
   });
   if (!status) return;
