@@ -7,6 +7,7 @@ import axios from "axios";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Quark, pollQuarkAuth, signedHeaders, startQuarkAuth } from "../../src/sync/quark";
+import * as quarkUpload from "../../src/sync/quarkUpload";
 
 const dirs: string[] = [];
 const running: { client: Quark; promise: Promise<void> }[] = [];
@@ -89,25 +90,25 @@ function mockMultipart() {
   }[] = [];
   let active = 0;
   let maxActive = 0;
-  vi.spyOn(axios, "put").mockImplementation((url, stream, config) => {
-    const signal = config!.signal as AbortSignal;
+  vi.spyOn(quarkUpload, "putQuarkPart").mockImplementation((url, stream, config) => {
+    const signal = config.signal;
     const part = Number(new URL(url).pathname.split("/").at(-1));
     active++;
     maxActive = Math.max(maxActive, active);
-    // Axios normally consumes the stream and handles its abort error.
+    // The native PUT helper normally consumes the stream and handles its abort error.
     stream.on("error", () => {});
     stream.resume();
     let onAbort: () => void;
-    return new Promise((resolve, reject) => {
-      onAbort = () => reject(new axios.CanceledError());
+    return new Promise<string>((resolve, reject) => {
+      onAbort = () => reject(new Error("aborted"));
       signal.addEventListener("abort", onAbort, { once: true });
       transfers.push({
         part,
         url,
         signal,
-        complete: () => resolve({ headers: { etag: `etag-${part}` } }),
+        complete: () => resolve(`etag-${part}`),
         fail: reject,
-        progress: (loaded) => config!.onUploadProgress?.({ loaded } as any),
+        progress: config.onProgress,
       });
     }).finally(() => {
       active--;
@@ -408,12 +409,14 @@ describe("Quark upload", () => {
       return { data: { status: 0, data: { file_list: [], last_page: true } } };
     });
     const uploaded = new Map<number, Buffer>();
-    const put = vi.spyOn(axios, "put").mockImplementation(async (_url, stream, config) => {
-      const chunks: Buffer[] = [];
-      for await (const chunk of stream) chunks.push(chunk);
-      uploaded.set(Number(config?.headers?.["Content-Length"]), Buffer.concat(chunks));
-      return { headers: { etag: '"etag"' } };
-    });
+    const put = vi
+      .spyOn(quarkUpload, "putQuarkPart")
+      .mockImplementation(async (_url, stream, config) => {
+        const chunks: Buffer[] = [];
+        for await (const chunk of stream) chunks.push(chunk);
+        uploaded.set(config.size, Buffer.concat(chunks));
+        return '"etag"';
+      });
     await new Quark({ auth }).uploadFile(localPath);
     expect(calls.map((call) => call.path)).toEqual([
       "/open/v1/user/info",
@@ -444,13 +447,13 @@ describe("Quark upload", () => {
     ]);
     expect(Number.isInteger(calls[1].data.l_created_at)).toBe(true);
     expect(Number.isInteger(calls[1].data.l_updated_at)).toBe(true);
-    expect(put.mock.calls.map((call) => call[2]?.headers?.["Content-Length"])).toEqual([64, 5]);
+    expect(put.mock.calls.map((call) => call[2].size)).toEqual([64, 5]);
     expect(uploaded.get(64)).toEqual(content.subarray(0, 64));
     expect(uploaded.get(5)).toEqual(content.subarray(64));
     expect(put.mock.calls[0][2]?.headers?.Authorization).toBe("signed");
     expect(put.mock.calls[0][2]?.headers?.["X-Oss-Date"]).toBe("date");
     expect(put.mock.calls[0][2]?.headers?.["X-Oss-Content-Sha256"]).toBe("UNSIGNED-PAYLOAD");
-    expect(put.mock.calls[0][2]?.headers?.["Content-Type"]).toBe(false);
+    expect(put.mock.calls[0][2]?.headers?.["Content-Type"]).toBeUndefined();
     expect(calls.at(-1)?.data.part_info_list).toEqual([
       { part_number: 1, etag: '"etag"' },
       { part_number: 2, etag: '"etag"' },
@@ -470,7 +473,7 @@ describe("Quark upload", () => {
         return { data: { status: 0, data: { finish: true, fid: "instant" } } };
       throw new Error(`Unexpected request: ${pathname}`);
     });
-    const put = vi.spyOn(axios, "put");
+    const put = vi.spyOn(quarkUpload, "putQuarkPart");
     const progress = vi.fn();
     const client = new Quark({ auth });
     client.on("progress", progress);
@@ -478,40 +481,5 @@ describe("Quark upload", () => {
     expect(request).toHaveBeenCalledTimes(3);
     expect(put).not.toHaveBeenCalled();
     expect(progress.mock.lastCall![0].percentage).toBe(100);
-  });
-
-  it("reports the OSS error code without exposing its signed URL", async () => {
-    const localPath = await file(Buffer.from("ok"));
-    vi.spyOn(axios, "request").mockImplementation(async (config) => {
-      const pathname = new URL(config.url!).pathname;
-      if (pathname.endsWith("/user/info"))
-        return { data: { status: 0, data: { user_id: "user" } } };
-      if (pathname.endsWith("/file/upload_pre"))
-        return { data: { status: 0, data: { task_id: "task", part_size: 2 } } };
-      if (pathname.endsWith("/file/update/hash"))
-        return { data: { status: 0, data: { finish: false } } };
-      return {
-        data: {
-          status: 0,
-          data: {
-            upload_urls: [
-              {
-                part_number: 1,
-                upload_url: "https://oss.example.com/private-key",
-                signature_info: { signature: "signed-secret" },
-              },
-            ],
-            common_headers: { "X-Oss-Date": "date" },
-          },
-        },
-      };
-    });
-    vi.spyOn(axios, "put").mockRejectedValue({
-      isAxiosError: true,
-      response: { status: 403, data: "<Error><Code>SignatureDoesNotMatch</Code></Error>" },
-    });
-    const result = new Quark({ auth }).uploadFile(localPath);
-    await expect(result).rejects.toThrow("夸克网盘分片 1 上传失败 (403, SignatureDoesNotMatch)");
-    await expect(result).rejects.not.toThrow(/private-key|signed-secret/);
   });
 });

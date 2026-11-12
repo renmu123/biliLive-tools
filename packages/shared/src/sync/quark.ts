@@ -7,6 +7,7 @@ import axios from "axios";
 import { TypedEmitter } from "tiny-typed-emitter";
 import { SpeedCalculator } from "../utils/speedCalculator.js";
 import { hashQuarkFile } from "./quarkHash.js";
+import { putQuarkPart } from "./quarkUpload.js";
 
 import type { QuarkAuth } from "@biliLive-tools/types";
 import type { ParallelSha1Context } from "./quarkHash.js";
@@ -482,17 +483,15 @@ export class Quark extends TypedEmitter<QuarkEvents> {
                 signal: request.signal,
               });
               try {
-                const response = await axios.put(url.target.upload_url, stream, {
+                const etag = await putQuarkPart(url.target.upload_url, stream, {
+                  partNumber: part_number,
+                  size: part_size,
                   signal: request.signal,
                   headers: {
-                    "Content-Type": false,
                     ...url.headers,
                     Authorization: url.target.signature_info.signature,
-                    "Content-Length": part_size,
                   },
-                  maxBodyLength: Infinity,
-                  timeout: 120000,
-                  onUploadProgress: ({ loaded }) => {
+                  onProgress: (loaded) => {
                     if (
                       request.signal.aborted ||
                       session.paused ||
@@ -505,8 +504,6 @@ export class Quark extends TypedEmitter<QuarkEvents> {
                   },
                 });
                 signal.throwIfAborted();
-                const etag = response.headers.etag;
-                if (!etag) throw new Error(`夸克网盘上传分片 ${part_number} 后未返回 ETag`);
                 completed.set(part_number, etag);
                 completedBytes += part_size;
                 inFlight.delete(part_number);
@@ -516,19 +513,6 @@ export class Quark extends TypedEmitter<QuarkEvents> {
                 signal.throwIfAborted();
                 // Pause aborts only the current PUT, keeping this worker and the upload task alive.
                 if (request.signal.reason === PAUSED) continue;
-                if (axios.isAxiosError(error)) {
-                  const data = error.response?.data;
-                  const xml =
-                    typeof data === "string"
-                      ? data
-                      : Buffer.isBuffer(data)
-                        ? data.toString("utf8")
-                        : "";
-                  const ossCode = /<Code>([A-Za-z0-9_-]+)<\/Code>/.exec(xml)?.[1];
-                  throw new Error(
-                    `夸克网盘分片 ${part_number} 上传失败 (${error.response?.status || error.code || "网络错误"}${ossCode ? `, ${ossCode}` : ""})`,
-                  );
-                }
                 throw error;
               } finally {
                 stream.destroy();
