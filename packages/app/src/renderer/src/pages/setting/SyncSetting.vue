@@ -224,6 +224,14 @@
           <n-form-item v-if="quarkAuthUrl" label="授权链接">
             <a :href="quarkAuthUrl" target="_blank" rel="noopener noreferrer">打开夸克授权页面</a>
           </n-form-item>
+          <n-form-item label="分片并发数">
+            <n-input-number
+              v-model:value="config.sync.quark.concurrency"
+              :min="1"
+              :max="10"
+              :precision="0"
+            />
+          </n-form-item>
         </n-tab-pane>
       </n-tabs>
     </n-form>
@@ -641,6 +649,7 @@ const confirmUploadCheck = async () => {
   } else if (type === "quark") {
     await syncApi.syncTestUpload({
       auth: config.value.sync.quark.auth,
+      concurrency: config.value.sync.quark.concurrency,
       remoteFolder: uploadPath.value,
       type,
     });

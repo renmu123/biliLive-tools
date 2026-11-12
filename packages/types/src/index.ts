@@ -773,6 +773,7 @@ export interface AppConfig {
     };
     quark: {
       auth: QuarkAuth;
+      concurrency: number;
     };
     syncConfigs: SyncConfig[];
   };

@@ -5,8 +5,11 @@ import path from "node:path";
 
 import axios from "axios";
 import { TypedEmitter } from "tiny-typed-emitter";
+import { SpeedCalculator } from "../utils/speedCalculator.js";
+import { hashQuarkFile } from "./quarkHash.js";
 
 import type { QuarkAuth } from "@biliLive-tools/types";
+import type { ParallelSha1Context } from "./quarkHash.js";
 
 const API = "https://open-api-drive.quark.cn";
 // Public third-party client credentials distributed with the official CLI.
@@ -61,6 +64,67 @@ type FileItem = {
   file_type?: number | string;
 };
 
+const PAUSED = Symbol("quark-upload-paused");
+class UploadSession {
+  readonly controller = new AbortController();
+  readonly requests = new Set<AbortController>();
+  paused = false;
+  finishing = false;
+  generation = 0;
+  onStateChange?: () => void;
+  private resumed?: Promise<void>;
+  private wake?: () => void;
+
+  pause() {
+    if (this.paused || this.finishing || this.controller.signal.aborted) return false;
+    this.paused = true;
+    this.generation++;
+    this.resumed = new Promise((resolve) => {
+      this.wake = resolve;
+    });
+    for (const request of this.requests) request.abort(PAUSED);
+    this.onStateChange?.();
+    return true;
+  }
+
+  resume() {
+    if (!this.paused || this.controller.signal.aborted) return false;
+    this.paused = false;
+    this.wake?.();
+    this.onStateChange?.();
+    return true;
+  }
+
+  cancel(reason = new Error("夸克网盘上传已取消")) {
+    this.controller.abort(reason);
+    for (const request of this.requests) request.abort(reason);
+    this.wake?.();
+  }
+
+  async wait() {
+    this.controller.signal.throwIfAborted();
+    while (this.paused) {
+      await this.resumed;
+      this.controller.signal.throwIfAborted();
+    }
+  }
+}
+
+type UploadPre = {
+  finish?: boolean;
+  task_id: string;
+  part_size?: number;
+  common_headers?: Record<string, string>;
+};
+type UploadUrls = {
+  upload_urls: {
+    part_number: number;
+    upload_url: string;
+    signature_info: { signature: string };
+  }[];
+  common_headers?: Record<string, string>;
+};
+
 export function signedHeaders(method: string, apiPath: string, timestamp = String(Date.now())) {
   return {
     "x-pan-client-id": CLIENT_ID,
@@ -79,6 +143,7 @@ async function apiRequest<T>(
   params: Record<string, string> = {},
   body?: unknown,
   headers = signedHeaders(method, apiPath),
+  signal?: AbortSignal,
 ): Promise<T> {
   const url = new URL(apiPath, API);
   url.searchParams.set("req_id", randomUUID());
@@ -92,8 +157,10 @@ async function apiRequest<T>(
       data: body,
       timeout: 30000,
       validateStatus: () => true,
+      signal,
     });
   } catch (error) {
+    signal?.throwIfAborted();
     if (axios.isAxiosError(error)) {
       throw new Error(`夸克网盘 ${apiPath} 请求失败 (${error.code || "网络错误"})`);
     }
@@ -172,16 +239,6 @@ export async function pollQuarkAuth(
   };
 }
 
-async function fileHashes(file: string, signal: AbortSignal) {
-  const sha1 = createHash("sha1");
-  const digest = createHash("md5");
-  for await (const chunk of fs.createReadStream(file, { signal })) {
-    sha1.update(chunk as Buffer);
-    digest.update(chunk as Buffer);
-  }
-  return { sha1: sha1.digest("hex"), md5: digest.digest("hex") };
-}
-
 async function proofCode(handle: fsp.FileHandle, size: number, seed: string) {
   if (!size) return "";
   const start = Number(BigInt(`0x${seed.slice(0, 16)}`) % BigInt(size));
@@ -195,17 +252,23 @@ export class Quark extends TypedEmitter<QuarkEvents> {
   private auth: QuarkAuth;
   private remotePath: string;
   private onAuthChange?: (auth: QuarkAuth) => void;
-  private abortController: AbortController | null = null;
+  private session: UploadSession | null = null;
+  private concurrency: number;
+  private refreshing?: Promise<void>;
 
   constructor(options: {
     auth: QuarkAuth;
     remotePath?: string;
     onAuthChange?: (auth: QuarkAuth) => void;
+    concurrency?: number;
   }) {
     super();
     this.auth = { ...options.auth };
     this.remotePath = options.remotePath || "/";
     this.onAuthChange = options.onAuthChange;
+    this.concurrency = Number.isFinite(options.concurrency)
+      ? Math.max(1, Math.min(10, Math.trunc(options.concurrency!)))
+      : 3;
   }
 
   private async request<T>(
@@ -213,19 +276,28 @@ export class Quark extends TypedEmitter<QuarkEvents> {
     apiPath: string,
     body?: unknown,
     headers?: ReturnType<typeof signedHeaders>,
+    signal?: AbortSignal,
   ): Promise<T> {
     const params = () => ({ access_token: this.auth.accessToken, device_id: this.auth.deviceId });
     try {
-      return await apiRequest<T>(method, apiPath, params(), body, headers);
+      return await apiRequest<T>(method, apiPath, params(), body, headers, signal);
     } catch (error) {
       if (!this.auth.refreshToken || !(error instanceof QuarkApiError && error.errno === 11001))
         throw error;
       await this.refresh();
-      return apiRequest<T>(method, apiPath, params(), body);
+      signal?.throwIfAborted();
+      return apiRequest<T>(method, apiPath, params(), body, headers, signal);
     }
   }
 
   private async refresh() {
+    this.refreshing ??= this.rotateToken().finally(() => {
+      this.refreshing = undefined;
+    });
+    return this.refreshing;
+  }
+
+  private async rotateToken() {
     const data = await apiRequest<{ access_token: string; refresh_token: string }>(
       "POST",
       "/agent/v1/oauth/access_token/rotate",
@@ -250,19 +322,26 @@ export class Quark extends TypedEmitter<QuarkEvents> {
     }
   }
 
-  private async directory(parent: string, name: string): Promise<string> {
+  private async directory(parent: string, name: string, session: UploadSession): Promise<string> {
     let cursor: { version: string; token: string } | undefined;
     do {
+      await session.wait();
       const data: {
         file_list?: FileItem[];
         last_page?: boolean;
         next_query_cursor?: { version: string; token: string };
-      } = await this.request("POST", "/open/v1/file/list", {
-        parent_fid: parent,
-        size: 100,
-        sort: "file_name:asc",
-        ...(cursor?.token ? { query_cursor: cursor } : {}),
-      });
+      } = await this.request(
+        "POST",
+        "/open/v1/file/list",
+        {
+          parent_fid: parent,
+          size: 100,
+          sort: "file_name:asc",
+          ...(cursor?.token ? { query_cursor: cursor } : {}),
+        },
+        undefined,
+        session.controller.signal,
+      );
       const match = data.file_list?.find(
         (item) =>
           (item.filename || item.file_name) === name &&
@@ -271,22 +350,208 @@ export class Quark extends TypedEmitter<QuarkEvents> {
       if (match) return match.fid;
       cursor = data.last_page ? undefined : data.next_query_cursor;
     } while (cursor?.token);
-    const created = await this.request<{ fid: string }>("POST", "/open/v1/dir", {
-      dir_path: name,
-      pdir_fid: parent,
-    });
+    await session.wait();
+    const created = await this.request<{ fid: string }>(
+      "POST",
+      "/open/v1/dir",
+      {
+        dir_path: name,
+        pdir_fid: parent,
+      },
+      undefined,
+      session.controller.signal,
+    );
     return created.fid;
   }
 
-  private async targetDirectory(remotePath: string): Promise<string> {
+  private async targetDirectory(remotePath: string, session: UploadSession): Promise<string> {
     let parent = "0";
     for (const name of remotePath.split("/").filter(Boolean))
-      parent = await this.directory(parent, name);
+      parent = await this.directory(parent, name, session);
     return parent;
   }
 
   public cancelUpload() {
-    this.abortController?.abort();
+    this.session?.cancel();
+  }
+
+  public pauseUpload() {
+    return this.session?.pause() ?? false;
+  }
+
+  public resumeUpload() {
+    return this.session?.resume() ?? false;
+  }
+
+  private async uploadParts(
+    input: string,
+    size: number,
+    pre: UploadPre,
+    partSize: number,
+    partStates: Map<number, ParallelSha1Context>,
+    session: UploadSession,
+    assertUnchanged: () => Promise<void>,
+  ) {
+    const signal = session.controller.signal;
+    const completed = new Map<number, string>();
+    const inFlight = new Map<number, number>();
+    const speed = new SpeedCalculator();
+    let completedBytes = 0;
+    const report = () => {
+      const loaded = completedBytes + [...inFlight.values()].reduce((sum, bytes) => sum + bytes, 0);
+      this.emit("progress", {
+        percentage: size ? Math.min(99, (loaded / size) * 100) : 0,
+        speed: session.paused ? "0.00 MB/s" : speed.calculateSpeed(loaded, Date.now()),
+      });
+    };
+    session.onStateChange = () => {
+      inFlight.clear();
+      speed.reset();
+      report();
+    };
+
+    const totalParts = Math.ceil(size / partSize);
+    for (let first = 1; first <= totalParts; first += 100) {
+      const batch = Array.from({ length: Math.min(100, totalParts - first + 1) }, (_, index) => {
+        const part_number = first + index;
+        const context = partStates.get(part_number);
+        if (part_number > 1 && !context)
+          throw new Error(`夸克网盘分片 ${part_number} 缺少并行 SHA-1 校验状态`);
+        return {
+          part_number,
+          part_size: Math.min(partSize, size - (part_number - 1) * partSize),
+          ...(context ? { parallel_sha1_ctx: context } : {}),
+        };
+      });
+      let cached: UploadUrls | undefined;
+      let cachedGeneration = -1;
+      let loading: Promise<void> | undefined;
+      const getUrl = async (part: number) => {
+        while (true) {
+          await session.wait();
+          if (cachedGeneration === session.generation && cached) {
+            const target = cached.upload_urls.find((item) => item.part_number === part);
+            if (!target) throw new Error(`夸克网盘未返回分片 ${part} 的上传地址`);
+            return {
+              target,
+              headers: cached.common_headers || pre.common_headers,
+              generation: cachedGeneration,
+            };
+          }
+          // All workers share one URL request. Resume invalidates every unused signed URL.
+          loading ??= (async () => {
+            await assertUnchanged();
+            await session.wait();
+            const generation = session.generation;
+            const result = await this.request<UploadUrls>(
+              "POST",
+              "/open/v1/file/get_upload_urls",
+              {
+                task_id: pre.task_id,
+                part_info_list: batch.filter((part) => !completed.has(part.part_number)),
+              },
+              undefined,
+              signal,
+            );
+            if (generation === session.generation) {
+              cached = result;
+              cachedGeneration = generation;
+            }
+          })().finally(() => {
+            loading = undefined;
+          });
+          await loading;
+        }
+      };
+
+      let next = 0;
+      const worker = async () => {
+        try {
+          while (next < batch.length) {
+            const { part_number, part_size } = batch[next++];
+            while (true) {
+              const url = await getUrl(part_number);
+              if (session.paused || url.generation !== session.generation) continue;
+              signal.throwIfAborted();
+              const request = new AbortController();
+              session.requests.add(request);
+              const start = (part_number - 1) * partSize;
+              const stream = fs.createReadStream(input, {
+                start,
+                end: start + part_size - 1,
+                signal: request.signal,
+              });
+              try {
+                const response = await axios.put(url.target.upload_url, stream, {
+                  signal: request.signal,
+                  headers: {
+                    "Content-Type": false,
+                    ...url.headers,
+                    Authorization: url.target.signature_info.signature,
+                    "Content-Length": part_size,
+                  },
+                  maxBodyLength: Infinity,
+                  timeout: 120000,
+                  onUploadProgress: ({ loaded }) => {
+                    if (
+                      request.signal.aborted ||
+                      session.paused ||
+                      completed.has(part_number) ||
+                      !session.requests.has(request)
+                    )
+                      return;
+                    inFlight.set(part_number, Math.min(loaded, part_size));
+                    report();
+                  },
+                });
+                signal.throwIfAborted();
+                const etag = response.headers.etag;
+                if (!etag) throw new Error(`夸克网盘上传分片 ${part_number} 后未返回 ETag`);
+                completed.set(part_number, etag);
+                completedBytes += part_size;
+                inFlight.delete(part_number);
+                report();
+                break;
+              } catch (error) {
+                signal.throwIfAborted();
+                // Pause aborts only the current PUT, keeping this worker and the upload task alive.
+                if (request.signal.reason === PAUSED) continue;
+                if (axios.isAxiosError(error)) {
+                  const data = error.response?.data;
+                  const xml =
+                    typeof data === "string"
+                      ? data
+                      : Buffer.isBuffer(data)
+                        ? data.toString("utf8")
+                        : "";
+                  const ossCode = /<Code>([A-Za-z0-9_-]+)<\/Code>/.exec(xml)?.[1];
+                  throw new Error(
+                    `夸克网盘分片 ${part_number} 上传失败 (${error.response?.status || error.code || "网络错误"}${ossCode ? `, ${ossCode}` : ""})`,
+                  );
+                }
+                throw error;
+              } finally {
+                stream.destroy();
+                session.requests.delete(request);
+                inFlight.delete(part_number);
+              }
+            }
+          }
+        } catch (error) {
+          session.cancel(error instanceof Error ? error : new Error(String(error)));
+          throw error;
+        }
+      };
+      // Drain aborted workers before releasing the session, so a retry cannot overlap this run.
+      await Promise.allSettled(
+        Array.from({ length: Math.min(this.concurrency, batch.length) }, worker),
+      );
+      signal.throwIfAborted();
+    }
+    session.onStateChange = undefined;
+    return [...completed]
+      .sort(([a], [b]) => a - b)
+      .map(([part_number, etag]) => ({ part_number, etag }));
   }
 
   public async uploadFile(
@@ -294,19 +559,34 @@ export class Quark extends TypedEmitter<QuarkEvents> {
     output = "",
     options: { retry?: number; policy?: string } = {},
   ) {
-    const controller = new AbortController();
-    this.abortController = controller;
-    const { signal } = controller;
+    if (this.session) throw new Error("夸克网盘已有上传任务正在进行");
+    const session = new UploadSession();
+    this.session = session;
+    const signal = session.controller.signal;
     try {
       const stat = await fsp.stat(input);
-      const parent = await this.targetDirectory(output || this.remotePath);
-      const digests = await fileHashes(input, signal);
-      const user = await this.request<{ user_id: string }>("GET", "/open/v1/user/info");
+      if (!stat.isFile()) throw new Error("夸克网盘上传源必须是文件");
+      const assertUnchanged = async () => {
+        const current = await fsp.stat(input);
+        if (current.size !== stat.size || current.mtimeMs !== stat.mtimeMs)
+          throw new Error("上传期间源文件发生变化，请重新创建上传任务");
+      };
+      const parent = await this.targetDirectory(output || this.remotePath, session);
+      await session.wait();
+      await assertUnchanged();
+      const user = await this.request<{ user_id: string }>(
+        "GET",
+        "/open/v1/user/info",
+        undefined,
+        undefined,
+        signal,
+      );
       if (!user.user_id) throw new Error("夸克网盘授权信息缺少用户 ID");
       if (user.user_id !== this.auth.userId) {
         this.auth = { ...this.auth, userId: user.user_id };
         this.onAuthChange?.({ ...this.auth });
       }
+      await session.wait();
       const headers = signedHeaders("POST", "/open/v1/file/upload_pre");
       const seed1 = md5(md5(this.auth.userId + headers["x-pan-token"]));
       const seed2 = md5(md5(String(stat.size)));
@@ -320,19 +600,17 @@ export class Quark extends TypedEmitter<QuarkEvents> {
       } finally {
         await handle.close();
       }
-      const pre = await this.request<{
-        finish?: boolean;
-        task_id: string;
-        part_size?: number;
-        common_headers?: Record<string, string>;
-      }>(
+      const pre = await this.request<UploadPre>(
         "POST",
         "/open/v1/file/upload_pre",
         {
           file_name: path.basename(input),
           size: stat.size,
-          sha1: digests.sha1,
-          md5: digests.md5,
+          // The server chooses part_size. Hash after pre-upload so every parallel
+          // part can carry the SHA-1 state at its exact starting offset.
+          sha1: "",
+          parallel_upload: true,
+          hash_update: true,
           pdir_fid: parent,
           format_type:
             CONTENT_TYPES[path.extname(input).toLowerCase()] || "application/octet-stream",
@@ -350,82 +628,56 @@ export class Quark extends TypedEmitter<QuarkEvents> {
           proof_code2: codes[1],
         },
         headers,
+        signal,
       );
+      await session.wait();
       if (pre.finish) {
+        await assertUnchanged();
+        await session.wait();
+        session.finishing = true;
         this.emit("progress", { percentage: 100, speed: "0 MB/s" });
         return;
       }
-      if (!pre.task_id || !pre.part_size) throw new Error("夸克网盘未返回上传任务或分片大小");
-      const parts: { part_number: number; etag: string }[] = [];
-      const started = Date.now();
-      let uploaded = 0;
-      const totalParts = Math.ceil(stat.size / pre.part_size);
-      for (let first = 1; first <= totalParts; first += 100) {
-        signal.throwIfAborted();
-        const batch = Array.from({ length: Math.min(100, totalParts - first + 1) }, (_, index) => {
-          const part_number = first + index;
-          return {
-            part_number,
-            part_size: Math.min(pre.part_size!, stat.size - (part_number - 1) * pre.part_size!),
-          };
-        });
-        const urls = await this.request<{
-          upload_urls: {
-            part_number: number;
-            upload_url: string;
-            signature_info: { signature: string };
-          }[];
-          common_headers?: Record<string, string>;
-        }>("POST", "/open/v1/file/get_upload_urls", {
-          task_id: pre.task_id,
-          part_info_list: batch,
-        });
-        for (const { part_number, part_size } of batch) {
-          signal.throwIfAborted();
-          const target = urls.upload_urls.find((item) => item.part_number === part_number);
-          if (!target) throw new Error(`夸克网盘未返回分片 ${part_number} 的上传地址`);
-          const start = (part_number - 1) * pre.part_size;
-          const stream = fs.createReadStream(input, { start, end: start + part_size - 1, signal });
-          let response;
-          try {
-            response = await axios.put(target.upload_url, stream, {
-              signal,
-              headers: {
-                ...(urls.common_headers || pre.common_headers),
-                Authorization: target.signature_info.signature,
-                "Content-Type": false,
-                "Content-Length": part_size,
-              },
-              maxBodyLength: Infinity,
-              timeout: 120000,
-            });
-          } catch (error) {
-            if (axios.isAxiosError(error)) {
-              const data = error.response?.data;
-              const xml =
-                typeof data === "string"
-                  ? data
-                  : Buffer.isBuffer(data)
-                    ? data.toString("utf8")
-                    : "";
-              const ossCode = /<Code>([A-Za-z0-9_-]+)<\/Code>/.exec(xml)?.[1];
-              throw new Error(
-                `夸克网盘分片 ${part_number} 上传失败 (${error.response?.status || error.code || "网络错误"}${ossCode ? `, ${ossCode}` : ""})`,
-              );
-            }
-            throw error;
-          }
-          const etag = response.headers.etag;
-          if (!etag) throw new Error(`夸克网盘上传分片 ${part_number} 后未返回 ETag`);
-          parts.push({ part_number, etag });
-          uploaded += part_size;
-          const elapsed = Math.max(1, Date.now() - started);
-          this.emit("progress", {
-            percentage: Math.round((uploaded / stat.size) * 100),
-            speed: `${(((uploaded / elapsed) * 1000) / 1048576).toFixed(2)} MB/s`,
-          });
-        }
+      if (!pre.task_id || !Number.isSafeInteger(pre.part_size) || pre.part_size! <= 0)
+        throw new Error("夸克网盘未返回有效的上传任务或分片大小");
+      const {
+        sha1,
+        md5: fileMd5,
+        partStates,
+      } = await hashQuarkFile(input, stat.size, pre.part_size!, {
+        signal,
+        wait: () => session.wait(),
+      });
+      await assertUnchanged();
+      await session.wait();
+      const updated = await this.request<{ finish?: boolean }>(
+        "POST",
+        "/open/v1/file/update/hash",
+        { task_id: pre.task_id, sha1, md5: fileMd5 },
+        undefined,
+        signal,
+      );
+      await session.wait();
+      if (updated.finish) {
+        await assertUnchanged();
+        await session.wait();
+        session.finishing = true;
+        this.emit("progress", { percentage: 100, speed: "0 MB/s" });
+        return;
       }
+      const parts = await this.uploadParts(
+        input,
+        stat.size,
+        pre,
+        pre.part_size!,
+        partStates,
+        session,
+        assertUnchanged,
+      );
+      await session.wait();
+      await assertUnchanged();
+      await session.wait();
+      session.finishing = true;
       const finished = await this.request<{ finish: boolean }>(
         "POST",
         "/open/v1/file/upload_finish",
@@ -433,10 +685,15 @@ export class Quark extends TypedEmitter<QuarkEvents> {
           task_id: pre.task_id,
           part_info_list: parts,
         },
+        undefined,
+        signal,
       );
+      signal.throwIfAborted();
       if (!finished.finish) throw new Error("夸克网盘未确认上传完成");
+      this.emit("progress", { percentage: 100, speed: "0 MB/s" });
     } finally {
-      this.abortController = null;
+      session.onStateChange = undefined;
+      this.session = null;
     }
   }
 }

@@ -258,6 +258,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       limitRate: 0,
     },
     quark: {
+      concurrency: 5,
       auth: {
         accessToken: "",
         refreshToken: "",

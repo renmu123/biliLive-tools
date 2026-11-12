@@ -6,6 +6,7 @@ import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { DanmakuFactory } from "../../src/danmu/danmakuFactory.js";
 import type { SyncClient } from "../../src/sync/index.js";
 import { DanmuTask, FFmpegTask, SyncTask } from "../../src/task/task.js";
+import { Quark } from "../../src/sync/quark.js";
 
 function createDanmuTask(convertXml2Ass: DanmakuFactory["convertXml2Ass"]) {
   const danmu = {
@@ -102,6 +103,59 @@ describe("媒体任务资源清理", () => {
 });
 
 describe("同步任务资源清理", () => {
+  it("夸克任务暂停和继续复用同一次上传，取消后的 rejection 不覆盖取消状态", async () => {
+    const client = new Quark({
+      auth: {
+        accessToken: "access",
+        refreshToken: "refresh",
+        userId: "user",
+        deviceId: "device",
+        clientDeviceId: "client",
+      },
+    });
+    let reject!: (reason: Error) => void;
+    const upload = vi.spyOn(client, "uploadFile").mockImplementation(
+      () =>
+        new Promise<void>((_, fail) => {
+          reject = fail;
+        }),
+    );
+    vi.spyOn(client, "pauseUpload").mockReturnValue(true);
+    vi.spyOn(client, "resumeUpload").mockReturnValue(true);
+    vi.spyOn(client, "cancelUpload").mockImplementation(() => reject(new Error("canceled")));
+    const onEnd = vi.fn();
+    const onError = vi.fn();
+    const task = new SyncTask(
+      client,
+      { input: "input.mp4", output: "/", name: "夸克同步" },
+      { onEnd, onError },
+    );
+    const paused = vi.fn(),
+      resumed = vi.fn(),
+      canceled = vi.fn();
+    task.on("task-pause", paused);
+    task.on("task-resume", resumed);
+    task.on("task-cancel", canceled);
+    expect(task.action).toContain("pause");
+    expect(task.pause()).toBe(false);
+    task.exec();
+    expect(task.pause()).toBe(true);
+    expect(task.status).toBe("paused");
+    task.exec();
+    expect(task.resume()).toBe(true);
+    expect(task.status).toBe("running");
+    expect(upload).toHaveBeenCalledTimes(1);
+    expect(paused).toHaveBeenCalledTimes(1);
+    expect(resumed).toHaveBeenCalledTimes(1);
+    task.pause();
+    task.kill();
+    await vi.waitFor(() => expect(task.instance).toBeUndefined());
+    expect(task.status).toBe("canceled");
+    expect(canceled).toHaveBeenCalledTimes(1);
+    expect(onEnd).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
   it("同步完成后释放 instance 及其监听器", async () => {
     const { task, instance } = createSyncTask(vi.fn().mockResolvedValue(undefined));
 

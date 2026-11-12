@@ -30,6 +30,7 @@ async function uploadTest(params: {
   clientId?: string;
   clientSecret?: string;
   auth?: QuarkAuth;
+  concurrency?: number;
 }) {
   const tempDir = getTempPath();
   // 在临时文件新建一个文件，内容为"biliLive-tools"
@@ -49,6 +50,7 @@ async function uploadTest(params: {
       clientId: params.clientId,
       clientSecret: params.clientSecret,
       auth: params.auth,
+      concurrency: params.concurrency,
     });
     task.on("task-end", (data) => {
       console.log("task-end", data);
@@ -59,6 +61,10 @@ async function uploadTest(params: {
       console.log("task-error", data);
       fs.unlink(tempFilePath);
       reject(data);
+    });
+    task.on("task-cancel", () => {
+      fs.unlink(tempFilePath);
+      reject(new Error("上传已取消"));
     });
   });
 }
