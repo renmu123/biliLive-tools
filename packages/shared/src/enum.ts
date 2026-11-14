@@ -376,6 +376,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     recorderType: "bililive",
     useServerTimestamp: false,
     recordRetryImmediately: true,
+    // 与 @bililive-tools/manager 导出的 RECORDER_LIMITS 默认值保持一致
+    timelineLimit: 40,
+    shortRecordingThreshold: 12,
+    shortRecordingRetryCount: 2,
     saveDanmaStats2DB: false,
     bilibili: {
       uid: undefined,
