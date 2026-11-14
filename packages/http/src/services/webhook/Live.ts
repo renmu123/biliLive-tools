@@ -21,6 +21,7 @@ export class Part implements PartInterface {
   cover?: string;
   rawFilePath: string;
   rawUploadStatus: UploadStatus;
+  danmuPath?: string;
 
   constructor(
     options: PickPartial<
@@ -38,6 +39,7 @@ export class Part implements PartInterface {
     this.cover = options.cover;
     this.rawFilePath = options.rawFilePath ?? options.filePath;
     this.rawUploadStatus = options.rawUploadStatus ?? "pending";
+    this.danmuPath = options.danmuPath;
   }
 
   /**
@@ -167,6 +169,7 @@ export class Part implements PartInterface {
       cover: this.cover,
       rawFilePath: this.rawFilePath,
       rawUploadStatus: this.rawUploadStatus,
+      danmuPath: this.danmuPath,
     };
   }
 }
