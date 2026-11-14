@@ -1,6 +1,6 @@
 import request from "./request";
 
-import type { SyncType, AliyunPanDriveType } from "@biliLive-tools/types";
+import type { SyncType, AliyunPanDriveType, QuarkAuth } from "@biliLive-tools/types";
 
 const syncTestUpload = async (data: {
   remoteFolder: string;
@@ -11,6 +11,7 @@ const syncTestUpload = async (data: {
   password?: string;
   clientId?: string;
   clientSecret?: string;
+  auth?: QuarkAuth;
 }) => {
   const res = await request.post(`/sync/uploadTest`, data);
   return res.data;
@@ -47,6 +48,21 @@ const pan123Login = async (data: { clientId: string; clientSecret: string }) => 
   return res.data;
 };
 
+const quarkAuthStart = async () => {
+  const res = await request.post(`/sync/quarkAuthStart`);
+  return res.data as { url: string; pageCode: string; clientDeviceId: string };
+};
+
+const quarkAuthPoll = async (pageCode: string, clientDeviceId: string) => {
+  const res = await request.post(`/sync/quarkAuthPoll`, { pageCode, clientDeviceId });
+  return res.data as { auth: QuarkAuth | null };
+};
+
+const quarkCheck = async (auth: QuarkAuth) => {
+  const res = await request.post(`/sync/quarkCheck`, { auth });
+  return res.data as { valid: boolean; auth?: QuarkAuth };
+};
+
 const sync = async (data: {
   file: string;
   type: SyncType;
@@ -64,5 +80,8 @@ export default {
   baiduPCSLogin,
   aliyunpanLogin,
   pan123Login,
+  quarkAuthStart,
+  quarkAuthPoll,
+  quarkCheck,
   sync,
 };

@@ -209,6 +209,22 @@
             </n-input-number>
           </n-form-item>
         </n-tab-pane>
+        <n-tab-pane class="tab-pane" name="quark" tab="夸克网盘" display-directive="show:lazy">
+          <n-form-item label="授权状态">
+            <n-text>{{ config.sync.quark.auth.accessToken ? "已授权" : "未授权" }}</n-text>
+
+            <n-space style="margin-left: auto">
+              <n-button type="primary" :loading="quarkAuthPending" @click="quarkClientLogin">
+                浏览器授权
+              </n-button>
+              <n-button type="warning" @click="loginCheck('quark')">登录检查</n-button>
+              <n-button type="info" @click="uploadCheck('quark')">上传测试</n-button>
+            </n-space>
+          </n-form-item>
+          <n-form-item v-if="quarkAuthUrl" label="授权链接">
+            <a :href="quarkAuthUrl" target="_blank" rel="noopener noreferrer">打开夸克授权页面</a>
+          </n-form-item>
+        </n-tab-pane>
       </n-tabs>
     </n-form>
     <n-modal v-model:show="loginVisible" :mask-closable="false" auto-focus>
@@ -298,6 +314,7 @@
                 { label: '阿里云盘', value: 'aliyunpan' },
                 { label: 'alist', value: 'alist' },
                 { label: '123网盘', value: 'pan123' },
+                { label: '夸克网盘', value: 'quark' },
                 { label: '本地复制', value: 'copy' },
               ]"
             />
@@ -543,6 +560,10 @@ const loginCheck = async (type: SyncType) => {
       clientId: config.value.sync.pan123.clientId,
       type: "pan123",
     });
+  } else if (type === "quark") {
+    const result = await syncApi.quarkCheck(config.value.sync.quark.auth);
+    status = result.valid;
+    if (result.auth) config.value.sync.quark.auth = result.auth;
   } else {
     throw new Error("登录类型错误");
   }
@@ -576,6 +597,11 @@ const uploadCheck = async (type: SyncType) => {
   } else if (type === "pan123") {
     if (!config.value.sync.pan123.clientId || !config.value.sync.pan123.clientSecret) {
       notice.error("请先输入clientId和clientSecret");
+      return;
+    }
+  } else if (type === "quark") {
+    if (!config.value.sync.quark.auth.accessToken) {
+      notice.error("请先授权夸克网盘");
       return;
     }
   } else {
@@ -612,6 +638,12 @@ const confirmUploadCheck = async () => {
       remoteFolder: uploadPath.value,
       type,
     });
+  } else if (type === "quark") {
+    await syncApi.syncTestUpload({
+      auth: config.value.sync.quark.auth,
+      remoteFolder: uploadPath.value,
+      type,
+    });
   } else {
     throw new Error("上传类型错误");
   }
@@ -623,6 +655,38 @@ const baiduPCSClientClogin = async () => {
   notice.info("登录完成后请关闭窗口");
   const cookie = await window.api.cookie.baiduLogin();
   cookies.value = cookie;
+};
+
+const quarkAuthUrl = ref("");
+const quarkAuthPending = ref(false);
+const quarkClientLogin = async () => {
+  if (quarkAuthPending.value) return;
+  const tab = isWeb.value ? window.open("about:blank", "_blank") : null;
+  quarkAuthUrl.value = "";
+  quarkAuthPending.value = true;
+  try {
+    const session = await syncApi.quarkAuthStart();
+    quarkAuthUrl.value = session.url;
+    if (tab) tab.location.replace(session.url);
+    else if (!isWeb.value) await window.api.openExternal(session.url);
+    notice.info("请在浏览器中完成夸克网盘授权");
+    for (let attempt = 0; attempt < 60; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const result = await syncApi.quarkAuthPoll(session.pageCode, session.clientDeviceId);
+      if (result.auth) {
+        config.value.sync.quark.auth = result.auth;
+        quarkAuthUrl.value = "";
+        notice.success("夸克网盘授权成功");
+        return;
+      }
+    }
+    notice.error("夸克网盘授权超时，请重试");
+  } catch (error) {
+    if (tab && !quarkAuthUrl.value) tab.close();
+    notice.error(`夸克网盘授权失败：${error instanceof Error ? error.message : String(error)}`);
+  } finally {
+    quarkAuthPending.value = false;
+  }
 };
 
 // 同步配置相关
@@ -644,6 +708,7 @@ const getSyncSourceLabel = (value: string) => {
     baiduPCS: "百度网盘",
     aliyunpan: "阿里云盘",
     alist: "alist",
+    quark: "夸克网盘",
   };
   return options[value] || value;
 };

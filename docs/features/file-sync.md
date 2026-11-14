@@ -10,6 +10,7 @@
 - **阿里云盘**：使用 aliyunpan 客户端
 - **Alist**：支持所有 Alist 支持的存储
 - **123网盘**：使用官方 API 实现
+- **夸克网盘**：使用夸克网盘 PC 接口，支持分片上传与秒传
 
 ## 工作流程
 
@@ -154,6 +155,12 @@ Alist的上传流程是先需要将文件上传至 Alist 服务器，随后由 A
 ### 123网盘
 
 请参考[123 网盘开放平台文档](https://www.123pan.com/developer)了解如何获取令牌。
+
+### 夸克网盘
+
+在「设置 → 文件同步 → 夸克网盘」点击「浏览器授权」，在打开的夸克页面完成授权。应用自动轮询授权状态，并保存 OAuth 令牌。随后可在同步器或「工具 → 文件同步」中选择夸克网盘，并设置目标目录。不存在的目录会在上传时创建。
+
+OAuth 令牌保存在应用配置文件中，请勿分享配置文件。访问令牌过期后应用会尝试刷新；刷新令牌失效时需重新授权。上传协议参考 [quarkclouddrive 官方 Skill](https://github.com/quark-clouddrive/quarkclouddrive_offical) 和 [quark-drive-lite 的开放接口参考](https://github.com/xiaodianshiuwu/quark-drive-lite)。
 
 ## 目录结构占位符
 
