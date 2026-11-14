@@ -8,6 +8,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Quark, pollQuarkAuth, signedHeaders, startQuarkAuth } from "../../src/sync/quark";
 import * as quarkUpload from "../../src/sync/quarkUpload";
+import { appConfig } from "../../src/config";
+import { addSyncTask } from "../../src/task/sync";
+import { taskQueue } from "../../src/task/task";
 
 const dirs: string[] = [];
 const running: { client: Quark; promise: Promise<void> }[] = [];
@@ -84,6 +87,7 @@ function mockMultipart() {
     part: number;
     url: string;
     signal: AbortSignal;
+    bytesPerSecond?: number;
     complete: () => void;
     fail: (error: Error) => void;
     progress: (bytes: number) => void;
@@ -106,6 +110,7 @@ function mockMultipart() {
         part,
         url,
         signal,
+        bytesPerSecond: config.bytesPerSecond,
         complete: () => resolve(`etag-${part}`),
         fail: reject,
         progress: config.onProgress,
@@ -118,9 +123,9 @@ function mockMultipart() {
   return { calls, transfers, active: () => active, maxActive: () => maxActive };
 }
 
-async function startMultipart(content = Buffer.alloc(192), concurrency = 2) {
+async function startMultipart(content = Buffer.alloc(192), concurrency = 2, limitRate = 0) {
   const input = await file(content);
-  const client = new Quark({ auth, concurrency });
+  const client = new Quark({ auth, concurrency, limitRate });
   const promise = client.uploadFile(input);
   // Tests may intentionally leave an upload pending while checking pause/cancel.
   promise.catch(() => {});
@@ -135,6 +140,7 @@ describe("Quark concurrent upload controls", () => {
     const progress = vi.fn();
     client.on("progress", progress);
     await vi.waitFor(() => expect(mock.transfers).toHaveLength(2));
+    expect(mock.transfers.every(({ bytesPerSecond }) => bytesPerSecond === 0)).toBe(true);
     mock.transfers[0].progress(32);
     mock.transfers[1].progress(32);
     expect(progress.mock.lastCall![0].percentage).toBeCloseTo(100 / 3);
@@ -154,7 +160,7 @@ describe("Quark concurrent upload controls", () => {
 
   it("aborts active parts on pause and resumes only unfinished parts with fresh URLs", async () => {
     const mock = mockMultipart();
-    const { client, promise } = await startMultipart();
+    const { client, promise } = await startMultipart(Buffer.alloc(192), 2, 1024);
     await vi.waitFor(() => expect(mock.transfers).toHaveLength(2));
     mock.transfers[0].complete();
     await vi.waitFor(() => expect(mock.transfers).toHaveLength(3));
@@ -171,6 +177,7 @@ describe("Quark concurrent upload controls", () => {
         .sort(),
     ).toEqual([2, 3]);
     expect(mock.transfers.slice(3).every(({ url }) => url.endsWith("generation=2"))).toBe(true);
+    expect(mock.transfers.every(({ bytesPerSecond }) => bytesPerSecond === 512 * 1024)).toBe(true);
     mock.transfers.slice(3).forEach((transfer) => transfer.complete());
     await promise;
     expect(mock.calls.filter((call) => call.pathname.endsWith("/upload_pre"))).toHaveLength(1);
@@ -237,6 +244,42 @@ describe("Quark concurrent upload controls", () => {
     client.cancelUpload();
     await expect(promise).rejects.toThrow();
     expect(mock.calls).toHaveLength(0);
+  });
+
+  it.each([1, 2])(
+    "shares the task rate across only %i part(s) when concurrency is larger",
+    async (parts) => {
+      const mock = mockMultipart();
+      const { promise } = await startMultipart(Buffer.alloc(64 * parts), 5, 1024);
+      await vi.waitFor(() => expect(mock.transfers).toHaveLength(parts));
+      expect(mock.transfers.map(({ bytesPerSecond }) => bytesPerSecond)).toEqual(
+        Array(parts).fill((1024 * 1024) / parts),
+      );
+      mock.transfers.forEach((transfer) => transfer.complete());
+      await promise;
+    },
+  );
+
+  it.each([
+    [undefined, 512],
+    [0, 0],
+    [256, 256],
+  ])("uses the configured task rate or explicit override %s", async (limitRate, expectedRate) => {
+    const mock = mockMultipart();
+    vi.spyOn(appConfig, "getAll").mockReturnValue({
+      sync: { quark: { auth, concurrency: 5, limitRate: 512 } },
+    } as ReturnType<typeof appConfig.getAll>);
+    vi.spyOn(taskQueue, "addTask").mockImplementation(() => {});
+    const input = await file(Buffer.alloc(64));
+    const task = await addSyncTask({ type: "quark", input, limitRate });
+    const client = task.instance as Quark;
+    const promise = client.uploadFile(input);
+    promise.catch(() => {});
+    running.push({ client, promise });
+    await vi.waitFor(() => expect(mock.transfers).toHaveLength(1));
+    expect(mock.transfers[0].bytesPerSecond).toBe(expectedRate! * 1024);
+    mock.transfers[0].complete();
+    await promise;
   });
 });
 

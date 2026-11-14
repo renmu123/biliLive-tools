@@ -242,7 +242,8 @@
       limitRate: 0, // 上传限速 (KB/s)
     },
     quark: {
-      concurrency: 3, // 同时上传的分片数，1–10
+      concurrency: 5, // 同时上传的分片数，1–10
+      limitRate: 0, // 单个上传任务限速 (KB/s)，并发分片分摊额度，0 为不限速
       auth: {
         accessToken: "", // OAuth 访问令牌
         refreshToken: "", // OAuth 刷新令牌

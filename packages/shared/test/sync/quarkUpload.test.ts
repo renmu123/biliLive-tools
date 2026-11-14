@@ -2,6 +2,8 @@ import http from "node:http";
 import https from "node:https";
 import { once } from "node:events";
 import { PassThrough, Readable } from "node:stream";
+import { setTimeout as delay } from "node:timers/promises";
+import Throttle from "@renmu/throttle";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { putQuarkPart } from "../../src/sync/quarkUpload";
 
@@ -63,6 +65,84 @@ function upload(
 }
 
 describe("Quark native HTTPS PUT", () => {
+  it("limits simultaneous PUT streams using their shares of a task's byte rate", async () => {
+    const received: Buffer[] = [];
+    await serve((request, response) => {
+      const chunks: Buffer[] = [];
+      request.on("data", (chunk) => chunks.push(chunk));
+      request.on("end", () => {
+        received.push(Buffer.concat(chunks));
+        response.writeHead(200, { ETag: '"etag"' });
+        response.end();
+      });
+    });
+    const content = Buffer.alloc(32 * 1024, 7);
+    const progress = [vi.fn(), vi.fn()];
+    const started = performance.now();
+    await Promise.all(
+      progress.map((onProgress) =>
+        upload(Readable.from([content]), {
+          size: content.length,
+          bytesPerSecond: 32 * 1024, // 64 KB/s total across two concurrent streams.
+          onProgress,
+        }),
+      ),
+    );
+    expect(performance.now() - started).toBeGreaterThanOrEqual(850);
+    expect(received).toEqual([content, content]);
+    for (const report of progress) {
+      expect(report.mock.calls[0][0]).toBeLessThanOrEqual(Math.floor((32 * 1024) / 10));
+      expect(report.mock.lastCall![0]).toBe(content.length);
+    }
+  });
+
+  it("bypasses the throttle when the limit is zero", async () => {
+    await serve((request, response) => {
+      request.resume();
+      request.on("end", () => {
+        response.writeHead(200, { ETag: '"etag"' });
+        response.end();
+      });
+    });
+    const throttle = vi.spyOn(Throttle.prototype, "_onchunk");
+    await expect(upload(undefined, { bytesPerSecond: 0 })).resolves.toBe('"etag"');
+    expect(throttle).not.toHaveBeenCalled();
+  });
+
+  it("stops a throttled upload promptly and does not keep processing buffered data after cancellation", async () => {
+    let started!: () => void;
+    const ready = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    await serve((request) => {
+      request.once("data", started);
+      request.resume();
+    });
+    const throttle = vi.spyOn(Throttle.prototype, "_onchunk");
+    const controller = new AbortController();
+    const content = Buffer.alloc(64 * 1024);
+    const source = Readable.from([content]);
+    const progress = vi.fn();
+    const result = upload(source, {
+      size: content.length,
+      bytesPerSecond: 1024,
+      signal: controller.signal,
+      onProgress: progress,
+    });
+    const rejected = expect(result).rejects.toThrow("canceled");
+    await ready;
+    controller.abort(new Error("canceled"));
+    await rejected;
+    expect(source.destroyed).toBe(true);
+    expect(requests[0].destroyed).toBe(true);
+    const scheduled = throttle.mock.calls.length;
+    const reported = progress.mock.calls.length;
+    // Let the library's pending 100 ms delay expire; it must not schedule more.
+    await delay(250);
+    expect(throttle).toHaveBeenCalledTimes(scheduled);
+    expect(progress).toHaveBeenCalledTimes(reported);
+  });
+
   it.each([undefined, "video/mp4"])(
     "streams the exact bytes and signed headers with Content-Type %s",
     async (contentType) => {

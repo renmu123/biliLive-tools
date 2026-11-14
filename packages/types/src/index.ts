@@ -774,6 +774,7 @@ export interface AppConfig {
     quark: {
       auth: QuarkAuth;
       concurrency: number;
+      limitRate: number; // KB/s, per upload task
     };
     syncConfigs: SyncConfig[];
   };

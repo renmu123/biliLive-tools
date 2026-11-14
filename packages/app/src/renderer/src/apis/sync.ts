@@ -13,6 +13,7 @@ const syncTestUpload = async (data: {
   clientSecret?: string;
   auth?: QuarkAuth;
   concurrency?: number;
+  limitRate?: number;
 }) => {
   const res = await request.post(`/sync/uploadTest`, data);
   return res.data;

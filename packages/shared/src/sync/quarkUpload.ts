@@ -1,8 +1,28 @@
 import https from "node:https";
 import { Transform } from "node:stream";
+import Throttle from "@renmu/throttle";
 
 import type { ClientRequest, IncomingMessage } from "node:http";
 import type { Readable } from "node:stream";
+
+type ThrottleCallback = (error?: Error) => void;
+const ThrottleStream: new (options: { bps: number; chunkSize: number }) => Transform & {
+  _onchunk(output: (chunk: Buffer) => void, done: ThrottleCallback): void;
+} = Throttle;
+
+class UploadThrottle extends ThrottleStream {
+  // throttle 1.0.3's parser otherwise keeps scheduling the remainder of its
+  // current input buffer after destroy(). Stop it when the pending delay ends.
+  _onchunk(output: (chunk: Buffer) => void, done: ThrottleCallback) {
+    if (this.destroyed) {
+      done(new Error("Upload throttle destroyed"));
+      return;
+    }
+    super._onchunk(output, (error) => {
+      done(error || (this.destroyed ? new Error("Upload throttle destroyed") : undefined));
+    });
+  }
+}
 
 export function putQuarkPart(
   url: string,
@@ -14,6 +34,8 @@ export function putQuarkPart(
     signal: AbortSignal;
     onProgress: (loaded: number) => void;
     timeout?: number;
+    /** This part's share of the task limit, in bytes per second. 0 means unlimited. */
+    bytesPerSecond?: number;
   },
 ): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -24,6 +46,14 @@ export function putQuarkPart(
     let lastProgress = 0;
     const uploadError = (detail: string | number) =>
       new Error(`夸克网盘分片 ${options.partNumber} 上传失败 (${detail})`);
+    const bps = options.bytesPerSecond ?? 0;
+    const throttle =
+      Number.isFinite(bps) && bps > 0
+        ? new UploadThrottle({
+            bps,
+            chunkSize: Math.max(1, Math.min(64 * 1024, Math.floor(bps / 10))),
+          })
+        : undefined;
     const meter = new Transform({
       transform(chunk: Buffer, _encoding, callback) {
         loaded += chunk.length;
@@ -46,12 +76,14 @@ export function putQuarkPart(
       if (settled) return;
       settled = true;
       options.signal.removeEventListener("abort", abort);
-      source.unpipe(meter);
+      source.unpipe();
+      throttle?.unpipe();
       if (request) {
         meter.unpipe(request);
         request.setTimeout(0);
       }
       source.destroy();
+      throttle?.destroy();
       meter.destroy();
       if (error) {
         response?.destroy();
@@ -73,6 +105,7 @@ export function putQuarkPart(
           : new Error("夸克网盘分片上传已中止"),
       );
     source.on("error", fail);
+    throttle?.on("error", fail);
     meter.on("error", fail);
     source.once("close", () => {
       if (!source.readableEnded && !response) settle(uploadError("ERR_STREAM_PREMATURE_CLOSE"));
@@ -96,9 +129,11 @@ export function putQuarkPart(
           const success = status >= 200 && status < 300;
           // A server can reject a part before it has received the whole body.
           if (!success) {
-            source.unpipe(meter);
+            source.unpipe();
+            throttle?.unpipe();
             meter.unpipe(request!);
             source.destroy();
+            throttle?.destroy();
             meter.destroy();
           }
           const chunks: Buffer[] = [];
@@ -134,7 +169,8 @@ export function putQuarkPart(
       });
       request.setTimeout(options.timeout ?? 120000, () => settle(uploadError("ETIMEDOUT")));
       // pipe propagates backpressure, keeping memory bounded even for large parts.
-      source.pipe(meter).pipe(request);
+      // Measure bytes after throttling, so progress follows the limited upload.
+      (throttle ? source.pipe(throttle) : source).pipe(meter).pipe(request);
     } catch (error) {
       fail(error as NodeJS.ErrnoException);
     }

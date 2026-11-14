@@ -255,6 +255,7 @@ export class Quark extends TypedEmitter<QuarkEvents> {
   private onAuthChange?: (auth: QuarkAuth) => void;
   private session: UploadSession | null = null;
   private concurrency: number;
+  private limitRate: number;
   private refreshing?: Promise<void>;
 
   constructor(options: {
@@ -262,6 +263,8 @@ export class Quark extends TypedEmitter<QuarkEvents> {
     remotePath?: string;
     onAuthChange?: (auth: QuarkAuth) => void;
     concurrency?: number;
+    /** Per-upload limit in KB/s; 0 means unlimited. */
+    limitRate?: number;
   }) {
     super();
     this.auth = { ...options.auth };
@@ -270,6 +273,7 @@ export class Quark extends TypedEmitter<QuarkEvents> {
     this.concurrency = Number.isFinite(options.concurrency)
       ? Math.max(1, Math.min(10, Math.trunc(options.concurrency!)))
       : 3;
+    this.limitRate = Number.isFinite(options.limitRate) ? Math.max(0, options.limitRate!) : 0;
   }
 
   private async request<T>(
@@ -424,6 +428,10 @@ export class Quark extends TypedEmitter<QuarkEvents> {
           ...(context ? { parallel_sha1_ctx: context } : {}),
         };
       });
+      const workerCount = Math.min(this.concurrency, batch.length);
+      // Share the task limit across this batch's workers, including small files
+      // and the final batch with fewer parts than the configured concurrency.
+      const bytesPerSecond = (this.limitRate * 1024) / workerCount;
       let cached: UploadUrls | undefined;
       let cachedGeneration = -1;
       let loading: Promise<void> | undefined;
@@ -486,6 +494,7 @@ export class Quark extends TypedEmitter<QuarkEvents> {
                 const etag = await putQuarkPart(url.target.upload_url, stream, {
                   partNumber: part_number,
                   size: part_size,
+                  bytesPerSecond,
                   signal: request.signal,
                   headers: {
                     ...url.headers,
@@ -527,9 +536,7 @@ export class Quark extends TypedEmitter<QuarkEvents> {
         }
       };
       // Drain aborted workers before releasing the session, so a retry cannot overlap this run.
-      await Promise.allSettled(
-        Array.from({ length: Math.min(this.concurrency, batch.length) }, worker),
-      );
+      await Promise.allSettled(Array.from({ length: workerCount }, worker));
       signal.throwIfAborted();
     }
     session.onStateChange = undefined;

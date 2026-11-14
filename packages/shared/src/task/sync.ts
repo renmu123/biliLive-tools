@@ -34,7 +34,11 @@ const getConfig = (type: SyncType) => {
       limitRate: config.sync[type as "pan123"].limitRate,
     };
   } else if (type === "quark") {
-    return { auth: config.sync.quark.auth, concurrency: config.sync.quark.concurrency };
+    return {
+      auth: config.sync.quark.auth,
+      concurrency: config.sync.quark.concurrency,
+      limitRate: config.sync.quark.limitRate,
+    };
   } else {
     throw new Error("Unsupported type");
   }
@@ -99,6 +103,7 @@ const createUploadInstance = async (opts: {
       remotePath: opts.remotePath,
       onAuthChange: opts.onAuthChange,
       concurrency: opts.concurrency,
+      limitRate: opts.limitRate,
     });
   } else {
     throw new Error("Unsupported type");
@@ -119,6 +124,7 @@ export const addSyncTask = async ({
   clientSecret,
   auth,
   concurrency,
+  limitRate,
   aliyunpanDriveType,
   stringFilters,
 }: {
@@ -136,6 +142,7 @@ export const addSyncTask = async ({
   clientSecret?: string;
   auth?: QuarkAuth;
   concurrency?: number;
+  limitRate?: number;
   aliyunpanDriveType?: AliyunPanDriveType;
   stringFilters?: SyncConfig["stringFilters"];
 }) => {
@@ -148,7 +155,7 @@ export const addSyncTask = async ({
     clientSecret: iClientSecret,
     auth: iAuth,
     concurrency: iConcurrency,
-    limitRate,
+    limitRate: iLimitRate,
     retry,
   } = getConfig(type);
   const instance = await createUploadInstance({
@@ -165,7 +172,7 @@ export const addSyncTask = async ({
     onAuthChange:
       type === "quark" ? (updated) => appConfig.set("sync.quark.auth", updated) : undefined,
     aliyunpanDriveType,
-    limitRate: limitRate ?? 0,
+    limitRate: limitRate ?? iLimitRate ?? 0,
     stringFilters,
     retry,
   });

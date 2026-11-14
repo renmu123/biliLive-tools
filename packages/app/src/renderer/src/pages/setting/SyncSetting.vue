@@ -232,6 +232,19 @@
               :precision="0"
             />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="限速" tip="0 为不限速。单个上传任务的总限速，所有并发分片分摊额度。" />
+            </template>
+            <n-input-number
+              v-model:value="config.sync.quark.limitRate"
+              :min="0"
+              :step="1024"
+              :precision="0"
+            >
+              <template #suffix>KB/s</template>
+            </n-input-number>
+          </n-form-item>
         </n-tab-pane>
       </n-tabs>
     </n-form>
@@ -650,6 +663,7 @@ const confirmUploadCheck = async () => {
     await syncApi.syncTestUpload({
       auth: config.value.sync.quark.auth,
       concurrency: config.value.sync.quark.concurrency,
+      limitRate: config.value.sync.quark.limitRate,
       remoteFolder: uploadPath.value,
       type,
     });
