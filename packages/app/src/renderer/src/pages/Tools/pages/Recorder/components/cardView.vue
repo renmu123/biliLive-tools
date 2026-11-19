@@ -3,9 +3,12 @@
     <div v-for="(item, index) in list" :key="index" class="recorder">
       <div class="cover-container">
         <img v-if="item.cover" class="cover" :src="item.cover" referrerpolicy="no-referrer" />
-        <span v-if="item.roomTitle" class="room-title" :title="item.roomTitle">{{
-          item.roomTitle
-        }}</span>
+        <span
+          v-if="item.roomTitle && isColumnVisible('roomTitle')"
+          class="room-title"
+          :title="item.roomTitle"
+          >{{ item.roomTitle }}</span
+        >
         <div
           v-if="item.state === 'recording'"
           class="recording-container"
