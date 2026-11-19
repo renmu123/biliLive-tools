@@ -137,7 +137,9 @@ function getRecorder(
   return data;
 }
 
-function getRecorderInfo(args: RecorderAPI["getRecorder"]["Args"]): ClientRecorder | undefined {
+function getRecorderInfo(
+  args: RecorderAPI["getRecorderInfo"]["Args"],
+): RecorderAPI["getRecorderInfo"]["Resp"] {
   const recorderManager = container.resolve("recorderManager");
   const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
   if (recorder == null) throw new Error("404");
