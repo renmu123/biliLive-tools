@@ -524,7 +524,7 @@
                 >全局</n-checkbox
               >
             </n-form-item>
-            <n-form-item>
+            <n-form-item v-if="config.cookie">
               <template #label>
                 <Tip
                   :text="textInfo.douyin.cookieMode.text"
