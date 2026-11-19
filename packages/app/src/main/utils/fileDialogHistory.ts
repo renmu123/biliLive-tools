@@ -1,11 +1,11 @@
 import { dirname, isAbsolute, join } from "node:path";
 
 export type FileDialogType = "openFile" | "openDirectory" | "save";
-export type FileDialogPaths = Partial<Record<FileDialogType, string>>;
+export type FileDialogPaths = Partial<Record<FileDialogType | "directory", string>>;
 
 interface PathStore {
-  get: (type: FileDialogType) => string | undefined;
-  set: (type: FileDialogType, directory: string) => void;
+  get: (key: FileDialogType | "directory") => string | undefined;
+  set: (key: "directory", directory: string) => void;
 }
 
 export class FileDialogHistory {
@@ -15,12 +15,16 @@ export class FileDialogHistory {
     this.store = store;
   }
 
-  getDefaultPath(type: FileDialogType, defaultPath?: string): string | undefined {
+  getDefaultPath(defaultPath?: string): string | undefined {
     if (defaultPath && isAbsolute(defaultPath)) {
       return defaultPath;
     }
 
-    const directory = this.store.get(type);
+    const directory =
+      this.store.get("directory") ??
+      this.store.get("openFile") ??
+      this.store.get("openDirectory") ??
+      this.store.get("save");
     if (!directory) {
       return defaultPath;
     }
@@ -30,6 +34,6 @@ export class FileDialogHistory {
 
   remember(type: FileDialogType, selectedPath?: string) {
     if (!selectedPath) return;
-    this.store.set(type, type === "openDirectory" ? selectedPath : dirname(selectedPath));
+    this.store.set("directory", type === "openDirectory" ? selectedPath : dirname(selectedPath));
   }
 }

@@ -882,7 +882,7 @@ const openDirectory = async (
 ) => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWin, {
     ...opts,
-    defaultPath: fileDialogHistory.getDefaultPath("openDirectory", opts.defaultPath),
+    defaultPath: fileDialogHistory.getDefaultPath(opts.defaultPath),
     properties: ["openDirectory"],
   });
   if (canceled) {
@@ -901,7 +901,7 @@ const openFile = async (_event: IpcMainInvokeEvent, options: OpenDialogOptions) 
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWin, {
     properties,
     ...options,
-    defaultPath: fileDialogHistory.getDefaultPath("openFile", options.defaultPath),
+    defaultPath: fileDialogHistory.getDefaultPath(options.defaultPath),
   });
   if (canceled) {
     return;
@@ -914,7 +914,7 @@ const openFile = async (_event: IpcMainInvokeEvent, options: OpenDialogOptions) 
 const saveDialog = async (_event: IpcMainInvokeEvent, options: SaveDialogOptions) => {
   const { canceled, filePath } = await dialog.showSaveDialog(mainWin, {
     ...options,
-    defaultPath: fileDialogHistory.getDefaultPath("save", options.defaultPath),
+    defaultPath: fileDialogHistory.getDefaultPath(options.defaultPath),
   });
   if (canceled) {
     return;
