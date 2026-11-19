@@ -55,6 +55,7 @@
       />
       <ColumnSelector v-model="visibleColumns" :columns="columnConfig" />
       <n-button type="warning" @click="getLiveInfo(true)">刷新</n-button>
+      <n-button @click="openMonitorRoom">监控室</n-button>
       <ButtonGroup :options="actionBtns" @click="handleActionClick">添加</ButtonGroup>
     </div>
 
@@ -213,6 +214,23 @@ const { visibleColumns } = useVisibleColumns({
 
 const notice = useNotice();
 const router = useRouter();
+const openMonitorRoom = async () => {
+  if (window.isWeb) {
+    window.open(router.resolve({ name: "MonitorRoom" }).href, "_blank");
+    return;
+  }
+
+  try {
+    await window.api.common.createSubWindow({
+      routeName: "monitorRoom",
+      hideAside: true,
+      hideMenuBar: true,
+      maximized: true,
+    });
+  } catch (error: any) {
+    notice.error({ title: error?.message || "打开监控室失败" });
+  }
+};
 const recorderLocalParams = useStorage(
   "recorder",
   {
