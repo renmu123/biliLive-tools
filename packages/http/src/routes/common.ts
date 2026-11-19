@@ -5,18 +5,36 @@ import { default as checkDiskSpace } from "check-disk-space";
 
 import Router from "@koa/router";
 import semver from "semver";
+import { z } from "zod";
 import { uuid } from "@biliLive-tools/shared/utils/index.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
 import { statisticsService, recordHistoryService } from "@biliLive-tools/shared/db/index.js";
 import recorderService from "../services/recorder.js";
+import { MONITOR_ROOM_SIZES, MONITOR_ROOM_STAT_KEY } from "../types/monitorRoom.js";
 
 import { config, handler, appConfig, fileCache } from "../index.js";
 import { container } from "../index.js";
 
 const router = new Router({
   prefix: "/common",
+});
+
+const monitorRoomLayoutSchema = z.object({
+  manageButtonVisible: z.boolean().default(true),
+  hideTitleBar: z.boolean().default(false),
+  rooms: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        size: z.enum(MONITOR_ROOM_SIZES),
+        muted: z.boolean().default(true),
+        volume: z.number().min(0).max(1).default(0.7),
+      }),
+    )
+    .max(9)
+    .refine((rooms) => new Set(rooms.map((room) => room.id)).size === rooms.length),
 });
 
 router.get("/version", (ctx) => {
@@ -152,6 +170,37 @@ router.get("/statistics", async (ctx) => {
     recordingNum,
     recorderNum,
   };
+});
+
+router.get("/monitor-room", (ctx) => {
+  const saved = statisticsService.query(MONITOR_ROOM_STAT_KEY);
+  if (!saved) {
+    ctx.body = { payload: null };
+    return;
+  }
+
+  try {
+    const layout = monitorRoomLayoutSchema.parse(JSON.parse(saved.value));
+    ctx.body = { payload: layout };
+  } catch {
+    ctx.status = 500;
+    ctx.body = "监控室配置无效";
+  }
+});
+
+router.put("/monitor-room", (ctx) => {
+  const result = monitorRoomLayoutSchema.safeParse(ctx.request.body);
+  if (!result.success) {
+    ctx.status = 400;
+    ctx.body = "监控室配置无效";
+    return;
+  }
+
+  statisticsService.addOrUpdate({
+    where: { stat_key: MONITOR_ROOM_STAT_KEY },
+    create: { stat_key: MONITOR_ROOM_STAT_KEY, value: JSON.stringify(result.data) },
+  });
+  ctx.body = { payload: result.data };
 });
 
 router.get("/exportLogs", async (ctx) => {

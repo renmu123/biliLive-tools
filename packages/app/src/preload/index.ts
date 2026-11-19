@@ -69,6 +69,7 @@ export const api = {
       routeName: string;
       hideAside?: boolean;
       hideMenuBar?: boolean;
+      hideTitleBar?: boolean;
       maximized?: boolean;
       query?: Record<string, string>;
     }) => {

@@ -134,6 +134,7 @@ function createSubWindow(options: {
   routeName: string;
   hideAside?: boolean;
   hideMenuBar?: boolean;
+  hideTitleBar?: boolean;
   maximized?: boolean;
   query?: Record<string, string>;
 }) {
@@ -158,6 +159,7 @@ function createSubWindow(options: {
     width: 900,
     height: 750,
     autoHideMenuBar: hideMenuBar,
+    ...(options.hideTitleBar ? { titleBarStyle: "hidden" as const } : {}),
   });
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {

@@ -1,16 +1,23 @@
 <template>
   <div class="monitor-room">
-    <header class="monitor-room__toolbar">
+    <header v-if="toolbarVisible" class="monitor-room__toolbar">
       <div class="monitor-room__title">
         <h1>监控室</h1>
         <span>3 × 3 · 已使用 {{ occupiedCells }} / 9 格</span>
       </div>
-      <n-button type="primary" @click="roomPickerVisible = true">房间管理</n-button>
+      <n-button
+        type="primary"
+        :disabled="!layoutLoaded"
+        title="按 Ctrl+M 可隐藏顶部栏"
+        @click="roomPickerVisible = true"
+      >
+        房间管理
+      </n-button>
     </header>
 
-    <div v-if="loadError" class="monitor-room__load-error">
-      {{ loadError }}
-      <n-button text type="primary" @click="loadRooms(false)">重试</n-button>
+    <div v-if="loadError || saveError" class="monitor-room__load-error">
+      {{ loadError || saveError }}
+      <n-button text type="primary" @click="retryError">重试</n-button>
     </div>
 
     <div class="monitor-room__board" aria-label="监控室九宫格">
@@ -27,11 +34,19 @@
         class="monitor-room__tile"
         :style="placementStyle(placement)"
         :aria-label="roomNameById(placement.id)"
+        @pointerenter="hoveredRoomId = placement.id"
+        @pointerleave="clearHoveredRoom(placement.id)"
       >
         <Artplayer
           v-if="roomStates[placement.id]?.status === 'playing' && roomStates[placement.id]?.url"
           :key="`${placement.id}:${roomStates[placement.id].requestId}`"
-          :option="{ url: roomStates[placement.id].url, fullscreen: true, muted: true, mutex: false }"
+          :option="{
+            url: roomStates[placement.id].url,
+            fullscreen: true,
+            muted: roomAudioFor(placement.id).muted,
+            volume: roomAudioFor(placement.id).volume,
+            mutex: false,
+          }"
           :plugins="[]"
           is-live
           @ready="registerPlayer(placement.id, $event)"
@@ -46,15 +61,64 @@
 
     <n-drawer v-model:show="roomPickerVisible" :width="460" placement="right">
       <n-drawer-content title="房间管理" closable>
+        <div v-if="!isWeb" class="monitor-room__window-setting">
+          <div class="monitor-room__window-setting-label">
+            <strong>隐藏窗口标题栏</strong>
+            <span>隐藏最小化等窗口按钮；重新打开监控室后生效。</span>
+          </div>
+          <n-switch
+            :value="hideTitleBar"
+            :disabled="!layoutLoaded"
+            @update:value="setHideTitleBar"
+          />
+        </div>
+        <n-divider v-if="!isWeb" />
         <div class="monitor-room__section-heading">
           <h2>已添加</h2>
           <span>{{ occupiedCells }} / 9 格</span>
         </div>
-        <p class="monitor-room__hint">每个房间默认占 1 × 1 格，尺寸选项受剩余空间限制。</p>
-        <div v-for="room in selectedRooms" :key="room.id" class="monitor-room__managed-room">
-          <div class="monitor-room__room-label">
-            <strong :title="roomName(room)">{{ roomName(room) }}</strong>
-            <span>{{ platformName(room.providerId) }} · {{ room.channelId }}</span>
+        <p class="monitor-room__hint">
+          每个房间默认占 1 × 1 格，上下箭头可调整九宫格顺序。鼠标悬浮在画面上时按 M 可开声或静音，按
+          Ctrl+M 可显示或隐藏右上角顶部栏。
+        </p>
+        <div
+          v-for="(room, index) in selectedRooms"
+          :key="room.id"
+          class="monitor-room__managed-room"
+        >
+          <div class="monitor-room__managed-room-heading">
+            <div class="monitor-room__room-label">
+              <strong :title="roomName(room)">{{ roomName(room) }}</strong>
+              <span>{{ platformName(room.providerId) }} · {{ room.channelId }}</span>
+            </div>
+            <div class="monitor-room__order-controls">
+              <n-button
+                quaternary
+                circle
+                size="small"
+                title="上移"
+                aria-label="上移房间"
+                :disabled="index === 0"
+                @click="moveRoom(room.id, -1)"
+              >
+                <template #icon
+                  ><n-icon><ArrowUpOutline /></n-icon
+                ></template>
+              </n-button>
+              <n-button
+                quaternary
+                circle
+                size="small"
+                title="下移"
+                aria-label="下移房间"
+                :disabled="index === selectedRooms.length - 1"
+                @click="moveRoom(room.id, 1)"
+              >
+                <template #icon
+                  ><n-icon><ArrowDownOutline /></n-icon
+                ></template>
+              </n-button>
+            </div>
           </div>
           <div class="monitor-room__controls">
             <n-select
@@ -76,7 +140,7 @@
               :disabled="roomStates[room.id]?.status !== 'playing'"
               @click="toggleSound(room.id)"
             >
-              {{ audioEnabled[room.id] ? "静音" : "开声" }}
+              {{ roomAudioFor(room.id).muted ? "开声" : "静音" }}
             </n-button>
             <n-button size="small" type="error" tertiary @click="removeRoom(room.id)">
               移除
@@ -117,17 +181,25 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
-import { useStorage } from "@vueuse/core";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import { recoderApi } from "@renderer/apis";
+import { getMonitorRoomLayout, saveMonitorRoomLayout } from "@renderer/apis/monitorRoom";
 import { platformOptions } from "../Tools/pages/Recorder/data";
 import { getGridSize, GRID_SIZES, packGrid } from "./grid";
+import { normalizeRoomAudio } from "./audio";
+import { ArrowUpOutline, ArrowDownOutline } from "@vicons/ionicons5";
+import { useMessage } from "naive-ui";
 
 import type ArtplayerType from "artplayer";
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
+import type { MonitorRoomLayout } from "@biliLive-tools/http/types/monitorRoom.js";
 import type { GridPlacement, GridSize } from "./grid";
+import type { RoomAudio } from "./audio";
 
 defineOptions({ name: "MonitorRoom" });
+
+const message = useMessage();
+const isWeb = window.isWeb;
 
 type Room = RecorderAPI["getRecorders"]["Resp"]["data"][number];
 type RoomState = {
@@ -136,22 +208,30 @@ type RoomState = {
   url?: string;
   message?: string;
 };
-
-const selectedIds = useStorage<string[]>("monitor-room-selected-ids", [], localStorage, {
-  listenToStorageChanges: false,
-});
-const roomSizes = useStorage<Record<string, GridSize>>("monitor-room-sizes", {}, localStorage, {
-  listenToStorageChanges: false,
-});
+const selectedIds = ref<string[]>([]);
+const roomSizes = ref<Record<string, GridSize>>({});
+const roomAudio = ref<Record<string, RoomAudio>>({});
+const toolbarVisible = ref(true);
 const rooms = ref<Room[]>([]);
 const roomStates = reactive<Record<string, RoomState>>({});
 const requestIds = new Map<string, number>();
 const players = new Map<string, ArtplayerType>();
-const audioEnabled = reactive<Record<string, boolean>>({});
-const roomPickerVisible = ref(selectedIds.value.length === 0);
+const hoveredRoomId = ref<string | null>(null);
+const roomPickerVisible = ref(false);
+const layoutLoaded = ref(false);
+const initializing = ref(false);
 const loadingRooms = ref(false);
 const loadError = ref("");
+const saveError = ref("");
 const searchText = ref("");
+const hideTitleBar = ref(false);
+
+const setHideTitleBar = async (value: boolean) => {
+  if (isWeb || !layoutLoaded.value || hideTitleBar.value === value) return;
+  hideTitleBar.value = value;
+  await persistLayout();
+  if (!saveError.value) message.info("已保存，重新打开监控室窗口后生效", { duration: 3000 });
+};
 
 const roomsById = computed(() => new Map(rooms.value.map((room) => [room.id, room])));
 const selectedRooms = computed(() =>
@@ -196,6 +276,38 @@ const placementStyle = (placement: GridPlacement) => ({
   gridRow: `${placement.row} / span ${placement.height}`,
 });
 const roomSize = (id: string) => getGridSize(roomSizes.value[id]);
+const roomAudioFor = (id: string) => normalizeRoomAudio(roomAudio.value[id]);
+const currentLayout = (): MonitorRoomLayout => ({
+  manageButtonVisible: toolbarVisible.value,
+  hideTitleBar: hideTitleBar.value,
+  rooms: selectedIds.value.map((id) => ({ id, size: roomSize(id), ...roomAudioFor(id) })),
+});
+let saveQueue: Promise<void> = Promise.resolve();
+let volumeSaveTimer: ReturnType<typeof setTimeout> | undefined;
+const persistLayout = (): Promise<void> => {
+  if (!layoutLoaded.value) return Promise.resolve();
+  if (volumeSaveTimer) {
+    clearTimeout(volumeSaveTimer);
+    volumeSaveTimer = undefined;
+  }
+  const layout = currentLayout();
+  saveQueue = saveQueue.then(async () => {
+    try {
+      await saveMonitorRoomLayout(layout);
+      saveError.value = "";
+    } catch (error) {
+      saveError.value = `保存监控室配置失败：${String(error)}`;
+    }
+  });
+  return saveQueue;
+};
+const scheduleVolumeSave = () => {
+  if (volumeSaveTimer) clearTimeout(volumeSaveTimer);
+  volumeSaveTimer = setTimeout(() => {
+    volumeSaveTimer = undefined;
+    void persistLayout();
+  }, 250);
+};
 const sizeOptionsFor = (id: string) =>
   GRID_SIZES.map((size) => ({
     label: size.replace("x", " × "),
@@ -208,6 +320,7 @@ const setRoomSize = (id: string, value: string) => {
   const nextSizes = { ...roomSizes.value, [id]: size };
   if (!packGrid(selectedIds.value, nextSizes)) return;
   roomSizes.value = nextSizes;
+  void persistLayout();
 };
 const canAddRoom = (id: string) =>
   packGrid([...selectedIds.value, id], { ...roomSizes.value, [id]: "1x1" }) !== null;
@@ -222,18 +335,81 @@ const roomMessage = (id: string) => {
 
 const registerPlayer = (id: string, player: ArtplayerType) => {
   players.set(id, player);
-  player.muted = true;
-  audioEnabled[id] = false;
+  const savedAudio = roomAudioFor(id);
+  player.volume = savedAudio.volume;
+  player.muted = savedAudio.muted;
   player.on("video:volumechange", () => {
-    if (players.get(id) === player) audioEnabled[id] = !player.muted;
+    if (players.get(id) !== player || !selectedIds.value.includes(id)) return;
+    const previous = roomAudioFor(id);
+    const next = normalizeRoomAudio({ muted: player.muted, volume: player.volume });
+    if (previous.muted === next.muted && previous.volume === next.volume) return;
+    roomAudio.value = { ...roomAudio.value, [id]: next };
+    if (previous.muted !== next.muted) void persistLayout();
+    else scheduleVolumeSave();
   });
 };
 
 const toggleSound = (id: string) => {
   const player = players.get(id);
   if (!player) return;
-  player.muted = !player.muted;
-  audioEnabled[id] = !player.muted;
+  const audio = roomAudioFor(id);
+  roomAudio.value = { ...roomAudio.value, [id]: { ...audio, muted: !audio.muted } };
+  player.muted = !audio.muted;
+  void persistLayout();
+};
+
+const clearHoveredRoom = (id: string) => {
+  if (hoveredRoomId.value === id) hoveredRoomId.value = null;
+};
+
+const toggleToolbar = () => {
+  if (!layoutLoaded.value) return;
+  toolbarVisible.value = !toolbarVisible.value;
+  void persistLayout();
+};
+
+const handleToolbarHotkey = (event: KeyboardEvent) => {
+  if (
+    event.key.toLowerCase() !== "m" ||
+    !event.ctrlKey ||
+    event.altKey ||
+    event.metaKey ||
+    event.shiftKey ||
+    event.repeat ||
+    event.isComposing ||
+    !layoutLoaded.value
+  ) {
+    return;
+  }
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  toggleToolbar();
+};
+
+const handleMuteHotkey = (event: KeyboardEvent) => {
+  if (
+    event.key.toLowerCase() !== "m" ||
+    event.repeat ||
+    event.isComposing ||
+    event.ctrlKey ||
+    event.altKey ||
+    event.metaKey ||
+    roomPickerVisible.value
+  ) {
+    return;
+  }
+  if (
+    event.target instanceof HTMLElement &&
+    event.target.closest("input, textarea, [contenteditable], [role='textbox']")
+  ) {
+    return;
+  }
+  const id = hoveredRoomId.value;
+  if (!id || roomStates[id]?.status !== "playing" || !players.has(id)) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  toggleSound(id);
 };
 
 const refreshRoom = async (id: string) => {
@@ -241,7 +417,6 @@ const refreshRoom = async (id: string) => {
   const requestId = (requestIds.get(id) || 0) + 1;
   requestIds.set(id, requestId);
   players.delete(id);
-  delete audioEnabled[id];
   roomStates[id] = { status: "loading", requestId };
 
   const isCurrent = () => requestIds.get(id) === requestId && selectedIds.value.includes(id);
@@ -272,7 +447,6 @@ const handlePlaybackError = (id: string) => {
   const state = roomStates[id];
   if (state?.status !== "playing") return;
   players.delete(id);
-  delete audioEnabled[id];
   roomStates[id] = {
     status: "error",
     requestId: state.requestId,
@@ -283,14 +457,16 @@ const handlePlaybackError = (id: string) => {
 const addRoom = (id: string) => {
   if (!roomsById.value.has(id) || selectedIds.value.includes(id) || !canAddRoom(id)) return;
   roomSizes.value = { ...roomSizes.value, [id]: "1x1" };
+  roomAudio.value = { ...roomAudio.value, [id]: normalizeRoomAudio(undefined) };
   selectedIds.value = [...selectedIds.value, id];
+  void persistLayout();
   void refreshRoom(id);
 };
 
 const disposeRoom = (id: string) => {
   requestIds.set(id, (requestIds.get(id) || 0) + 1);
+  clearHoveredRoom(id);
   players.delete(id);
-  delete audioEnabled[id];
   delete roomStates[id];
 };
 const removeRoom = (id: string) => {
@@ -299,6 +475,22 @@ const removeRoom = (id: string) => {
   const nextSizes = { ...roomSizes.value };
   delete nextSizes[id];
   roomSizes.value = nextSizes;
+  const nextAudio = { ...roomAudio.value };
+  delete nextAudio[id];
+  roomAudio.value = nextAudio;
+  void persistLayout();
+};
+
+const moveRoom = (id: string, direction: -1 | 1) => {
+  const index = selectedIds.value.indexOf(id);
+  const nextIndex = index + direction;
+  if (index < 0 || nextIndex < 0 || nextIndex >= selectedIds.value.length) return;
+
+  const nextIds = [...selectedIds.value];
+  [nextIds[index], nextIds[nextIndex]] = [nextIds[nextIndex], nextIds[index]];
+  if (!packGrid(nextIds, roomSizes.value)) return;
+  selectedIds.value = nextIds;
+  void persistLayout();
 };
 
 const loadRooms = async (refreshSelected: boolean) => {
@@ -316,10 +508,12 @@ const loadRooms = async (refreshSelected: boolean) => {
       page += 1;
     }
 
+    const previousLayout = JSON.stringify(currentLayout());
     rooms.value = allRooms;
     const existingIds = new Set(allRooms.map((room) => room.id));
     const nextIds: string[] = [];
     const nextSizes: Record<string, GridSize> = {};
+    const nextAudio: Record<string, RoomAudio> = {};
     for (const id of selectedIds.value) {
       if (!existingIds.has(id) || nextIds.includes(id)) continue;
       const preferredSize = getGridSize(roomSizes.value[id]);
@@ -329,10 +523,13 @@ const loadRooms = async (refreshSelected: boolean) => {
       if (!packGrid([...nextIds, id], { ...nextSizes, [id]: size })) continue;
       nextIds.push(id);
       nextSizes[id] = size;
+      nextAudio[id] = roomAudioFor(id);
     }
     selectedIds.value.filter((id) => !nextIds.includes(id)).forEach(disposeRoom);
     roomSizes.value = nextSizes;
+    roomAudio.value = nextAudio;
     selectedIds.value = nextIds;
+    if (previousLayout !== JSON.stringify(currentLayout())) void persistLayout();
     if (refreshSelected) {
       await Promise.allSettled(selectedIds.value.map((id) => refreshRoom(id)));
     }
@@ -343,11 +540,52 @@ const loadRooms = async (refreshSelected: boolean) => {
   }
 };
 
+const initialize = async () => {
+  if (initializing.value) return;
+  initializing.value = true;
+  loadError.value = "";
+  try {
+    const layout = await getMonitorRoomLayout();
+
+    toolbarVisible.value = layout?.manageButtonVisible ?? true;
+    hideTitleBar.value = layout?.hideTitleBar ?? false;
+    selectedIds.value = layout?.rooms.map((room) => room.id) || [];
+    roomSizes.value = Object.fromEntries(layout?.rooms.map((room) => [room.id, room.size]) || []);
+    roomAudio.value = Object.fromEntries(
+      layout?.rooms.map((room) => [room.id, normalizeRoomAudio(room)]) || [],
+    );
+    layoutLoaded.value = true;
+    if (!toolbarVisible.value) {
+      message.info("顶部栏已隐藏，按 Ctrl+M 可重新显示", { duration: 4000 });
+    }
+    await loadRooms(true);
+    if (!loadError.value && selectedIds.value.length === 0) roomPickerVisible.value = true;
+  } catch (error) {
+    loadError.value = `加载监控室配置失败：${String(error)}`;
+  } finally {
+    initializing.value = false;
+  }
+};
+
+const retryError = () => {
+  if (!layoutLoaded.value) void initialize();
+  else if (loadError.value) void loadRooms(true);
+  else void persistLayout();
+};
+
 onMounted(() => {
-  void loadRooms(true);
+  window.addEventListener("keydown", handleToolbarHotkey, true);
+  window.addEventListener("keydown", handleMuteHotkey, true);
+  void initialize();
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handleToolbarHotkey, true);
+  window.removeEventListener("keydown", handleMuteHotkey, true);
+  if (volumeSaveTimer) {
+    clearTimeout(volumeSaveTimer);
+    void persistLayout();
+  }
   for (const id of selectedIds.value) {
     requestIds.set(id, (requestIds.get(id) || 0) + 1);
   }
@@ -484,9 +722,34 @@ onBeforeUnmount(() => {
   }
 }
 
+.monitor-room__window-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.monitor-room__window-setting-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  span {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+}
+
 .monitor-room__managed-room {
   padding: 12px 0;
   border-bottom: 1px solid var(--border-secondary);
+}
+
+.monitor-room__managed-room-heading,
+.monitor-room__order-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .monitor-room__hint {

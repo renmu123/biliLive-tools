@@ -157,6 +157,7 @@
 
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
+import { getMonitorRoomLayout } from "@renderer/apis/monitorRoom";
 import { useConfirm } from "@renderer/hooks";
 import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
 import addModal from "./components/addModal.vue";
@@ -221,10 +222,12 @@ const openMonitorRoom = async () => {
   }
 
   try {
+    const layout = await getMonitorRoomLayout();
     await window.api.common.createSubWindow({
       routeName: "monitorRoom",
       hideAside: true,
       hideMenuBar: true,
+      hideTitleBar: layout?.hideTitleBar === true,
       maximized: true,
     });
   } catch (error: any) {

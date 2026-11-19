@@ -20,6 +20,7 @@ const props = withDefaults(
     option: {
       fullscreen?: boolean;
       muted?: boolean;
+      volume?: number;
       mutex?: boolean;
       url?: string;
       type?: string;
