@@ -360,7 +360,10 @@ async function getLiveInfo(
   //   streamOptions,
   //   JSON.stringify(res.playurl_info.playurl.stream, null, 2),
   // );
-  assert(streamInfo, "没有找到支持的流");
+  assert(
+    streamInfo,
+    `未找到可用的流，请尝试更换参数，可用画质: ${res.playurl_info.playurl.g_qn_desc.map((item) => `${item.desc}(${item.qn})`).join(", ")}，可用协议: ${res.playurl_info.playurl.stream.map((item) => item.protocol_name).join(", ")}，选择画质：${opts.qn}，选择协议：${opts.formatName}，选择编码：${opts.codecName}`,
+  );
 
   const streams: StreamProfile[] = streamInfo.accept_qn.map((qn) => {
     const qnDesc = res.playurl_info.playurl.g_qn_desc.find((item) => item.qn === qn);
