@@ -177,6 +177,7 @@ const syncConfigOptions = [
   { label: "阿里云盘", value: "aliyunpan" },
   { label: "alist", value: "alist" },
   { label: "123网盘", value: "pan123" },
+  { label: "夸克网盘", value: "quark" },
 ];
 const aliyunpanDriveOptions: Array<{ label: string; value: AliyunPanDriveType }> = [
   { label: "备份盘", value: "backup" },
