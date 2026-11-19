@@ -11,7 +11,7 @@
         title="按 Ctrl+M 可隐藏顶部栏"
         @click="roomPickerVisible = true"
       >
-        房间管理
+        管理
       </n-button>
     </header>
 
@@ -60,7 +60,7 @@
     </div>
 
     <n-drawer v-model:show="roomPickerVisible" :width="460" placement="right">
-      <n-drawer-content title="房间管理" closable>
+      <n-drawer-content title="管理" closable>
         <div v-if="!isWeb" class="monitor-room__window-setting">
           <div class="monitor-room__window-setting-label">
             <strong>隐藏窗口标题栏</strong>
@@ -71,6 +71,19 @@
             :disabled="!layoutLoaded"
             @update:value="setHideTitleBar"
           />
+        </div>
+        <div v-if="!isWeb" class="monitor-room__window-actions">
+          <n-button
+            size="small"
+            type="error"
+            tertiary
+            :loading="closingRoom"
+            title="快捷键：Ctrl+W"
+            aria-keyshortcuts="Control+W"
+            @click="closeMonitorRoom"
+          >
+            关闭监控室窗口
+          </n-button>
         </div>
         <n-divider v-if="!isWeb" />
         <div class="monitor-room__section-heading">
@@ -225,12 +238,25 @@ const loadError = ref("");
 const saveError = ref("");
 const searchText = ref("");
 const hideTitleBar = ref(false);
+const closingRoom = ref(false);
 
 const setHideTitleBar = async (value: boolean) => {
   if (isWeb || !layoutLoaded.value || hideTitleBar.value === value) return;
   hideTitleBar.value = value;
   await persistLayout();
   if (!saveError.value) message.info("已保存，重新打开监控室窗口后生效", { duration: 3000 });
+};
+
+const closeMonitorRoom = async () => {
+  if (closingRoom.value) return;
+  closingRoom.value = true;
+  try {
+    if (volumeSaveTimer) await persistLayout();
+    else await saveQueue;
+    window.close();
+  } finally {
+    closingRoom.value = false;
+  }
 };
 
 const roomsById = computed(() => new Map(rooms.value.map((room) => [room.id, room])));
@@ -384,6 +410,24 @@ const handleToolbarHotkey = (event: KeyboardEvent) => {
   event.preventDefault();
   event.stopImmediatePropagation();
   toggleToolbar();
+};
+
+const handleCloseHotkey = (event: KeyboardEvent) => {
+  if (
+    isWeb ||
+    event.key.toLowerCase() !== "w" ||
+    !event.ctrlKey ||
+    event.altKey ||
+    event.metaKey ||
+    event.shiftKey ||
+    event.repeat ||
+    event.isComposing
+  ) {
+    return;
+  }
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  void closeMonitorRoom();
 };
 
 const handleMuteHotkey = (event: KeyboardEvent) => {
@@ -574,12 +618,14 @@ const retryError = () => {
 };
 
 onMounted(() => {
+  if (!isWeb) window.addEventListener("keydown", handleCloseHotkey, true);
   window.addEventListener("keydown", handleToolbarHotkey, true);
   window.addEventListener("keydown", handleMuteHotkey, true);
   void initialize();
 });
 
 onBeforeUnmount(() => {
+  if (!isWeb) window.removeEventListener("keydown", handleCloseHotkey, true);
   window.removeEventListener("keydown", handleToolbarHotkey, true);
   window.removeEventListener("keydown", handleMuteHotkey, true);
   if (volumeSaveTimer) {
@@ -738,6 +784,12 @@ onBeforeUnmount(() => {
     color: var(--text-muted);
     font-size: 12px;
   }
+}
+
+.monitor-room__window-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 
 .monitor-room__managed-room {

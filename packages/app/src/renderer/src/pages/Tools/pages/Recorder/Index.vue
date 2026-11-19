@@ -53,9 +53,9 @@
         @update:field="handleSortFieldChange"
         @update:direction="handleSortDirectionChange"
       />
+      <n-button @click="openMonitorRoom">监控室</n-button>
       <ColumnSelector v-model="visibleColumns" :columns="columnConfig" />
       <n-button type="warning" @click="getLiveInfo(true)">刷新</n-button>
-      <n-button @click="openMonitorRoom">监控室</n-button>
       <ButtonGroup :options="actionBtns" @click="handleActionClick">添加</ButtonGroup>
     </div>
 
