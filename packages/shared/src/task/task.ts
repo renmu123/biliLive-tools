@@ -13,7 +13,7 @@ import { addMediaApi, editMediaApi } from "./bili.js";
 import { TaskType } from "../enum.js";
 import { SyncClient } from "../sync/index.js";
 import { uploadPartService } from "../db/index.js";
-import { Pan123 } from "../sync/index.js";
+import { Pan123, Quark } from "../sync/index.js";
 import { statisticsService } from "../db/index.js";
 import { SpeedCalculator } from "../utils/speedCalculator.js";
 import { appConfig } from "../config.js";
@@ -1308,6 +1308,7 @@ export class SyncTask extends AbstractTask {
       // 123网盘不支持重试任务
       this.action = ["kill"];
     }
+    if (instance instanceof Quark) this.action = ["kill", "pause", "restart"];
     // @ts-expect-error
     instance.on("progress", (progress: any) => {
       // console.log("sync progress", progress);
@@ -1318,6 +1319,7 @@ export class SyncTask extends AbstractTask {
   }
   exec() {
     if (!this.instance) return;
+    if (["running", "paused", "completed", "canceled"].includes(this.status)) return;
     const instance = this.instance;
     this.callback.onStart && this.callback.onStart();
     this.status = "running";
@@ -1330,12 +1332,14 @@ export class SyncTask extends AbstractTask {
         policy: this?.options?.policy,
       })
       .then(() => {
+        if (this.status === "canceled") return;
         this.status = "completed";
         this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;
         this.emitter.emit("task-end", { taskId: this.taskId });
       })
       .catch((err) => {
+        if (this.status === "canceled") return;
         console.log("upload error", err);
         this.status = "error";
         this.callback.onError && this.callback.onError(err);
@@ -1344,7 +1348,7 @@ export class SyncTask extends AbstractTask {
       })
       .finally(() => {
         this.endTime = Date.now();
-        if (this.status === "completed") {
+        if (this.status === "completed" || this.status === "canceled") {
           this.releaseInstance();
         }
       });
@@ -1355,17 +1359,29 @@ export class SyncTask extends AbstractTask {
     this.exec();
   }
   pause() {
-    return false;
+    if (this.status !== "running" || !(this.instance instanceof Quark)) return false;
+    if (!this.instance.pauseUpload()) return false;
+    this.status = "paused";
+    this.custsomProgressMsg = "已暂停";
+    this.emitter.emit("task-pause", { taskId: this.taskId });
+    return true;
   }
   resume() {
-    return false;
+    if (this.status !== "paused" || !(this.instance instanceof Quark)) return false;
+    if (!this.instance.resumeUpload()) return false;
+    this.status = "running";
+    this.emitter.emit("task-resume", { taskId: this.taskId });
+    return true;
   }
   kill() {
     if (this.status === "completed" || this.status === "error" || this.status === "canceled")
       return;
-    log.warn(`danmu task ${this.taskId} killed`);
+    log.warn(`sync task ${this.taskId} killed`);
+    const wasPending = this.status === "pending";
     this.status = "canceled";
     this.instance?.cancelUpload();
+    if (wasPending) this.releaseInstance();
+    this.emitter.emit("task-cancel", { taskId: this.taskId, autoStart: true });
     return true;
   }
 

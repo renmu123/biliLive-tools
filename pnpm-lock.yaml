@@ -706,6 +706,9 @@ importers:
       '@napi-rs/canvas':
         specifier: ^1.0.9
         version: 1.0.9
+      '@noble/hashes':
+        specifier: 1.8.0
+        version: 1.8.0
       '@renmu/bili-api':
         specifier: 2.15.2
         version: 2.15.2
