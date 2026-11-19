@@ -1,13 +1,19 @@
 # Next
 
+## 功能
+
+- 同步：新增夸克同步 [#606](https://github.com/renmu123/biliLive-tools/pull/606)
+
 ## 优化
 
 - 看板：优化剩余磁盘容量的UI显示
+- 优化资源管理器的记忆路径
 
 ## Bug修复
 
 - 录制：修复主播详情仅能显示第一个的bug [#604](https://github.com/renmu123/biliLive-tools/issues/604)
 - 修复部分配置项删除时点击取消仍会生效的bug
+- 修复录制部分选项不会实时生效的bug [#607](https://github.com/renmu123/biliLive-tools/pull/607)
 
 # 4.1.0(2026.11.8)
 
