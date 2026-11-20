@@ -1,0 +1,77 @@
+.artplayer-sc {
+  position: absolute;
+  z-index: 22;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(300px, 42%);
+  max-height: calc(100% - 32px);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.artplayer-sc-card {
+  --sc-header: #2f78ad;
+  --sc-body: #244e74;
+  flex: 0 1 auto;
+  overflow: hidden;
+  border-radius: 6px;
+  color: #fff;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 30%);
+  font-size: 13px;
+  line-height: 1.4;
+
+  &[data-tier="yellow"] {
+    --sc-header: #d79a24;
+    --sc-body: #ad751e;
+  }
+
+  &[data-tier="orange"] {
+    --sc-header: #df7232;
+    --sc-body: #a84e27;
+  }
+
+  &[data-tier="red"] {
+    --sc-header: #d55257;
+    --sc-body: #993c4e;
+  }
+}
+
+.artplayer-sc-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 5px 10px;
+  background: var(--sc-header);
+}
+
+.artplayer-sc-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.artplayer-sc-user {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.artplayer-sc-price {
+  margin-left: auto;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.artplayer-sc-message {
+  padding: 9px 11px;
+  overflow-wrap: anywhere;
+  background: var(--sc-body);
+  white-space: pre-wrap;
+}

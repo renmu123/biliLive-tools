@@ -15,6 +15,8 @@ import type { Option as DanmukuOption, Result as DanmukuResult } from "artplayer
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 import artplayerPluginSubtitle from "./artplayer-plugin-subtitle";
 import artplayerPluginChapter from "./artplayer-plugin-chapter";
+import artplayerPluginSC from "./artplayer-plugin-sc";
+import type { SuperChatItem } from "./artplayer-plugin-sc";
 import { useStorage } from "@vueuse/core";
 
 type DanmukuSettings = Pick<
@@ -79,6 +81,9 @@ const props = withDefaults(
             type?: "srt" | "ass" | "vtt";
             encoding?: string;
           }>;
+        };
+        sc?: {
+          duration?: number;
         };
       };
     };
@@ -167,6 +172,9 @@ onMounted(async () => {
     }
     if (props.plugins.includes("chapter")) {
       plugins.push(artplayerPluginChapter({}));
+    }
+    if (props.plugins.includes("sc")) {
+      plugins.push(artplayerPluginSC(props?.option?.plugins?.sc));
     }
   } else {
     plugins.push(
@@ -312,6 +320,8 @@ ${tsFile}
   instance.artplayerTimestamp = instance?.plugins?.artplayerTimestamp;
   // @ts-ignore
   instance.artplayerPluginChapter = instance?.plugins?.artplayerPluginChapter;
+  // @ts-ignore
+  instance.artplayerPluginSC = instance?.plugins?.artplayerPluginSC;
 
   if (props.plugins?.includes("danmuku")) {
     let previousSettings = getDanmukuSettings(
@@ -383,6 +393,13 @@ const switchDanmuku = async (danmuku: any[]) => {
   }
 };
 
+const switchSC = (sc: SuperChatItem[]) => {
+  const plugin = instance?.plugins?.artplayerPluginSC as
+    | ReturnType<ReturnType<typeof artplayerPluginSC>>
+    | undefined;
+  plugin?.setData(sc);
+};
+
 // subtitle
 const switchSubtitle = async (names: string[]) => {
   if (instance && instance.plugins.artplayerPluginSubtitle) {
@@ -412,6 +429,7 @@ defineExpose({
   video,
   switchAss,
   switchDanmuku,
+  switchSC,
   switchSubtitle,
   resetSubtitle,
   setSubtitleContent,
