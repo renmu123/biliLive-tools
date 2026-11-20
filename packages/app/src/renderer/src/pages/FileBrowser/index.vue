@@ -57,6 +57,7 @@ import { fileBrowserApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
 import { useNotice } from "@renderer/hooks/useNotice";
 import { toVideoPlayerPage } from "@renderer/utils/pages";
+import { useRoute } from "vue-router";
 
 import type { DataTableColumns, DataTableRowKey } from "naive-ui";
 import type { FileBrowserItem } from "@renderer/apis/fileBrowser";
@@ -71,6 +72,7 @@ interface BreadcrumbItem {
 }
 
 const loading = ref(false);
+const route = useRoute();
 const deleting = ref(false);
 const items = ref<FileBrowserItem[]>([]);
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
@@ -428,9 +430,24 @@ const columns = computed<DataTableColumns<FileBrowserItem>>(() => [
   },
 ]);
 
+const routePath = () => (typeof route.query.path === "string" ? route.query.path : undefined);
+
 onMounted(() => {
-  fetchList();
+  fetchList(routePath());
 });
+
+let hasActivated = false;
+onActivated(() => {
+  if (hasActivated) fetchList(routePath());
+  hasActivated = true;
+});
+
+watch(
+  () => route.query.path,
+  () => {
+    if (route.name === "FileBrowser") fetchList(routePath());
+  },
+);
 </script>
 
 <style scoped>

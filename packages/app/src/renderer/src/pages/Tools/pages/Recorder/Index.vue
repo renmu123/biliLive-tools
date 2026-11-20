@@ -106,9 +106,10 @@
               观看直播
             </div>
             <div
-              v-if="!isWeb"
               class="section"
               @click="openSavePath(item.id, item.recordHandle?.savePath)"
+              @mousedown.middle.prevent
+              @auxclick.middle.prevent="openSavePath(item.id, item.recordHandle?.savePath, true)"
             >
               打开录制文件夹
             </div>
@@ -174,7 +175,7 @@ import SortButton from "./components/SortButton.vue";
 
 import { useEventListener, useStorage } from "@vueuse/core";
 import eventBus from "@renderer/utils/eventBus";
-import { toLiveVideoPlayerPage } from "@renderer/utils/pages";
+import { openRecorderFolder, toLiveVideoPlayerPage } from "@renderer/utils/pages";
 
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 
@@ -685,22 +686,14 @@ useEventListener(document, "visibilitychange", () => {
   handleVisibilityChange();
 });
 
-const isWeb = ref(window.isWeb);
-
 /**
  * 打开录制文件夹
  * @param id 录制器ID
  * @param recordingPath 录制文件路径
  */
-const openSavePath = async (id: string, recordingPath?: string) => {
-  if (recordingPath) {
-    await window.api.openPath(window.path.dirname(recordingPath));
-    return;
-  }
-
+const openSavePath = async (id: string, recordingPath?: string, newTab = false) => {
   try {
-    const { folderPath } = await recoderApi.getRecentRecordFolder(id);
-    await window.api.openPath(folderPath);
+    await openRecorderFolder(id, recordingPath, newTab);
   } catch (error: any) {
     notice.error({
       title: error?.message,

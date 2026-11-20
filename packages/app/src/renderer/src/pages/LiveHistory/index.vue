@@ -66,7 +66,7 @@ import { FileOpenOutlined } from "@vicons/material";
 import { useConfirm } from "@renderer/hooks";
 import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
 import ColumnSelector from "@renderer/components/ColumnSelector.vue";
-import { toVideoPlayerPage } from "@renderer/utils/pages";
+import { openHistoryRecordFolder, toVideoPlayerPage } from "@renderer/utils/pages";
 import { formatTime, formatDuration } from "@renderer/utils";
 import { useTitle } from "@vueuse/core";
 
@@ -271,21 +271,30 @@ const allColumns: {
             { default: () => h(FileOpenOutlined) },
           ),
         );
-        subNodes.push(
-          h(
-            NIcon,
-            {
-              size: "20",
-              style: {
-                cursor: "pointer",
-              },
-              title: "打开文件夹",
-              onClick: () => openFolder(row.id),
-            },
-            { default: () => h(FolderOpenOutline) },
-          ),
-        );
       }
+      subNodes.push(
+        h(
+          NIcon,
+          {
+            size: "20",
+            style: {
+              cursor: "pointer",
+            },
+            title: "打开文件夹",
+            onClick: () => openFolder(row.id),
+            onMousedown: (event: MouseEvent) => {
+              if (event.button === 1) event.preventDefault();
+            },
+            onAuxclick: (event: MouseEvent) => {
+              if (event.button === 1) {
+                event.preventDefault();
+                openFolder(row.id, true);
+              }
+            },
+          },
+          { default: () => h(FolderOpenOutline) },
+        ),
+      );
       if (window.isWeb) {
         subNodes.push(
           h(
@@ -440,11 +449,9 @@ const downloadFile = async (id: number) => {
   }
 };
 
-const openFolder = async (id: number) => {
+const openFolder = async (id: number, newTab = false) => {
   try {
-    const { videoFilePath } = await recordHistoryApi.getFileInfo(id);
-    if (!videoFilePath) return;
-    window.api.common.showItemInFolder(videoFilePath);
+    await openHistoryRecordFolder(id, newTab);
   } catch (error: any) {
     notice.error({
       title: error.message || error,

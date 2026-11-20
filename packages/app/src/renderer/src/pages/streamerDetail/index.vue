@@ -107,8 +107,13 @@
               >
                 切割
               </n-button>
-              <n-button v-if="!isWeb" size="small" @click="openRecordingFolder">
-                打开录播文件夹
+              <n-button
+                size="small"
+                @click="openRecordingFolder()"
+                @mousedown.middle.prevent
+                @auxclick.middle.prevent="openRecordingFolder(true)"
+              >
+                打开文件夹
               </n-button>
             </div>
           </div>
@@ -309,7 +314,7 @@ import AddRecorderModal from "@renderer/pages/Tools/pages/Recorder/components/ad
 import SessionDanmaStats from "./components/SessionDanmaStats.vue";
 import RecordCalendar from "./components/RecordCalendar.vue";
 import { useTitle } from "@vueuse/core";
-import { toLiveVideoPlayerPage } from "@renderer/utils/pages";
+import { openRecorderFolder, toLiveVideoPlayerPage } from "@renderer/utils/pages";
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { RecentRecordClipItem } from "@renderer/apis/recordHistory";
 
@@ -337,7 +342,6 @@ const queryParams = reactive<RecorderAPI["queryStreamerDetail"]["Args"]>({
 
 const loading = ref(false);
 const recordActionLoading = ref(false);
-const isWeb = window.isWeb;
 const recentClipLoading = ref(false);
 const recorderSettingVisible = ref(false);
 const activeTab = ref("timeline");
@@ -570,9 +574,6 @@ const toggleRecording = async () => {
       });
     } else {
       await recoderApi.startRecord(queryParams.recorderId);
-      notice.success({
-        title: "已开始录制",
-      });
     }
     setTimeout(() => {
       handleQuery();
@@ -606,13 +607,13 @@ const cutRecording = async () => {
   }
 };
 
-const openRecordingFolder = async () => {
+const openRecordingFolder = async (newTab = false) => {
   try {
-    const savePath = result.recorderInfo?.recordHandle?.savePath;
-    const folderPath = savePath
-      ? window.path.dirname(savePath)
-      : (await recoderApi.getRecentRecordFolder(streamerInfo.recorderId)).folderPath;
-    await window.api.openPath(folderPath);
+    await openRecorderFolder(
+      streamerInfo.recorderId,
+      result.recorderInfo?.recordHandle?.savePath,
+      newTab,
+    );
   } catch (error: any) {
     notice.error({ title: error?.message || "打开录播文件夹失败" });
   }

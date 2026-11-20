@@ -12,6 +12,7 @@
 - 录制：“显示字段”中的标题也会对卡片模式生效
 - 录制：录制详情UI优化 [#612](https://github.com/renmu123/biliLive-tools/pull/612)
 - 录制：B站录制获取主播名增加额外fallback
+- 录制：web支持打开录制文件夹到文件浏览器
 
 ## Bug修复
 
