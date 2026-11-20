@@ -1,5 +1,31 @@
-import { describe, expect, it } from "vitest";
-import { getVisibleSuperChats } from "../src/renderer/src/components/Artplayer/artplayer-plugin-sc";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import artplayerPluginSC, {
+  getVisibleSuperChats,
+} from "../src/renderer/src/components/Artplayer/artplayer-plugin-sc";
+import type Artplayer from "artplayer";
+
+afterEach(() => vi.unstubAllGlobals());
+
+class FakeElement {
+  children: FakeElement[] = [];
+  dataset: Record<string, string> = {};
+  className = "";
+  textContent = "";
+
+  setAttribute() {}
+  remove() {}
+  appendChild(child: FakeElement) {
+    this.children.push(child);
+  }
+  append(...children: (FakeElement | string)[]) {
+    for (const child of children) {
+      if (child instanceof FakeElement) this.appendChild(child);
+    }
+  }
+  replaceChildren(...children: FakeElement[]) {
+    this.children = children;
+  }
+}
 
 describe("Artplayer SC timing", () => {
   const first = { time: 5, text: "first" };
@@ -18,5 +44,27 @@ describe("Artplayer SC timing", () => {
     const live = { time: 9, text: "live" };
     const result = getVisibleSuperChats([first, second, third], [live], 10, 20);
     expect(result).toEqual([live, third, second]);
+  });
+
+  it("hides immediately and restores SC at the current playback position", () => {
+    vi.stubGlobal("document", { createElement: () => new FakeElement() });
+    const host = new FakeElement();
+    const art = {
+      currentTime: 10,
+      template: { $video: { parentElement: host } },
+      on: vi.fn(),
+      off: vi.fn(),
+    } as unknown as Artplayer;
+
+    const plugin = artplayerPluginSC({ data: [first], visible: false })(art);
+    const overlay = host.children[0];
+    expect(overlay.children).toHaveLength(0);
+
+    plugin.setVisible(true);
+    expect(overlay.children).toHaveLength(1);
+    plugin.setVisible(false);
+    expect(overlay.children).toHaveLength(0);
+
+    plugin.destroy();
   });
 });

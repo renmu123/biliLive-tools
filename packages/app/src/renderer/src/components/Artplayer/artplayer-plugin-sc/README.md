@@ -4,10 +4,14 @@
 
 ## 接入
 
-项目的 Artplayer 组件已注册该插件，启用时传入 `sc`：
+项目的 Artplayer 组件已注册该插件，启用时同时传入 `danmuku` 和 `sc`：
 
 ```vue
-<Artplayer ref="playerRef" :plugins="['sc']" :option="{ plugins: { sc: { duration: 20 } } }" />
+<Artplayer
+  ref="playerRef"
+  :plugins="['danmuku', 'sc']"
+  :option="{ plugins: { sc: { duration: 20 } } }"
+/>
 ```
 
 `duration` 为可选项，单位秒，默认 `20`。不传或传入非正数时使用默认值。加载录播 SC 数据：
@@ -15,6 +19,8 @@
 ```ts
 playerRef.value?.switchSC([{ time: 12.5, text: "支持主播！", user: "观众A", price: 30 }]);
 ```
+
+通过项目的 Artplayer 组件使用时，SC 跟随弹幕总开关：关闭弹幕会立即隐藏 SC，重新打开会按当前时间恢复显示。若未启用 `danmuku` 插件，SC 不显示。无需单独操作 SC 开关。
 
 也可以直接作为 Artplayer 插件使用：
 
@@ -58,6 +64,7 @@ scPlugin.emit({
 
 - `setData(items)` 会替换全部录播 SC 数据，并立即根据当前播放时间刷新。播放或跳转到 `time` 时开始显示，达到 `time + duration` 时隐藏；暂停时跟随视频时间保持显示。
 - `emit(item)` 用于直播消息，收到后立即显示，并按实际时间在 `duration` 秒后隐藏。
+- `setVisible(visible)` 可直接控制插件显示状态；项目的 Artplayer 组件会根据弹幕总开关自动调用。直接使用插件时默认显示。
 - 同时最多显示 3 条，最新的消息在最上方。金额决定卡片颜色：低于 ¥100 为蓝色，¥100 起为黄色，¥500 起为橙色，¥1000 起为红色。
 - 插件销毁时会移除画面元素、事件监听和计时器。
 

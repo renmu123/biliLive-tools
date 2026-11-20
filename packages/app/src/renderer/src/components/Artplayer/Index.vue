@@ -174,7 +174,12 @@ onMounted(async () => {
       plugins.push(artplayerPluginChapter({}));
     }
     if (props.plugins.includes("sc")) {
-      plugins.push(artplayerPluginSC(props?.option?.plugins?.sc));
+      plugins.push(
+        artplayerPluginSC({
+          ...props?.option?.plugins?.sc,
+          visible: props.plugins.includes("danmuku") && danmukuSettings.value.visible !== false,
+        }),
+      );
     }
   } else {
     plugins.push(
@@ -322,6 +327,20 @@ ${tsFile}
   instance.artplayerPluginChapter = instance?.plugins?.artplayerPluginChapter;
   // @ts-ignore
   instance.artplayerPluginSC = instance?.plugins?.artplayerPluginSC;
+
+  const scPlugin = instance.plugins.artplayerPluginSC as
+    | ReturnType<ReturnType<typeof artplayerPluginSC>>
+    | undefined;
+  const danmukuPlugin = instance.plugins.artplayerPluginDanmuku as DanmukuResult | undefined;
+  if (scPlugin) {
+    const syncSCVisibility = () => {
+      scPlugin.setVisible(danmukuPlugin?.option.visible === true);
+    };
+    instance.on("artplayerPluginDanmuku:config", syncSCVisibility);
+    instance.on("artplayerPluginDanmuku:show", syncSCVisibility);
+    instance.on("artplayerPluginDanmuku:hide", syncSCVisibility);
+    syncSCVisibility();
+  }
 
   if (props.plugins?.includes("danmuku")) {
     let previousSettings = getDanmukuSettings(

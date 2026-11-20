@@ -12,6 +12,7 @@ export interface SuperChatItem {
 interface SuperChatOptions {
   duration?: number;
   data?: SuperChatItem[];
+  visible?: boolean;
 }
 
 export function getVisibleSuperChats(
@@ -38,6 +39,7 @@ export default function artplayerPluginSC(options: SuperChatOptions = {}) {
     let live: { item: SuperChatItem; expires: number }[] = [];
     let displayed: SuperChatItem[] = [];
     let timer: ReturnType<typeof setInterval> | undefined;
+    let isVisible = options.visible ?? true;
 
     const render = () => {
       const time = art.currentTime;
@@ -48,12 +50,14 @@ export default function artplayerPluginSC(options: SuperChatOptions = {}) {
         timer = undefined;
       }
       // 最新的 SC 在上方，限制数量以免遮住视频。
-      const visible = getVisibleSuperChats(
-        data,
-        live.map((entry) => entry.item),
-        time,
-        duration,
-      );
+      const visible = isVisible
+        ? getVisibleSuperChats(
+            data,
+            live.map((entry) => entry.item),
+            time,
+            duration,
+          )
+        : [];
       if (
         visible.length === displayed.length &&
         visible.every((item, i) => item === displayed[i])
@@ -120,6 +124,10 @@ export default function artplayerPluginSC(options: SuperChatOptions = {}) {
       name: "artplayerPluginSC",
       setData,
       emit,
+      setVisible(visible: boolean) {
+        isVisible = visible;
+        render();
+      },
       destroy() {
         art.off("video:timeupdate", render);
         art.off("video:seeked", render);
