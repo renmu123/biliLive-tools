@@ -3,12 +3,14 @@
 ## 功能
 
 - 同步：新增夸克同步 [#606](https://github.com/renmu123/biliLive-tools/pull/606)
+- 录制：监控室模式 [#611](https://github.com/renmu123/biliLive-tools/pull/611)
 
 ## 优化
 
 - 看板：优化剩余磁盘容量的UI显示
 - 优化资源管理器的记忆路径
 - 录制：“显示字段”中的标题也会对卡片模式生效
+- 录制：录制详情UI优化 [#612](https://github.com/renmu123/biliLive-tools/pull/612)
 
 ## Bug修复
 
