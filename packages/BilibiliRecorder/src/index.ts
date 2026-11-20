@@ -19,6 +19,7 @@ import type {
   RecordHandle,
   VideoFileCreatedPayload,
   FormatName,
+  Message,
 } from "@bililive-tools/manager";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
@@ -47,6 +48,26 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
 
     getChannelURL() {
       return `https://live.bilibili.com/${this.channelId}`;
+    },
+    async subscribeComments(listener: (message: Message) => void) {
+      // 外部订阅使用独立连接，不受录制开始、分段或停止的影响。
+      const client = new DanmaClient(Number(this.channelId), {
+        auth: this.auth,
+        uid: Number(this.uid) || 0,
+        useServerTimestamp: this.useServerTimestamp,
+      });
+      client.on("Message", listener);
+      const unsubscribe = () => {
+        client.off("Message", listener);
+        client.stop();
+      };
+      try {
+        await client.start();
+      } catch (error) {
+        unsubscribe();
+        throw error;
+      }
+      return unsubscribe;
     },
     checkLiveStatusAndRecord: utils.singleton(checkLiveStatusAndRecord),
 

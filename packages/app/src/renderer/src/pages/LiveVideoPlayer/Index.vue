@@ -36,12 +36,18 @@ useTitle(`${query.owner} 直播中`);
 // const logs = ref("");
 
 let eventSource: EventSource | null = null;
+let unmounted = false;
 // const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 
 async function streamLogs() {
-  eventSource = await getDanmaStream(query.liveId);
+  const source = await getDanmaStream(query.liveId);
+  if (unmounted) {
+    source.close();
+    return;
+  }
+  eventSource = source;
 
-  eventSource.onmessage = function (event) {
+  source.onmessage = function (event) {
     const data = JSON.parse(event.data);
     if (!videoInstance.value) return;
     if (!data.text) return;
@@ -70,6 +76,12 @@ async function streamLogs() {
 
 onMounted(() => {
   streamLogs();
+});
+
+onUnmounted(() => {
+  unmounted = true;
+  eventSource?.close();
+  eventSource = null;
 });
 
 const videoInstance = ref<ArtplayerType | null>(null);

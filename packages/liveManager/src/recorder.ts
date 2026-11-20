@@ -240,6 +240,12 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   cache: NamespacedCache;
   getChannelURL: (this: Recorder<E>) => string;
 
+  /** 独立于录制任务的弹幕订阅。返回函数用于结束本次订阅。仅支持此能力的录制器提供实现。 */
+  subscribeComments?: (
+    this: Recorder<E>,
+    listener: (message: Message) => void,
+  ) => Promise<() => void>;
+
   // TODO: 这个接口以后可能会拆成两个，因为要考虑有些网站可能会提供批量检查直播状态的接口，比如斗鱼
   checkLiveStatusAndRecord: (
     this: Recorder<E>,

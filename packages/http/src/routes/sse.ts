@@ -75,12 +75,51 @@ router.get(
     const id = ctx.query.id;
 
     const recorderManager = container.resolve("recorderManager");
-    recorderManager.manager.on("Message", ({ recorder, message }) => {
+    const recorder = typeof id === "string" ? recorderManager.manager.getRecorder(id) : null;
+
+    if (recorder?.providerId === "Bilibili" && recorder.subscribeComments) {
+      let closed = false;
+      let unsubscribe: (() => void) | undefined;
+      const cleanup = () => {
+        closed = true;
+        unsubscribe?.();
+        unsubscribe = undefined;
+      };
+      ctx.res.once("close", cleanup);
+
+      try {
+        unsubscribe = await recorder.subscribeComments((message) => {
+          if (closed || ctx.res.destroyed) return;
+          // @ts-ignore
+          ctx.sse.send(JSON.stringify(message));
+        });
+        // 客户端可能在异步初始化弹幕连接时已断开。
+        if (closed) cleanup();
+      } catch (error) {
+        ctx.res.off("close", cleanup);
+        if (!closed) {
+          // @ts-ignore
+          ctx.sse.send(
+            JSON.stringify({
+              type: "error",
+              message: error instanceof Error ? error.message : String(error),
+            }),
+          );
+          // @ts-ignore
+          ctx.sse.sendEnd();
+        }
+      }
+      return;
+    }
+
+    const onMessage = ({ recorder, message }: { recorder: { id: string }; message: unknown }) => {
       if (recorder.id === id) {
         // @ts-ignore
         ctx.sse.send(JSON.stringify(message));
       }
-    });
+    };
+    recorderManager.manager.on("Message", onMessage);
+    ctx.res.once("close", () => recorderManager.manager.off("Message", onMessage));
   },
 );
 

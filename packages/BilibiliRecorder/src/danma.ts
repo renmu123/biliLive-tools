@@ -267,7 +267,7 @@ class DanmaClient extends EventEmitter {
         }, 2000);
       });
 
-      client.live.on("error", (err) => {
+      client.live.on("error", (err: unknown) => {
         console.error("DanmaClient error", err);
       });
     };
