@@ -179,6 +179,15 @@ onMounted(async () => {
     console.error("artRef is null");
     return;
   }
+  let disposeStream: (() => void) | undefined;
+  const replaceStream = (art: Artplayer, dispose: () => void) => {
+    if (disposeStream) {
+      art.off("destroy", disposeStream);
+      disposeStream();
+    }
+    disposeStream = dispose;
+    art.on("destroy", dispose);
+  };
   instance = new Artplayer({
     url: props?.option?.url ?? "",
     type: props?.option?.type ?? "",
@@ -199,32 +208,27 @@ onMounted(async () => {
     customType: {
       flv: (video, url, art) => {
         if (mpegts.isSupported()) {
-          // @ts-expect-error
-          if (art.flv) art.flv.destroy();
-
           const flv = mpegts.createPlayer({
             type: "flv",
             url: url,
             isLive: props.isLive,
           });
+          replaceStream(art, () => flv.destroy());
           flv.attachMediaElement(video);
           flv.load();
 
           art.flv = flv;
-          art.on("destroy", () => flv.destroy());
         } else {
           art.notice.show = "Unsupported playback format: flv";
         }
       },
       m3u8: function playM3u8(video, url, art) {
         if (Hls.isSupported()) {
-          // @ts-expect-error
-          if (art.hls) art.hls.destroy();
           const hls = new Hls();
+          replaceStream(art, () => hls.destroy());
           hls.loadSource(url);
           hls.attachMedia(video);
           art.hls = hls;
-          art.on("destroy", () => hls.destroy());
         } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
           video.src = url;
         } else {
@@ -246,22 +250,41 @@ ${tsFile}
         const m3u8URL = URL.createObjectURL(blob);
 
         if (Hls.isSupported()) {
-          // @ts-expect-error
-          if (art.hls) art.hls.destroy();
           const hls = new Hls();
+          replaceStream(art, () => {
+            hls.destroy();
+            URL.revokeObjectURL(m3u8URL);
+          });
           hls.loadSource(m3u8URL);
           hls.attachMedia(video);
           art.hls = hls;
-          art.on("destroy", () => hls.destroy());
         } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
           video.src = url;
+          URL.revokeObjectURL(m3u8URL);
         } else {
+          URL.revokeObjectURL(m3u8URL);
           art.notice.show = "Unsupported playback format: m3u8";
         }
       },
     },
   });
   if (props.isLive) {
+    instance.controls.add({
+      name: "refreshStream",
+      position: "left",
+      index: 15,
+      tooltip: "刷新",
+      html: '<svg viewBox="0 0 24 24" width="24" height="24" style="fill: none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.4 6.4"/><path d="M20 4v7h-7"/></svg>',
+      click: () => {
+        if (!instance?.option.url) return;
+        const player = instance;
+        player.pause();
+        player.once("video:canplay", () => {
+          if (!player.isDestroy) void player.play();
+        });
+        player.url = player.option.url;
+      },
+    });
     instance.proxy(
       instance.video,
       "click",
