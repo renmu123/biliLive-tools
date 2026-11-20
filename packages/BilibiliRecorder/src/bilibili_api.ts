@@ -95,6 +95,17 @@ export async function getMasterInfo(userId: number) {
   return res.data.data;
 }
 
+export async function getAnchorInRoom(roomId: number) {
+  const res = await requester.get<BilibiliResp<{ info: { uname: string } }>>(
+    "https://api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room",
+    { params: { roomid: roomId } },
+  );
+
+  assert(res.data.code === 0, `Unexpected resp, code ${res.data.code}, msg ${res.data.message}`);
+
+  return res.data.data;
+}
+
 export async function getStatusInfoByUIDs<UID extends number>(userIds: UID[]) {
   const res = await requester.get<
     BilibiliResp<

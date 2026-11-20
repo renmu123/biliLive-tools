@@ -9,6 +9,7 @@ import {
   SourceProfile,
   StreamProfile,
   getRoomBaseInfo,
+  getAnchorInRoom,
 } from "./bilibili_api.js";
 import { assert } from "./utils.js";
 
@@ -138,6 +139,16 @@ export async function getInfo(
       title = base.title;
       cover = base.cover;
       liveStartTime = new Date(base.live_time);
+    }
+  }
+
+  // 我也不知道为啥上面的两个接口可能获取不到主播名，那就尝试换一个接口再取一次
+  if (!owner) {
+    try {
+      const anchor = await getAnchorInRoom(roomInit.room_id);
+      owner = anchor?.info?.uname || owner;
+    } catch (error) {
+      console.warn("获取B站主播名称失败", error);
     }
   }
 

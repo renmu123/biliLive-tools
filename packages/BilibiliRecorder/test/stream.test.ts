@@ -5,6 +5,7 @@ import {
   getRoomPlayInfo,
   getRoomBaseInfo,
   getStatusInfoByUIDs,
+  getAnchorInRoom,
   LiveStatus,
 } from "../src/bilibili_api";
 import { utils } from "@bililive-tools/manager";
@@ -15,6 +16,7 @@ vi.mock("../src/bilibili_api", () => ({
   getRoomPlayInfo: vi.fn(),
   getRoomBaseInfo: vi.fn(),
   getStatusInfoByUIDs: vi.fn(),
+  getAnchorInRoom: vi.fn(),
 }));
 
 describe("stream.ts", () => {
@@ -245,6 +247,35 @@ describe("stream.ts", () => {
       // 普通直播间：normal 类型，可录制，isCharge=false
       expect(info.isCharge).toBe(false);
       expect(info.liveType).toBe("normal");
+      expect(info.canRecord).toBe(true);
+      expect(getAnchorInRoom).not.toHaveBeenCalled();
+    });
+
+    it("主播名为空时从房间主播接口补全，保留原有标题", async () => {
+      vi.mocked(getRoomInit).mockResolvedValue({
+        room_id: 67890,
+        short_id: 0,
+        uid: 12345,
+        live_status: 1,
+        live_time: 1704067200,
+        encrypted: false,
+        is_sp: 0,
+        special_type: 0,
+      });
+      vi.mocked(getStatusInfoByUIDs).mockResolvedValue({
+        12345: { uname: "", title: "已有标题", live_time: 1704067200 },
+      } as any);
+      vi.mocked(getAnchorInRoom).mockResolvedValue({ info: { uname: "补全的主播名" } });
+      vi.mocked(getRoomPlayInfo).mockResolvedValue({
+        all_special_types: [],
+        playurl_info: { playurl: { stream: [{}] } },
+      } as any);
+
+      const info = await getInfo("67890");
+
+      expect(getAnchorInRoom).toHaveBeenCalledWith(67890);
+      expect(info.owner).toBe("补全的主播名");
+      expect(info.title).toBe("已有标题");
       expect(info.canRecord).toBe(true);
     });
 

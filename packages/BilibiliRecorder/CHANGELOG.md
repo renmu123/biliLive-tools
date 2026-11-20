@@ -1,3 +1,7 @@
+# 1.9.6
+
+- 录制：B站录制获取主播名增加额外fallback
+
 # 1.9.5
 
 - 录制：修复B站礼物弹幕无法保存的bug [#593](https://github.com/renmu123/biliLive-tools/issues/593)
