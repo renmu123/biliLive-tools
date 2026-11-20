@@ -88,6 +88,7 @@ export interface GetRecorderArgs {
   id: RecoderConfig["id"];
 }
 export type GetRecorderResp = RecoderConfig;
+export type GetRecorderInfoResp = ClientRecorder;
 
 export type AddRecorderArgs = Omit<RecoderConfig, "id">;
 export type AddRecorderResp = ClientRecorder;
@@ -306,6 +307,10 @@ export type RecorderAPI = {
   getRecentRecordFolder: {
     Args: GetRecentRecordFolderArgs;
     Resp: GetRecentRecordFolderResp;
+  };
+  getRecorderInfo: {
+    Args: GetRecorderArgs;
+    Resp: GetRecorderInfoResp;
   };
   queryStreamerDetail: {
     Args: QueryStreamerDetailArgs;

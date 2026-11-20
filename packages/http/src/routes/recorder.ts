@@ -351,6 +351,12 @@ router.get("/:id", (ctx) => {
   ctx.body = { payload: recorderService.getRecorder({ id }) };
 });
 
+/** 获取录制器的实时状态。 */
+router.get("/:id/info", (ctx) => {
+  const { id } = ctx.params;
+  ctx.body = { payload: recorderService.getRecorderInfo({ id }) };
+});
+
 /**
  * 获取直播播放列表
  * @route GET /recorder/:recorderId/stream

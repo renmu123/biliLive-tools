@@ -5,7 +5,15 @@
         <n-card class="hero-card" :bordered="false">
           <div class="hero-main">
             <div class="profile-block">
+              <img
+                v-if="isRecording && cover"
+                class="profile-cover"
+                :src="cover"
+                alt="直播封面"
+                referrerpolicy="no-referrer"
+              />
               <n-avatar
+                v-else
                 round
                 :size="80"
                 class="profile-avatar"
@@ -17,7 +25,17 @@
               <div class="profile-content">
                 <div class="profile-heading">
                   <div>
-                    <h1>{{ displayName }}</h1>
+                    <div class="profile-name">
+                      <n-avatar
+                        v-if="isRecording && avatar"
+                        round
+                        :size="32"
+                        class="profile-avatar-small"
+                        :src="avatar"
+                        referrerpolicy="no-referrer"
+                      />
+                      <h1>{{ displayName }}</h1>
+                    </div>
                     <div class="profile-meta">
                       <span>{{ platformLabel }}</span>
                       <span class="room-meta">
@@ -57,7 +75,6 @@
                     <n-tag v-if="monitorLabel" :type="monitorTagType" round>{{
                       monitorLabel
                     }}</n-tag>
-                    <n-tag v-if="stateLabel" :type="stateTagType" round>{{ stateLabel }}</n-tag>
                   </div>
                 </div>
               </div>
@@ -71,6 +88,50 @@
               <n-button @click="openRecorderSetting">直播间设置</n-button>
               <n-button :loading="loading" @click="handleQuery">刷新</n-button>
               <n-button @click="goBack">返回</n-button>
+            </div>
+          </div>
+        </n-card>
+
+        <n-card v-if="isRecording" class="recording-card" :bordered="false">
+          <div class="recording-card-header">
+            <div class="recording-card-title">
+              <span class="recording-indicator"></span>
+              <h2>当前录制</h2>
+            </div>
+            <div class="recording-actions">
+              <n-button size="small" @click="watchLive">观看直播</n-button>
+              <n-button
+                v-if="result.recorderInfo?.recordHandle?.recorderType === 'bililive'"
+                size="small"
+                @click="cutRecording"
+              >
+                切割
+              </n-button>
+              <n-button v-if="!isWeb" size="small" @click="openRecordingFolder">
+                打开录播文件夹
+              </n-button>
+            </div>
+          </div>
+          <div class="recording-info-grid">
+            <div class="recording-info-item">
+              <span>录制时间</span>
+              <strong>{{ result.recorderInfo?.recordHandle?.progress?.time || "--" }}</strong>
+            </div>
+            <div class="recording-info-item">
+              <span>直播开始时间</span>
+              <strong>{{ formatStartTime(result.recorderInfo?.liveInfo?.liveStartTime) }}</strong>
+            </div>
+            <div class="recording-info-item">
+              <span>录制开始时间</span>
+              <strong>{{ formatStartTime(result.recorderInfo?.liveInfo?.recordStartTime) }}</strong>
+            </div>
+            <div class="recording-info-item">
+              <span>线路</span>
+              <strong>{{ result.recorderInfo?.usedSource || "--" }}</strong>
+            </div>
+            <div class="recording-info-item">
+              <span>画质</span>
+              <strong>{{ result.recorderInfo?.usedStream || "--" }}</strong>
             </div>
           </div>
         </n-card>
@@ -248,6 +309,7 @@ import AddRecorderModal from "@renderer/pages/Tools/pages/Recorder/components/ad
 import SessionDanmaStats from "./components/SessionDanmaStats.vue";
 import RecordCalendar from "./components/RecordCalendar.vue";
 import { useTitle } from "@vueuse/core";
+import { toLiveVideoPlayerPage } from "@renderer/utils/pages";
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { RecentRecordClipItem } from "@renderer/apis/recordHistory";
 
@@ -275,6 +337,7 @@ const queryParams = reactive<RecorderAPI["queryStreamerDetail"]["Args"]>({
 
 const loading = ref(false);
 const recordActionLoading = ref(false);
+const isWeb = window.isWeb;
 const recentClipLoading = ref(false);
 const recorderSettingVisible = ref(false);
 const activeTab = ref("timeline");
@@ -305,7 +368,7 @@ watch(
   () => displayName.value,
   (newName) => {
     if (newName) {
-      pageTitle.value = `${newName} 录制详情`;
+      pageTitle.value = `${newName}的录制详情`;
     }
   },
   { immediate: true },
@@ -313,6 +376,7 @@ watch(
 const avatar = computed(
   () => result.recorderInfo?.liveInfo?.avatar || result.recorderInfo?.extra?.avatar,
 );
+const cover = computed(() => result.recorderInfo?.liveInfo?.cover);
 const platformLabel = computed(
   () => result.recorderInfo?.providerId || result.streamer?.platform || "-",
 );
@@ -325,8 +389,6 @@ const monitorTagType = computed(() =>
   result.recorderInfo?.disableAutoCheck ? "warning" : "success",
 );
 const isRecording = computed(() => result.recorderInfo?.state === "recording");
-const stateLabel = computed(() => (isRecording.value ? "录制中" : ""));
-const stateTagType = computed(() => (isRecording.value ? "error" : "default"));
 const channelURL = computed(() => result.recorderInfo?.channelURL || "");
 const recorderTimeline = computed(() => [...(result.recorderInfo?.timeline || [])].reverse());
 
@@ -524,6 +586,38 @@ const toggleRecording = async () => {
   }
 };
 
+const watchLive = async () => {
+  try {
+    await toLiveVideoPlayerPage({
+      liveId: streamerInfo.recorderId,
+      owner: displayName.value,
+    });
+  } catch (error: any) {
+    notice.error({ title: error?.message || "无法观看直播" });
+  }
+};
+
+const cutRecording = async () => {
+  try {
+    await recoderApi.cut(streamerInfo.recorderId);
+    notice.success({ title: "已切割录制" });
+  } catch (error: any) {
+    notice.error({ title: error?.message || "切割失败" });
+  }
+};
+
+const openRecordingFolder = async () => {
+  try {
+    const savePath = result.recorderInfo?.recordHandle?.savePath;
+    const folderPath = savePath
+      ? window.path.dirname(savePath)
+      : (await recoderApi.getRecentRecordFolder(streamerInfo.recorderId)).folderPath;
+    await window.api.openPath(folderPath);
+  } catch (error: any) {
+    notice.error({ title: error?.message || "打开录播文件夹失败" });
+  }
+};
+
 const resolveSessionStatus = (index: number) => {
   if (isRecording.value && queryParams.page === 1 && index === 0) {
     return {
@@ -590,9 +684,44 @@ const formatFileSize = (fileSize?: number) => {
   return `${mb.toFixed(1)} MB`;
 };
 
+const formatStartTime = (value?: Date | string) => {
+  if (!value) return "--";
+  const timestamp = Date.parse(String(value));
+  return Number.isFinite(timestamp) && timestamp > 0 ? formatTime(timestamp) : "--";
+};
+
+let recorderInfoInterval: ReturnType<typeof setInterval> | null = null;
+let recorderInfoLoading = false;
+
+const refreshRecorderInfo = async () => {
+  if (recorderInfoLoading || document.visibilityState === "hidden") return;
+  recorderInfoLoading = true;
+  try {
+    result.recorderInfo = await recoderApi.getRecorderInfo(streamerInfo.recorderId);
+  } catch {
+    // 手动刷新会展示请求错误，轮询期间保留最后一次成功的状态。
+  } finally {
+    recorderInfoLoading = false;
+  }
+};
+
+const startRecorderInfoInterval = () => {
+  if (recorderInfoInterval || !streamerInfo.recorderId) return;
+  recorderInfoInterval = setInterval(refreshRecorderInfo, 3000);
+};
+
+const stopRecorderInfoInterval = () => {
+  if (recorderInfoInterval) clearInterval(recorderInfoInterval);
+  recorderInfoInterval = null;
+};
+
 onMounted(() => {
   handleQuery();
+  startRecorderInfoInterval();
 });
+onActivated(startRecorderInfoInterval);
+onDeactivated(stopRecorderInfoInterval);
+onUnmounted(stopRecorderInfoInterval);
 </script>
 
 <style scoped lang="less">
@@ -613,6 +742,7 @@ onMounted(() => {
 }
 
 .hero-card,
+.recording-card,
 .stat-card,
 .tab-panel {
   border-radius: 24px;
@@ -630,6 +760,62 @@ onMounted(() => {
 
   [data-theme="dark"] & {
     background: linear-gradient(135deg, rgba(36, 40, 48, 0.98), rgba(25, 29, 36, 0.96));
+  }
+}
+
+.recording-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.recording-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+}
+
+.recording-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff4d4f;
+  box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.12);
+}
+
+.recording-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recording-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.recording-info-item {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+
+  span {
+    color: #7b8699;
+    font-size: 13px;
+  }
+
+  strong {
+    font-size: 18px;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -655,6 +841,25 @@ onMounted(() => {
   font-weight: 700;
 }
 
+.profile-cover {
+  width: 140px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.profile-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.profile-avatar-small {
+  flex-shrink: 0;
+}
+
 .profile-content {
   min-width: 0;
   display: grid;
@@ -670,8 +875,10 @@ onMounted(() => {
 
   h1 {
     margin: 0;
+    min-width: 0;
     font-size: 34px;
     line-height: 1.18;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -980,6 +1187,7 @@ onMounted(() => {
   }
 
   .hero-card,
+  .recording-card,
   .stat-card,
   .tab-panel {
     border-radius: 16px;
@@ -1002,6 +1210,12 @@ onMounted(() => {
     width: 56px !important;
     height: 56px !important;
     font-size: 24px;
+  }
+
+  .profile-cover {
+    width: 96px;
+    height: 56px;
+    border-radius: 8px;
   }
 
   .profile-content {
@@ -1041,6 +1255,11 @@ onMounted(() => {
   .stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+  }
+
+  .recording-info-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .stat-card:last-child {
