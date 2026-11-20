@@ -1,8 +1,12 @@
 <template>
   <n-space vertical>
-    <n-layout :has-sider="!isMobile" class="layout" position="absolute">
+    <n-layout
+      :has-sider="!isMobile && route.name !== 'MonitorRoom'"
+      class="layout"
+      position="absolute"
+    >
       <n-layout-sider
-        v-if="!isMobile"
+        v-if="!isMobile && route.name !== 'MonitorRoom'"
         bordered
         collapse-mode="width"
         :collapsed-width="64"
@@ -37,7 +41,7 @@
       </n-layout-sider>
 
       <n-layout :class="['main-container', route.name, { mobile: isMobile }]">
-        <div v-if="isMobile" class="mobile-header">
+        <div v-if="isMobile && route.name !== 'MonitorRoom'" class="mobile-header">
           <n-button quaternary class="mobile-menu-trigger" @click="mobileMenuVisible = true">
             <template #icon>
               <n-icon size="36">
@@ -594,6 +598,15 @@ initChanglog();
     margin-right: 10px;
     & > .n-layout-scroll-container {
       padding-right: 0px;
+    }
+  }
+
+  &.MonitorRoom {
+    margin: 0;
+
+    & > .n-layout-scroll-container {
+      padding-right: 0;
+      overflow: hidden;
     }
   }
 }

@@ -174,6 +174,12 @@ const router = createRouter({
           component: () => import("../pages/LiveVideoPlayer/Index.vue"),
           meta: { keepAlive: false, title: "直播视频播放器" },
         },
+        {
+          path: "/monitorRoom",
+          name: "MonitorRoom",
+          component: () => import("../pages/MonitorRoom/Index.vue"),
+          meta: { keepAlive: false, title: "监控室" },
+        },
       ],
     },
   ],

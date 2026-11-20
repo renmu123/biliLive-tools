@@ -19,6 +19,9 @@ const props = withDefaults(
   defineProps<{
     option: {
       fullscreen?: boolean;
+      muted?: boolean;
+      volume?: number;
+      mutex?: boolean;
       url?: string;
       type?: string;
       string?: any;

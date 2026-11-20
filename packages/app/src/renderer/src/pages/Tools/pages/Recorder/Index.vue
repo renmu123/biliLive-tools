@@ -53,6 +53,7 @@
         @update:field="handleSortFieldChange"
         @update:direction="handleSortDirectionChange"
       />
+      <n-button @click="openMonitorRoom">监控室</n-button>
       <ColumnSelector v-model="visibleColumns" :columns="columnConfig" />
       <n-button type="warning" @click="getLiveInfo(true)">刷新</n-button>
       <ButtonGroup :options="actionBtns" @click="handleActionClick">添加</ButtonGroup>
@@ -156,6 +157,7 @@
 
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
+import { getMonitorRoomLayout } from "@renderer/apis/monitorRoom";
 import { useConfirm } from "@renderer/hooks";
 import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
 import addModal from "./components/addModal.vue";
@@ -213,6 +215,25 @@ const { visibleColumns } = useVisibleColumns({
 
 const notice = useNotice();
 const router = useRouter();
+const openMonitorRoom = async () => {
+  if (window.isWeb) {
+    window.open(router.resolve({ name: "MonitorRoom" }).href, "_blank");
+    return;
+  }
+
+  try {
+    const layout = await getMonitorRoomLayout();
+    await window.api.common.createSubWindow({
+      routeName: "monitorRoom",
+      hideAside: true,
+      hideMenuBar: true,
+      hideTitleBar: layout?.hideTitleBar === true,
+      maximized: true,
+    });
+  } catch (error: any) {
+    notice.error({ title: error?.message || "打开监控室失败" });
+  }
+};
 const recorderLocalParams = useStorage(
   "recorder",
   {
