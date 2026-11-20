@@ -162,6 +162,57 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip
+                :tip="textInfo.common.timelineLimit.tip"
+                :text="textInfo.common.timelineLimit.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.timelineLimit"
+              :min="5"
+              :max="200"
+              :step="1"
+              style="width: 220px"
+            >
+              <template #suffix>条</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.shortRecordingThreshold.tip"
+                :text="textInfo.common.shortRecordingThreshold.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.shortRecordingThreshold"
+              :min="1"
+              :max="300"
+              :step="1"
+              style="width: 220px"
+            >
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.common.shortRecordingRetryCount.tip"
+                :text="textInfo.common.shortRecordingRetryCount.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.shortRecordingRetryCount"
+              :min="1"
+              :max="10"
+              :step="1"
+              style="width: 220px"
+            >
+              <template #suffix>次</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
               <Tip tip="如果你遇到特定直播间的录制问题，请打开此开关" text="调试模式"></Tip>
             </template>
             <n-select

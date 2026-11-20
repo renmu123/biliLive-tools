@@ -44,6 +44,11 @@ vi.mock("@bililive-tools/douyin-recorder", () => ({ provider: { id: "douyin" } }
 vi.mock("@bililive-tools/xhs-recorder", () => ({ provider: { id: "xhs" } }));
 vi.mock("@bililive-tools/manager", () => ({
   createRecorderManager: vi.fn(() => fakeManager),
+  RECORDER_LIMITS: {
+    timelineLimit: { default: 40, min: 5, max: 200 },
+    shortRecordingThreshold: { default: 12, min: 1, max: 300 },
+    shortRecordingRetryCount: { default: 2, min: 1, max: 10 },
+  },
   setFFMPEGPath: vi.fn(),
   setMesioPath: vi.fn(),
   setBililivePath: vi.fn(),
