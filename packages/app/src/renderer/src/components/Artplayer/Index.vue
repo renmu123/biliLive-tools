@@ -261,6 +261,22 @@ ${tsFile}
       },
     },
   });
+  if (props.isLive) {
+    instance.proxy(
+      instance.video,
+      "click",
+      (event) => {
+        event.stopImmediatePropagation();
+        if (instance && !instance.playing && !Artplayer.utils.isMobile) instance.play();
+      },
+      { capture: true },
+    );
+    instance.proxy(instance.video, "dblclick", () => {
+      if (instance && !Artplayer.utils.isMobile && Artplayer.DBCLICK_FULLSCREEN) {
+        instance.fullscreen = !instance.fullscreen;
+      }
+    });
+  }
   await nextTick();
 
   // @ts-ignore
