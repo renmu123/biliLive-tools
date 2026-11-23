@@ -78,7 +78,9 @@ router.get(
     const recorder = typeof id === "string" ? recorderManager.manager.getRecorder(id) : null;
 
     if (
-      (recorder?.providerId === "Bilibili" || recorder?.providerId === "DouYu") &&
+      (recorder?.providerId === "Bilibili" ||
+        recorder?.providerId === "DouYu" ||
+        recorder?.providerId === "HuYa") &&
       recorder.subscribeComments
     ) {
       let closed = false;
