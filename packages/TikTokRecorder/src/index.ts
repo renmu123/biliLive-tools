@@ -19,6 +19,7 @@ import type {
   RecorderProvider,
   RecordHandle,
   VideoFileCreatedPayload,
+  Message,
 } from "@bililive-tools/manager";
 const TIKTOK_REFERER = "https://www.tiktok.com/";
 
@@ -50,6 +51,40 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
 
     getChannelURL() {
       return `https://www.tiktok.com/@${encodeURIComponent(this.channelId)}/live`;
+    },
+    async subscribeComments(listener: (message: Message) => void) {
+      const info = await getInfo(this.channelId, {
+        api: this.api,
+        auth: this.auth,
+        proxy: this.proxy,
+      });
+      if (!info.living) throw new Error("直播间未开播，无法订阅弹幕");
+
+      const client = new TikTokDanmaClient(this.channelId, {
+        auth: this.auth,
+        proxy: this.proxy,
+        roomId: info.webcastRoomId,
+      });
+      client.on("Message", listener);
+      const onConnectionError = (error: unknown) => {
+        this.emit("DebugLog", { type: "error", text: `弹幕连接错误: ${formatError(error)}` });
+      };
+      client.on("ConnectionError", onConnectionError);
+      let subscribed = true;
+      const unsubscribe = () => {
+        if (!subscribed) return;
+        subscribed = false;
+        client.off("Message", listener);
+        client.off("ConnectionError", onConnectionError);
+        client.stop();
+      };
+      try {
+        await client.start();
+      } catch (error) {
+        unsubscribe();
+        throw error;
+      }
+      return unsubscribe;
     },
     checkLiveStatusAndRecord: utils.singleton(checkLiveStatusAndRecord),
 

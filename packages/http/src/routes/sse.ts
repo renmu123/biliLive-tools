@@ -81,7 +81,8 @@ router.get(
       (recorder?.providerId === "Bilibili" ||
         recorder?.providerId === "DouYu" ||
         recorder?.providerId === "HuYa" ||
-        recorder?.providerId === "DouYin") &&
+        recorder?.providerId === "DouYin" ||
+        recorder?.providerId === "TikTok") &&
       recorder.subscribeComments
     ) {
       let closed = false;
