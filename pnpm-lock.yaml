@@ -35,6 +35,7 @@ overrides:
   tiny-bilibili-ws: 1.1.1
 
 patchedDependencies:
+  mpegts.js@1.8.0: 4c691fddfb8a4fbf2635ec2b6b68c0daba0cb06051720cddaa10ac98d00afdb0
   trash: cfa84ab1bc2a458d2995d9692e4ecf5da7bb0637bf93de009c3fa31b6fc3b957
 
 importers:
@@ -514,7 +515,7 @@ importers:
         version: 3.0.1
       mpegts.js:
         specifier: ^1.8.0
-        version: 1.8.0
+        version: 1.8.0(patch_hash=4c691fddfb8a4fbf2635ec2b6b68c0daba0cb06051720cddaa10ac98d00afdb0)
       naive-ui:
         specifier: ^2.44.1
         version: 2.44.1(vue@3.5.13(typescript-native-bridge@6.0.3-bridge.15.tsgo.7.0.2))
@@ -10493,7 +10494,7 @@ snapshots:
     dependencies:
       path-exists: 5.0.0
 
-  mpegts.js@1.8.0:
+  mpegts.js@1.8.0(patch_hash=4c691fddfb8a4fbf2635ec2b6b68c0daba0cb06051720cddaa10ac98d00afdb0):
     dependencies:
       es6-promise: 4.2.8
       webworkify-webpack: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef

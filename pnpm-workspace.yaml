@@ -17,6 +17,7 @@ catalog:
   "fast-xml-parser": "^5.9.3"
 
 patchedDependencies:
+  mpegts.js@1.8.0: patches/mpegts.js@1.8.0.patch
   "trash": "patches/trash.patch"
 
 overrides:
