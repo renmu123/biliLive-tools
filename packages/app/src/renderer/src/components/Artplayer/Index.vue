@@ -16,6 +16,7 @@ import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 import artplayerPluginSubtitle from "./artplayer-plugin-subtitle";
 import artplayerPluginChapter from "./artplayer-plugin-chapter";
 import { useStorage } from "@vueuse/core";
+import { createStreamLifecycle } from "./streamLifecycle";
 
 type DanmukuSettings = Pick<
   DanmukuOption,
@@ -99,6 +100,8 @@ const emits = defineEmits<{
 
 const artRef = ref<HTMLDivElement | null>(null);
 let instance: Artplayer | null = null;
+const streams = createStreamLifecycle();
+let subtitleTimer: ReturnType<typeof setTimeout> | undefined;
 
 onMounted(async () => {
   const plugins: any[] = [];
@@ -179,15 +182,6 @@ onMounted(async () => {
     console.error("artRef is null");
     return;
   }
-  let disposeStream: (() => void) | undefined;
-  const replaceStream = (art: Artplayer, dispose: () => void) => {
-    if (disposeStream) {
-      art.off("destroy", disposeStream);
-      disposeStream();
-    }
-    disposeStream = dispose;
-    art.on("destroy", dispose);
-  };
   instance = new Artplayer({
     url: props?.option?.url ?? "",
     type: props?.option?.type ?? "",
@@ -207,38 +201,61 @@ onMounted(async () => {
     // playbackRate: true,
     customType: {
       flv: (video, url, art) => {
-        if (mpegts.isSupported()) {
-          const flv = mpegts.createPlayer({
-            type: "flv",
-            url: url,
-            isLive: props.isLive,
-          });
-          replaceStream(art, () => flv.destroy());
-          flv.attachMediaElement(video);
-          flv.load();
+        streams.replace(art, (onDispose) => {
+          if (mpegts.isSupported()) {
+            const flv = mpegts.createPlayer(
+              {
+                type: "flv",
+                url: url,
+                isLive: props.isLive,
+              },
+              props.isLive
+                ? undefined
+                : {
+                    // 高码率录播不使用默认的三分钟预加载，并及时清理已播缓存。
+                    lazyLoadMaxDuration: 30,
+                    lazyLoadRecoverDuration: 5,
+                    autoCleanupSourceBuffer: true,
+                    autoCleanupMaxBackwardDuration: 30,
+                    autoCleanupMinBackwardDuration: 10,
+                  },
+            );
+            onDispose(() => {
+              flv.destroy();
+              if (art.flv === flv) delete art.flv;
+            });
+            flv.attachMediaElement(video);
+            flv.load();
 
-          art.flv = flv;
-        } else {
-          art.notice.show = "Unsupported playback format: flv";
-        }
+            art.flv = flv;
+          } else {
+            art.notice.show = "Unsupported playback format: flv";
+          }
+        });
       },
       m3u8: function playM3u8(video, url, art) {
-        if (Hls.isSupported()) {
-          const hls = new Hls();
-          replaceStream(art, () => hls.destroy());
-          hls.loadSource(url);
-          hls.attachMedia(video);
-          art.hls = hls;
-        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = url;
-        } else {
-          art.notice.show = "Unsupported playback format: m3u8";
-        }
+        streams.replace(art, (onDispose) => {
+          if (Hls.isSupported()) {
+            const hls = new Hls();
+            onDispose(() => {
+              hls.destroy();
+              if (art.hls === hls) delete art.hls;
+            });
+            hls.loadSource(url);
+            hls.attachMedia(video);
+            art.hls = hls;
+          } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            video.src = url;
+          } else {
+            art.notice.show = "Unsupported playback format: m3u8";
+          }
+        });
       },
       ts: function play(video, url, art) {
-        const duration = 5;
-        const tsFile = url;
-        const m3u8Content = `#EXTM3U
+        streams.replace(art, (onDispose) => {
+          const duration = 5;
+          const tsFile = url;
+          const m3u8Content = `#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:${duration}
 #EXT-X-MEDIA-SEQUENCE:0
@@ -246,28 +263,31 @@ onMounted(async () => {
 ${tsFile}
 #EXT-X-ENDLIST`;
 
-        const blob = new Blob([m3u8Content], { type: "application/vnd.apple.mpegurl" });
-        const m3u8URL = URL.createObjectURL(blob);
+          const blob = new Blob([m3u8Content], { type: "application/vnd.apple.mpegurl" });
+          const m3u8URL = URL.createObjectURL(blob);
 
-        if (Hls.isSupported()) {
-          const hls = new Hls();
-          replaceStream(art, () => {
-            hls.destroy();
+          if (Hls.isSupported()) {
+            const hls = new Hls();
+            onDispose(() => {
+              hls.destroy();
+              if (art.hls === hls) delete art.hls;
+              URL.revokeObjectURL(m3u8URL);
+            });
+            hls.loadSource(m3u8URL);
+            hls.attachMedia(video);
+            art.hls = hls;
+          } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            video.src = url;
             URL.revokeObjectURL(m3u8URL);
-          });
-          hls.loadSource(m3u8URL);
-          hls.attachMedia(video);
-          art.hls = hls;
-        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = url;
-          URL.revokeObjectURL(m3u8URL);
-        } else {
-          URL.revokeObjectURL(m3u8URL);
-          art.notice.show = "Unsupported playback format: m3u8";
-        }
+          } else {
+            URL.revokeObjectURL(m3u8URL);
+            art.notice.show = "Unsupported playback format: m3u8";
+          }
+        });
       },
     },
   });
+  instance.on("destroy", streams.destroy);
   if (props.isLive) {
     instance.controls.add({
       name: "refreshStream",
@@ -301,6 +321,7 @@ ${tsFile}
     });
   }
   await nextTick();
+  if (!instance || instance.isDestroy) return;
 
   // @ts-ignore
   instance.artplayerPluginSubtitle = instance?.plugins?.artplayerPluginSubtitle;
@@ -334,12 +355,14 @@ ${tsFile}
 
   // console.log("Artplayer instance created:", instance);
 
-  setTimeout(() => {
+  subtitleTimer = setTimeout(() => {
+    if (!instance || instance.isDestroy) return;
     // TODO:这里可能未来会出现问题，artplayerPluginSubtitle是异步插件
     // @ts-ignore
     instance.artplayerPluginSubtitle = instance?.plugins?.artplayerPluginSubtitle;
   }, 1000);
   await nextTick();
+  if (!instance || instance.isDestroy) return;
   emits("ready", instance);
   instance.on("error", (error, reconnectTime) => {
     emits("error", { error, reconnectTime });
@@ -358,8 +381,7 @@ ${tsFile}
 
 const switchUrl = async (url: string, type: "" | "flv" | "m3u8" = "") => {
   if (instance) {
-    instance.type = type;
-    instance?.switchUrl(url);
+    await streams.switchUrl(instance, url, type);
   } else {
     console.error("instance is null");
   }
@@ -418,9 +440,12 @@ defineExpose({
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(subtitleTimer);
+  streams.destroy();
   if (instance && instance.destroy) {
     instance.destroy(false);
   }
+  instance = null;
 });
 </script>
 
