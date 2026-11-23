@@ -32,8 +32,9 @@ function int2HexColor(color: number): string {
   return `#${hex}`;
 }
 
-async function parseForArtPlayerData(filepath: string) {
-  const data = await parseDanmu(filepath);
+type ParsedDanmu = Awaited<ReturnType<typeof parseDanmu>>;
+
+function parseForArtPlayerData(data: ParsedDanmu) {
   const danmuList: {
     text: string;
     time: number;
@@ -72,6 +73,17 @@ async function parseForArtPlayerData(filepath: string) {
   return danmuList;
 }
 
+function parseSuperChats(data: ParsedDanmu) {
+  return data.sc
+    .filter((item) => Number.isFinite(item.ts) && item.text)
+    .map((item) => ({
+      time: item.ts,
+      text: item.text,
+      user: item.user,
+      price: Number(item.gift_price) || 0,
+    }));
+}
+
 router.get("/content/:id", async (ctx) => {
   const { id } = ctx.params;
   const file = fileCache.get(id);
@@ -95,9 +107,11 @@ router.get("/content/:id", async (ctx) => {
     return;
   }
   if (ext === ".xml") {
+    const data = await parseDanmu(file.path);
     ctx.body = {
       danmaType: "xml",
-      content: await parseForArtPlayerData(file.path),
+      content: parseForArtPlayerData(data),
+      sc: parseSuperChats(data),
     };
     return;
   }
@@ -110,7 +124,12 @@ router.post("/parseForArtPlayer", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;
   };
-  ctx.body = await parseForArtPlayerData(filepath);
+  ctx.body = parseForArtPlayerData(await parseDanmu(filepath));
+});
+
+router.post("/parseSCForArtPlayer", async (ctx) => {
+  const { filepath } = ctx.request.body as { filepath: string };
+  ctx.body = parseSuperChats(await parseDanmu(filepath));
 });
 
 export default router;

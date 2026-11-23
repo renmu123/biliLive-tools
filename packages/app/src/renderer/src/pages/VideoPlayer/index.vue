@@ -19,7 +19,7 @@
       <Artplayer
         ref="playerRef"
         :option="playerOptions"
-        :plugins="['ass', 'danmuku']"
+        :plugins="['ass', 'danmuku', 'sc']"
         @ready="handlePlayerReady"
       />
     </div>
@@ -86,6 +86,7 @@ const syncDanmaSource = async () => {
   if (data.danmaType === "xml") {
     const danmuku = Array.isArray(data.content) ? data.content : [];
     await playerRef.value?.switchDanmuku(danmuku);
+    playerRef.value?.switchSC(data.sc ?? []);
     return;
   }
 
