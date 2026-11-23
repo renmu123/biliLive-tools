@@ -7,7 +7,7 @@
       url: query.url,
     }"
     is-live
-    :plugins="['danmuku', 'hls']"
+    :plugins="['danmuku', 'hls', 'sc']"
     @ready="handleVideoReady"
   ></Artplayer>
 </template>
@@ -50,6 +50,16 @@ async function streamLogs() {
   source.onmessage = function (event) {
     const data = JSON.parse(event.data);
     if (!videoInstance.value) return;
+    if (data.type === "super_chat") {
+      // @ts-ignore
+      videoInstance.value.artplayerPluginSC?.emit({
+        text: data.text,
+        user: data.sender?.name,
+        price: data.price,
+        avatar: data.sender?.avatar,
+      });
+      return;
+    }
     if (!data.text) return;
     let mode = 0;
 

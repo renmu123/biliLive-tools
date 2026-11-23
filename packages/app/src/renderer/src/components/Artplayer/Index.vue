@@ -15,7 +15,10 @@ import type { Option as DanmukuOption, Result as DanmukuResult } from "artplayer
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 import artplayerPluginSubtitle from "./artplayer-plugin-subtitle";
 import artplayerPluginChapter from "./artplayer-plugin-chapter";
+import artplayerPluginSC from "./artplayer-plugin-sc";
+import type { SuperChatItem } from "./artplayer-plugin-sc";
 import { useStorage } from "@vueuse/core";
+import { createStreamLifecycle } from "./streamLifecycle";
 
 type DanmukuSettings = Pick<
   DanmukuOption,
@@ -80,6 +83,9 @@ const props = withDefaults(
             encoding?: string;
           }>;
         };
+        sc?: {
+          duration?: number;
+        };
       };
     };
     plugins?: string[];
@@ -99,6 +105,8 @@ const emits = defineEmits<{
 
 const artRef = ref<HTMLDivElement | null>(null);
 let instance: Artplayer | null = null;
+const streams = createStreamLifecycle();
+let subtitleTimer: ReturnType<typeof setTimeout> | undefined;
 
 onMounted(async () => {
   const plugins: any[] = [];
@@ -168,6 +176,14 @@ onMounted(async () => {
     if (props.plugins.includes("chapter")) {
       plugins.push(artplayerPluginChapter({}));
     }
+    if (props.plugins.includes("sc")) {
+      plugins.push(
+        artplayerPluginSC({
+          ...props?.option?.plugins?.sc,
+          visible: props.plugins.includes("danmuku") && danmukuSettings.value.visible !== false,
+        }),
+      );
+    }
   } else {
     plugins.push(
       artplayerPluginAssJS({
@@ -198,43 +214,61 @@ onMounted(async () => {
     // playbackRate: true,
     customType: {
       flv: (video, url, art) => {
-        if (mpegts.isSupported()) {
-          // @ts-expect-error
-          if (art.flv) art.flv.destroy();
+        streams.replace(art, (onDispose) => {
+          if (mpegts.isSupported()) {
+            const flv = mpegts.createPlayer(
+              {
+                type: "flv",
+                url: url,
+                isLive: props.isLive,
+              },
+              props.isLive
+                ? undefined
+                : {
+                    // 高码率录播不使用默认的三分钟预加载，并及时清理已播缓存。
+                    lazyLoadMaxDuration: 30,
+                    lazyLoadRecoverDuration: 5,
+                    autoCleanupSourceBuffer: true,
+                    autoCleanupMaxBackwardDuration: 30,
+                    autoCleanupMinBackwardDuration: 10,
+                  },
+            );
+            onDispose(() => {
+              flv.destroy();
+              if (art.flv === flv) delete art.flv;
+            });
+            flv.attachMediaElement(video);
+            flv.load();
 
-          const flv = mpegts.createPlayer({
-            type: "flv",
-            url: url,
-            isLive: props.isLive,
-          });
-          flv.attachMediaElement(video);
-          flv.load();
-
-          art.flv = flv;
-          art.on("destroy", () => flv.destroy());
-        } else {
-          art.notice.show = "Unsupported playback format: flv";
-        }
+            art.flv = flv;
+          } else {
+            art.notice.show = "Unsupported playback format: flv";
+          }
+        });
       },
       m3u8: function playM3u8(video, url, art) {
-        if (Hls.isSupported()) {
-          // @ts-expect-error
-          if (art.hls) art.hls.destroy();
-          const hls = new Hls();
-          hls.loadSource(url);
-          hls.attachMedia(video);
-          art.hls = hls;
-          art.on("destroy", () => hls.destroy());
-        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = url;
-        } else {
-          art.notice.show = "Unsupported playback format: m3u8";
-        }
+        streams.replace(art, (onDispose) => {
+          if (Hls.isSupported()) {
+            const hls = new Hls();
+            onDispose(() => {
+              hls.destroy();
+              if (art.hls === hls) delete art.hls;
+            });
+            hls.loadSource(url);
+            hls.attachMedia(video);
+            art.hls = hls;
+          } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            video.src = url;
+          } else {
+            art.notice.show = "Unsupported playback format: m3u8";
+          }
+        });
       },
       ts: function play(video, url, art) {
-        const duration = 5;
-        const tsFile = url;
-        const m3u8Content = `#EXTM3U
+        streams.replace(art, (onDispose) => {
+          const duration = 5;
+          const tsFile = url;
+          const m3u8Content = `#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:${duration}
 #EXT-X-MEDIA-SEQUENCE:0
@@ -242,26 +276,65 @@ onMounted(async () => {
 ${tsFile}
 #EXT-X-ENDLIST`;
 
-        const blob = new Blob([m3u8Content], { type: "application/vnd.apple.mpegurl" });
-        const m3u8URL = URL.createObjectURL(blob);
+          const blob = new Blob([m3u8Content], { type: "application/vnd.apple.mpegurl" });
+          const m3u8URL = URL.createObjectURL(blob);
 
-        if (Hls.isSupported()) {
-          // @ts-expect-error
-          if (art.hls) art.hls.destroy();
-          const hls = new Hls();
-          hls.loadSource(m3u8URL);
-          hls.attachMedia(video);
-          art.hls = hls;
-          art.on("destroy", () => hls.destroy());
-        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = url;
-        } else {
-          art.notice.show = "Unsupported playback format: m3u8";
-        }
+          if (Hls.isSupported()) {
+            const hls = new Hls();
+            onDispose(() => {
+              hls.destroy();
+              if (art.hls === hls) delete art.hls;
+              URL.revokeObjectURL(m3u8URL);
+            });
+            hls.loadSource(m3u8URL);
+            hls.attachMedia(video);
+            art.hls = hls;
+          } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            video.src = url;
+            URL.revokeObjectURL(m3u8URL);
+          } else {
+            URL.revokeObjectURL(m3u8URL);
+            art.notice.show = "Unsupported playback format: m3u8";
+          }
+        });
       },
     },
   });
+  instance.on("destroy", streams.destroy);
+  if (props.isLive) {
+    instance.controls.add({
+      name: "refreshStream",
+      position: "left",
+      index: 15,
+      tooltip: "刷新",
+      html: '<svg viewBox="0 0 24 24" width="24" height="24" style="fill: none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.4 6.4"/><path d="M20 4v7h-7"/></svg>',
+      click: () => {
+        if (!instance?.option.url) return;
+        const player = instance;
+        player.pause();
+        player.once("video:canplay", () => {
+          if (!player.isDestroy) void player.play();
+        });
+        player.url = player.option.url;
+      },
+    });
+    instance.proxy(
+      instance.video,
+      "click",
+      (event) => {
+        event.stopImmediatePropagation();
+        if (instance && !instance.playing && !Artplayer.utils.isMobile) instance.play();
+      },
+      { capture: true },
+    );
+    instance.proxy(instance.video, "dblclick", () => {
+      if (instance && !Artplayer.utils.isMobile && Artplayer.DBCLICK_FULLSCREEN) {
+        instance.fullscreen = !instance.fullscreen;
+      }
+    });
+  }
   await nextTick();
+  if (!instance || instance.isDestroy) return;
 
   // @ts-ignore
   instance.artplayerPluginSubtitle = instance?.plugins?.artplayerPluginSubtitle;
@@ -273,6 +346,22 @@ ${tsFile}
   instance.artplayerTimestamp = instance?.plugins?.artplayerTimestamp;
   // @ts-ignore
   instance.artplayerPluginChapter = instance?.plugins?.artplayerPluginChapter;
+  // @ts-ignore
+  instance.artplayerPluginSC = instance?.plugins?.artplayerPluginSC;
+
+  const scPlugin = instance.plugins.artplayerPluginSC as
+    | ReturnType<ReturnType<typeof artplayerPluginSC>>
+    | undefined;
+  const danmukuPlugin = instance.plugins.artplayerPluginDanmuku as DanmukuResult | undefined;
+  if (scPlugin) {
+    const syncSCVisibility = () => {
+      scPlugin.setVisible(danmukuPlugin?.option.visible === true);
+    };
+    instance.on("artplayerPluginDanmuku:config", syncSCVisibility);
+    instance.on("artplayerPluginDanmuku:show", syncSCVisibility);
+    instance.on("artplayerPluginDanmuku:hide", syncSCVisibility);
+    syncSCVisibility();
+  }
 
   if (props.plugins?.includes("danmuku")) {
     let previousSettings = getDanmukuSettings(
@@ -295,12 +384,14 @@ ${tsFile}
 
   // console.log("Artplayer instance created:", instance);
 
-  setTimeout(() => {
+  subtitleTimer = setTimeout(() => {
+    if (!instance || instance.isDestroy) return;
     // TODO:这里可能未来会出现问题，artplayerPluginSubtitle是异步插件
     // @ts-ignore
     instance.artplayerPluginSubtitle = instance?.plugins?.artplayerPluginSubtitle;
   }, 1000);
   await nextTick();
+  if (!instance || instance.isDestroy) return;
   emits("ready", instance);
   instance.on("error", (error, reconnectTime) => {
     emits("error", { error, reconnectTime });
@@ -319,8 +410,7 @@ ${tsFile}
 
 const switchUrl = async (url: string, type: "" | "flv" | "m3u8" = "") => {
   if (instance) {
-    instance.type = type;
-    instance?.switchUrl(url);
+    await streams.switchUrl(instance, url, type);
   } else {
     console.error("instance is null");
   }
@@ -342,6 +432,13 @@ const switchDanmuku = async (danmuku: any[]) => {
     // @ts-ignore
     instance.plugins.artplayerPluginDanmuku.load();
   }
+};
+
+const switchSC = (sc: SuperChatItem[]) => {
+  const plugin = instance?.plugins?.artplayerPluginSC as
+    | ReturnType<ReturnType<typeof artplayerPluginSC>>
+    | undefined;
+  plugin?.setData(sc);
 };
 
 // subtitle
@@ -373,15 +470,19 @@ defineExpose({
   video,
   switchAss,
   switchDanmuku,
+  switchSC,
   switchSubtitle,
   resetSubtitle,
   setSubtitleContent,
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(subtitleTimer);
+  streams.destroy();
   if (instance && instance.destroy) {
     instance.destroy(false);
   }
+  instance = null;
 });
 </script>
 
