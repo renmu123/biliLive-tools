@@ -55,6 +55,8 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   private timeoutTimer!: NodeJS.Timeout;
   private isTimeoutCheckRunning: boolean = false;
   private isReconnecting: boolean = false;
+  private closed: boolean = false;
+  private reconnectTimer?: NodeJS.Timeout;
   private host: string;
 
   constructor(
@@ -87,13 +89,16 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   async connect() {
+    if (this.closed) return;
     try {
       const url = await this.getWsInfo(this.roomId);
+      if (this.closed) return;
       if (!url) {
         throw new Error("获取抖音弹幕签名失败");
       }
       this.emit("init", url);
       const cookies = this.cookie || (await getCookie());
+      if (this.closed) return;
       this.ws = new WebSocket(url, {
         headers: {
           Cookie: cookies,
@@ -125,6 +130,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
         this.reconnect();
       });
     } catch (err) {
+      if (this.closed) return;
       // getWsInfo/getCookie 等前置步骤失败时，必须让错误可见并继续重试：
       // 否则 WebSocket 不会创建，没有任何事件能触发下一次 reconnect，
       // 弹幕客户端将静默死亡直到录制结束
@@ -141,15 +147,18 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   close() {
-    if (!this.ws) {
-      return;
-    }
+    this.closed = true;
     this.reconnectAttempts = this.autoReconnect;
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = undefined;
+    this.isReconnecting = false;
     this.stopHeartbeat();
     this.stopTimeoutCheck();
 
-    if (this.ws.readyState === WebSocket.OPEN) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.close();
+    } else if (this.ws?.readyState === WebSocket.CONNECTING) {
+      this.ws.terminate();
     }
   }
 
@@ -207,7 +216,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   private reconnect() {
-    if (this.isReconnecting) {
+    if (this.closed || this.isReconnecting) {
       return;
     }
 
@@ -217,9 +226,11 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     if (this.reconnectAttempts < this.autoReconnect) {
       this.isReconnecting = true;
       this.reconnectAttempts++;
-      setTimeout(() => {
-        this.connect();
+      this.reconnectTimer = setTimeout(() => {
+        this.reconnectTimer = undefined;
         this.isReconnecting = false;
+        if (this.closed) return;
+        this.connect();
         this.emit("reconnect", this.reconnectAttempts);
       }, this.reconnectInterval);
     }

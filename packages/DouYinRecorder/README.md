@@ -27,6 +27,32 @@ manager.addRecorder({
 manager.startCheckLoop();
 ```
 
+## 独立订阅弹幕
+
+可以在未录制时订阅正在直播的抖音房间。每次订阅使用独立连接，不受录制弹幕设置影响；结束订阅时调用返回的函数。
+
+```ts
+import { createRecorderManager } from "@bililive-tools/manager";
+import { provider } from "@bililive-tools/douyin-recorder";
+
+const manager = createRecorderManager({ providers: [provider] });
+const recorder = manager.addRecorder({
+  providerId: provider.id,
+  channelId: "203641303310",
+  quality: "origin",
+  streamPriorities: [],
+  sourcePriorities: [],
+  disableAutoCheck: true,
+});
+
+if (!recorder.subscribeComments) throw new Error("此录制器不支持独立订阅弹幕");
+const unsubscribe = await recorder.subscribeComments((message) => {
+  console.log(message.type, message);
+});
+
+unsubscribe();
+```
+
 ## 参数
 
 ```ts

@@ -13,8 +13,7 @@ import type {
   RecorderCreateOpts,
   RecorderProvider,
   RecordHandle,
-  Comment,
-  GiveGift,
+  Message,
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
@@ -22,6 +21,7 @@ import { singleton } from "./utils.js";
 import { resolveShortURL, parseUser } from "./douyin_api.js";
 
 import DouYinDanmaClient from "douyin-danma-listener";
+import { listenDanmaMessages } from "./danmaMessages.js";
 
 import type { APIType } from "./types.js";
 
@@ -46,6 +46,40 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
 
     getChannelURL() {
       return `https://live.douyin.com/${this.channelId}`;
+    },
+    async subscribeComments(listener: (message: Message) => void) {
+      const info = await getInfo(this.channelId, {
+        auth: this.cookieMode === "danma" ? undefined : this.auth,
+        api: this.api as APIType,
+        uid: this.uid,
+      });
+      if (!info.living || !info.liveId) throw new Error("直播间未开播，无法订阅弹幕");
+
+      const client = new DouYinDanmaClient(info.liveId, {
+        cookie: this.cookieMode === "stream" ? undefined : this.auth,
+      });
+      const messages = listenDanmaMessages(
+        client,
+        { useServerTimestamp: this.useServerTimestamp },
+        listener,
+      );
+      client.on("error", (error) => {
+        this.emit("DebugLog", { type: "error", text: `弹幕连接失败: ${String(error)}` });
+      });
+      let subscribed = true;
+      const unsubscribe = () => {
+        if (!subscribed) return;
+        subscribed = false;
+        messages.dispose();
+        client.close();
+      };
+      try {
+        await client.connect();
+      } catch (error) {
+        unsubscribe();
+        throw error;
+      }
+      return unsubscribe;
     },
     checkLiveStatusAndRecord: singleton(checkLiveStatusAndRecord),
 
@@ -287,130 +321,30 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("progress", progress);
   });
 
-  // 礼物消息缓存管理
-  const giftMessageCache = new Map<
-    string,
-    {
-      gift: GiveGift;
-      timer: NodeJS.Timeout;
-    }
-  >();
-
-  // 礼物延迟处理时间(毫秒),可根据实际情况调整
-  const GIFT_DELAY = 5000;
-
-  const client = new DouYinDanmaClient(this?.liveInfo?.liveId as string, {
+  const client = new DouYinDanmaClient(this.liveInfo.liveId, {
     cookie: this.cookieMode === "stream" ? undefined : this.auth,
   });
-  console.log("DouYinDanmaClient", this?.liveInfo?.liveId, this.cookieMode, this.auth);
-  client.on("chat", (msg) => {
-    const extraDataController = downloader.getExtraDataController();
-    if (!extraDataController) return;
-    let timestamp: number = Date.now();
-    if (this.useServerTimestamp && msg.eventTime) {
-      // 某些消息可能没有 eventTime 字段
-      timestamp = Number(msg.eventTime) * 1000;
-    }
-    const comment: Comment = {
-      type: "comment",
-      timestamp: timestamp,
-      text: msg.content,
-      color: "#ffffff",
-      sender: {
-        uid: msg.user.id,
-        name: msg.user.nickName,
-        // avatar: msg.user.AvatarThumb.urlListList[0],
-        // extra: {
-        //   level: msg.level,
-        // },
+  const messages = listenDanmaMessages(
+    client,
+    {
+      useServerTimestamp: this.useServerTimestamp,
+      saveGiftDanma: this.saveGiftDanma,
+      canReceive: () => Boolean(downloader.getExtraDataController()),
+      captureGiftDelivery: () => {
+        const controller = downloader.getExtraDataController();
+        return (message) => {
+          this.emit("Message", message);
+          controller?.addMessage(message);
+        };
       },
-    };
-    this.emit("Message", comment);
-    extraDataController.addMessage(comment);
-  });
-  client.on("privilegeScreenChat", (msg) => {
-    const extraDataController = downloader.getExtraDataController();
-    if (!extraDataController) return;
-    const comment: Comment = {
-      type: "comment",
-      // 抖音飘屏没有时间戳数据，默认使用当前时间
-      timestamp: Date.now(),
-      text: msg.content,
-      color: "#e0c39c",
-      sender: {
-        uid: msg.user.id,
-        name: msg.user.nickName,
-      },
-    };
-    this.emit("Message", comment);
-    extraDataController.addMessage(comment);
-  });
-  client.on("screenChat", (msg) => {
-    const extraDataController = downloader.getExtraDataController();
-    if (!extraDataController) return;
-    const comment: Comment = {
-      type: "comment",
-      timestamp: this.useServerTimestamp ? Number(msg.eventTime) / 1000000 : Date.now(),
-      text: msg.content,
-      color: "#d7f6fc",
-      sender: {
-        uid: msg.user.id,
-        name: msg.user.nickName,
-      },
-    };
-    this.emit("Message", comment);
-    extraDataController.addMessage(comment);
-  });
-  client.on("gift", (msg) => {
-    const extraDataController = downloader.getExtraDataController();
-    if (!extraDataController) return;
-    if (this.saveGiftDanma === false) return;
-
-    const serverTimestamp =
-      Number(msg.common.createTime) > 9999999999
-        ? Number(msg.common.createTime)
-        : Number(msg.common.createTime) * 1000;
-
-    const gift: GiveGift = {
-      type: "give_gift",
-      timestamp: this.useServerTimestamp ? serverTimestamp : Date.now(),
-      name: msg.gift.name,
-      price: msg.gift.diamondCount / 10 || 0,
-      count: Number(msg.totalCount ?? 1),
-      color: "#ffffff",
-      sender: {
-        uid: msg.user.id,
-        name: msg?.user?.nickName || "unknown",
-        // avatar: msg.ic,
-        // extra: {
-        //   level: msg.level,
-        // },
-      },
-    };
-
-    // 单独使用groupId并不可靠
-    const groupId = `${msg.groupId}_${msg.user.id}_${msg.giftId}`;
-
-    // 如果已存在相同 groupId 的礼物,清除旧的定时器
-    const existing = giftMessageCache.get(groupId);
-    if (existing) {
-      clearTimeout(existing.timer);
-    }
-
-    // 创建新的定时器
-    const timer = setTimeout(() => {
-      const cachedGift = giftMessageCache.get(groupId);
-      if (cachedGift) {
-        // 延迟时间到,添加最终的礼物消息
-        this.emit("Message", cachedGift.gift);
-        extraDataController.addMessage(cachedGift.gift);
-        giftMessageCache.delete(groupId);
-      }
-    }, GIFT_DELAY);
-
-    // 更新缓存
-    giftMessageCache.set(groupId, { gift, timer });
-  });
+    },
+    (message) => {
+      const extraDataController = downloader.getExtraDataController();
+      if (!extraDataController) return;
+      this.emit("Message", message);
+      extraDataController.addMessage(message);
+    },
+  );
   client.on("reconnect", (attempts: number) => {
     this.appendTimeline({ text: `弹幕连接断开，正在重试: ${attempts}` });
     this.emit("DebugLog", {
@@ -474,18 +408,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("stateChange", { state: "stopping-record" });
 
     try {
-      // 清理所有礼物缓存定时器
-      for (const [_groupId, cached] of giftMessageCache.entries()) {
-        clearTimeout(cached.timer);
-        // 立即添加剩余的礼物消息
-        const extraDataController = downloader.getExtraDataController();
-        if (extraDataController) {
-          this.emit("Message", cached.gift);
-          extraDataController.addMessage(cached.gift);
-        }
-      }
-      giftMessageCache.clear();
-
+      messages.dispose(true);
       client.close();
       await downloader.stop();
     } catch (err) {
