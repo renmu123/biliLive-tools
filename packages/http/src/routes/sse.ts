@@ -77,56 +77,43 @@ router.get(
     const recorderManager = container.resolve("recorderManager");
     const recorder = typeof id === "string" ? recorderManager.manager.getRecorder(id) : null;
 
-    if (
-      (recorder?.providerId === "Bilibili" ||
-        recorder?.providerId === "DouYu" ||
-        recorder?.providerId === "HuYa" ||
-        recorder?.providerId === "DouYin" ||
-        recorder?.providerId === "TikTok") &&
-      recorder.subscribeComments
-    ) {
-      let closed = false;
-      let unsubscribe: (() => void) | undefined;
-      const cleanup = () => {
-        closed = true;
-        unsubscribe?.();
-        unsubscribe = undefined;
-      };
-      ctx.res.once("close", cleanup);
+    const sendError = (message: string) => {
+      // @ts-ignore
+      ctx.sse.send(JSON.stringify({ type: "error", message }));
+      // @ts-ignore
+      ctx.sse.sendEnd();
+    };
 
-      try {
-        unsubscribe = await recorder.subscribeComments((message) => {
-          if (closed || ctx.res.destroyed) return;
-          // @ts-ignore
-          ctx.sse.send(JSON.stringify(message));
-        });
-        // 客户端可能在异步初始化弹幕连接时已断开。
-        if (closed) cleanup();
-      } catch (error) {
-        ctx.res.off("close", cleanup);
-        if (!closed) {
-          // @ts-ignore
-          ctx.sse.send(
-            JSON.stringify({
-              type: "error",
-              message: error instanceof Error ? error.message : String(error),
-            }),
-          );
-          // @ts-ignore
-          ctx.sse.sendEnd();
-        }
-      }
+    if (!recorder) {
+      sendError("录制器不存在");
+      return;
+    }
+    if (!recorder.subscribeComments) {
+      sendError("此录制器不支持弹幕订阅");
       return;
     }
 
-    const onMessage = ({ recorder, message }: { recorder: { id: string }; message: unknown }) => {
-      if (recorder.id === id) {
+    let closed = false;
+    let unsubscribe: (() => void) | undefined;
+    const cleanup = () => {
+      closed = true;
+      unsubscribe?.();
+      unsubscribe = undefined;
+    };
+    ctx.res.once("close", cleanup);
+
+    try {
+      unsubscribe = await recorder.subscribeComments((message) => {
+        if (closed || ctx.res.destroyed) return;
         // @ts-ignore
         ctx.sse.send(JSON.stringify(message));
-      }
-    };
-    recorderManager.manager.on("Message", onMessage);
-    ctx.res.once("close", () => recorderManager.manager.off("Message", onMessage));
+      });
+      // 客户端可能在异步初始化弹幕连接时已断开。
+      if (closed) cleanup();
+    } catch (error) {
+      ctx.res.off("close", cleanup);
+      if (!closed) sendError(error instanceof Error ? error.message : String(error));
+    }
   },
 );
 
