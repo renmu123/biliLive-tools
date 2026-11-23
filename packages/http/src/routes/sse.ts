@@ -77,7 +77,10 @@ router.get(
     const recorderManager = container.resolve("recorderManager");
     const recorder = typeof id === "string" ? recorderManager.manager.getRecorder(id) : null;
 
-    if (recorder?.providerId === "Bilibili" && recorder.subscribeComments) {
+    if (
+      (recorder?.providerId === "Bilibili" || recorder?.providerId === "DouYu") &&
+      recorder.subscribeComments
+    ) {
       let closed = false;
       let unsubscribe: (() => void) | undefined;
       const cleanup = () => {
