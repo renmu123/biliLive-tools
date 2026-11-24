@@ -19,6 +19,7 @@ import artplayerPluginSC from "./artplayer-plugin-sc";
 import type { SuperChatItem } from "./artplayer-plugin-sc";
 import { useStorage } from "@vueuse/core";
 import { createStreamLifecycle } from "./streamLifecycle";
+import { attachFlvSeekRecovery } from "./flvSeekRecovery";
 
 type DanmukuSettings = Pick<
   DanmukuOption,
@@ -234,7 +235,9 @@ onMounted(async () => {
                     autoCleanupMinBackwardDuration: 10,
                   },
             );
+            const stopSeekRecovery = props.isLive ? undefined : attachFlvSeekRecovery(video);
             onDispose(() => {
+              stopSeekRecovery?.();
               flv.destroy();
               if (art.flv === flv) delete art.flv;
             });
