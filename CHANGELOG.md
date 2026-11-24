@@ -4,6 +4,7 @@
 
 - 播放器：优化播放体验 [#613](https://github.com/renmu123/biliLive-tools/pull/613)、[#614](https://github.com/renmu123/biliLive-tools/pull/614)
 - 任务队列：增加“取消全部”功能
+- 任务队列：创建稿件、编辑稿件任务名称显示上传账号昵称
 
 ## 其他
 

@@ -113,6 +113,23 @@ function createClient(uid?: number) {
   }
 }
 
+/**
+ * 获取上传账号的昵称，用于在任务名称中区分上传账号
+ * @param uid 用户uid，为空时使用当前默认账号
+ */
+function getUserName(uid?: number): string {
+  const mid = uid || appConfig.get("uid");
+  if (!mid) return "";
+
+  try {
+    const user = readUser(mid);
+    return user?.name || `${mid}`;
+  } catch (error) {
+    log.error("读取用户昵称失败", error);
+    return `${mid}`;
+  }
+}
+
 export async function getRoomInfo(room_id: number, uid?: number) {
   const client = createClient(uid);
   return client.live.getRoomInfo(room_id);
@@ -768,10 +785,11 @@ async function addMedia(
     throw new Error("标题不能超过80个字符");
   }
   const client = createClient(uid);
+  const userName = getUserName(uid);
 
   const pTask = new BiliAddVideoTask(
     {
-      name: `创建稿件：${formattedOptions.title}`,
+      name: `创建稿件：${formattedOptions.title}${userName ? `(${userName})` : ""}`,
       uid,
       mediaOptions: formattedOptions,
     },
@@ -901,10 +919,11 @@ export async function editMedia(
 
   const client = createClient(uid);
   const title = videos[0].title;
+  const userName = getUserName(uid);
 
   const pTask = new BiliEditVideoTask(
     {
-      name: `编辑稿件：${title}`,
+      name: `编辑稿件：${title}${userName ? `(${userName})` : ""}`,
       uid,
       mediaOptions: formattedOptions,
       aid,
