@@ -53,6 +53,7 @@ const props = withDefaults(
   defineProps<{
     option: {
       fullscreen?: boolean;
+      autoplay?: boolean;
       muted?: boolean;
       volume?: number;
       mutex?: boolean;

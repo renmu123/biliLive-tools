@@ -58,6 +58,7 @@ const danmaId = computed(() =>
 
 const playerOptions = computed(() => ({
   fullscreen: true,
+  autoplay: true,
 }));
 
 const syncPlayerSource = async () => {
@@ -104,7 +105,7 @@ const loadVideo = async () => {
   loading.value = true;
   try {
     videoUrl.value = await commonApi.getVideo(videoId.value);
-    // await syncPlayerSource();
+    await syncPlayerSource();
   } catch (error: any) {
     videoUrl.value = "";
     notice.error({
