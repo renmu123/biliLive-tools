@@ -262,11 +262,15 @@ export class FFmpegTask extends AbstractTask {
     this.emitter.emit("task-resume", { taskId: this.taskId });
     return true;
   }
-  interrupt() {
-    if (this.status === "completed" || this.status === "error") return;
+  interrupt(): boolean | undefined {
+    if (this.status === "completed" || this.status === "error" || this.status === "canceled")
+      return;
+    if (this.status === "pending") return this.kill();
     if (!this.command) return;
-    if (isWin32) {
-      getNtSuspend().resume(this.command.ffmpegProc.pid);
+    if (this.status === "paused") {
+      if (isWin32) {
+        getNtSuspend().resume(this.command.ffmpegProc.pid);
+      }
     }
     // @ts-ignore
     this.command.ffmpegProc.stdin.write("q");
@@ -279,6 +283,12 @@ export class FFmpegTask extends AbstractTask {
     if (this.status === "completed" || this.status === "error" || this.status === "canceled")
       return;
     if (!this.command) return;
+    if (this.status === "pending") {
+      this.status = "canceled";
+      this.endTime = Date.now();
+      this.releaseCommand();
+      return true;
+    }
     if (isWin32) {
       getNtSuspend().resume(this.command.ffmpegProc.pid);
     }
