@@ -1,12 +1,8 @@
 <template>
   <n-space vertical>
-    <n-layout
-      :has-sider="!isMobile && route.name !== 'MonitorRoom'"
-      class="layout"
-      position="absolute"
-    >
+    <n-layout :has-sider="!isMobile && !hideNavigation" class="layout" position="absolute">
       <n-layout-sider
-        v-if="!isMobile && route.name !== 'MonitorRoom'"
+        v-if="!isMobile && !hideNavigation"
         bordered
         collapse-mode="width"
         :collapsed-width="64"
@@ -41,7 +37,7 @@
       </n-layout-sider>
 
       <n-layout :class="['main-container', route.name, { mobile: isMobile }]">
-        <div v-if="isMobile && route.name !== 'MonitorRoom'" class="mobile-header">
+        <div v-if="isMobile && !hideNavigation" class="mobile-header">
           <n-button quaternary class="mobile-menu-trigger" @click="mobileMenuVisible = true">
             <template #icon>
               <n-icon size="36">
@@ -139,6 +135,7 @@ const appConfig = useAppConfig();
 const { userInfo } = storeToRefs(useUserInfoStore());
 
 const route = useRoute();
+const hideNavigation = computed(() => route.name === "MonitorRoom" || route.name === "VideoPlayer");
 const activeKey = ref("Home");
 activeKey.value = route.name as string;
 const collapsed = useStorage("collapsed", false);
@@ -606,6 +603,15 @@ initChanglog();
 
     & > .n-layout-scroll-container {
       padding-right: 0;
+      overflow: hidden;
+    }
+  }
+
+  &.VideoPlayer {
+    margin: 0;
+
+    & > .n-layout-scroll-container {
+      padding: 0;
       overflow: hidden;
     }
   }
