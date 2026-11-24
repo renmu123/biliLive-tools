@@ -35,7 +35,11 @@
           @click="handlePauseTasks"
           >暂停全部</n-button
         >
-        <n-button v-if="queue.length !== 0" size="small" type="error" @click="handleRemoveEndTasks"
+        <n-button
+          v-if="queue.length !== 0"
+          size="small"
+          type="warning"
+          @click="handleRemoveEndTasks"
           >清除记录</n-button
         >
       </div>
