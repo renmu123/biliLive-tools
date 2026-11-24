@@ -17,6 +17,7 @@ import { useRoute } from "vue-router";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import { useTitle } from "@vueuse/core";
 import { getDanmaStream } from "@renderer/apis/common";
+import { useMessage } from "naive-ui";
 
 import type ArtplayerType from "artplayer";
 
@@ -33,6 +34,7 @@ interface Props {
 const route = useRoute() as unknown as { query: Props };
 const query = route.query;
 useTitle(`${query.owner} 直播中`);
+const message = useMessage();
 // const logs = ref("");
 
 let eventSource: EventSource | null = null;
@@ -49,6 +51,12 @@ async function streamLogs() {
 
   source.onmessage = function (event) {
     const data = JSON.parse(event.data);
+    if (data.type === "error") {
+      source.close();
+      if (eventSource === source) eventSource = null;
+      message.error(data.message || "弹幕连接失败");
+      return;
+    }
     if (!videoInstance.value) return;
     if (data.type === "super_chat") {
       // @ts-ignore
@@ -81,7 +89,10 @@ async function streamLogs() {
     });
   };
 
-  // eventSource.onerror = function () {};
+  source.addEventListener("close", () => {
+    source.close();
+    if (eventSource === source) eventSource = null;
+  });
 }
 
 onMounted(() => {
