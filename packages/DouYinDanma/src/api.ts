@@ -3,7 +3,7 @@ let cookieCache: {
   cookies: string;
 };
 
-export const getCookie = async () => {
+export const getCookie = async (signal?: AbortSignal) => {
   const now = new Date().getTime();
   // 缓存1小时：重连时优先复用，避免每次连接都依赖实时网络抓取，
   // 瞬时网络抖动时不会导致 connect() 失败、重试链断裂
@@ -12,6 +12,7 @@ export const getCookie = async () => {
   }
   const res = await fetch("https://live.douyin.com/", {
     method: "GET",
+    signal,
   });
 
   if (!res.headers.get("set-cookie")) {
