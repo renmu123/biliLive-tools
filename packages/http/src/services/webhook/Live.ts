@@ -418,6 +418,8 @@ export class Live {
 export class LiveManager {
   private lives: Live[] = [];
 
+  constructor(private readonly maxCompletedLives = 100) {}
+
   /**
    * 获取所有 Live 实例（用于向后兼容）
    */
@@ -438,6 +440,28 @@ export class LiveManager {
    */
   addLive(live: Live): void {
     this.lives.push(live);
+    this.pruneCompletedLives();
+  }
+
+  private pruneCompletedLives(): void {
+    let completedCount = this.lives.filter(
+      (item) =>
+        item.parts.length > 0 &&
+        item.parts.every((part) => part.isFullyHandled() || part.isError()),
+    ).length;
+
+    if (completedCount <= this.maxCompletedLives) return;
+
+    this.lives = this.lives.filter((item) => {
+      const completed =
+        item.parts.length > 0 &&
+        item.parts.every((part) => part.isFullyHandled() || part.isError());
+      if (completed && completedCount > this.maxCompletedLives) {
+        completedCount--;
+        return false;
+      }
+      return true;
+    });
   }
 
   findBy(opts: { partId?: string; filePath?: string }): { live: Live; part: Part } | null {
