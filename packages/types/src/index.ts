@@ -472,6 +472,12 @@ export interface GlobalRecorder {
   debugLevel: "none" | "basic" | "verbose";
   /** 下播延迟检查 */
   recordRetryImmediately: boolean;
+  /** 每个录制器时间线最多保留的事件条数 */
+  timelineLimit: number;
+  /** 短录制判定阈值，单位秒；录制时长不足该值且停止原因非黑名单时计为一次短录制 */
+  shortRecordingThreshold: number;
+  /** 同一场直播连续短录制达到该次数后，下次尝试切换流格式（仅抖音） */
+  shortRecordingRetryCount: number;
   /** 画质 */
   quality: "lowest" | "low" | "medium" | "high" | "highest";
   /** 线路 */
