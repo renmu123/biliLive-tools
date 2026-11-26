@@ -4,6 +4,7 @@
 
 - 播放器：优化播放体验 [#613](https://github.com/renmu123/biliLive-tools/pull/613)、[#614](https://github.com/renmu123/biliLive-tools/pull/614)
 - 任务队列：增加“取消全部”功能
+- 客户端：新增快捷键`ctrl+w`用于关闭子窗口
 
 ## 其他
 
