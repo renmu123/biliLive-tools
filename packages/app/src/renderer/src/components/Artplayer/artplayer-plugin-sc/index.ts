@@ -71,7 +71,17 @@ export default function artplayerPluginSC(options: SuperChatOptions = {}) {
           card.className = "artplayer-sc-card";
           const price = Number(item.price) || 0;
           card.dataset.tier =
-            price >= 1000 ? "red" : price >= 500 ? "orange" : price >= 100 ? "yellow" : "blue";
+            price <= 30
+              ? "blue"
+              : price <= 50
+                ? "cyan"
+                : price <= 100
+                  ? "yellow"
+                  : price <= 500
+                    ? "orange"
+                    : price <= 1000
+                      ? "red"
+                      : "dark-red";
 
           const header = document.createElement("div");
           header.className = "artplayer-sc-header";
