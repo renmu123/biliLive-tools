@@ -3,10 +3,9 @@ import Danmuku from "../src/renderer/src/components/Artplayer/artplayer-plugin-d
 import Setting from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/setting";
 import {
   getFontSize,
-  migrateFontSize,
   normalizeFontSize,
 } from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/fontSize";
-import { migrateSpeed } from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/speed";
+import { normalizeSpeed } from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/speed";
 import heatmap from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/heatmap";
 
 vi.mock(
@@ -31,14 +30,6 @@ describe("Artplayer danmuku percentage size", () => {
     expect(normalizeFontSize(300)).toBe(200);
     expect(normalizeFontSize(NaN)).toBe(100);
     expect(normalizeFontSize(undefined)).toBe(100);
-  });
-
-  it("resets all legacy sizes to 100% and preserves saved percentages after migration", () => {
-    for (const value of [undefined, 12, 25, 120, "4%", "8%", "invalid%"])
-      expect(migrateFontSize(value)).toBe(100);
-    expect(migrateFontSize(50, 2)).toBe(50);
-    expect(migrateFontSize(150, 2)).toBe(150);
-    expect(migrateFontSize(200, 2)).toBe(200);
   });
 
   it("uses the saved percentage for the slider and writes percentages on change", () => {
@@ -74,27 +65,26 @@ describe("Artplayer danmuku percentage size", () => {
 });
 
 describe("Artplayer danmuku speed", () => {
-  it("uses 7.5 seconds as moderate and migrates each saved tier once", () => {
+  it("uses 7.5 seconds as moderate and preserves valid saved durations", () => {
     const setting = Object.create(Setting.prototype);
     setting.danmuku = { option: Danmuku.option };
     const steps = setting.SPEED.steps;
     expect(steps.find((step) => step.name === "适中")?.value).toBe(7.5);
     expect(Danmuku.option.speed).toBe(7.5);
 
-    const previousSpeeds = [10, 7.5, 5, 2.5, 1];
-    previousSpeeds.forEach((previousSpeed, index) => {
-      const migrated = migrateSpeed(previousSpeed);
-      expect(migrated).toBe(steps[index].value);
-      expect(migrateSpeed(previousSpeed / 2, 2)).toBe(migrated);
-      expect(migrateSpeed(migrated, 3)).toBe(migrated);
+    steps.forEach(({ value }) => {
+      expect(normalizeSpeed(value)).toBe(value);
     });
-    expect(migrateSpeed(undefined)).toBe(7.5);
+    expect(normalizeSpeed(undefined)).toBe(7.5);
+    expect(normalizeSpeed(NaN)).toBe(7.5);
+    expect(normalizeSpeed(0)).toBe(1.5);
+    expect(normalizeSpeed(20)).toBe(15);
   });
 
   it("selects the saved tier and applies the fastest tier with playback rate synchronization", () => {
     const setting = Object.create(Setting.prototype);
     const danmuku = Object.create(Danmuku.prototype);
-    danmuku.option = { ...Danmuku.option, speed: migrateSpeed(2.5) };
+    danmuku.option = { ...Danmuku.option, speed: 3.75 };
     danmuku.utils = { clamp: (value, min, max) => Math.min(max, Math.max(min, value)) };
     danmuku.art = { template: {}, emit: vi.fn(), playbackRate: 2 };
     danmuku.validator = vi.fn();

@@ -17,8 +17,3 @@ export function getFontSize(playerHeight: number, percentage: number): number {
     Math.round((height * FONT_SIZE_BASE_RATIO * normalizeFontSize(percentage)) / 100),
   );
 }
-
-// 旧字号统一迁移为 100%，新版已保存的百分比继续沿用。
-export function migrateFontSize(value: unknown, version?: number): number {
-  return version === 2 ? normalizeFontSize(value) : FONT_SIZE_DEFAULT;
-}

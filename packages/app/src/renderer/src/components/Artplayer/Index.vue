@@ -12,8 +12,8 @@ import artplayerPluginHeatmap from "./artplayer-plugin-heatmap";
 import artplayerPluginTimestamp from "./artplayer-timestamp";
 import artplayerPluginDanmuku from "./artplayer-plugin-danmuku";
 import type { Option as DanmukuOption, Result as DanmukuResult } from "./artplayer-plugin-danmuku";
-import { migrateFontSize } from "./artplayer-plugin-danmuku/fontSize";
-import { migrateSpeed } from "./artplayer-plugin-danmuku/speed";
+import { normalizeFontSize } from "./artplayer-plugin-danmuku/fontSize";
+import { normalizeSpeed } from "./artplayer-plugin-danmuku/speed";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 import artplayerPluginSubtitle from "./artplayer-plugin-subtitle";
 import artplayerPluginChapter from "./artplayer-plugin-chapter";
@@ -36,7 +36,7 @@ type DanmukuSettings = Pick<
   | "heatmap"
   | "mode"
   | "color"
-> & { fontSizeVersion?: 2; speedVersion?: 2 | 3 };
+>;
 
 const getDanmukuSettings = (option: DanmukuOption): DanmukuSettings => ({
   visible: option.visible,
@@ -44,9 +44,7 @@ const getDanmukuSettings = (option: DanmukuOption): DanmukuSettings => ({
   opacity: option.opacity,
   margin: option.margin,
   fontSize: option.fontSize,
-  fontSizeVersion: 2,
   speed: option.speed,
-  speedVersion: 3,
   antiOverlap: option.antiOverlap,
   synchronousPlayback: option.synchronousPlayback,
   heatmap: option.heatmap,
@@ -123,16 +121,22 @@ onMounted(async () => {
   const plugins: any[] = [];
   if (props.plugins) {
     if (props.plugins.includes("danmuku")) {
-      const { fontSizeVersion, speedVersion, ...settings } = danmukuSettings.value;
-      const fontSize = migrateFontSize(settings.fontSize, fontSizeVersion);
-      const speed = migrateSpeed(settings.speed, speedVersion);
-      danmukuSettings.value = { ...settings, fontSize, fontSizeVersion: 2, speed, speedVersion: 3 };
+      const settings = danmukuSettings.value;
+      const fontSize = normalizeFontSize(settings.fontSize);
+      const speed = normalizeSpeed(settings.speed);
+      const heatmap = settings.heatmap ?? false;
+      danmukuSettings.value = {
+        ...settings,
+        fontSize,
+        speed,
+        heatmap,
+      };
       plugins.push(
         artplayerPluginDanmuku({
           danmuku: [],
           emitter: false,
-          heatmap: false,
           ...settings,
+          heatmap,
           heatmapEnable:
             !props.isLive &&
             !props.plugins.includes("heatmap") &&
