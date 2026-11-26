@@ -106,7 +106,7 @@ export interface Option {
   mount?: HTMLDivElement | string;
 
   /**
-   * 是否开启弹幕热度图
+   * 是否显示高能进度条，默认 false；heatmapEnable 为 false 时强制为 false
    */
   heatmap?:
     | boolean
@@ -122,6 +122,11 @@ export interface Option {
         smoothing?: number;
         flattening?: number;
       };
+
+  /**
+   * 是否显示高能进度条配置项，默认 true；为 false 时强制关闭 heatmap
+   */
+  heatmapEnable?: boolean;
 
   /**
    * 当播放器宽度小于此值时，弹幕发射器置于播放器底部
@@ -215,7 +220,7 @@ export interface Result {
   /**
    * 实时改变弹幕配置
    */
-  config: (option: Option) => Result;
+  config: (option: Partial<Option>) => Result;
 
   /**
    * 隐藏弹幕层

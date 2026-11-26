@@ -423,6 +423,11 @@
   }
 }
 
+[data-danmuku-heatmap="false"] .apd-heatmap .apd-check-on,
+[data-danmuku-heatmap="true"] .apd-heatmap .apd-check-off {
+  display: none;
+}
+
 .generate-mode-styles(@index) when (@index >= 0) {
   .generate-mode-styles(@index - 1);
 

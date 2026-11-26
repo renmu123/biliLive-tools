@@ -7,9 +7,7 @@ export default function artplayerPluginDanmuku(option) {
     const danmuku = new Danmuku(art, option);
     const setting = new Setting(art, danmuku);
 
-    if (danmuku.option.heatmap) {
-      heatmap(art, danmuku, danmuku.option.heatmap);
-    }
+    heatmap(art, danmuku);
 
     return {
       name: "artplayerPluginDanmuku",

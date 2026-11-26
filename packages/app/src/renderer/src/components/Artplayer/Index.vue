@@ -33,6 +33,7 @@ type DanmukuSettings = Pick<
   | "speed"
   | "antiOverlap"
   | "synchronousPlayback"
+  | "heatmap"
   | "mode"
   | "color"
 > & { fontSizeVersion?: 2; speedVersion?: 2 | 3 };
@@ -48,6 +49,7 @@ const getDanmukuSettings = (option: DanmukuOption): DanmukuSettings => ({
   speedVersion: 3,
   antiOverlap: option.antiOverlap,
   synchronousPlayback: option.synchronousPlayback,
+  heatmap: option.heatmap,
   mode: option.mode,
   color: option.color,
 });
@@ -66,6 +68,9 @@ const props = withDefaults(
       type?: string;
       string?: any;
       plugins?: {
+        danmuku?: {
+          heatmapEnable?: boolean;
+        };
         heatmap?: {
           data?: any[];
           option?: {
@@ -128,6 +133,10 @@ onMounted(async () => {
           emitter: false,
           heatmap: false,
           ...settings,
+          heatmapEnable:
+            !props.isLive &&
+            !props.plugins.includes("heatmap") &&
+            props.option.plugins?.danmuku?.heatmapEnable !== false,
           fontSize,
           speed,
         }),

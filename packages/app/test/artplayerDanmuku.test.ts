@@ -7,6 +7,7 @@ import {
   normalizeFontSize,
 } from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/fontSize";
 import { migrateSpeed } from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/speed";
+import heatmap from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/heatmap";
 
 vi.mock(
   "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/worker.js?worker&inline",
@@ -112,5 +113,126 @@ describe("Artplayer danmuku speed", () => {
     expect(danmuku.speed).toBe(1.5);
     danmuku.config({ synchronousPlayback: true });
     expect(danmuku.speed).toBe(0.75);
+  });
+});
+
+describe("Artplayer danmuku heatmap", () => {
+  function createPlayer() {
+    const handlers = new Map<string, ((...args: any[]) => void)[]>();
+    const element = { style: { display: "" }, innerHTML: "", offsetWidth: 80, offsetHeight: 100 };
+    const utils = {
+      clamp: (value, min, max) => Math.min(max, Math.max(min, value)),
+      query: () => ({ setAttribute: vi.fn() }),
+    };
+    const art = {
+      constructor: { utils },
+      template: { $player: { dataset: {} }, $controlsCenter: {} },
+      option: { isLive: false },
+      duration: 100,
+      played: 0.5,
+      controls: {
+        add: vi.fn((options) => options.mounted(element)),
+      },
+      on(name, callback) {
+        handlers.set(name, [...(handlers.get(name) ?? []), callback]);
+      },
+      emit(name, ...args) {
+        for (const callback of handlers.get(name) ?? []) callback(...args);
+      },
+      proxy: vi.fn(),
+    };
+    const danmuku = Object.create(Danmuku.prototype);
+    Object.assign(danmuku, {
+      option: Danmuku.option,
+      utils,
+      validator: vi.fn(),
+      art,
+      queue: [{ time: 1 }, { time: 2 }],
+      $danmuku: { style: {} },
+    });
+    return { art, danmuku, element };
+  }
+
+  it("creates the progress bar on demand, hides it, and reuses it when enabled again", () => {
+    const { art, danmuku, element } = createPlayer();
+    heatmap(art, danmuku);
+    expect(art.controls.add).not.toHaveBeenCalled();
+    danmuku.config({ heatmap: true });
+    expect(art.controls.add).toHaveBeenCalledTimes(1);
+    expect(element.innerHTML).toContain("<svg");
+    danmuku.config({ heatmap: false });
+    expect(element.style.display).toBe("none");
+    expect(element.innerHTML).toBe("");
+    danmuku.config({ heatmap: true });
+    expect(element.style.display).toBe("");
+    expect(element.innerHTML).toContain("<svg");
+    expect(art.controls.add).toHaveBeenCalledTimes(1);
+  });
+
+  it("forces heatmap off when heatmapEnable is false, including subsequent config updates", () => {
+    const { art, danmuku, element } = createPlayer();
+    danmuku.config({ heatmapEnable: false, heatmap: { opacity: 0.5 } }, true);
+    expect(danmuku.option.heatmap).toBe(false);
+    heatmap(art, danmuku);
+    danmuku.config({ heatmap: true });
+    expect(danmuku.option.heatmap).toBe(false);
+    expect(art.controls.add).not.toHaveBeenCalled();
+    danmuku.config({ heatmapEnable: true, heatmap: true });
+    expect(element.innerHTML).toContain("<svg");
+    danmuku.config({ heatmapEnable: false });
+    expect(danmuku.option.heatmap).toBe(false);
+    expect(element.style.display).toBe("none");
+    art.emit("resize");
+    expect(element.innerHTML).toBe("");
+  });
+
+  it("preserves custom point data across resizing and toggling", () => {
+    const { art, danmuku, element } = createPlayer();
+    heatmap(art, danmuku);
+    danmuku.config({ heatmap: { sampling: 0 } });
+    const points = [
+      [0, 1],
+      [80, 10],
+    ];
+    art.emit("artplayerPluginDanmuku:points", points);
+    const rendered = element.innerHTML;
+    art.emit("resize");
+    expect(element.innerHTML).toBe(rendered);
+    danmuku.config({ heatmap: false });
+    danmuku.config({ heatmap: true });
+    expect(element.innerHTML).toBe(rendered);
+    expect(points).toEqual([
+      [0, 1],
+      [80, 10],
+    ]);
+  });
+
+  it("toggles the setting, preserves heatmap options, and hides and blocks the disabled setting", () => {
+    const { art, danmuku } = createPlayer();
+    const setting = Object.create(Setting.prototype);
+    setting.art = art;
+    setting.danmuku = danmuku;
+    setting.template = {
+      $heatmapConfig: { style: {} },
+      $heatmap: {},
+      $mount: art.template.$controlsCenter,
+      $controlsCenter: art.template.$controlsCenter,
+    };
+    setting.heatmapOptions = true;
+    art.on("artplayerPluginDanmuku:config", () => setting.syncHeatmap());
+    setting.createEvents();
+    const click = art.proxy.mock.calls.find(([target]) => target === setting.template.$heatmap)![2];
+    danmuku.config({ heatmap: { opacity: 0.5 } });
+    click();
+    expect(danmuku.option.heatmap).toBe(false);
+    click();
+    expect(danmuku.option.heatmap).toEqual({ opacity: 0.5 });
+    expect(art.template.$player.dataset).toMatchObject({ danmukuHeatmap: true });
+    danmuku.config({ heatmapEnable: false });
+    expect(setting.template.$heatmapConfig.style.display).toBe("none");
+    click();
+    expect(danmuku.option.heatmap).toBe(false);
+    danmuku.config({ heatmapEnable: true });
+    expect(setting.template.$heatmapConfig.style.display).toBe("flex");
   });
 });

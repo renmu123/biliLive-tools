@@ -66,6 +66,7 @@ export default class Danmuku {
       synchronousPlayback: false, // 是否同步播放速度
       mount: undefined, // 弹幕发射器挂载点, 默认为播放器控制栏中部
       heatmap: false, // 是否开启热力图
+      heatmapEnable: true, // 是否允许设置高能进度条，为 false 时强制关闭热力图
       width: 512, // 当播放器宽度小于此值时，弹幕发射器置于播放器底部
       points: [], // 热力图数据
       filter: () => true, // 弹幕载入前的过滤器，只支持返回布尔值
@@ -99,6 +100,7 @@ export default class Danmuku {
       synchronousPlayback: "boolean",
       mount: "?htmldivelement|string",
       heatmap: "object|boolean",
+      heatmapEnable: "boolean",
       width: "number",
       points: "array",
       filter: "function",
@@ -385,6 +387,7 @@ export default class Danmuku {
     this.option.speed = normalizeSpeed(this.option.speed);
     this.option.opacity = clamp(this.option.opacity, 0, 1);
     this.option.fontSize = normalizeFontSize(this.option.fontSize);
+    if (!this.option.heatmapEnable) this.option.heatmap = false;
     this.option.lockTime = clamp(this.option.lockTime, 1, 60);
     this.option.maxLength = clamp(this.option.maxLength, 1, 1000);
     this.option.mount = this.option.mount || $controlsCenter;

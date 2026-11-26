@@ -5,6 +5,8 @@
 本地修改：
 
 - `fontSize` 改为 50–200 的字号百分比，默认 100，设置面板显示 `%`。
+- 设置面板新增“高能进度条”开关，对应 `heatmap`，默认关闭，支持动态显示、隐藏和保存选择。`heatmapEnable` 默认 `true`；设为 `false` 时隐藏配置项并强制 `heatmap: false`，后续调用 `config({ heatmap: true })` 也无法开启。
+- 播放器组件可通过 `option.plugins.danmuku.heatmapEnable` 禁用此配置项；直播及已有独立 heatmap 插件的页面始终禁用，避免重复高能进度条。
 - 100% 的基准为播放器容器高度的 4%，并随容器尺寸变化；720px 高的播放区域约 29px，1080px 高约 43px。
 - 调整窗口或全屏时，更新正在显示及暂停中的弹幕字号。
 - `Index.vue` 使用 `fontSizeVersion: 2` 标记新的本地存储单位。旧字号统一迁移为 100%，新版已保存的百分比继续沿用，保留其他设置。
