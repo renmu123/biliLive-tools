@@ -3,6 +3,8 @@ import type { SuperChatItem } from "@renderer/components/Artplayer/artplayer-plu
 
 export interface ArtplayerDanmuItem {
   text: string;
+  img?: string;
+  emoticons?: Record<string, string>;
   time: number;
   mode: 0 | 1 | 2;
   color: string;

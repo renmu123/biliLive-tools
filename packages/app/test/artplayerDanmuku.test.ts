@@ -3,6 +3,7 @@ import Danmuku from "../src/renderer/src/components/Artplayer/artplayer-plugin-d
 import Setting from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/setting";
 import {
   getFontSize,
+  getImageSize,
   normalizeFontSize,
 } from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/fontSize";
 import { normalizeSpeed } from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/speed";
@@ -16,13 +17,79 @@ vi.mock(
 );
 
 describe("Artplayer danmuku percentage size", () => {
-  it("defaults to 100% and scales with the player height", () => {
+  it("defaults to 100% and scales with the short side, bounded to an 18–36px base", () => {
     expect(Danmuku.option.fontSize).toBe(100);
-    expect(getFontSize(720, 100)).toBe(29);
-    expect(getFontSize(1080, 100)).toBe(43);
-    expect(getFontSize(720, 50)).toBe(14);
-    expect(getFontSize(720, 200)).toBe(58);
-    expect(getFontSize(0, 100)).toBe(29);
+    expect(getFontSize(1280, 720, 100)).toBe(29);
+    expect(getFontSize(2560, 1440, 100)).toBe(36);
+    expect(getFontSize(1440, 2560, 100)).toBe(36);
+    expect(getFontSize(360, 640, 100)).toBe(18);
+    expect(getFontSize(1280, 720, 50)).toBe(14);
+    expect(getFontSize(1280, 720, 200)).toBe(58);
+    expect(getFontSize(2560, 1440, 200)).toBe(72);
+    expect(getFontSize(0, 0, 100)).toBe(29);
+  });
+
+  it("excludes letterboxing and pillarboxing from the size calculation", () => {
+    expect(getFontSize(800, 800, 100)).toBe(32);
+    expect(getFontSize(800, 800, 100, 1920, 1080)).toBe(18);
+    expect(getFontSize(800, 800, 100, 1080, 1920)).toBe(18);
+    expect(getFontSize(1280, 720, 100, 1080, 1920)).toBe(18);
+    expect(getFontSize(1280, 720, 100, 0, 0)).toBe(29);
+  });
+
+  it("scales images with the same orientation and letterboxing rules", () => {
+    expect(getImageSize(1280, 720, 100)).toBe(60);
+    expect(getImageSize(2560, 1440, 100)).toBe(75);
+    expect(getImageSize(1440, 2560, 100)).toBe(75);
+    expect(getImageSize(360, 640, 100)).toBe(38);
+    expect(getImageSize(1280, 720, 50)).toBe(30);
+    expect(getImageSize(1280, 720, 200)).toBe(120);
+    expect(getImageSize(800, 800, 100, 1920, 1080)).toBe(38);
+    expect(getImageSize(800, 800, 100, 1080, 1920)).toBe(38);
+    expect(getImageSize(0, 0, 100)).toBe(60);
+  });
+
+  it("updates visible comments after metadata loads and uses the selected aspect ratio", () => {
+    const listeners = new Map<string, () => void>();
+    const art = {
+      constructor: {
+        utils: {
+          clamp: (value, min, max) => Math.min(max, Math.max(min, value)),
+          errorHandle: vi.fn(),
+        },
+        validator: vi.fn(),
+      },
+      template: {
+        $player: { clientWidth: 800, clientHeight: 800 },
+        $danmuku: { style: {} },
+      },
+      video: { clientWidth: 800, clientHeight: 800, videoWidth: 0, videoHeight: 0 },
+      aspectRatio: "default",
+      on: (event, listener) => listeners.set(event, listener),
+      off: vi.fn(),
+      emit: vi.fn(),
+      proxy: vi.fn(),
+    };
+    const danmuku = new Danmuku(art, { danmuku: [] });
+    const playing = { mode: 1, $ref: { style: { setProperty: vi.fn() } } };
+    danmuku.states.emit.push(playing);
+    expect(danmuku.fontSize).toBe(32);
+    Object.assign(art.video, { videoWidth: 1080, videoHeight: 1920 });
+    listeners.get("video:loadedmetadata")!();
+    expect(playing.$ref.style).toMatchObject({ fontSize: "18px" });
+
+    art.aspectRatio = "4:3";
+    Object.assign(art.video, { clientWidth: 800, clientHeight: 600 });
+    listeners.get("aspectRatio")!();
+    expect(playing.$ref.style).toMatchObject({ fontSize: "24px" });
+    expect(art.proxy).toHaveBeenCalledWith(art.video, "resize", danmuku.resize);
+
+    danmuku.stop = vi.fn();
+    danmuku.worker.terminate = vi.fn();
+    danmuku.destroy();
+    for (const event of ["resize", "video:loadedmetadata", "aspectRatio"]) {
+      expect(art.off).toHaveBeenCalledWith(event, danmuku.resize);
+    }
   });
 
   it("keeps settings within 50–200% and recovers from invalid values", () => {
@@ -54,12 +121,12 @@ describe("Artplayer danmuku percentage size", () => {
     const danmuku = Object.create(Danmuku.prototype);
     danmuku.option = { ...Danmuku.option, fontSize: 150 };
     danmuku.$player = { clientWidth: 1920, clientHeight: 1080 };
-    const paused = { mode: 1, $ref: { style: {} } };
-    const playing = { mode: 2, $ref: { style: {} } };
+    const paused = { mode: 1, $ref: { style: { setProperty: vi.fn() } } };
+    const playing = { mode: 2, $ref: { style: { setProperty: vi.fn() } } };
     danmuku.states = { stop: [paused], emit: [playing] };
     danmuku.resize();
-    expect(paused.$ref.style).toMatchObject({ fontSize: "65px" });
-    expect(playing.$ref.style).toMatchObject({ fontSize: "65px" });
+    expect(paused.$ref.style).toMatchObject({ fontSize: "54px" });
+    expect(playing.$ref.style).toMatchObject({ fontSize: "54px" });
     expect(danmuku.option.fontSize).toBe(150);
   });
 });

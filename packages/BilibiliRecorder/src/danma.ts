@@ -105,13 +105,23 @@ class DanmaClient extends EventEmitter {
       onIncomeDanmu: (msg) => {
         let content = msg.body.content;
         content = content.replace(/(^\s*)|(\s*$)/g, "").replace(/[\r\n]/g, "");
-        if (content === "") return;
+        const img = msg.body.emoticon?.url;
+        if (content === "" && !img) return;
 
         const comment: Comment = {
           type: "comment",
           timestamp: this.useServerTimestamp ? msg.body.timestamp : Date.now(),
           text: content,
           color: msg.body.content_color,
+          img,
+          emoticons: msg.body.in_message_emoticon
+            ? Object.fromEntries(
+                Object.entries(msg.body.in_message_emoticon).map(([text, emoticon]) => [
+                  text,
+                  emoticon.url,
+                ]),
+              )
+            : undefined,
           mode: msg.body.type,
           sender: {
             uid: String(msg.body.user.uid),

@@ -68,7 +68,7 @@ async function streamLogs() {
       });
       return;
     }
-    if (!data.text) return;
+    if (!data.text && !data.img) return;
     let mode = 0;
 
     if ([1, 2, 3].includes(data.mode ?? "")) {
@@ -84,6 +84,8 @@ async function streamLogs() {
       // mode，0: 滚动(默认)，1: 顶部，2: 底部
       mode: mode,
       text: data.text,
+      img: data.img,
+      emoticons: data.emoticons,
       color: data.color,
       border: false,
     });

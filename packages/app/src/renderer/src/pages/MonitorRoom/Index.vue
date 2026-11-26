@@ -436,9 +436,10 @@ const danmaSocket = createMonitorDanmaSocket({
       });
       return;
     }
-    if (data.type !== "comment" || typeof data.text !== "string") return;
-    const text = data.text.trim();
-    if (!text) return;
+    if (data.type !== "comment") return;
+    const text = typeof data.text === "string" ? data.text.trim() : "";
+    const img = typeof data.img === "string" ? data.img.trim() : "";
+    if (!text && !img) return;
     const plugin = player.artplayerPluginDanmuku;
     if (!plugin?.option.visible) return;
 
@@ -454,6 +455,8 @@ const danmaSocket = createMonitorDanmaSocket({
     danmakuCounts.set(player, (danmakuCounts.get(player) || 0) + 1);
     plugin.emit({
       text: text.slice(0, 200),
+      img: img || undefined,
+      emoticons: data.emoticons as Record<string, string> | undefined,
       mode: data.mode === 4 ? 2 : data.mode === 5 ? 1 : 0,
       color: typeof data.color === "string" ? data.color : "#fff",
       border: false,
