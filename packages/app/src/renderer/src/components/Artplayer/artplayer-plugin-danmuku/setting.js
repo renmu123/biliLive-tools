@@ -12,6 +12,7 @@ import $on from "./img/on.svg?raw";
 import $style from "./img/style.svg?raw";
 import style from "./style.less?inline";
 import { FONT_SIZE_MIN, FONT_SIZE_MAX } from "./fontSize";
+import { SPEED_DEFAULT, SPEED_MIN, SPEED_MAX } from "./speed";
 
 export default class Setting {
   constructor(art, danmuku) {
@@ -256,25 +257,25 @@ export default class Setting {
       steps: [
         {
           name: "极慢",
-          value: 10,
+          value: SPEED_MAX,
         },
         {
           name: "较慢",
-          value: 7.5,
+          value: 11.25,
           hide: true,
         },
         {
           name: "适中",
-          value: 5,
+          value: SPEED_DEFAULT,
         },
         {
           name: "较快",
-          value: 2.5,
+          value: 3.75,
           hide: true,
         },
         {
           name: "极快",
-          value: 1,
+          value: SPEED_MIN,
         },
       ],
       ...this.option.SPEED,

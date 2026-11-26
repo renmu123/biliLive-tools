@@ -56,7 +56,7 @@ export interface Option {
   danmuku: Danmuku;
 
   /**
-   * 弹幕持续时间，范围在[1 ~ 10]
+   * 弹幕持续时间（秒），范围在[1.5 ~ 15]，默认适中（7.5 秒），时间越短速度越快
    */
   speed?: number;
 

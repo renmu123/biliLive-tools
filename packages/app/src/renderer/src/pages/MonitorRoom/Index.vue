@@ -205,7 +205,7 @@ import { ArrowUpOutline, ArrowDownOutline } from "@vicons/ionicons5";
 import { useMessage } from "naive-ui";
 
 import type ArtplayerType from "artplayer";
-import type { Result as DanmukuResult } from "artplayer-plugin-danmuku";
+import type { Result as DanmukuResult } from "@renderer/components/Artplayer/artplayer-plugin-danmuku";
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { MonitorRoomLayout } from "@biliLive-tools/http/types/monitorRoom.js";
 import type { GridPlacement, GridSize } from "./grid";

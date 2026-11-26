@@ -13,6 +13,7 @@ import artplayerPluginTimestamp from "./artplayer-timestamp";
 import artplayerPluginDanmuku from "./artplayer-plugin-danmuku";
 import type { Option as DanmukuOption, Result as DanmukuResult } from "./artplayer-plugin-danmuku";
 import { migrateFontSize } from "./artplayer-plugin-danmuku/fontSize";
+import { migrateSpeed } from "./artplayer-plugin-danmuku/speed";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 import artplayerPluginSubtitle from "./artplayer-plugin-subtitle";
 import artplayerPluginChapter from "./artplayer-plugin-chapter";
@@ -34,7 +35,7 @@ type DanmukuSettings = Pick<
   | "synchronousPlayback"
   | "mode"
   | "color"
-> & { fontSizeVersion?: 2 };
+> & { fontSizeVersion?: 2; speedVersion?: 2 | 3 };
 
 const getDanmukuSettings = (option: DanmukuOption): DanmukuSettings => ({
   visible: option.visible,
@@ -44,6 +45,7 @@ const getDanmukuSettings = (option: DanmukuOption): DanmukuSettings => ({
   fontSize: option.fontSize,
   fontSizeVersion: 2,
   speed: option.speed,
+  speedVersion: 3,
   antiOverlap: option.antiOverlap,
   synchronousPlayback: option.synchronousPlayback,
   mode: option.mode,
@@ -116,9 +118,10 @@ onMounted(async () => {
   const plugins: any[] = [];
   if (props.plugins) {
     if (props.plugins.includes("danmuku")) {
-      const { fontSizeVersion, ...settings } = danmukuSettings.value;
+      const { fontSizeVersion, speedVersion, ...settings } = danmukuSettings.value;
       const fontSize = migrateFontSize(settings.fontSize, fontSizeVersion);
-      danmukuSettings.value = { ...settings, fontSize, fontSizeVersion: 2 };
+      const speed = migrateSpeed(settings.speed, speedVersion);
+      danmukuSettings.value = { ...settings, fontSize, fontSizeVersion: 2, speed, speedVersion: 3 };
       plugins.push(
         artplayerPluginDanmuku({
           danmuku: [],
@@ -126,6 +129,7 @@ onMounted(async () => {
           heatmap: false,
           ...settings,
           fontSize,
+          speed,
         }),
       );
     }

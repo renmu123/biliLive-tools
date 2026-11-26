@@ -6,6 +6,7 @@ import {
   migrateFontSize,
   normalizeFontSize,
 } from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/fontSize";
+import { migrateSpeed } from "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/speed";
 
 vi.mock(
   "../src/renderer/src/components/Artplayer/artplayer-plugin-danmuku/worker.js?worker&inline",
@@ -68,5 +69,48 @@ describe("Artplayer danmuku percentage size", () => {
     expect(paused.$ref.style).toMatchObject({ fontSize: "65px" });
     expect(playing.$ref.style).toMatchObject({ fontSize: "65px" });
     expect(danmuku.option.fontSize).toBe(150);
+  });
+});
+
+describe("Artplayer danmuku speed", () => {
+  it("uses 7.5 seconds as moderate and migrates each saved tier once", () => {
+    const setting = Object.create(Setting.prototype);
+    setting.danmuku = { option: Danmuku.option };
+    const steps = setting.SPEED.steps;
+    expect(steps.find((step) => step.name === "适中")?.value).toBe(7.5);
+    expect(Danmuku.option.speed).toBe(7.5);
+
+    const previousSpeeds = [10, 7.5, 5, 2.5, 1];
+    previousSpeeds.forEach((previousSpeed, index) => {
+      const migrated = migrateSpeed(previousSpeed);
+      expect(migrated).toBe(steps[index].value);
+      expect(migrateSpeed(previousSpeed / 2, 2)).toBe(migrated);
+      expect(migrateSpeed(migrated, 3)).toBe(migrated);
+    });
+    expect(migrateSpeed(undefined)).toBe(7.5);
+  });
+
+  it("selects the saved tier and applies the fastest tier with playback rate synchronization", () => {
+    const setting = Object.create(Setting.prototype);
+    const danmuku = Object.create(Danmuku.prototype);
+    danmuku.option = { ...Danmuku.option, speed: migrateSpeed(2.5) };
+    danmuku.utils = { clamp: (value, min, max) => Math.min(max, Math.max(min, value)) };
+    danmuku.art = { template: {}, emit: vi.fn(), playbackRate: 2 };
+    danmuku.validator = vi.fn();
+    danmuku.$danmuku = { style: {} };
+    setting.danmuku = danmuku;
+    setting.template = { $speedValue: { textContent: "" } };
+    setting.slider = {};
+    setting.createSlider = (options) => options;
+    setting.createSliders();
+
+    const slider = setting.slider.speed;
+    expect(slider.findIndex()).toBe(3);
+    slider.onChange(4);
+    expect(setting.template.$speedValue.textContent).toBe("极快");
+    expect(danmuku.option.speed).toBe(1.5);
+    expect(danmuku.speed).toBe(1.5);
+    danmuku.config({ synchronousPlayback: true });
+    expect(danmuku.speed).toBe(0.75);
   });
 });
