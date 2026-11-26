@@ -47,7 +47,7 @@
             volume: roomAudioFor(placement.id).volume,
             mutex: false,
           }"
-          :plugins="[]"
+          :plugins="['danmuku', 'sc']"
           is-live
           @ready="registerPlayer(placement.id, $event)"
           @error="handlePlaybackError(placement.id)"
@@ -92,7 +92,7 @@
         </div>
         <p class="monitor-room__hint">
           每个房间默认占 1 × 1 格，上下箭头可调整九宫格顺序。鼠标悬浮在画面上时按 M 可开声或静音，按
-          Ctrl+M 可显示或隐藏右上角顶部栏。
+          Ctrl+M 可显示或隐藏右上角顶部栏。弹幕可使用播放器内的开关控制。
         </p>
         <div
           v-for="(room, index) in selectedRooms"
@@ -193,8 +193,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
+import { createMonitorDanmaSocket } from "./danmaSocket";
 import { recoderApi } from "@renderer/apis";
 import { getMonitorRoomLayout, saveMonitorRoomLayout } from "@renderer/apis/monitorRoom";
 import { platformOptions } from "../Tools/pages/Recorder/data";
@@ -204,6 +205,7 @@ import { ArrowUpOutline, ArrowDownOutline } from "@vicons/ionicons5";
 import { useMessage } from "naive-ui";
 
 import type ArtplayerType from "artplayer";
+import type { Result as DanmukuResult } from "artplayer-plugin-danmuku";
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { MonitorRoomLayout } from "@biliLive-tools/http/types/monitorRoom.js";
 import type { GridPlacement, GridSize } from "./grid";
@@ -227,8 +229,13 @@ const roomAudio = ref<Record<string, RoomAudio>>({});
 const toolbarVisible = ref(true);
 const rooms = ref<Room[]>([]);
 const roomStates = reactive<Record<string, RoomState>>({});
+const danmakuVisible = reactive<Record<string, boolean>>({});
+const danmakuFailed = reactive<Record<string, boolean>>({});
+const danmakuFatal = ref(false);
 const requestIds = new Map<string, number>();
 const players = new Map<string, ArtplayerType>();
+const danmakuCounts = new WeakMap<ArtplayerType, number>();
+const lastDanmakuAt = new WeakMap<ArtplayerType, number>();
 const hoveredRoomId = ref<string | null>(null);
 const roomPickerVisible = ref(false);
 const layoutLoaded = ref(false);
@@ -284,6 +291,15 @@ const availableRooms = computed(() => {
         )),
   );
 });
+const activeDanmakuIds = computed(() =>
+  selectedIds.value.filter(
+    (id) =>
+      !danmakuFatal.value &&
+      !danmakuFailed[id] &&
+      roomStates[id]?.status === "playing" &&
+      danmakuVisible[id] === true,
+  ),
+);
 
 const roomName = (room: Room) => room.remarks || room.liveInfo?.owner || room.channelId;
 const roomNameById = (id: string) => {
@@ -361,6 +377,18 @@ const roomMessage = (id: string) => {
 
 const registerPlayer = (id: string, player: ArtplayerType) => {
   players.set(id, player);
+  delete danmakuFailed[id];
+  const danmakuPlugin = (player as DanmakuPlayer).artplayerPluginDanmuku;
+  danmakuVisible[id] = danmakuPlugin?.option.visible === true;
+  const updateDanmakuVisibility = () => {
+    if (players.get(id) !== player) return;
+    const wasVisible = danmakuVisible[id] === true;
+    danmakuVisible[id] = danmakuPlugin?.option.visible === true;
+    if (!wasVisible && danmakuVisible[id]) delete danmakuFailed[id];
+  };
+  player.on("artplayerPluginDanmuku:show", updateDanmakuVisibility);
+  player.on("artplayerPluginDanmuku:hide", updateDanmakuVisibility);
+  player.on("artplayerPluginDanmuku:config", updateDanmakuVisibility);
   const savedAudio = roomAudioFor(id);
   player.volume = savedAudio.volume;
   player.muted = savedAudio.muted;
@@ -383,6 +411,65 @@ const toggleSound = (id: string) => {
   player.muted = !audio.muted;
   void persistLayout();
 };
+
+type DanmakuPlayer = ArtplayerType & {
+  artplayerPluginDanmuku?: DanmukuResult;
+  artplayerPluginSC?: {
+    emit: (value: { text: string; user?: string; price?: number; avatar?: string }) => void;
+  };
+};
+
+const danmaSocket = createMonitorDanmaSocket({
+  onMessage(id, data) {
+    if (danmakuFatal.value || danmakuFailed[id] || roomStates[id]?.status !== "playing") return;
+    const player = players.get(id) as DanmakuPlayer | undefined;
+    if (!player || player.isDestroy) return;
+
+    if (data.type === "super_chat") {
+      if (typeof data.text !== "string") return;
+      const sender = data.sender as { name?: string; avatar?: string } | undefined;
+      player.artplayerPluginSC?.emit({
+        text: data.text,
+        user: sender?.name,
+        price: typeof data.price === "number" ? data.price : undefined,
+        avatar: sender?.avatar,
+      });
+      return;
+    }
+    if (data.type !== "comment" || typeof data.text !== "string") return;
+    const text = data.text.trim();
+    if (!text) return;
+    const plugin = player.artplayerPluginDanmuku;
+    if (!plugin?.option.visible) return;
+
+    const now = Date.now();
+    if (now - (lastDanmakuAt.get(player) || 0) < 250) return;
+    lastDanmakuAt.set(player, now);
+
+    const count = danmakuCounts.get(player) || 0;
+    if (count >= 200) {
+      danmakuCounts.set(player, 0);
+      void plugin.load().catch(() => {});
+    }
+    danmakuCounts.set(player, (danmakuCounts.get(player) || 0) + 1);
+    plugin.emit({
+      text: text.slice(0, 200),
+      mode: data.mode === 4 ? 2 : data.mode === 5 ? 1 : 0,
+      color: typeof data.color === "string" ? data.color : "#fff",
+      border: false,
+    });
+  },
+  onRoomError(id, error) {
+    message.error(`${roomNameById(id)}：${error}。可关闭并重新开启播放器弹幕重试`);
+    danmakuFailed[id] = true;
+  },
+  onFatal(error) {
+    message.error(error);
+    danmakuFatal.value = true;
+  },
+});
+
+watch(activeDanmakuIds, (ids) => danmaSocket.setRooms(ids), { flush: "post" });
 
 const clearHoveredRoom = (id: string) => {
   if (hoveredRoomId.value === id) hoveredRoomId.value = null;
@@ -461,6 +548,7 @@ const refreshRoom = async (id: string) => {
   const requestId = (requestIds.get(id) || 0) + 1;
   requestIds.set(id, requestId);
   players.delete(id);
+  delete danmakuVisible[id];
   roomStates[id] = { status: "loading", requestId };
 
   const isCurrent = () => requestIds.get(id) === requestId && selectedIds.value.includes(id);
@@ -491,6 +579,7 @@ const handlePlaybackError = (id: string) => {
   const state = roomStates[id];
   if (state?.status !== "playing") return;
   players.delete(id);
+  delete danmakuVisible[id];
   roomStates[id] = {
     status: "error",
     requestId: state.requestId,
@@ -511,6 +600,8 @@ const disposeRoom = (id: string) => {
   requestIds.set(id, (requestIds.get(id) || 0) + 1);
   clearHoveredRoom(id);
   players.delete(id);
+  delete danmakuVisible[id];
+  delete danmakuFailed[id];
   delete roomStates[id];
 };
 const removeRoom = (id: string) => {
@@ -625,6 +716,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  danmaSocket.close();
   if (!isWeb) window.removeEventListener("keydown", handleCloseHotkey, true);
   window.removeEventListener("keydown", handleToolbarHotkey, true);
   window.removeEventListener("keydown", handleMuteHotkey, true);
