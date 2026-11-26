@@ -424,6 +424,7 @@ function createMenu(): void {
       submenu: [
         {
           label: "设置",
+          accelerator: "CmdOrCtrl+,",
           click: () => {
             mainWin.show();
             mainWin.webContents.send("open-setting");
