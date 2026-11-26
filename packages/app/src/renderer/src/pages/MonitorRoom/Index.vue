@@ -499,24 +499,6 @@ const handleToolbarHotkey = (event: KeyboardEvent) => {
   toggleToolbar();
 };
 
-const handleCloseHotkey = (event: KeyboardEvent) => {
-  if (
-    isWeb ||
-    event.key.toLowerCase() !== "w" ||
-    !event.ctrlKey ||
-    event.altKey ||
-    event.metaKey ||
-    event.shiftKey ||
-    event.repeat ||
-    event.isComposing
-  ) {
-    return;
-  }
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  void closeMonitorRoom();
-};
-
 const handleMuteHotkey = (event: KeyboardEvent) => {
   if (
     event.key.toLowerCase() !== "m" ||
@@ -709,7 +691,6 @@ const retryError = () => {
 };
 
 onMounted(() => {
-  if (!isWeb) window.addEventListener("keydown", handleCloseHotkey, true);
   window.addEventListener("keydown", handleToolbarHotkey, true);
   window.addEventListener("keydown", handleMuteHotkey, true);
   void initialize();
@@ -717,7 +698,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   danmaSocket.close();
-  if (!isWeb) window.removeEventListener("keydown", handleCloseHotkey, true);
   window.removeEventListener("keydown", handleToolbarHotkey, true);
   window.removeEventListener("keydown", handleMuteHotkey, true);
   if (volumeSaveTimer) {

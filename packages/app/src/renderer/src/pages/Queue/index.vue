@@ -1,10 +1,10 @@
 <template>
   <div class="container">
-    <div style="display: flex; align-items: center">
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px">
       <n-select
         v-model:value="store.params.type"
         :options="typeOptions"
-        style="width: 140px; margin-right: 10px"
+        style="width: 140px"
         size="small"
       />
       <n-checkbox-group v-model:value="selectedStatus">
@@ -17,10 +17,29 @@
       </n-checkbox-group>
 
       <div style="margin-left: auto; display: flex; gap: 10px">
-        <n-button v-if="queue.length !== 0" size="small" type="primary" @click="handlePauseTasks"
+        <n-button
+          v-if="queue.length !== 0"
+          size="small"
+          type="error"
+          :loading="batchAction === 'cancel'"
+          title="取消当前任务类型下所有支持取消的未结束任务"
+          @click="handleCancelTasks"
+          >取消全部</n-button
+        >
+        <n-button
+          v-if="queue.length !== 0"
+          size="small"
+          type="primary"
+          :loading="batchAction === 'pause'"
+          title="暂停当前任务类型下所有支持暂停的运行中任务"
+          @click="handlePauseTasks"
           >暂停全部</n-button
         >
-        <n-button v-if="queue.length !== 0" size="small" type="error" @click="handleRemoveEndTasks"
+        <n-button
+          v-if="queue.length !== 0"
+          size="small"
+          type="warning"
+          @click="handleRemoveEndTasks"
           >清除记录</n-button
         >
       </div>
@@ -59,14 +78,33 @@ import Item from "./components/item.vue";
 import { useQueueStore } from "@renderer/stores";
 import { deepRaw } from "@renderer/utils";
 import { taskApi } from "@renderer/apis";
+import { useConfirm } from "@renderer/hooks";
 import { TaskType } from "@biliLive-tools/shared/enum.js";
 
 import type { Task } from "@renderer/types";
 
 const notice = useNotification();
+const confirm = useConfirm();
 const store = useQueueStore();
 
 const queue = computed(() => store.queue);
+const batchAction = ref<"pause" | "cancel" | null>(null);
+const pausableTasks = computed(() =>
+  queue.value.filter((item) => item.status === "running" && item.action.includes("pause")),
+);
+const cancelableTasks = computed(() => {
+  const tasks = queue.value.filter(
+    (item) =>
+      ["pending", "running", "paused"].includes(item.status) && item.action.includes("kill"),
+  );
+  // 取消上传父任务时会一并取消其分 P，避免重复操作子任务。
+  const parentIds = new Set(
+    tasks.filter((item) => item.type === TaskType.bili).map((item) => item.taskId),
+  );
+  return tasks
+    .filter((item) => !item.pid || !parentIds.has(item.pid))
+    .sort((a, b) => Number(b.status === "pending") - Number(a.status === "pending"));
+});
 
 const groupByPid = (data: Task[]) => {
   // 如果有pid对应得taskid，那么将这项加入到pid对应的task得children中
@@ -160,14 +198,50 @@ const handleRemoveEndTasks = async () => {
   store.getQuenu();
 };
 
-const handlePauseTasks = async () => {
-  for (const item of queue.value) {
-    if (item.status === "running") {
-      await taskApi.pause(item.taskId);
+const handleBatchTasks = async (action: "pause" | "cancel") => {
+  if (batchAction.value) return;
+  const tasks = action === "pause" ? pausableTasks.value : cancelableTasks.value;
+  if (tasks.length === 0) return;
+
+  batchAction.value = action;
+  const label = action === "pause" ? "暂停" : "取消";
+  try {
+    if (action === "cancel") {
+      const [confirmed] = await confirm.warning({
+        content: "确定要取消当前任务类型下所有可取消的未结束任务吗？",
+      });
+      if (!confirmed) return;
     }
+
+    let failed = 0;
+    for (const item of tasks) {
+      try {
+        if (action === "cancel" && item.type === TaskType.ffmpeg) {
+          await taskApi.interrupt(item.taskId);
+        } else {
+          await taskApi[action](item.taskId);
+        }
+      } catch {
+        failed++;
+      }
+    }
+    if (failed > 0) {
+      notice.warning({
+        title: `${failed === tasks.length ? "全部" : "部分"}任务${label}失败`,
+        content: `${failed} 个任务操作失败，请刷新后重试。`,
+        duration: 5000,
+      });
+    } else {
+      notice.success({ title: `${label}操作完成`, duration: 1000 });
+    }
+    await store.getQuenu();
+  } finally {
+    batchAction.value = null;
   }
-  store.getQuenu();
 };
+
+const handlePauseTasks = () => handleBatchTasks("pause");
+const handleCancelTasks = () => handleBatchTasks("cancel");
 
 let intervalId: NodeJS.Timeout | null = null;
 const createInterval = () => {

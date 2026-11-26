@@ -424,6 +424,7 @@ function createMenu(): void {
       submenu: [
         {
           label: "设置",
+          accelerator: "CmdOrCtrl+,",
           click: () => {
             mainWin.show();
             mainWin.webContents.send("open-setting");
@@ -675,6 +676,23 @@ if (!gotTheLock) {
     // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
     app.on("browser-window-created", (_, window) => {
       optimizer.watchWindowShortcuts(window);
+      window.webContents.on("before-input-event", (event, input) => {
+        if (
+          window === mainWin ||
+          input.type !== "keyDown" ||
+          input.key.toLowerCase() !== "w" ||
+          !input.control ||
+          input.alt ||
+          input.meta ||
+          input.shift ||
+          input.isAutoRepeat ||
+          input.isComposing
+        ) {
+          return;
+        }
+        event.preventDefault();
+        window.close();
+      });
     });
 
     createWindow();

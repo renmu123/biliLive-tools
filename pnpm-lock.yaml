@@ -450,9 +450,6 @@ importers:
       artplayer-plugin-assjs:
         specifier: ^0.1.3
         version: 0.1.3
-      artplayer-plugin-danmuku:
-        specifier: 5.3.0
-        version: 5.3.0
       artplayer-plugin-hls-control:
         specifier: ^1.1.0
         version: 1.1.0
@@ -2538,9 +2535,6 @@ packages:
 
   artplayer-plugin-assjs@0.1.3:
     resolution: {integrity: sha512-X4QUwpYsYnVUMSkijJXp/LH/2QxhLtzX+Q4GDIBSH3UsYZydEleMUDeb/WNJGKdsqVYejmCyFdqL3LviBPNI2Q==}
-
-  artplayer-plugin-danmuku@5.3.0:
-    resolution: {integrity: sha512-a76bU1cWEZr53hD1X8IHfOzS4QawGHn8dQ3fIYyJ5TsyhTSnznhi2WzkS8M7LL3H02ekXRZTUFan9+9EERk12g==}
 
   artplayer-plugin-hls-control@1.1.0:
     resolution: {integrity: sha512-lWN5oUOWDorWFHdzKcmy9Z8eHcf5f5EcUGDrxBsZBX7aEL5dGRlHPQ5+wqQEizr38D9PYPfTI/nCyun2yFopEw==}
@@ -8210,8 +8204,6 @@ snapshots:
   artplayer-plugin-assjs@0.1.3:
     dependencies:
       assjs: 0.1.2
-
-  artplayer-plugin-danmuku@5.3.0: {}
 
   artplayer-plugin-hls-control@1.1.0: {}
 

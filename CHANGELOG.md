@@ -2,10 +2,9 @@
 
 ## 优化
 
-- 播放器：弹幕配置支持持久化
-- 播放器：观看直播时不在支持点击屏幕暂停
-- 播放器：某些场景下添加SC预览 [#613](https://github.com/renmu123/biliLive-tools/pull/613)
-- 播放器：优化flv的播放体验 [#614](https://github.com/renmu123/biliLive-tools/pull/614)
+- 播放器：优化播放体验 [#613](https://github.com/renmu123/biliLive-tools/pull/613)、[#614](https://github.com/renmu123/biliLive-tools/pull/614)
+- 任务队列：增加“取消全部”功能
+- 客户端：新增快捷键`ctrl+w`用于关闭子窗口
 
 ## 其他
 

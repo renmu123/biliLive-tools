@@ -120,6 +120,9 @@ export const useConfirm = () => {
           onClose: () => {
             reslove([false, false]);
           },
+          onEsc: () => {
+            reslove([false, false]);
+          },
           onMaskClick: () => {
             reslove([false, false]);
           },
