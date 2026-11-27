@@ -163,6 +163,12 @@ const router = createRouter({
           meta: { keepAlive: true, title: "文件浏览器" },
         },
         {
+          path: "/danmakuPreview",
+          name: "DanmakuPreview",
+          component: () => import("../pages/DanmakuPreview/index.vue"),
+          meta: { keepAlive: false, title: "弹幕预览" },
+        },
+        {
           path: "/videoPlayer",
           name: "VideoPlayer",
           component: () => import("../pages/VideoPlayer/index.vue"),
