@@ -217,7 +217,7 @@ export async function optimizeLyrics(
       temperature: 0.5,
       enableSearch: false,
       responseFormat: enableStructuredOutput ? { type: "json_object" } : undefined,
-      enableThinking: false,
+      enableThinking: model.toLowerCase().includes("deepseek"),
     },
   );
   logger.info("优化结果:", response);
@@ -363,7 +363,9 @@ async function recognizeSongNameWithLLM(
     }
 
     try {
-      const json = JSON.parse(response.content) as {
+      // DeepSeek 联网搜索不支持 JSON 模式，兼容按提示词返回的 JSON 代码块。
+      const content = response.content.trim().replace(/^```(?:json)?\s*([\s\S]*?)\s*```$/i, "$1");
+      const json = JSON.parse(content) as {
         name: string;
         lyrics: string;
       };
