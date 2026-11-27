@@ -600,7 +600,7 @@ const songRecognize = async (segment: Segment) => {
       });
     } else {
       notice.warning({
-        title: `未能识别出歌曲`,
+        title: `识别失败`,
         duration: 3000,
       });
     }

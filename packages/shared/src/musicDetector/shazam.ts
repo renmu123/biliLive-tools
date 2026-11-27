@@ -336,15 +336,15 @@ export async function recognize(file: string, lyricOptimize: boolean) {
   if (!result) return null;
   let info: (TrackInfo & { appleMusicId: string | undefined }) | null = null;
 
-  try {
-    info = await shazamQueryInfo(result.trackId);
-  } catch (error) {
-    console.error("Shazam 查询信息失败：", error);
-  }
+  // try {
+  //   info = await shazamQueryInfo(result.trackId);
+  // } catch (error) {
+  //   console.error("Shazam 查询信息失败：", error);
+  // }
 
-  const appleMusicId = result.appleMusicId || info?.appleMusicId;
-  const title = info?.title || result.title;
-  const subtitle = info?.subtitle || "";
+  const appleMusicId = result.appleMusicId 
+  const title =  result.title;
+  // const subtitle = info?.subtitle || "";
   let lyrics: string | null = null;
   if (lyricOptimize) {
     if (appleMusicId) {
@@ -354,5 +354,5 @@ export async function recognize(file: string, lyricOptimize: boolean) {
     }
   }
 
-  return { name: title, lyrics, subtitle: subtitle, appleMusicId: appleMusicId };
+  return { name: title, lyrics, subtitle: subtitle: '', appleMusicId: appleMusicId };
 }

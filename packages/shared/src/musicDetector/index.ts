@@ -326,9 +326,29 @@ async function recognizeSongNameWithLLM(
       llmModel: options.model,
     });
 
+    const isQwenModel = options.model.toLowerCase().includes("qwen");
     const response = await llm.sendMessage(truncatedText, options.prompt, {
       enableSearch: options.enableSearch,
-      responseFormat: options.enableStructuredOutput ? { type: "json_object" } : undefined,
+      responseFormat: options.enableStructuredOutput
+        ? isQwenModel
+          ? {
+              type: "json_schema",
+              json_schema: {
+                name: "song_recognition",
+                strict: true,
+                schema: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string" },
+                    lyrics: { type: "string" },
+                  },
+                  required: ["name", "lyrics"],
+                  additionalProperties: false,
+                },
+              },
+            }
+          : { type: "json_object" }
+        : undefined,
       temperature: 0.6,
       enableThinking: false,
       searchOptions: {
