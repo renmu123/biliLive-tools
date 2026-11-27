@@ -147,15 +147,6 @@
                 <n-form-item label="结构化输出">
                   <n-switch v-model:value="config.ai.songRecognizeLlm.enableStructuredOutput" />
                 </n-form-item>
-                <n-form-item>
-                  <template #label>
-                    <Tip
-                      tip="启用后，LLM会对识别出的歌词进行优化处理，提升歌词的可读性和准确性，但会增加token消耗。"
-                      text="歌词优化"
-                    />
-                  </template>
-                  <n-switch v-model:value="config.ai.songRecognizeLlm.lyricOptimize" />
-                </n-form-item>
               </n-form>
             </n-collapse-item>
           </n-collapse>

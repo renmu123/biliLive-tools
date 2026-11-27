@@ -639,6 +639,8 @@ export type SyncConfig = {
 };
 
 // 全局配置
+export type SongRecognizeMode = "name" | "lyrics";
+
 export interface AppConfig {
   logLevel: any;
   /** 允许自定义可执行文件地址 */
@@ -830,7 +832,6 @@ export interface AppConfig {
       enableSearch: boolean;
       maxInputLength: number;
       enableStructuredOutput?: boolean;
-      lyricOptimize: boolean;
     };
     // 歌词优化配置
     songLyricOptimize: {

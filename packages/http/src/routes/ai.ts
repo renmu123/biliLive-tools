@@ -5,6 +5,7 @@ import { subtitleRecognize } from "@biliLive-tools/shared/musicDetector/subtitle
 import { getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
 import { addExtractAudioTask } from "@biliLive-tools/shared/task/video.js";
 import { appConfig } from "@biliLive-tools/shared/config.js";
+import type { SongRecognizeMode } from "@biliLive-tools/types";
 
 const router = new Router({
   prefix: "/ai",
@@ -46,12 +47,20 @@ router.post("/song-recognize", async (ctx) => {
     startTime: number;
     // endTime - 提取音频的结束时间，单位秒
     endTime: number;
+    // mode - name 仅识别歌名，lyrics 识别歌名和歌词
+    mode?: SongRecognizeMode;
   };
   if (!data.file || data.startTime == null || data.endTime == null) {
     ctx.status = 400;
     ctx.body = {
       error: "参数错误，必须包含 file、startTime 和 endTime 字段",
     };
+    return;
+  }
+  const mode = data.mode ?? "name";
+  if (mode !== "name" && mode !== "lyrics") {
+    ctx.status = 400;
+    ctx.body = { error: "参数错误，mode 必须为 name 或 lyrics" };
     return;
   }
 
@@ -76,12 +85,12 @@ router.post("/song-recognize", async (ctx) => {
     });
   });
 
-  const result = await songRecognize(outputFile, data.startTime);
-
-  // 清理临时音频文件
-  fs.remove(outputFile);
-
-  ctx.body = result;
+  try {
+    ctx.body = (await songRecognize(outputFile, data.startTime, mode)) || {};
+  } finally {
+    // 清理临时音频文件
+    await fs.remove(outputFile);
+  }
 });
 
 router.post("/subtitle", async (ctx) => {

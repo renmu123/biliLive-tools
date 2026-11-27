@@ -135,6 +135,35 @@
     </template>
   </n-modal>
 
+  <n-modal
+    v-model:show="songRecognizeVisible"
+    preset="dialog"
+    title="歌曲识别"
+    :show-icon="false"
+    :mask-closable="false"
+  >
+    <n-radio-group v-model:value="songRecognizeMode" name="song-recognize-mode">
+      <n-space vertical :size="16">
+        <div>
+          <n-radio value="lyrics">识别歌名和歌词</n-radio>
+          <div style="margin: 4px 0 0 24px">
+            <n-text depth="3">使用 ASR 和 LLM 识别，再由 LLM 优化歌词并生成字幕。</n-text>
+          </div>
+        </div>
+        <div>
+          <n-radio value="name">仅识别歌名</n-radio>
+          <div style="margin: 4px 0 0 24px">
+            <n-text depth="3">优先使用 Shazam，失败后使用 ASR 和 LLM 识别。</n-text>
+          </div>
+        </div>
+      </n-space>
+    </n-radio-group>
+    <template #action>
+      <n-button @click="songRecognizeVisible = false">取消</n-button>
+      <n-button type="primary" @click="confirmSongRecognize">开始识别</n-button>
+    </template>
+  </n-modal>
+
   <SearchPopover
     v-model:visible="searchDanmuVisible"
     :file="props.files.originDanmuPath"
@@ -186,7 +215,7 @@ import ContextMenu from "@imengyu/vue3-context-menu";
 import { NIcon } from "naive-ui";
 
 import type VideoPlayer from "./components/VideoPlayer.vue";
-import type { DanmuItem } from "@biliLive-tools/types";
+import type { DanmuItem, SongRecognizeMode } from "@biliLive-tools/types";
 import type { Segment } from "@renderer/stores";
 
 onActivated(() => {
@@ -553,7 +582,11 @@ const resetSubtitle = () => {
   videoInstance.value.artplayerPluginSubtitle.setContent(combinedLyrics, "srt");
 };
 
-const songRecognize = async (segment: Segment) => {
+const songRecognizeVisible = ref(false);
+const songRecognizeMode = ref<SongRecognizeMode>("lyrics");
+const songRecognizeSegmentId = ref<string | null>(null);
+
+const songRecognize = (segment: Segment) => {
   if (!props.files.originVideoPath) {
     notice.error({
       title: "请先加载视频文件",
@@ -561,24 +594,30 @@ const songRecognize = async (segment: Segment) => {
     });
     return;
   }
-  if (segment.end && segment.end - segment.start > 6 * 60) {
-    const [status] = await confirm.warning({
-      content: `这么长的片段真的是歌曲吗、是否继续？`,
+  if (segment.loading) {
+    notice.warning({
+      title: "片段正在处理，请稍后再试",
+      duration: 2000,
     });
-    if (!status) return;
+    return;
   }
+  songRecognizeSegmentId.value = segment.id;
+  songRecognizeVisible.value = true;
+};
 
-  // TODO:
-  // 波形图配置颜色
-  const [status] = await confirm.warning({
-    content: `此功能使用AI用于针对片段进行歌曲识别，使用前请先去配置如阿里云相关key。\n
-    1. 利用asr识别出字幕\n
-    2. 利用llm根据字幕内容推断歌曲名称和歌词\n
-    3. 利用asr中的时间轴以及歌词生成校对后的字幕（设置可关闭）\n`,
-    showCheckbox: true,
-    showAgainKey: "videoSongRecognizeWarning",
-  });
-  if (!status) return;
+const confirmSongRecognize = async () => {
+  const segment = cuts.value.find((cut) => cut.id === songRecognizeSegmentId.value);
+  if (!segment || segment.loading) return;
+  if (!props.files.originVideoPath) {
+    notice.error({ title: "请先加载视频文件", duration: 1000 });
+    return;
+  }
+  if (segment.end == null || segment.end <= segment.start) {
+    notice.error({ title: "请先设置有效的片段时间范围", duration: 2000 });
+    return;
+  }
+  const mode = songRecognizeMode.value;
+  songRecognizeVisible.value = false;
 
   try {
     updateSegment(segment.id, { loading: true }, true);
@@ -587,13 +626,15 @@ const songRecognize = async (segment: Segment) => {
       props.files.originVideoPath!,
       segment.start,
       segment.end!,
+      mode,
     );
 
-    if (data.name) {
+    if (data?.name) {
       updateSegment(segment.id, { name: data.name });
-      subtitleStore.setForSegment(segment.id, data.lyrics || "");
-
-      resetSubtitle();
+      if (mode === "lyrics" && data.lyrics !== undefined) {
+        subtitleStore.setForSegment(segment.id, data.lyrics);
+        resetSubtitle();
+      }
       notice.success({
         title: `歌曲识别成功：${data.name}`,
         duration: 3000,
@@ -604,6 +645,12 @@ const songRecognize = async (segment: Segment) => {
         duration: 3000,
       });
     }
+  } catch (error: any) {
+    notice.error({
+      title: "歌曲识别失败",
+      content: error.message || error.error || "未知错误",
+      duration: 5000,
+    });
   } finally {
     updateSegment(segment.id, { loading: false }, true);
   }
@@ -697,95 +744,6 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
   }
 };
 
-/**
- * 歌词识别
- * @param segment 要识别的片段
- */
-const lyricRecognizeHandler = async (segment: Segment) => {
-  if (!props.files.originVideoPath) {
-    notice.error({
-      title: "请先加载视频文件",
-      duration: 1000,
-    });
-    return;
-  }
-
-  // 获取配置（尝试获取，如果失败则使用默认值）
-  let modelId: string | undefined = undefined;
-
-  const config = appConfig.value;
-  const models = config?.ai?.models || [];
-  if (models.length === 0) {
-    notice.error({
-      title: "请先在设置中配置AI模型",
-      duration: 3000,
-    });
-    return;
-  }
-  modelId = config?.ai?.songRecognizeAsr?.modelId;
-  if (!modelId) {
-    notice.error({
-      title: "请先在设置中配置歌词识别模型",
-      duration: 3000,
-    });
-    return;
-  }
-
-  if (modelId === "bcut" && segment.end! - segment.start > 60 * 20) {
-    notice.error({
-      title: "当前模型不适合识别超过20分钟的片段，请先切割片段",
-      duration: 3000,
-    });
-    return;
-  }
-
-  const [status] = await confirm.warning({
-    content: `正在使用配置的AI模型对片段进行歌词识别。\n\n识别范围：${segment.start.toFixed(2)}s - ${segment.end?.toFixed(2)}s`,
-    showCheckbox: true,
-    showAgainKey: "videoLyricRecognizeWarning",
-  });
-  if (!status) return;
-
-  try {
-    updateSegment(segment.id, { loading: true }, true);
-
-    // 调用歌词识别 API
-    const data = await aiApi.subtitleRecognize(
-      props.files.originVideoPath!,
-      segment.start,
-      segment.end!,
-      modelId,
-      {
-        offset: segment.start,
-        song: true,
-      },
-    );
-    subtitleStore.setForSegment(segment.id, data.srt || "");
-
-    resetSubtitle();
-
-    if (data.srt) {
-      notice.success({
-        title: "歌词识别成功",
-        duration: 3000,
-      });
-    } else {
-      notice.warning({
-        title: "未能识别出歌词",
-        duration: 3000,
-      });
-    }
-  } catch (error: any) {
-    notice.error({
-      title: "歌词识别失败",
-      content: error.message || error.error || "未知错误",
-      duration: 5000,
-    });
-  } finally {
-    updateSegment(segment.id, { loading: false }, true);
-  }
-};
-
 const themeStore = useThemeStore();
 const showContextMenu = (e: MouseEvent, segment: Segment) => {
   //这个函数与 this.$contextmenu 一致
@@ -854,12 +812,6 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
             icon: renderIcon(MusicNote220Regular),
             onClick: async () => {
               songRecognize(segment);
-            },
-          },
-          {
-            label: "歌词识别",
-            onClick: async () => {
-              lyricRecognizeHandler(segment);
             },
           },
           {
