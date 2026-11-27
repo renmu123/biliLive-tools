@@ -1,5 +1,9 @@
 # Next
 
+## 功能
+
+- 文件管理器：支持xml预览
+
 ## 优化
 
 - 播放器：优化播放体验 [#613](https://github.com/renmu123/biliLive-tools/pull/613)、[#614](https://github.com/renmu123/biliLive-tools/pull/614)

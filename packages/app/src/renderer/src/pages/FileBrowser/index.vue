@@ -56,7 +56,7 @@ import { NButton, NTag, NText } from "naive-ui";
 import { fileBrowserApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
 import { useNotice } from "@renderer/hooks/useNotice";
-import { toVideoPlayerPage } from "@renderer/utils/pages";
+import { toDanmakuPreviewPage, toVideoPlayerPage } from "@renderer/utils/pages";
 import { useRoute } from "vue-router";
 
 import type { DataTableColumns, DataTableRowKey } from "naive-ui";
@@ -209,6 +209,17 @@ const downloadFile = async (row: FileBrowserItem) => {
 
 const isTsFile = (row: FileBrowserItem) => row.name.toLowerCase().endsWith(".ts");
 
+const isXmlFile = (row: FileBrowserItem) =>
+  row.type === "file" && row.name.toLowerCase().endsWith(".xml");
+
+const openDanmakuPreview = async (row: FileBrowserItem) => {
+  try {
+    await toDanmakuPreviewPage(row.path);
+  } catch (error: any) {
+    notice.error({ title: error?.message || error || "打开弹幕预览失败" });
+  }
+};
+
 const isPlayableVideo = (row: FileBrowserItem) =>
   row.type === "file" && row.fileKind === "video" && !isTsFile(row);
 
@@ -322,6 +333,17 @@ const columns = computed<DataTableColumns<FileBrowserItem>>(() => [
           { default: () => `📁 ${row.name}` },
         );
       }
+      if (isXmlFile(row)) {
+        return h(
+          NButton,
+          {
+            text: true,
+            type: "primary",
+            onClick: () => openDanmakuPreview(row),
+          },
+          { default: () => `📄 ${row.name}` },
+        );
+      }
       return h(
         "span",
         {
@@ -348,7 +370,9 @@ const columns = computed<DataTableColumns<FileBrowserItem>>(() => [
           size: "small",
           type: row.fileKind === "video" ? "success" : "info",
         },
-        { default: () => (row.fileKind === "video" ? "视频" : "文件") },
+        {
+          default: () => (row.fileKind === "video" ? "视频" : isXmlFile(row) ? "弹幕" : "文件"),
+        },
       );
     },
   },
@@ -388,6 +412,19 @@ const columns = computed<DataTableColumns<FileBrowserItem>>(() => [
           { default: () => "下载" },
         ),
       ];
+      if (isXmlFile(row)) {
+        actions.unshift(
+          h(
+            NButton,
+            {
+              text: true,
+              type: "primary",
+              onClick: () => openDanmakuPreview(row),
+            },
+            { default: () => "预览" },
+          ),
+        );
+      }
       if (row.fileKind === "video") {
         actions.unshift(
           h(

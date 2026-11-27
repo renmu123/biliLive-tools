@@ -135,7 +135,10 @@ const appConfig = useAppConfig();
 const { userInfo } = storeToRefs(useUserInfoStore());
 
 const route = useRoute();
-const hideNavigation = computed(() => route.name === "MonitorRoom" || route.name === "VideoPlayer");
+const hideNavigation = computed(
+  () =>
+    route.name === "MonitorRoom" || route.name === "VideoPlayer" || route.name === "DanmakuPreview",
+);
 const activeKey = ref("Home");
 activeKey.value = route.name as string;
 const collapsed = useStorage("collapsed", false);
@@ -607,7 +610,8 @@ initChanglog();
     }
   }
 
-  &.VideoPlayer {
+  &.VideoPlayer,
+  &.DanmakuPreview {
     margin: 0;
 
     & > .n-layout-scroll-container {

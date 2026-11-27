@@ -154,6 +154,22 @@ export async function toVideoPlayerPage(opts: {
   }
 }
 
+/** 打开弹幕预览。Web 端使用新标签页，桌面端使用子窗口。 */
+export async function toDanmakuPreviewPage(filePath: string) {
+  const query = { path: filePath };
+  if (window.isWeb) {
+    const url = router.resolve({ name: "DanmakuPreview", query }).href;
+    if (!window.open(url, "_blank")) throw new Error("无法打开预览标签页，请检查浏览器弹窗设置");
+  } else {
+    await window.api.common.createSubWindow({
+      routeName: "danmakuPreview",
+      hideAside: true,
+      hideMenuBar: true,
+      query,
+    });
+  }
+}
+
 /**
  * 获取直播流地址并打开直播播放器。Web 端使用新标签页，桌面端使用子窗口。
  * @param opts 录制器 ID 和主播名称

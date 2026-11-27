@@ -1,7 +1,7 @@
 import request from "./request";
 import configApi from "./config";
 
-import type { DanmuItem } from "@biliLive-tools/types";
+import type { Danmu, SC, Gift, Guard } from "@biliLive-tools/types";
 
 export const getStreamLogs = async () => {
   let key = window.localStorage.getItem("key");
@@ -203,18 +203,21 @@ export const getVideo = (videoId: string): string => {
   return `${request.defaults.baseURL}/common/video/${videoId}`;
 };
 
-export const parseDanmu = async (
-  filepath: string,
-): Promise<{
-  danmu: DanmuItem[];
-  sc: DanmuItem[];
+export interface ParsedDanmu {
+  danmu: Danmu[];
+  sc: SC[];
+  gift: Gift[];
+  guard: Guard[];
   metadata: {
-    video_start_time?: number;
+    video_start_time?: number | null;
+    streamer?: string | null;
+    room_id?: string | null;
+    live_title?: string | null;
   };
-}> => {
-  const res = await request.post("/common/parseDanmu", {
-    filepath,
-  });
+}
+
+export const parseDanmu = async (filepath: string, signal?: AbortSignal): Promise<ParsedDanmu> => {
+  const res = await request.post("/common/parseDanmu", { filepath }, { signal });
   return res.data;
 };
 
