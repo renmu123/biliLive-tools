@@ -164,7 +164,7 @@ export class QwenLLM {
             }),
           }),
     };
-    console.log("params", params);
+    // console.log("params", params);
 
     if (options.stream) {
       return this.client.chat.completions.create({
