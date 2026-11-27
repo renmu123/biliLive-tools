@@ -370,7 +370,9 @@ const columns = computed<DataTableColumns<FileBrowserItem>>(() => [
           size: "small",
           type: row.fileKind === "video" ? "success" : "info",
         },
-        { default: () => (row.fileKind === "video" ? "视频" : "弹幕") },
+        {
+          default: () => (row.fileKind === "video" ? "视频" : isXmlFile(row) ? "弹幕" : "文件"),
+        },
       );
     },
   },
