@@ -47,6 +47,7 @@
               v-model:value="danmuPresetId"
               :options="danmuPresetsOptions"
               placeholder="选择预设"
+              filterable
             />
             <n-button @click="openSetting">
               <template #icon

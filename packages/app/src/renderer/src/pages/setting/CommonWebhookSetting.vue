@@ -120,6 +120,7 @@
       :disabled="globalFieldsObj.danmuPreset"
       style="margin-right: 10px; width: 200px"
       clearable
+      filterable
     />
     <n-button v-if="data.danmuPreset" text style="margin-right: 10px" @click="openSetting">
       <template #icon>
@@ -326,6 +327,7 @@
       placeholder="请选择账号"
       :disabled="globalFieldsObj.uid"
       style="margin-right: 10px"
+      filterable
     />
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.uid" class="global-checkbox"
       >全局</n-checkbox

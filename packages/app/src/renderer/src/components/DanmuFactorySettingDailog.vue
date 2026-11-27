@@ -10,7 +10,12 @@
     >
       <div v-if="props.showPreset" class="flex" style="gap: 10px; align-items: center">
         <span style="flex: none">预设</span>
-        <n-select v-model:value="presetId" :options="danmuPresetsOptions" placeholder="选择预设" />
+        <n-select
+          v-model:value="presetId"
+          :options="danmuPresetsOptions"
+          placeholder="选择预设"
+          filterable
+        />
       </div>
 
       <DanmuFactorySetting

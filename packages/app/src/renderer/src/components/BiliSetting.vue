@@ -3,7 +3,7 @@
   <div>
     <n-form ref="formRef" :label-width="labelWidth" label-placement="left" label-align="right">
       <n-form-item v-if="!isEditOnlyMode" label="预设">
-        <n-select v-model:value="presetId" :options="uploaPresetsOptions" />
+        <n-select v-model:value="presetId" :options="uploaPresetsOptions" filterable />
       </n-form-item>
       <n-divider v-if="!isEditOnlyMode" />
 

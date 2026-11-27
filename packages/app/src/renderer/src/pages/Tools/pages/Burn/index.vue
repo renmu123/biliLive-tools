@@ -60,6 +60,7 @@
             v-model:value="options.danmuPresetId"
             :options="danmuPresetsOptions"
             placeholder="选择弹幕预设"
+            filterable
           />
         </div>
 
