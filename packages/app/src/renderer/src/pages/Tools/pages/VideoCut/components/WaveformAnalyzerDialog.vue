@@ -5,6 +5,7 @@
     :show-icon="false"
     style="width: 640px"
     :on-after-leave="handleClose"
+    :mask-closable="false"
   >
     <p style="padding-top: 16px; color: skyblue">
       自动识别演唱片段，保留伴奏间奏并补齐前后奏。建议先使用默认参数；识别完成后会替换当前片段，也可右键识别歌名。演唱检测使用内置模型，可离线分析。
