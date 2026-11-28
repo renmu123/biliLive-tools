@@ -16,41 +16,45 @@
       label-width="auto"
       require-mark-placement="right-hanging"
     >
-      <n-form-item
-        v-for="field in numberFields"
-        :key="field.key"
-        :label="field.label"
-        :path="field.key"
-      >
-        <n-input-number
-          v-model:value="formValue[field.key]"
-          :min="field.min"
-          :max="field.max"
-          :step="field.step"
-          :precision="field.precision"
-          :disabled="loading"
-          :update-value-on-input="false"
-        />
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px">{{ field.hint }}</n-text>
-      </n-form-item>
-      <n-form-item label="保留伴奏间奏">
-        <n-checkbox v-model:checked="formValue.bridgeMusicGaps" :disabled="loading" />
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px"
-          >在合格唱段之间检查持续音乐和讲话分数</n-text
-        >
-      </n-form-item>
-      <n-form-item label="补齐前后奏">
-        <n-checkbox v-model:checked="formValue.extendMusicEdges" :disabled="loading" />
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px"
-          >遇持续讲话或音乐中断时停止扩展</n-text
-        >
-      </n-form-item>
-      <n-form-item label="不保留缓存">
-        <n-checkbox v-model:checked="formValue.disableCache" :disabled="loading" />
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px"
-          >重新分析并清除本视频分数缓存，保留模型</n-text
-        >
-      </n-form-item>
+      <n-collapse :default-expanded-names="[]" style="margin-bottom: 16px">
+        <n-collapse-item title="高级配置" name="advanced">
+          <n-form-item
+            v-for="field in numberFields"
+            :key="field.key"
+            :label="field.label"
+            :path="field.key"
+          >
+            <n-input-number
+              v-model:value="formValue[field.key]"
+              :min="field.min"
+              :max="field.max"
+              :step="field.step"
+              :precision="field.precision"
+              :disabled="loading"
+              :update-value-on-input="false"
+            />
+            <n-text depth="3" style="margin-left: 8px; font-size: 12px">{{ field.hint }}</n-text>
+          </n-form-item>
+          <n-form-item label="保留伴奏间奏">
+            <n-checkbox v-model:checked="formValue.bridgeMusicGaps" :disabled="loading" />
+            <n-text depth="3" style="margin-left: 8px; font-size: 12px"
+              >在合格唱段之间检查持续音乐和讲话分数</n-text
+            >
+          </n-form-item>
+          <n-form-item label="补齐前后奏">
+            <n-checkbox v-model:checked="formValue.extendMusicEdges" :disabled="loading" />
+            <n-text depth="3" style="margin-left: 8px; font-size: 12px"
+              >遇持续讲话或音乐中断时停止扩展</n-text
+            >
+          </n-form-item>
+          <n-form-item label="不保留缓存">
+            <n-checkbox v-model:checked="formValue.disableCache" :disabled="loading" />
+            <n-text depth="3" style="margin-left: 8px; font-size: 12px"
+              >重新分析并清除本视频分数缓存，保留模型</n-text
+            >
+          </n-form-item>
+        </n-collapse-item>
+      </n-collapse>
 
       <!-- 进度条 -->
       <n-form-item v-if="loading">

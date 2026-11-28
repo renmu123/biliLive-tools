@@ -38,9 +38,9 @@ afterEach(async () => {
 });
 
 it("reuses scores without loading a model when only detection parameters change", async () => {
-  await musicDetect("video.mp4");
+  await musicDetect("video.mp4", { disableCache: false });
   const progress = vi.fn();
-  await musicDetect("video.mp4", { startThreshold: 0.03 }, progress);
+  await musicDetect("video.mp4", { startThreshold: 0.03, disableCache: false }, progress);
   expect(mocks.analyze).toHaveBeenCalledTimes(1);
   expect(mocks.model).toHaveBeenCalledTimes(1);
   expect(mocks.model).toHaveBeenCalledWith("resources/models/yamnet.onnx");
@@ -48,7 +48,7 @@ it("reuses scores without loading a model when only detection parameters change"
   expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({ percentage: 100 }));
 });
 it("disableCache bypasses existing scores and removes them even on failure", async () => {
-  await musicDetect("video.mp4");
+  await musicDetect("video.mp4", { disableCache: false });
   mocks.analyze.mockRejectedValueOnce(new Error("decode failed"));
   await expect(musicDetect("video.mp4", { disableCache: true })).rejects.toThrow("decode failed");
   expect(mocks.analyze).toHaveBeenCalledTimes(2);
@@ -60,12 +60,15 @@ it.each([
   JSON.stringify({ version: 1, model: "other-model" }),
 ])("rebuilds invalid cache %s", async (content) => {
   await writeFile(path.join(mocks.cache, "yamnet_v1_video.json"), content);
-  await musicDetect("video.mp4");
+  await musicDetect("video.mp4", { disableCache: false });
   expect(mocks.analyze).toHaveBeenCalledTimes(1);
   expect((await readdir(mocks.cache)).filter((name) => name.endsWith(".part"))).toEqual([]);
 });
 it("serializes simultaneous requests and shares their score cache", async () => {
-  await Promise.all([musicDetect("video.mp4"), musicDetect("video.mp4")]);
+  await Promise.all([
+    musicDetect("video.mp4", { disableCache: false }),
+    musicDetect("video.mp4", { disableCache: false }),
+  ]);
   expect(mocks.analyze).toHaveBeenCalledTimes(1);
 });
 it("rejects invalid configuration before model loading or decoding", async () => {

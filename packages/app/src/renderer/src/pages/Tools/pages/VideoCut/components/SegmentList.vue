@@ -74,9 +74,9 @@
       </Tip>
     </div>
 
-    <div class="view">
+    <div ref="segmentListRef" class="view">
       <div
-        v-for="cut in cuts"
+        v-for="(cut, cutIndex) in cuts"
         :key="cut.id"
         class="cut"
         role="button"
@@ -91,8 +91,14 @@
         @dblclick="navVideo(cut.start)"
         @contextmenu.prevent="showContextMenu($event, cut)"
       >
-        <div class="time">
-          {{ secondsToTimemark(cut.start) }}-<span>{{ secondsToTimemark(cut.end) }}</span>
+        <div class="cut-header">
+          <div class="time">
+            {{ secondsToTimemark(cut.start) }}-<span>{{ secondsToTimemark(cut.end) }}</span>
+          </div>
+          <n-spin :size="18" class="loading" style="--n-size: 18px" v-if="cut.loading" />
+          <span class="segment-index" :aria-label="`片段 ${cutIndex + 1}`">
+            {{ cutIndex + 1 }}
+          </span>
         </div>
         <div class="name" style="color: skyblue">{{ cut.name }}</div>
         <div v-if="cut.end" class="duration">
@@ -111,7 +117,6 @@
             <Pencil></Pencil>
           </n-icon>
         </div>
-        <n-spin :size="18" class="loading" style="--n-size: 18px" v-if="cut.loading" />
       </div>
     </div>
   </div>
@@ -189,6 +194,7 @@
 <script setup lang="ts">
 import { useThemeStore } from "@renderer/stores/theme";
 import SearchPopover from "./SearchPopover.vue";
+import { scrollSegmentIntoView } from "../composables/segmentScroll";
 import { secondsToTimemark } from "@renderer/utils";
 import { useSegmentStore, useSubtitles, useAppConfig } from "@renderer/stores";
 import {
@@ -292,7 +298,23 @@ useEventListener(window, "resize", () => {
 const videoInstance = inject("videoInstance") as Ref<InstanceType<typeof VideoPlayer>>;
 const { appConfig } = storeToRefs(useAppConfig());
 
-const { cuts, selectCutId } = storeToRefs(useSegmentStore());
+const segmentStore = useSegmentStore();
+const { cuts, selectCutId } = storeToRefs(segmentStore);
+const segmentListRef = ref<HTMLElement | null>(null);
+
+// 监听选择动作，重复点击同一波形片段也能重新定位到列表中的对应项。
+// Pinia 会随当前组件卸载自动移除此订阅。
+segmentStore.$onAction(({ name, after }) => {
+  if (name !== "selectCut") return;
+  after(async () => {
+    await nextTick();
+    const list = segmentListRef.value;
+    const container = list?.closest<HTMLElement>(".segment-list-container");
+    const selected = list?.querySelector<HTMLElement>(".cut.selected");
+    if (container && selected) scrollSegmentIntoView(container, selected);
+  });
+});
+
 const subtitleStore = useSubtitles();
 const {
   addSegment,
@@ -863,7 +885,8 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
     }
   }
   .cut {
-    border: 2px solid rgba(204, 204, 204, 0.5);
+    --cut-border-color: rgba(204, 204, 204, 0.5);
+    border: 2px solid var(--cut-border-color);
     border-radius: 4px;
     padding: 4px 6px;
     margin-bottom: 6px;
@@ -874,7 +897,7 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
       opacity: 1;
     }
     &.selected {
-      border-color: var(--active-border-color);
+      --cut-border-color: var(--active-border-color);
       border-width: 2px;
     }
     &:hover {
@@ -885,7 +908,28 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
         display: block;
       }
     }
+    .cut-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .time {
+      flex: 1;
+      min-width: 0;
+    }
+    .segment-index {
+      display: inline-flex;
+      flex-shrink: 0;
+      justify-content: center;
+      min-width: 1.5em;
+      padding: 0 4px;
+      color: #fff;
+      background-color: var(--cut-border-color);
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.5;
     }
     .name {
     }
@@ -906,9 +950,7 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
       bottom: 0px;
     }
     .loading {
-      position: absolute;
-      top: 4px;
-      right: 4px;
+      flex-shrink: 0;
     }
   }
 }

@@ -9,12 +9,17 @@ files:
   - "!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}"
   - "!{.env,.env.*,.npmrc,pnpm-lock.yaml}"
   - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
+  # ONNX Runtime 自带多个平台的原生库，只保留目标架构。
+  - "!**/node_modules/onnxruntime-node/bin/napi-v3/*/!(${arch}){,/**/*}"
   - "!resources/bin/ffmpeg.exe"
   - "!resources/bin/ffprobe.exe"
 asarUnpack:
   - resources/**
   - node_modules/onnxruntime-node/**
+afterPack: build/verify-model.cjs
 win:
+  files:
+    - "!**/node_modules/onnxruntime-node/bin/napi-v3/!(win32){,/**/*}"
   executableName: biliLive-tools
 nsis:
   artifactName: ${name}-${version}-no-ffmpeg-setup.${ext}
@@ -23,6 +28,8 @@ nsis:
   createDesktopShortcut: always
   deleteAppDataOnUninstall: true
 mac:
+  files:
+    - "!**/node_modules/onnxruntime-node/bin/napi-v3/!(darwin){,/**/*}"
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
@@ -33,6 +40,8 @@ mac:
 dmg:
   artifactName: ${name}-${version}-no-ffmpeg.${ext}
 linux:
+  files:
+    - "!**/node_modules/onnxruntime-node/bin/napi-v3/!(linux){,/**/*}"
   target:
     - AppImage
     - snap

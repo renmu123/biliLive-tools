@@ -32,5 +32,5 @@ export const DEFAULT_MUSIC_DETECTION_CONFIG: Readonly<MusicDetectionConfig> = Ob
   extendMusicEdges: true,
   maximumLeadSeconds: 30,
   maximumTailSeconds: 30,
-  disableCache: false,
+  disableCache: true,
 });

@@ -8,6 +8,7 @@ import {
 describe("YAMNet configuration and score cache", () => {
   it("uses the final demo preset, including bridges and edges", () => {
     expect(normalizeConfig()).toMatchObject({
+      disableCache: true,
       startThreshold: 0.015,
       sustainThreshold: 0.01,
       contextFrames: 21,

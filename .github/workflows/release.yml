@@ -60,6 +60,9 @@ jobs:
       - name: Install binary deps
         run: pnpm run install:bin
 
+      - name: Prepare and verify models
+        run: pnpm run install:models
+
       - name: build
         run: pnpm run build:app
 
