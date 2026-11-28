@@ -12,6 +12,7 @@ import $on from "./img/on.svg?raw";
 import $style from "./img/style.svg?raw";
 import style from "./style.less?inline";
 import { FONT_SIZE_MIN, FONT_SIZE_MAX } from "./fontSize";
+import { SPEED_DEFAULT, SPEED_MIN, SPEED_MAX } from "./speed";
 
 export default class Setting {
   constructor(art, danmuku) {
@@ -43,6 +44,8 @@ export default class Setting {
       $fontSizeValue: null,
       $speedSlider: null,
       $speedValue: null,
+      $heatmapConfig: null,
+      $heatmap: null,
       $input: null,
       $send: null,
     };
@@ -57,12 +60,15 @@ export default class Setting {
     this.emitting = false;
     this.isLock = false;
     this.timer = null;
+    this.heatmapOptions = true;
 
     this.createTemplate();
     this.createSliders();
     this.createEvents();
 
     this.mount(this.option.mount);
+    this.syncHeatmap();
+    art.on("artplayerPluginDanmuku:config", () => this.syncHeatmap());
 
     art.on("resize", () => this.resize());
     art.on("fullscreen", (state) => this.onFullscreen(state));
@@ -143,6 +149,12 @@ export default class Setting {
                             <div class="apd-other apd-sync-video">
                                 ${$check_on}${$check_off}
                                 同步视频速度
+                            </div>
+                        </div>
+                        <div class="apd-config-other apd-config-heatmap" style="display: ${option.heatmapEnable ? "flex" : "none"}">
+                            <div class="apd-other apd-heatmap">
+                                ${$check_on}${$check_off}
+                                高能进度条
                             </div>
                         </div>
                         <div class="apd-config-slider apd-config-opacity">
@@ -256,25 +268,25 @@ export default class Setting {
       steps: [
         {
           name: "极慢",
-          value: 10,
+          value: SPEED_MAX,
         },
         {
           name: "较慢",
-          value: 7.5,
+          value: 11.25,
           hide: true,
         },
         {
           name: "适中",
-          value: 5,
+          value: SPEED_DEFAULT,
         },
         {
           name: "较快",
-          value: 2.5,
+          value: 3.75,
           hide: true,
         },
         {
           name: "极快",
-          value: 1,
+          value: SPEED_MIN,
         },
       ],
       ...this.option.SPEED,
@@ -342,6 +354,8 @@ export default class Setting {
     this.template.$colors = this.query(".apd-colors");
     this.template.$antiOverlap = this.query(".apd-anti-overlap");
     this.template.$syncVideo = this.query(".apd-sync-video");
+    this.template.$heatmapConfig = this.query(".apd-config-heatmap");
+    this.template.$heatmap = this.query(".apd-heatmap");
     this.template.$opacitySlider = this.query(".apd-config-opacity .apd-slider");
     this.template.$opacityValue = this.query(".apd-config-opacity .apd-value");
     this.template.$marginSlider = this.query(".apd-config-margin .apd-slider");
@@ -365,8 +379,17 @@ export default class Setting {
   }
 
   createEvents() {
-    const { $toggle, $configModes, $styleModes, $colors, $antiOverlap, $syncVideo, $send, $input } =
-      this.template;
+    const {
+      $toggle,
+      $configModes,
+      $styleModes,
+      $colors,
+      $antiOverlap,
+      $syncVideo,
+      $heatmap,
+      $send,
+      $input,
+    } = this.template;
 
     this.art.proxy($toggle, "click", () => {
       this.danmuku.config({
@@ -403,6 +426,13 @@ export default class Setting {
         synchronousPlayback: !this.option.synchronousPlayback,
       });
       this.reset();
+    });
+
+    this.art.proxy($heatmap, "click", () => {
+      if (!this.option.heatmapEnable) return;
+      this.danmuku.config({
+        heatmap: this.option.heatmap ? false : this.heatmapOptions,
+      });
     });
 
     this.art.proxy($styleModes, "click", (event) => {
@@ -686,6 +716,12 @@ export default class Setting {
     }
   }
 
+  syncHeatmap() {
+    this.template.$heatmapConfig.style.display = this.option.heatmapEnable ? "flex" : "none";
+    this.setData("danmukuHeatmap", Boolean(this.option.heatmap));
+    if (this.option.heatmap) this.heatmapOptions = this.option.heatmap;
+  }
+
   reset() {
     const { inverseClass, tooltip } = this.utils;
     const { $toggle, $colors } = this.template;
@@ -705,6 +741,7 @@ export default class Setting {
     this.setData("danmukuSyncVideo", this.option.synchronousPlayback);
     this.setData("danmukuTheme", this.option.theme);
     this.setData("danmukuEmitter", this.option.emitter);
+    this.syncHeatmap();
 
     const colors = $colors.children;
     const $color = Array.from(colors).find(

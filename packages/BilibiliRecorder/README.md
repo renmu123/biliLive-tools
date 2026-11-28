@@ -29,6 +29,38 @@ manager.addRecorder({
 manager.startCheckLoop();
 ```
 
+## 独立订阅弹幕
+
+可以在未录制时订阅弹幕。订阅会创建自己的弹幕连接，与录制时的弹幕连接互不影响；结束订阅时调用返回的函数，避免连接一直占用资源。
+
+```ts
+import { createRecorderManager } from "@bililive-tools/manager";
+import { provider } from "@bililive-tools/bilibili-recorder";
+
+const manager = createRecorderManager({ providers: [provider] });
+const recorder = manager.addRecorder({
+  providerId: provider.id,
+  channelId: "7734200", // 长直播间 ID
+  quality: 10000,
+  streamPriorities: [],
+  sourcePriorities: [],
+  disableAutoCheck: true,
+  disableProvideCommentsWhenRecording: true,
+  uid: 0,
+});
+
+if (!recorder.subscribeComments) throw new Error("此录制器不支持独立订阅弹幕");
+
+const unsubscribe = await recorder.subscribeComments((message) => {
+  console.log(message.type, message);
+});
+
+// 不再需要弹幕时调用；录制任务不受影响。
+unsubscribe();
+```
+
+订阅会收到普通弹幕、礼物、舰长和 SC 消息，不受录制时的弹幕保存选项影响。`subscribeComments` 在初始化失败时会抛出错误；连接建立和后续重连由弹幕客户端异步处理。
+
 ## 参数
 
 ```ts

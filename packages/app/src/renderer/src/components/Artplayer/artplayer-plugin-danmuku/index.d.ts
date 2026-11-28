@@ -19,9 +19,19 @@ export interface Slider {
 
 export interface Danmu {
   /**
-   * 弹幕文本
+   * 弹幕文本；有 img 时作为替代说明，可省略
    */
-  text: string;
+  text?: string;
+
+  /**
+   * 图片地址；有图时替代文本显示，按实际视频短边及字号百分比缩放；100% 时约 38–75px，720px 短边对应 60px
+   */
+  img?: string;
+
+  /**
+   * 行内表情文字到图片地址的映射，例如 { "[dog]": "https://example.com/dog.png" }
+   */
+  emoticons?: Record<string, string>;
 
   /**
    * 弹幕发送模式: 0: 滚动，1: 顶部，2: 底部
@@ -56,7 +66,7 @@ export interface Option {
   danmuku: Danmuku;
 
   /**
-   * 弹幕持续时间，范围在[1 ~ 10]
+   * 弹幕持续时间（秒），范围在[1.5 ~ 15]，默认适中（7.5 秒），时间越短速度越快
    */
   speed?: number;
 
@@ -86,7 +96,7 @@ export interface Option {
   modes?: Mode[];
 
   /**
-   * 弹幕字号百分比，范围 50 ~ 200，默认 100（播放器高度的 4%）
+   * 弹幕字号百分比，范围 50 ~ 200，默认 100；基准为视频显示区域短边的 4%，限制在 18–36px
    */
   fontSize?: number;
 
@@ -106,7 +116,7 @@ export interface Option {
   mount?: HTMLDivElement | string;
 
   /**
-   * 是否开启弹幕热度图
+   * 是否显示高能进度条，默认 false；heatmapEnable 为 false 时强制为 false
    */
   heatmap?:
     | boolean
@@ -122,6 +132,11 @@ export interface Option {
         smoothing?: number;
         flattening?: number;
       };
+
+  /**
+   * 是否显示高能进度条配置项，默认 true；为 false 时强制关闭 heatmap
+   */
+  heatmapEnable?: boolean;
 
   /**
    * 当播放器宽度小于此值时，弹幕发射器置于播放器底部
@@ -215,7 +230,7 @@ export interface Result {
   /**
    * 实时改变弹幕配置
    */
-  config: (option: Option) => Result;
+  config: (option: Partial<Option>) => Result;
 
   /**
    * 隐藏弹幕层

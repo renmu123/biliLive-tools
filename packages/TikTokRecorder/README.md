@@ -29,3 +29,29 @@ manager.startCheckLoop();
 - `proxy`: HTTP、HTTPS 或 SOCKS5 代理（用于 API 请求与直播流下载；HTTP/HTTPS 代理也用于弹幕连接）。
 
 TikTok 弹幕支持录制普通评论，并在连接断开后自动重连。
+
+## 独立订阅弹幕
+
+可以在未录制时订阅正在直播的 TikTok 房间。每次订阅使用独立连接，不受录制弹幕设置影响；结束订阅时调用返回的函数。
+
+```ts
+import { createRecorderManager } from "@bililive-tools/manager";
+import { provider } from "@bililive-tools/tiktok-recorder";
+
+const manager = createRecorderManager({ providers: [provider] });
+const recorder = manager.addRecorder({
+  providerId: provider.id,
+  channelId: "example",
+  quality: "origin",
+  streamPriorities: [],
+  sourcePriorities: [],
+  disableAutoCheck: true,
+});
+
+if (!recorder.subscribeComments) throw new Error("此录制器不支持独立订阅弹幕");
+const unsubscribe = await recorder.subscribeComments((message) => {
+  console.log(message.type, message);
+});
+
+unsubscribe();
+```

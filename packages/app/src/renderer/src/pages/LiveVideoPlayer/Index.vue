@@ -17,6 +17,7 @@ import { useRoute } from "vue-router";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import { useTitle } from "@vueuse/core";
 import { getDanmaStream } from "@renderer/apis/common";
+import { useMessage } from "naive-ui";
 
 import type ArtplayerType from "artplayer";
 
@@ -33,16 +34,29 @@ interface Props {
 const route = useRoute() as unknown as { query: Props };
 const query = route.query;
 useTitle(`${query.owner} 直播中`);
+const message = useMessage();
 // const logs = ref("");
 
 let eventSource: EventSource | null = null;
+let unmounted = false;
 // const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 
 async function streamLogs() {
-  eventSource = await getDanmaStream(query.liveId);
+  const source = await getDanmaStream(query.liveId);
+  if (unmounted) {
+    source.close();
+    return;
+  }
+  eventSource = source;
 
-  eventSource.onmessage = function (event) {
+  source.onmessage = function (event) {
     const data = JSON.parse(event.data);
+    if (data.type === "error") {
+      source.close();
+      if (eventSource === source) eventSource = null;
+      message.error(data.message || "弹幕连接失败");
+      return;
+    }
     if (!videoInstance.value) return;
     if (data.type === "super_chat") {
       // @ts-ignore
@@ -54,7 +68,7 @@ async function streamLogs() {
       });
       return;
     }
-    if (!data.text) return;
+    if (!data.text && !data.img) return;
     let mode = 0;
 
     if ([1, 2, 3].includes(data.mode ?? "")) {
@@ -70,20 +84,27 @@ async function streamLogs() {
       // mode，0: 滚动(默认)，1: 顶部，2: 底部
       mode: mode,
       text: data.text,
+      img: data.img,
+      emoticons: data.emoticons,
       color: data.color,
       border: false,
     });
   };
 
-  // eventSource.onerror = function () {};
+  source.addEventListener("close", () => {
+    source.close();
+    if (eventSource === source) eventSource = null;
+  });
 }
 
 onMounted(() => {
   streamLogs();
 });
 
-onBeforeUnmount(() => {
+onUnmounted(() => {
+  unmounted = true;
   eventSource?.close();
+  eventSource = null;
 });
 
 const videoInstance = ref<ArtplayerType | null>(null);

@@ -1,6 +1,6 @@
 .artplayer-sc {
   position: absolute;
-  z-index: 22;
+  z-index: 99;
   top: 16px;
   left: 16px;
   display: flex;
@@ -13,8 +13,8 @@
 }
 
 .artplayer-sc-card {
-  --sc-header: #2f78ad;
-  --sc-body: #244e74;
+  --sc-header: #edf5ff;
+  --sc-body: #2a60b2;
   flex: 0 1 auto;
   overflow: hidden;
   border-radius: 6px;
@@ -23,19 +23,29 @@
   font-size: 13px;
   line-height: 1.4;
 
+  &[data-tier="cyan"] {
+    --sc-header: #dbfffd;
+    --sc-body: #427d9e;
+  }
+
   &[data-tier="yellow"] {
-    --sc-header: #d79a24;
-    --sc-body: #ad751e;
+    --sc-header: #fff1c5;
+    --sc-body: #e2b52b;
   }
 
   &[data-tier="orange"] {
-    --sc-header: #df7232;
-    --sc-body: #a84e27;
+    --sc-header: #ffead2;
+    --sc-body: #e09443;
   }
 
   &[data-tier="red"] {
-    --sc-header: #d55257;
-    --sc-body: #993c4e;
+    --sc-header: #ffe7e4;
+    --sc-body: #e54d4d;
+  }
+
+  &[data-tier="dark-red"] {
+    --sc-header: #ffd8d8;
+    --sc-body: #ab1a32;
   }
 }
 
@@ -46,6 +56,7 @@
   min-height: 36px;
   padding: 5px 10px;
   background: var(--sc-header);
+  color: #333;
 }
 
 .artplayer-sc-avatar {

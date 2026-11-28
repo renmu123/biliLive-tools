@@ -59,6 +59,11 @@ const danmaId = computed(() =>
 const playerOptions = computed(() => ({
   fullscreen: true,
   autoplay: true,
+  plugins: {
+    danmuku: {
+      heatmapEnable: true,
+    },
+  },
 }));
 
 const syncPlayerSource = async () => {

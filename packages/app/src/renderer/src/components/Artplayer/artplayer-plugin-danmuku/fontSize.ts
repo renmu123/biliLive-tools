@@ -1,5 +1,7 @@
-// 100% 为播放器高度的 4%：720px 高的播放区域约 29px，1080px 高约 43px。
+// 100% 为实际视频显示区域短边的 4%，基准字号限制在 18–36px。
 export const FONT_SIZE_BASE_RATIO = 0.04;
+export const FONT_SIZE_BASE_MIN = 18;
+export const FONT_SIZE_BASE_MAX = 36;
 export const FONT_SIZE_MIN = 50;
 export const FONT_SIZE_MAX = 200;
 export const FONT_SIZE_DEFAULT = 100;
@@ -9,16 +11,53 @@ export function normalizeFontSize(value: unknown): number {
   return Math.round(Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, value)));
 }
 
-export function getFontSize(playerHeight: number, percentage: number): number {
-  // 隐藏或尚未布局的播放器使用 720px 作为临时基准。
-  const height = playerHeight > 0 ? playerHeight : 720;
-  return Math.max(
-    1,
-    Math.round((height * FONT_SIZE_BASE_RATIO * normalizeFontSize(percentage)) / 100),
+function isPositiveFinite(value: number): boolean {
+  return Number.isFinite(value) && value > 0;
+}
+
+function getBaseFontSize(
+  playerWidth: number,
+  playerHeight: number,
+  videoWidth = 0,
+  videoHeight = 0,
+): number {
+  // 隐藏或尚未布局时使用 720px 的短边作为临时基准。
+  let shortSide = 720;
+  if (isPositiveFinite(playerWidth) && isPositiveFinite(playerHeight)) {
+    shortSide = Math.min(playerWidth, playerHeight);
+    if (isPositiveFinite(videoWidth) && isPositiveFinite(videoHeight)) {
+      // 默认等比完整显示视频，扣除容器内的上下或左右黑边。
+      const scale = Math.min(playerWidth / videoWidth, playerHeight / videoHeight);
+      shortSide = Math.min(videoWidth, videoHeight) * scale;
+    }
+  }
+
+  return Math.min(
+    FONT_SIZE_BASE_MAX,
+    Math.max(FONT_SIZE_BASE_MIN, shortSide * FONT_SIZE_BASE_RATIO),
   );
 }
 
-// 旧字号统一迁移为 100%，新版已保存的百分比继续沿用。
-export function migrateFontSize(value: unknown, version?: number): number {
-  return version === 2 ? normalizeFontSize(value) : FONT_SIZE_DEFAULT;
+export function getFontSize(
+  playerWidth: number,
+  playerHeight: number,
+  percentage: number,
+  videoWidth = 0,
+  videoHeight = 0,
+): number {
+  const base = getBaseFontSize(playerWidth, playerHeight, videoWidth, videoHeight);
+  return Math.round((base * normalizeFontSize(percentage)) / 100);
+}
+
+export function getImageSize(
+  playerWidth: number,
+  playerHeight: number,
+  percentage: number,
+  videoWidth = 0,
+  videoHeight = 0,
+): number {
+  // 与文字共用显示区域及基准限制；720px 短边对应 60px，基准范围 37.5–75px。
+  const base = getBaseFontSize(playerWidth, playerHeight, videoWidth, videoHeight);
+  const imageRatio = 60 / (720 * FONT_SIZE_BASE_RATIO);
+  return Math.round((base * imageRatio * normalizeFontSize(percentage)) / 100);
 }

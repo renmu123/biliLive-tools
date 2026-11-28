@@ -24,123 +24,147 @@ function line(pointA, pointB) {
   };
 }
 
-export default function heatmap(art, danmuku, option) {
+export default function heatmap(art, danmuku) {
   const { query } = art.constructor.utils;
+  let mounted = false;
+  let refresh = () => {};
+  let previousHeatmap;
+  let previousEnable;
+  let heatmapOptions = {};
 
-  art.controls.add({
-    name: "heatmap",
-    position: "top",
-    html: "",
-    style: {
-      position: "absolute",
-      top: "-100px",
-      left: "0px",
-      right: "0px",
-      height: "100px",
-      width: "100%",
-      pointerEvents: "none",
-    },
-    mounted($heatmap) {
-      let $start = null;
-      let $stop = null;
+  function sync() {
+    const { heatmap, heatmapEnable } = danmuku.option;
+    if (heatmap === previousHeatmap && heatmapEnable === previousEnable) return;
+    previousHeatmap = heatmap;
+    previousEnable = heatmapEnable;
+    if (typeof heatmap === "object") heatmapOptions = heatmap;
+    if (!mounted) {
+      if (!heatmapEnable || !heatmap) return;
+      mounted = true;
+      createHeatmap();
+    } else {
+      refresh();
+    }
+  }
 
-      function update(arg = []) {
-        $start = null;
-        $stop = null;
-        $heatmap.innerHTML = "";
+  function createHeatmap() {
+    art.controls.add({
+      name: "heatmap",
+      position: "top",
+      html: "",
+      style: {
+        position: "absolute",
+        top: "-20px",
+        left: "0px",
+        right: "0px",
+        height: "30px",
+        width: "100%",
+        pointerEvents: "none",
+      },
+      mounted($heatmap) {
+        let $start = null;
+        let $stop = null;
+        let inputPoints = [];
 
-        if (!art.duration || art.option.isLive) return;
+        function update(arg = []) {
+          $start = null;
+          $stop = null;
+          $heatmap.innerHTML = "";
+          const visible = danmuku.option.heatmapEnable && Boolean(danmuku.option.heatmap);
+          $heatmap.style.display = visible ? "" : "none";
 
-        const svg = {
-          w: $heatmap.offsetWidth,
-          h: $heatmap.offsetHeight,
-        };
+          if (!visible || !art.duration || art.option.isLive) return;
 
-        const options = {
-          xMin: 0,
-          xMax: svg.w,
-          yMin: 0,
-          yMax: 128,
-          scale: 0.25,
-          opacity: 0.2,
-          minHeight: Math.floor(svg.h * 0.05),
-          sampling: Math.floor(svg.w / 100),
-          smoothing: 0.2,
-          flattening: 0.2,
-        };
+          const svg = {
+            w: $heatmap.offsetWidth,
+            h: $heatmap.offsetHeight,
+          };
+          if (svg.w <= 0 || svg.h <= 0) return;
 
-        if (typeof option === "object") {
-          Object.assign(options, option);
-        }
+          const options = {
+            xMin: 0,
+            xMax: svg.w,
+            yMin: 0,
+            yMax: 128,
+            scale: 0.25,
+            opacity: 0.2,
+            minHeight: Math.floor(svg.h * 0.05),
+            sampling: Math.floor(svg.w / 100),
+            smoothing: 0.2,
+            flattening: 0.2,
+          };
 
-        let points = [];
+          Object.assign(options, heatmapOptions);
+          options.sampling = Number.isFinite(options.sampling) ? Math.max(1, options.sampling) : 1;
 
-        if (Array.isArray(arg) && arg.length) {
-          points = [...arg];
-        } else {
-          const gap = art.duration / svg.w;
-          for (let x = 0; x <= svg.w; x += options.sampling) {
-            const y = danmuku.queue.filter(
-              ({ time }) => time > x * gap && time <= (x + options.sampling) * gap,
-            ).length;
-            points.push([x, y]);
+          let points = [];
+
+          if (Array.isArray(arg) && arg.length) {
+            points = arg.map((point) => [...point]);
+          } else {
+            const gap = art.duration / svg.w;
+            for (let x = 0; x <= svg.w; x += options.sampling) {
+              const y = danmuku.queue.filter(
+                ({ time }) => time > x * gap && time <= (x + options.sampling) * gap,
+              ).length;
+              points.push([x, y]);
+            }
           }
-        }
 
-        if (points.length === 0) return;
+          if (points.length === 0) return;
 
-        const lastPoint = points[points.length - 1];
-        const lastX = lastPoint[0];
-        const lastY = lastPoint[1];
-        if (lastX !== svg.w) {
-          points.push([svg.w, lastY]);
-        }
+          const lastPoint = points[points.length - 1];
+          const lastX = lastPoint[0];
+          const lastY = lastPoint[1];
+          if (lastX !== svg.w) {
+            points.push([svg.w, lastY]);
+          }
 
-        const yPoints = points.map((point) => point[1]);
-        const yMin = Math.min(...yPoints);
-        const yMax = Math.max(...yPoints);
-        const yMid = (yMin + yMax) / 2;
+          const yPoints = points.map((point) => point[1]);
+          const yMin = Math.min(...yPoints);
+          const yMax = Math.max(...yPoints);
+          const yMid = (yMin + yMax) / 2;
 
-        for (let i = 0; i < points.length; i++) {
-          const point = points[i];
-          const y = point[1];
-          point[1] = y * (y > yMid ? 1 + options.scale : 1 - options.scale) + options.minHeight;
-        }
+          for (let i = 0; i < points.length; i++) {
+            const point = points[i];
+            const y = point[1];
+            point[1] = y * (y > yMid ? 1 + options.scale : 1 - options.scale) + options.minHeight;
+          }
 
-        const controlPoint = (current, previous, next, reverse) => {
-          const p = previous || current;
-          const n = next || current;
-          const o = line(p, n);
-          const flat = lib.map(Math.cos(o.angle) * options.flattening, 0, 1, 1, 0);
-          const angle = o.angle * flat + (reverse ? Math.PI : 0);
-          const length = o.length * options.smoothing;
-          const x = current[0] + Math.cos(angle) * length;
-          const y = current[1] + Math.sin(angle) * length;
-          return [x, y];
-        };
+          const controlPoint = (current, previous, next, reverse) => {
+            const p = previous || current;
+            const n = next || current;
+            const o = line(p, n);
+            const flat = lib.map(Math.cos(o.angle) * options.flattening, 0, 1, 1, 0);
+            const angle = o.angle * flat + (reverse ? Math.PI : 0);
+            const length = o.length * options.smoothing;
+            const x = current[0] + Math.cos(angle) * length;
+            const y = current[1] + Math.sin(angle) * length;
+            return [x, y];
+          };
 
-        const bezierCommand = (point, i, a) => {
-          const cps = controlPoint(a[i - 1], a[i - 2], point);
-          const cpe = controlPoint(point, a[i - 1], a[i + 1], true);
-          const close = i === a.length - 1 ? " z" : "";
-          return `C ${cps[0]},${cps[1]} ${cpe[0]},${cpe[1]} ${point[0]},${point[1]}${close}`;
-        };
+          const bezierCommand = (point, i, a) => {
+            const cps = controlPoint(a[i - 1], a[i - 2], point);
+            const cpe = controlPoint(point, a[i - 1], a[i + 1], true);
+            const close = i === a.length - 1 ? " z" : "";
+            return `C ${cps[0]},${cps[1]} ${cpe[0]},${cpe[1]} ${point[0]},${point[1]}${close}`;
+          };
 
-        const pointsPositions = points.map((e) => {
-          const x = lib.map(e[0], options.xMin, options.xMax, 0, svg.w);
-          const y = lib.map(e[1], options.yMin, options.yMax, svg.h, 0);
-          return [x, y];
-        });
+          const pointsPositions = points.map((e) => {
+            const x = lib.map(e[0], options.xMin, options.xMax, 0, svg.w);
+            const y = lib.map(e[1], options.yMin, options.yMax, svg.h, 0);
+            return [x, y];
+          });
 
-        const pathD = pointsPositions.reduce(
-          (acc, e, i, a) =>
-            i === 0
-              ? `M ${a[a.length - 1][0]},${svg.h} L ${e[0]},${svg.h} L ${e[0]},${e[1]}`
-              : `${acc} ${bezierCommand(e, i, a)}`,
-          "",
-        );
+          const pathD = pointsPositions.reduce(
+            (acc, e, i, a) =>
+              i === 0
+                ? `M ${a[a.length - 1][0]},${svg.h} L ${e[0]},${svg.h} L ${e[0]},${e[1]}`
+                : `${acc} ${bezierCommand(e, i, a)}`,
+            "",
+          );
 
-        $heatmap.innerHTML = `
+          $heatmap.innerHTML = `
                     <svg viewBox="0 0 ${svg.w} ${svg.h}">
                         <defs>
                             <linearGradient id="heatmap-solids" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -154,30 +178,39 @@ export default function heatmap(art, danmuku, option) {
                     </svg>
                 `;
 
-        $start = query("#heatmap-start", $heatmap);
-        $stop = query("#heatmap-stop", $heatmap);
-        $start.setAttribute("offset", `${art.played * 100}%`);
-        $stop.setAttribute("offset", `${art.played * 100}%`);
-      }
-
-      art.on("video:timeupdate", () => {
-        if ($start && $stop) {
+          $start = query("#heatmap-start", $heatmap);
+          $stop = query("#heatmap-stop", $heatmap);
           $start.setAttribute("offset", `${art.played * 100}%`);
           $stop.setAttribute("offset", `${art.played * 100}%`);
         }
-      });
 
-      art.on("setBar", (type, percentage) => {
-        if ($start && $stop && type === "played") {
-          $start.setAttribute("offset", `${percentage * 100}%`);
-          $stop.setAttribute("offset", `${percentage * 100}%`);
-        }
-      });
+        art.on("video:timeupdate", () => {
+          if ($start && $stop) {
+            $start.setAttribute("offset", `${art.played * 100}%`);
+            $stop.setAttribute("offset", `${art.played * 100}%`);
+          }
+        });
 
-      art.on("ready", () => update());
-      art.on("resize", () => update());
-      art.on("artplayerPluginDanmuku:loaded", () => update());
-      art.on("artplayerPluginDanmuku:points", (points) => update(points));
-    },
-  });
+        art.on("setBar", (type, percentage) => {
+          if ($start && $stop && type === "played") {
+            $start.setAttribute("offset", `${percentage * 100}%`);
+            $stop.setAttribute("offset", `${percentage * 100}%`);
+          }
+        });
+
+        refresh = () => update(inputPoints);
+        art.on("ready", refresh);
+        art.on("resize", refresh);
+        art.on("artplayerPluginDanmuku:loaded", refresh);
+        art.on("artplayerPluginDanmuku:points", (points) => {
+          inputPoints = points;
+          refresh();
+        });
+        refresh();
+      },
+    });
+  }
+
+  art.on("artplayerPluginDanmuku:config", sync);
+  sync();
 }

@@ -39,6 +39,22 @@ export const getDanmaStream = async (recorderId: string) => {
   return eventSource;
 };
 
+export const getMonitorDanmaSocket = async (): Promise<WebSocket> => {
+  let key = window.localStorage.getItem("key");
+  if (!window.isWeb) {
+    const appConfig = await configApi.get();
+    key = appConfig.passKey;
+  }
+
+  const url = new URL(
+    "/recorder/ws/monitor-danma",
+    request.defaults.baseURL || window.location.origin,
+  );
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+  if (key) url.searchParams.set("auth", key);
+  return new WebSocket(url);
+};
+
 export const getRunningTaskNum = async () => {
   let key = window.localStorage.getItem("key");
   if (!window.isWeb) {

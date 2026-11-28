@@ -75,12 +75,45 @@ router.get(
     const id = ctx.query.id;
 
     const recorderManager = container.resolve("recorderManager");
-    recorderManager.manager.on("Message", ({ recorder, message }) => {
-      if (recorder.id === id) {
+    const recorder = typeof id === "string" ? recorderManager.manager.getRecorder(id) : null;
+
+    const sendError = (message: string) => {
+      // @ts-ignore
+      ctx.sse.send(JSON.stringify({ type: "error", message }));
+      // @ts-ignore
+      ctx.sse.sendEnd();
+    };
+
+    if (!recorder) {
+      sendError("录制器不存在");
+      return;
+    }
+    if (!recorder.subscribeComments) {
+      sendError("此录制器不支持弹幕订阅");
+      return;
+    }
+
+    let closed = false;
+    let unsubscribe: (() => void) | undefined;
+    const cleanup = () => {
+      closed = true;
+      unsubscribe?.();
+      unsubscribe = undefined;
+    };
+    ctx.res.once("close", cleanup);
+
+    try {
+      unsubscribe = await recorder.subscribeComments((message) => {
+        if (closed || ctx.res.destroyed) return;
         // @ts-ignore
         ctx.sse.send(JSON.stringify(message));
-      }
-    });
+      });
+      // 客户端可能在异步初始化弹幕连接时已断开。
+      if (closed) cleanup();
+    } catch (error) {
+      ctx.res.off("close", cleanup);
+      if (!closed) sendError(error instanceof Error ? error.message : String(error));
+    }
   },
 );
 

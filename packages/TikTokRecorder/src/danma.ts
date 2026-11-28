@@ -48,7 +48,6 @@ const createConnection = (
   );
   const sessionId = cookies.get("sessionid");
 
-  console.log(`uniqueId:@${uniqueId}`, proxy, auth);
   return new TikTokLiveConnection(`@${uniqueId}`, {
     // // 不处理连接前的历史消息，避免把录制前的评论写入 XML。
     // processInitialData: false,
@@ -118,7 +117,6 @@ export class TikTokDanmaClient extends EventEmitter {
     this.connectionFactory = connectionFactory;
     this.maxRetryCount = maxRetryCount;
     this.retryDelay = retryDelay;
-    console.log("roomId", this.roomId);
   }
 
   private readonly auth: string | undefined;

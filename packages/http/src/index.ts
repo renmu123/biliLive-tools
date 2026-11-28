@@ -16,6 +16,7 @@ import userRouter from "./routes/user.js";
 import presetRouter from "./routes/preset.js";
 import SSERouter from "./routes/sse.js";
 import recocderRouter, { handleRecorderUpgrade } from "./routes/recorder.js";
+import { handleMonitorDanmaUpgrade } from "./routes/monitorDanma.js";
 import biliRouter from "./routes/bili.js";
 import douyuRouter from "./routes/douyu.js";
 import taskRouter from "./routes/task.js";
@@ -139,7 +140,12 @@ export async function serverStart(
 //   });
 // }
 
-async function createServer(options: { port: number; host: string }) {
+async function createServer(options: {
+  port: number;
+  host: string;
+  auth: boolean;
+  passKey: string;
+}) {
   logger.info(`开始创建服务器: ${options.host}:${options.port}`);
 
   const isHttps = false;
@@ -162,6 +168,14 @@ async function createServer(options: { port: number; host: string }) {
       logger.error("HTTP 服务器错误:", err);
     });
     httpServer.on("upgrade", (request, socket, head) => {
+      if (
+        handleMonitorDanmaUpgrade(request, socket, head, {
+          enabled: options.auth,
+          passKey: process.env.BILILIVE_TOOLS_PASSKEY || options.passKey,
+        })
+      ) {
+        return;
+      }
       if (handleRecorderUpgrade(request, socket, head)) {
         return;
       }

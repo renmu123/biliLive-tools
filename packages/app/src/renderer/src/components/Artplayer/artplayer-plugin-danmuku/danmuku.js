@@ -1,6 +1,7 @@
 import { bilibiliDanmuParseFromUrl } from "./bilibili";
 import DanmuWorker from "./worker.js?worker&inline";
-import { FONT_SIZE_DEFAULT, getFontSize, normalizeFontSize } from "./fontSize";
+import { FONT_SIZE_DEFAULT, getFontSize, getImageSize, normalizeFontSize } from "./fontSize";
+import { SPEED_DEFAULT, normalizeSpeed } from "./speed";
 
 export default class Danmuku {
   constructor(art, option) {
@@ -45,6 +46,9 @@ export default class Danmuku {
     art.on("video:waiting", this.stop);
     art.on("destroy", this.destroy);
     art.on("resize", this.resize);
+    art.on("video:loadedmetadata", this.resize);
+    art.on("aspectRatio", this.resize);
+    art.proxy(art.video, "resize", this.resize);
 
     // 开始加载弹幕
     this.load();
@@ -54,17 +58,18 @@ export default class Danmuku {
   static get option() {
     return {
       danmuku: [], // 弹幕数据
-      speed: 5, // 弹幕持续时间，范围在[1 ~ 10]
+      speed: SPEED_DEFAULT, // 弹幕持续时间，范围在[1.5 ~ 15]，默认适中（7.5 秒）
       margin: [10, "25%"], // 弹幕上下边距，支持像素数字和百分比
       opacity: 1, // 弹幕透明度，范围在[0 ~ 1]
       color: "#FFFFFF", // 默认弹幕颜色，可以被单独弹幕项覆盖
       mode: 0, // 默认弹幕模式: 0: 滚动，1: 顶部，2: 底部
       modes: [0, 1, 2], // 弹幕可见的模式
-      fontSize: FONT_SIZE_DEFAULT, // 弹幕字号比例，50% ~ 200%，100% 为播放器高度的 4%
+      fontSize: FONT_SIZE_DEFAULT, // 弹幕字号比例，50% ~ 200%，基准为视频显示区域短边的 4%（18–36px）
       antiOverlap: true, // 弹幕是否防重叠
       synchronousPlayback: false, // 是否同步播放速度
       mount: undefined, // 弹幕发射器挂载点, 默认为播放器控制栏中部
       heatmap: false, // 是否开启热力图
+      heatmapEnable: true, // 是否允许设置高能进度条，为 false 时强制关闭热力图
       width: 512, // 当播放器宽度小于此值时，弹幕发射器置于播放器底部
       points: [], // 热力图数据
       filter: () => true, // 弹幕载入前的过滤器，只支持返回布尔值
@@ -98,6 +103,7 @@ export default class Danmuku {
       synchronousPlayback: "boolean",
       mount: "?htmldivelement|string",
       heatmap: "object|boolean",
+      heatmapEnable: "boolean",
       width: "number",
       points: "array",
       filter: "function",
@@ -177,8 +183,25 @@ export default class Danmuku {
 
   // 计算弹幕字体大小
   get fontSize() {
-    const { clientHeight } = this.$player;
-    return getFontSize(clientHeight, this.option.fontSize);
+    return this.calculateSize(getFontSize);
+  }
+
+  get imageSize() {
+    return this.calculateSize(getImageSize);
+  }
+
+  calculateSize(calculate) {
+    const { clientWidth, clientHeight } = this.$player;
+    const video = this.art?.video;
+    // 自定义宽高比时 Artplayer 会拉伸画面，直接采用视频元素的显示尺寸。
+    const useVideoRatio = !this.art?.aspectRatio || this.art.aspectRatio === "default";
+    return calculate(
+      video?.clientWidth || clientWidth,
+      video?.clientHeight || clientHeight,
+      this.option.fontSize,
+      useVideoRatio ? video?.videoWidth : 0,
+      useVideoRatio ? video?.videoHeight : 0,
+    );
   }
 
   // 获取弹幕DOM节点
@@ -299,7 +322,9 @@ export default class Danmuku {
 
     this.validator(danmu, {
       id: "?string", // 弹幕唯一标识
-      text: "string", // 弹幕文本
+      text: "?string", // 弹幕文本，图片弹幕可省略
+      img: "?string", // 图片地址
+      emoticons: "?object", // 弹幕内表情文字到图片地址的映射
       mode: "?number", // 弹幕模式: 0: 滚动，1: 顶部，2: 底部
       color: "?string", // 弹幕颜色
       time: "?number", // 弹幕时间
@@ -307,8 +332,10 @@ export default class Danmuku {
       style: "?object", // 弹幕额外样式
     });
 
-    // 弹幕文本为空则直接忽略
-    if (!danmu.text.trim()) return this;
+    danmu.text = danmu.text ?? "";
+    danmu.img = danmu.img?.trim();
+    // 文字和图片都为空则直接忽略
+    if (!danmu.text.trim() && !danmu.img) return this;
 
     // 设置弹幕时间，如果没有则默认为当前时间加 0.5 秒
     if (danmu.time) {
@@ -381,9 +408,10 @@ export default class Danmuku {
     this.validator(this.option, Danmuku.scheme);
 
     this.option.mode = clamp(this.option.mode, 0, 2);
-    this.option.speed = clamp(this.option.speed, 1, 10);
+    this.option.speed = normalizeSpeed(this.option.speed);
     this.option.opacity = clamp(this.option.opacity, 0, 1);
     this.option.fontSize = normalizeFontSize(this.option.fontSize);
+    if (!this.option.heatmapEnable) this.option.heatmap = false;
     this.option.lockTime = clamp(this.option.lockTime, 1, 60);
     this.option.maxLength = clamp(this.option.maxLength, 1, 1000);
     this.option.mount = this.option.mount || $controlsCenter;
@@ -466,6 +494,55 @@ export default class Danmuku {
     }
   }
 
+  // 图片在请求前预留尺寸，随显示区域和弹幕百分比缩放。
+  renderContent(danmu) {
+    const { $ref, text = "", img, emoticons = {} } = danmu;
+    $ref.style.setProperty("--art-danmuku-image-size", `${this.imageSize}px`);
+    $ref.textContent = text;
+    if (img) {
+      $ref.replaceChildren(this.createImage(img, text));
+      return;
+    }
+
+    const images = new Map(
+      Object.entries(emoticons)
+        .filter(([name, url]) => name && typeof url === "string" && url.trim())
+        .sort(([a], [b]) => b.length - a.length),
+    );
+    if (!images.size) return;
+
+    const names = [...images.keys()].map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    const parts = text.split(new RegExp(`(${names.join("|")})`, "g"));
+    $ref.replaceChildren(
+      ...parts
+        .filter(Boolean)
+        .map((part) =>
+          images.has(part)
+            ? this.createImage(images.get(part), part)
+            : document.createTextNode(part),
+        ),
+    );
+  }
+
+  createImage(src, text) {
+    const frameStyle =
+      "display: inline-block; width: var(--art-danmuku-image-size, 60px); height: var(--art-danmuku-image-size, 60px); max-width: none; vertical-align: middle;";
+    const image = document.createElement("img");
+    image.referrerPolicy = "no-referrer";
+    image.alt = text || "图片";
+    image.draggable = false;
+    image.style.cssText = `${frameStyle} object-fit: contain;`;
+    image.onerror = () => {
+      const fallback = document.createElement("span");
+      fallback.textContent = text || "图片";
+      fallback.title = fallback.textContent;
+      fallback.style.cssText = `${frameStyle} line-height: var(--art-danmuku-image-size, 60px); overflow: hidden; text-overflow: ellipsis;`;
+      image.replaceWith(fallback);
+    };
+    image.src = src;
+    return image;
+  }
+
   // 实时更新弹幕
   update() {
     const { setStyles } = this.utils;
@@ -495,7 +572,7 @@ export default class Danmuku {
           if (state) {
             const { clientWidth, clientHeight } = this.$player;
             danmu.$ref = this.$ref; // 获取弹幕DOM节点
-            danmu.$ref.textContent = danmu.text; // 设置弹幕文本
+            this.renderContent(danmu);
 
             // 提前添加到弹幕层中，用于计算top值
             this.$danmuku.appendChild(danmu.$ref);
@@ -585,13 +662,20 @@ export default class Danmuku {
   // 重置正在显示的弹幕: stop/emit 状态的弹幕
   resize() {
     const { clientWidth } = this.$player;
+    const fontSize = `${this.fontSize}px`;
+    const imageSize = `${this.imageSize}px`;
 
     this.filter("stop", (danmu) => {
-      danmu.$ref.style.fontSize = `${this.fontSize}px`;
+      danmu.$ref.style.fontSize = fontSize;
+      danmu.$ref.style.setProperty("--art-danmuku-image-size", imageSize);
       switch (danmu.mode) {
         // 滚动的弹幕
         case 0:
           danmu.$ref.style.left = `${clientWidth}px`;
+          break;
+        case 1:
+        case 2:
+          danmu.$ref.style.marginLeft = `-${danmu.$ref.clientWidth / 2}px`;
           break;
         default:
           break;
@@ -599,7 +683,8 @@ export default class Danmuku {
     });
 
     this.filter("emit", (danmu) => {
-      danmu.$ref.style.fontSize = `${this.fontSize}px`;
+      danmu.$ref.style.fontSize = fontSize;
+      danmu.$ref.style.setProperty("--art-danmuku-image-size", imageSize);
       danmu.$lastStartTime = Date.now();
       switch (danmu.mode) {
         // 滚动的弹幕
@@ -610,6 +695,10 @@ export default class Danmuku {
           danmu.$ref.style.transition = `transform ${danmu.$restTime}s linear 0s`;
           break;
         }
+        case 1:
+        case 2:
+          danmu.$ref.style.marginLeft = `-${danmu.$ref.clientWidth / 2}px`;
+          break;
         default:
           break;
       }
@@ -704,7 +793,9 @@ export default class Danmuku {
     this.art.off("video:playing", this.start);
     this.art.off("video:pause", this.stop);
     this.art.off("video:waiting", this.stop);
-    this.art.off("resize", this.reset);
+    this.art.off("resize", this.resize);
+    this.art.off("video:loadedmetadata", this.resize);
+    this.art.off("aspectRatio", this.resize);
     this.art.off("destroy", this.destroy);
     this.art.emit("artplayerPluginDanmuku:destroy");
   }

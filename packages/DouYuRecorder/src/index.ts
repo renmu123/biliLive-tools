@@ -8,9 +8,7 @@ import {
   createDownloader,
 } from "@bililive-tools/manager";
 import type {
-  Comment,
-  GiveGift,
-  SuperChat,
+  Message,
   Recorder,
   RecorderCreateOpts,
   RecorderProvider,
@@ -21,7 +19,7 @@ import { DouyuParser } from "@bililive-tools/stream-get";
 
 import { getInfo, getStream } from "./stream.js";
 import { createDYClient } from "./dy_client/index.js";
-import { giftMap, colorTab } from "./danma.js";
+import { normalizeDanma } from "./normalizeDanma.js";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -44,6 +42,28 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
 
     getChannelURL() {
       return `https://www.douyu.com/${this.channelId}`;
+    },
+    async subscribeComments(listener: (message: Message) => void) {
+      const client = createDYClient(Number(this.channelId), { notAutoStart: true });
+      const onMessage = (msg: Parameters<typeof normalizeDanma>[0]) => {
+        const message = normalizeDanma(msg, { useServerTimestamp: this.useServerTimestamp });
+        if (message) listener(message);
+      };
+      client.on("message", onMessage);
+      let subscribed = true;
+      const unsubscribe = () => {
+        if (!subscribed) return;
+        subscribed = false;
+        client.off("message", onMessage);
+        client.stop();
+      };
+      try {
+        client.start();
+      } catch (error) {
+        unsubscribe();
+        throw error;
+      }
+      return unsubscribe;
     },
     checkLiveStatusAndRecord: utils.singleton(checkLiveStatusAndRecord),
 
@@ -256,131 +276,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   client.on("message", (msg) => {
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
-    switch (msg.type) {
-      case "chatmsg": {
-        // 某些情况下cst不存在，可能是其他平台发送的弹幕？
-        const timestamp = this.useServerTimestamp && msg.cst ? Number(msg.cst) : Date.now();
-        const comment: Comment = {
-          type: "comment",
-          timestamp: timestamp,
-          text: msg.txt,
-          color: colorTab[String(msg.col)] ?? "#ffffff",
-          sender: {
-            uid: msg.uid,
-            name: msg.nn,
-            avatar: msg.ic,
-            extra: {
-              level: msg.level,
-            },
-          },
-        };
-        this.emit("Message", comment);
-        extraDataController.addMessage(comment);
-        break;
-      }
-      case "dgb": {
-        if (this.saveGiftDanma === false) return;
-        const gift: GiveGift = {
-          type: "give_gift",
-          timestamp: Date.now(),
-          name: giftMap[msg.gfid]?.name ?? msg.gfn,
-          price: (giftMap[msg.gfid]?.pc ?? 0) / 100,
-          count: Number(msg.gfcnt),
-          color: "#ffffff",
-          sender: {
-            uid: msg.uid,
-            name: msg.nn,
-            avatar: msg.ic,
-            extra: {
-              level: msg.level,
-            },
-          },
-          extra: {
-            hits: Number(msg.hits),
-          },
-        };
-        this.emit("Message", gift);
-        extraDataController.addMessage(gift);
-        break;
-      }
-      // 开通钻粉
-      case "odfbc": {
-        if (this.saveGiftDanma === false) return;
-        const gift: GiveGift = {
-          type: "give_gift",
-          timestamp: Date.now(),
-          name: "钻粉",
-          price: Number(msg.price) / 100,
-          count: 1,
-          color: "#ffffff",
-          sender: {
-            uid: msg.uid,
-            name: msg.nick,
-            // avatar: msg.ic,
-            // extra: {
-            //   level: msg.level,
-            // },
-          },
-          // extra: {
-          //   hits: Number(msg.hits),
-          // },
-        };
-        this.emit("Message", gift);
-        extraDataController.addMessage(gift);
-        break;
-      }
-      // 续费钻粉
-      case "rndfbc": {
-        if (this.saveGiftDanma === false) return;
-        const gift: GiveGift = {
-          type: "give_gift",
-          timestamp: Date.now(),
-          name: "钻粉",
-          price: Number(msg.price) / 100,
-          count: 1,
-          color: "#ffffff",
-          sender: {
-            uid: msg.uid,
-            name: msg.nick,
-            // avatar: msg.ic,
-            // extra: {
-            //   level: msg.level,
-            // },
-          },
-          // extra: {
-          //   hits: Number(msg.hits),
-          // },
-        };
-        this.emit("Message", gift);
-        extraDataController.addMessage(gift);
-        break;
-      }
-      case "comm_chatmsg": {
-        if (this.saveSCDanma === false) return;
-        switch (msg.btype) {
-          case "voiceDanmu": {
-            const comment: SuperChat = {
-              type: "super_chat",
-              timestamp: Date.now(),
-              text: msg?.chatmsg?.txt,
-              price: Number(msg.cprice) / 100,
-              sender: {
-                uid: msg.uid,
-                name: msg?.chatmsg?.nn,
-                avatar: msg?.chatmsg?.ic,
-                extra: {
-                  level: msg?.chatmsg?.level,
-                },
-              },
-            };
-            this.emit("Message", comment);
-            extraDataController.addMessage(comment);
-            break;
-          }
-        }
-        break;
-      }
-    }
+    const message = normalizeDanma(msg, {
+      useServerTimestamp: this.useServerTimestamp,
+      saveGiftDanma: this.saveGiftDanma,
+      saveSCDanma: this.saveSCDanma,
+    });
+    if (!message) return;
+    this.emit("Message", message);
+    extraDataController.addMessage(message);
   });
   client.on("error", (err) => {
     this.appendTimeline({ text: `弹幕连接发生错误: ${String(err)}` });

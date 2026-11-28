@@ -31,6 +31,7 @@ class huya_danmu extends events {
     this._retry_count = 0;
     this._is_manual_stop = false;
     this._last_retry_time = 0;
+    this._retry_timer = null;
   }
 
   set_proxy(proxy) {
@@ -39,6 +40,7 @@ class huya_danmu extends events {
 
   // 节流重试函数,确保一秒内只能触发一次
   _throttled_retry() {
+    if (this._is_manual_stop || this._retry_timer) return;
     const now = Date.now();
     if (now - this._last_retry_time < 1000) {
       return;
@@ -46,7 +48,10 @@ class huya_danmu extends events {
     this._last_retry_time = now;
     this._retry_count++;
     this.emit("retry", { count: this._retry_count, max: this._max_retries });
-    setTimeout(() => this._try_connect(), retry_interval);
+    this._retry_timer = setTimeout(() => {
+      this._retry_timer = null;
+      if (!this._is_manual_stop) this._try_connect();
+    }, retry_interval);
   }
 
   // 重试辅助函数
@@ -112,6 +117,7 @@ class huya_danmu extends events {
   }
 
   async _try_connect() {
+    if (this._is_manual_stop) return;
     if (this.opt?.uid && this.opt?.channelId && this.opt?.subChannelId) {
       this._info = {
         yyuid: this.opt.uid,
@@ -128,6 +134,8 @@ class huya_danmu extends events {
         return;
       }
     }
+
+    if (this._is_manual_stop) return;
 
     this._main_user_id = new HUYA.UserId();
     this._main_user_id.lUid = this._info.yyuid;
@@ -328,12 +336,17 @@ class huya_danmu extends events {
     clearInterval(this._heartbeat_timer);
     clearInterval(this._fresh_gift_list_timer);
 
-    if (this._client.readyState !== ws.OPEN) return;
-    this._client && this._client.close();
+    const client = this._client;
+    this._client = null;
+    if (!client) return;
+    if (client.readyState === ws.OPEN) client.close();
+    else if (client.readyState === ws.CONNECTING) client.terminate();
   }
 
   stop() {
     this._is_manual_stop = true;
+    clearTimeout(this._retry_timer);
+    this._retry_timer = null;
     this.removeAllListeners();
     this._stop();
   }

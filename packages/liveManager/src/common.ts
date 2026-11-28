@@ -22,6 +22,10 @@ export interface Comment<E extends AnyObject = UnknownObject> {
   type: "comment";
   timestamp: number;
   text: string;
+  // 某些平台的弹幕可能会有图片
+  img?: string;
+  // 弹幕内表情文字到图片地址的映射
+  emoticons?: Record<string, string>;
   mode?: number;
   color?: string;
   sender?: MessageSender;

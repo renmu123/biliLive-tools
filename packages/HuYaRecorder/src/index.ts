@@ -11,10 +11,10 @@ import {
 
 import { getInfo, getStream } from "./stream.js";
 import HuYaDanMu, { HuYaMessage } from "huya-danma-listener";
+import { normalizeDanma } from "./normalizeDanma.js";
 
 import type {
-  Comment,
-  GiveGift,
+  Message,
   Recorder,
   RecorderCreateOpts,
   RecorderProvider,
@@ -43,6 +43,30 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
 
     getChannelURL() {
       return `https://www.huya.com/${this.channelId}`;
+    },
+    async subscribeComments(listener: (message: Message) => void) {
+      const client = new HuYaDanMu(this.channelId);
+      const onMessage = (msg: HuYaMessage) => {
+        const message = normalizeDanma(msg);
+        if (message) listener(message);
+      };
+      client.on("message", onMessage);
+      client.on("error", (error: unknown) => {
+        this.emit("DebugLog", { type: "error", text: `弹幕连接失败: ${String(error)}` });
+      });
+      let subscribed = true;
+      const unsubscribe = () => {
+        if (!subscribed) return;
+        subscribed = false;
+        client.stop();
+      };
+      try {
+        await client.start();
+      } catch (error) {
+        unsubscribe();
+        throw error;
+      }
+      return unsubscribe;
     },
     checkLiveStatusAndRecord: utils.singleton(checkLiveStatusAndRecord),
 
@@ -264,44 +288,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     client.on("message", (msg: HuYaMessage) => {
       const extraDataController = downloader.getExtraDataController();
       if (!extraDataController) return;
-
-      switch (msg.type) {
-        case "chat": {
-          const comment: Comment = {
-            type: "comment",
-            timestamp: Date.now(),
-            text: msg.content,
-            color: msg.color,
-            sender: {
-              uid: msg.from.rid,
-              name: msg.from.name,
-            },
-          };
-          this.emit("Message", comment);
-          extraDataController.addMessage(comment);
-          break;
-        }
-        case "gift": {
-          if (this.saveGiftDanma === false) return;
-
-          // console.log('gift', msg)
-          const gift: GiveGift = {
-            type: "give_gift",
-            timestamp: Date.now(),
-            name: msg.name,
-            count: msg.count,
-            // 保留一位小数
-            price: Number((msg.price / msg.count).toFixed(2)),
-            sender: {
-              uid: msg.from.rid,
-              name: msg.from.name,
-            },
-          };
-          this.emit("Message", gift);
-          extraDataController.addMessage(gift);
-          break;
-        }
-      }
+      const message = normalizeDanma(msg, this.saveGiftDanma !== false);
+      if (!message) return;
+      this.emit("Message", message);
+      extraDataController.addMessage(message);
     });
     client.on("error", (e: unknown) => {
       this.emit("DebugLog", { type: "common", text: String(e) });
