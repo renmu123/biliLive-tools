@@ -116,4 +116,13 @@ export class EventBufferManager extends EventEmitter<{
   getBufferStatus(): number {
     return this.events.size;
   }
+
+  /**
+   * 获取当前未配对完成的 open 事件快照
+   */
+  getPendingOpenEvents(): Options[] {
+    return [...this.events.values()]
+      .filter((eventData) => eventData.open && !eventData.close)
+      .map((eventData) => eventData.open as Options);
+  }
 }

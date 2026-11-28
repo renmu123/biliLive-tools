@@ -21,6 +21,8 @@ export interface Part {
   rawFilePath: string;
   // 原始文件路径上传状态
   rawUploadStatus: UploadStatus;
+  // xml文件路径
+  danmuPath?: string;
 }
 
 export interface Options {
