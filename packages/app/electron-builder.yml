@@ -4,21 +4,18 @@ artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 
 directories:
   buildResources: build
-files:
-  - "!**/.vscode/*"
-  - "!src/*"
-  - "!electron.vite.config.{js,ts,mjs,cjs}"
-  - "!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}"
-  - "!{.env,.env.*,.npmrc,pnpm-lock.yaml}"
-  - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
-  # ONNX Runtime 自带多个平台的原生库，只保留目标架构。
-  - "!**/node_modules/onnxruntime-node/bin/napi-v3/*/!(${arch}){,/**/*}"
 asarUnpack:
   - resources/**
   - node_modules/onnxruntime-node/**
 afterPack: build/verify-model.cjs
 win:
+  # 文件规则统一放在平台配置中，避免额外的 files 匹配器收集构建目录。
   files:
+    - "out/**/*"
+    - "resources/**/*"
+    - "package.json"
+    - "LICENSE"
+    - "!**/node_modules/onnxruntime-node/bin/napi-v3/*/!(${arch}){,/**/*}"
     - "!**/node_modules/onnxruntime-node/bin/napi-v3/!(win32){,/**/*}"
   executableName: biliLive-tools
   target:
@@ -38,7 +35,13 @@ portable:
   artifactName: ${productName}-${version}-${os}-${arch}-portable.${ext}
 
 mac:
+  # 文件规则统一放在平台配置中，避免额外的 files 匹配器收集构建目录。
   files:
+    - "out/**/*"
+    - "resources/**/*"
+    - "package.json"
+    - "LICENSE"
+    - "!**/node_modules/onnxruntime-node/bin/napi-v3/*/!(${arch}){,/**/*}"
     - "!**/node_modules/onnxruntime-node/bin/napi-v3/!(darwin){,/**/*}"
   identity: null
   entitlementsInherit: build/entitlements.mac.plist
@@ -54,7 +57,13 @@ mac:
 dmg:
   # artifactName: ${name}-${version}.${ext}
 linux:
+  # 文件规则统一放在平台配置中，避免额外的 files 匹配器收集构建目录。
   files:
+    - "out/**/*"
+    - "resources/**/*"
+    - "package.json"
+    - "LICENSE"
+    - "!**/node_modules/onnxruntime-node/bin/napi-v3/*/!(${arch}){,/**/*}"
     - "!**/node_modules/onnxruntime-node/bin/napi-v3/!(linux){,/**/*}"
   target:
     # - AppImage
