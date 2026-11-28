@@ -58,9 +58,14 @@ export interface ChatOptions {
   enableSearch?: boolean;
 
   /**
-   * 是否开启“思考”模式（阿里云特有参数）
+   * 是否开启“思考”模式（支持 Qwen 和 DeepSeek）
    */
   enableThinking?: boolean;
+
+  /**
+   * DeepSeek 思考强度，显式开启思考时默认为 low
+   */
+  reasoningEffort?: "low" | "high" | "max";
 
   searchOptions?: {
     /**
@@ -117,6 +122,8 @@ export class QwenLLM {
     messages: ChatMessage[],
     options: ChatOptions = {},
   ): Promise<ChatResponse | Stream<OpenAI.Chat.Completions.ChatCompletionChunk>> {
+    const isDeepSeekModel = this.model.toLowerCase().includes("deepseek");
+    const enableDeepSeekSearch = isDeepSeekModel && options.enableSearch;
     const params = {
       model: this.model,
       messages: messages as ChatCompletionMessageParam[],
@@ -125,18 +132,39 @@ export class QwenLLM {
       max_tokens: options.maxTokens,
       stop: options.stop,
       presence_penalty: options.presencePenalty,
-      response_format: options.responseFormat,
-      // 阿里云特有参数
-      ...(options.enableSearch !== undefined && {
-        enable_search: options.enableSearch,
-      }),
-      ...(options.searchOptions !== undefined && {
-        search_options: options.searchOptions,
-      }),
-      ...(options.enableThinking !== undefined && {
-        enable_thinking: options.enableThinking,
-      }),
+      // DeepSeek 联网工具仅支持文本模式，由提示词约束输出格式。
+      response_format: enableDeepSeekSearch ? undefined : options.responseFormat,
+      ...(isDeepSeekModel
+        ? {
+            ...(enableDeepSeekSearch && {
+              // DeepSeek 服务端工具尚未包含在 OpenAI SDK 的类型定义中。
+              tools: [
+                { type: "deepseek_web_search" },
+              ] as unknown as OpenAI.Chat.Completions.ChatCompletionTool[],
+            }),
+            ...(options.enableThinking !== undefined && {
+              thinking: { type: options.enableThinking ? "enabled" : "disabled" },
+              ...(options.enableThinking && {
+                // DeepSeek 的 max 强度尚未包含在当前 OpenAI SDK 的类型定义中。
+                reasoning_effort: (options.reasoningEffort ??
+                  "low") as OpenAI.Chat.Completions.ChatCompletionReasoningEffort,
+              }),
+            }),
+          }
+        : {
+            // 阿里云特有参数
+            ...(options.enableSearch !== undefined && {
+              enable_search: options.enableSearch,
+            }),
+            ...(options.searchOptions !== undefined && {
+              search_options: options.searchOptions,
+            }),
+            ...(options.enableThinking !== undefined && {
+              enable_thinking: options.enableThinking,
+            }),
+          }),
     };
+    // console.log("params", params);
 
     if (options.stream) {
       return this.client.chat.completions.create({

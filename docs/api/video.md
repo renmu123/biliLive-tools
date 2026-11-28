@@ -226,7 +226,10 @@
 
 ### 歌曲识别
 
-截取指定视频时间段的音频并进行歌曲识别。接口会先提取音频片段，再返回识别到的歌曲名；如果启用了歌词优化，也可能返回歌词 SRT。
+截取指定视频时间段的音频并进行歌曲识别，支持两种模式：
+
+- `name`：仅识别歌名，优先使用 Shazam，失败后使用 ASR 和 LLM 识别。Shazam 成功时无需配置 AI 模型。
+- `lyrics`：识别歌名和歌词，使用 ASR 和 LLM 识别，再由 LLM 优化歌词并生成 SRT 字幕。歌词优化模型未单独配置时，使用歌曲识别 LLM 模型。
 
 **接口地址:** `POST /ai/song-recognize`
 
@@ -237,6 +240,7 @@
 | file      | string | 是   | 完整视频文件路径         |
 | startTime | number | 是   | 音频提取开始时间，单位秒 |
 | endTime   | number | 是   | 音频提取结束时间，单位秒 |
+| mode      | string | 否   | 识别模式：`name` 或 `lyrics`，默认为 `name` |
 
 **请求示例:**
 
@@ -244,7 +248,8 @@
 {
   "file": "D:/videos/test.mp4",
   "startTime": 30,
-  "endTime": 75
+  "endTime": 75,
+  "mode": "lyrics"
 }
 ```
 

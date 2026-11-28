@@ -271,6 +271,46 @@ export class AliyunASR {
     });
   }
 
+  private handleRequestError(action: string, error: unknown): never {
+    if (!axios.isAxiosError(error)) {
+      this.logger.error(action, error);
+      throw error;
+    }
+
+    const data = error.response?.data;
+    const responseData = data && typeof data === "object" ? data : {};
+    const redact = (value: string) =>
+      this.apiKey ? value.replaceAll(this.apiKey, "[REDACTED]") : value;
+    const code = typeof responseData.code === "string" ? redact(responseData.code) : error.code;
+    const message = redact(
+      typeof responseData.message === "string"
+        ? responseData.message
+        : typeof data === "string" && data.trim()
+          ? data.trim().slice(0, 1000)
+          : error.message,
+    );
+    const requestId =
+      responseData.request_id ||
+      error.response?.headers?.["x-request-id"] ||
+      error.response?.headers?.["x-acs-request-id"];
+    const details = {
+      status: error.response?.status,
+      code,
+      message,
+      requestId: typeof requestId === "string" ? redact(requestId) : undefined,
+    };
+    // AxiosError 的默认序列化不包含响应正文，却会暴露 Authorization 等请求配置。
+    this.logger.error(action, details);
+    const context = [
+      details.status && `HTTP ${details.status}`,
+      details.code,
+      details.requestId && `request_id: ${details.requestId}`,
+    ]
+      .filter(Boolean)
+      .join("，");
+    throw new Error(`${action}${context ? `（${context}）` : ""}：${message}`);
+  }
+
   /**
    * 提交语音识别任务
    * @param params 任务参数
@@ -315,8 +355,7 @@ export class AliyunASR {
 
       return taskId;
     } catch (error) {
-      this.logger.error("提交ASR任务失败", error);
-      throw error;
+      this.handleRequestError("提交ASR任务失败", error);
     }
   }
 
@@ -346,8 +385,7 @@ export class AliyunASR {
         results: results,
       };
     } catch (error) {
-      this.logger.error("查询ASR任务失败", error);
-      throw error;
+      this.handleRequestError("查询ASR任务失败", error);
     }
   }
 
@@ -394,8 +432,7 @@ export class AliyunASR {
       const response = await axios.get(transcriptionUrl);
       return response.data;
     } catch (error) {
-      this.logger.error("下载识别结果失败", error);
-      throw error;
+      this.handleRequestError("下载识别结果失败", error);
     }
   }
 
@@ -454,8 +491,7 @@ export class AliyunASR {
       this.logger.info(`文件上传成功: ${ossUrl}`);
       return ossUrl;
     } catch (error) {
-      this.logger.error("上传文件到阿里云临时存储失败", error);
-      throw error;
+      this.handleRequestError("上传文件到阿里云临时存储失败", error);
     }
   }
 
@@ -488,8 +524,7 @@ export class AliyunASR {
 
       return response.data.data;
     } catch (error) {
-      this.logger.error("获取上传凭证失败", error);
-      throw error;
+      this.handleRequestError("获取上传凭证失败", error);
     }
   }
 
@@ -542,8 +577,7 @@ export class AliyunASR {
 
       return `oss://${key}`;
     } catch (error) {
-      this.logger.error("上传文件到OSS失败", error);
-      throw error;
+      this.handleRequestError("上传文件到OSS失败", error);
     }
   }
 

@@ -1,4 +1,5 @@
 import request from "./request";
+import type { SongRecognizeMode } from "@biliLive-tools/types";
 
 const asrRecognize = async () => {
   const res = await request.post("/ai/asr");
@@ -17,14 +18,16 @@ const songRecognize = async (
   file: string,
   startTime: number,
   endTime: number,
+  mode: SongRecognizeMode = "name",
 ): Promise<{
-  lyrics: string;
-  name: string;
+  lyrics?: string;
+  name?: string;
 }> => {
   const res = await request.post("/ai/song-recognize", {
     file,
     startTime,
     endTime,
+    mode,
   });
   return res.data;
 };

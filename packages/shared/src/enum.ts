@@ -315,7 +315,6 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       enableSearch: true,
       maxInputLength: 300,
       enableStructuredOutput: true,
-      lyricOptimize: true,
     },
     songLyricOptimize: {
       modelId: "",

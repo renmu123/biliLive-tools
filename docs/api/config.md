@@ -284,10 +284,9 @@
     songRecognizeLlm: {
       modelId: "", // 歌曲识别 LLM 模型
       prompt: ``, // 提示词
-      enableSearch: true, // 是否启用网络搜索
+      enableSearch: true, // 是否启用网络搜索，支持阿里云 Qwen 和 DeepSeek deepseek-flash
       maxInputLength: 300, // 最大输入长度
       enableStructuredOutput: true, // 是否启用结构化输出
-      lyricOptimize: true, // 是否优化歌词
     },
     songLyricOptimize: {
       modelId: "", // 歌词优化模型

@@ -138,7 +138,7 @@
                 <n-form-item>
                   <template #label>
                     <Tip
-                      tip="启用后，LLM在识别歌曲名称时会结合网络搜索结果，提升识别准确率，对新歌识别更有帮助，但会增加token消耗。当前只支持阿里云Qwen。"
+                      tip="启用后，LLM在识别歌曲名称时会结合网络搜索结果，提升识别准确率，对新歌识别更有帮助，但会增加token消耗。当前支持阿里云Qwen和DeepSeek deepseek-flash。DeepSeek由模型决定是否搜索，联网搜索时不支持结构化输出模式。"
                       text="启用内容搜索"
                     />
                   </template>
@@ -146,15 +146,6 @@
                 </n-form-item>
                 <n-form-item label="结构化输出">
                   <n-switch v-model:value="config.ai.songRecognizeLlm.enableStructuredOutput" />
-                </n-form-item>
-                <n-form-item>
-                  <template #label>
-                    <Tip
-                      tip="启用后，LLM会对识别出的歌词进行优化处理，提升歌词的可读性和准确性，但会增加token消耗。"
-                      text="歌词优化"
-                    />
-                  </template>
-                  <n-switch v-model:value="config.ai.songRecognizeLlm.lyricOptimize" />
                 </n-form-item>
               </n-form>
             </n-collapse-item>
@@ -250,7 +241,14 @@
                 tip="可选，自定义API地址。如果使用官方接口可以留空，如果是openai兼容，一般是https://xxxxxx/v1"
               ></Tip>
             </template>
-            <n-input v-model:value="editingVendor.baseURL" placeholder="可选，留空使用默认地址" />
+            <n-input
+              v-model:value="editingVendor.baseURL"
+              :placeholder="
+                editingVendor.provider === 'deepseek'
+                  ? '可选，默认 https://api.deepseek.com'
+                  : '可选，留空使用默认地址'
+              "
+            />
           </n-form-item>
         </n-form>
 
@@ -321,6 +319,8 @@ import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import type { AppConfig } from "@biliLive-tools/types";
 
+type AIVendor = AppConfig["ai"]["vendors"][number];
+
 const config = defineModel<AppConfig>("data", {
   default: () => ({
     ai: {
@@ -364,6 +364,7 @@ const providerOptions = [
   { label: "FFmpeg", value: "ffmpeg" },
   { label: "阿里云", value: "aliyun" },
   { label: "OpenAI", value: "openai" },
+  { label: "DeepSeek", value: "deepseek" },
   // { label: "百度", value: "baidu" },
 ];
 
@@ -376,6 +377,7 @@ const getProviderType = (provider: string) => {
   const typeMap: Record<string, any> = {
     aliyun: "success",
     openai: "info",
+    deepseek: "info",
     baidu: "warning",
   };
   return typeMap[provider] || "default";
@@ -384,12 +386,7 @@ const getProviderType = (provider: string) => {
 // 编辑状态
 const vendorModalVisible = ref(false);
 const editingVendorId = ref<string | null>(null);
-const editingVendor = ref<{
-  provider: string;
-  name: string;
-  apiKey: string;
-  baseURL?: string;
-}>({
+const editingVendor = ref<Omit<AIVendor, "id">>({
   provider: "aliyun",
   name: "",
   apiKey: "",
@@ -474,12 +471,14 @@ const saveVendor = () => {
     return;
   }
 
-  const vendorData = {
+  const vendorData: AIVendor = {
     id: editingVendorId.value || uuid(),
-    provider: editingVendor.value.provider as "aliyun",
+    provider: editingVendor.value.provider,
     name: editingVendor.value.name,
     apiKey: editingVendor.value.apiKey,
-    baseURL: editingVendor.value.baseURL || undefined,
+    baseURL:
+      editingVendor.value.baseURL ||
+      (editingVendor.value.provider === "deepseek" ? "https://api.deepseek.com" : undefined),
   };
 
   if (editingVendorId.value === null) {

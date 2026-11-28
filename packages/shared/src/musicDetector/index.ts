@@ -12,6 +12,7 @@ import { getModel } from "./utils.js";
 import { getTempPath, uuid, calculateFileQuickHash } from "../utils/index.js";
 
 import type { StandardASRResult } from "../ai/index.js";
+import type { SongRecognizeMode } from "@biliLive-tools/types";
 export interface ProgressCallback {
   (data: { stage: string; percentage: number; message: string }): void;
 }
@@ -217,7 +218,7 @@ export async function optimizeLyrics(
       temperature: 0.5,
       enableSearch: false,
       responseFormat: enableStructuredOutput ? { type: "json_object" } : undefined,
-      enableThinking: false,
+      enableThinking: model.toLowerCase().includes("deepseek"),
     },
   );
   logger.info("优化结果:", response);
@@ -267,7 +268,6 @@ function getSongRecognizeConfig() {
     enableSearch: data?.songRecognizeLlm?.enableSearch ?? false,
     maxInputLength: data?.songRecognizeLlm?.maxInputLength || 300,
     enableStructuredOutput: data?.songRecognizeLlm?.enableStructuredOutput ?? true,
-    lyricOptimize: data?.songRecognizeLlm?.lyricOptimize ?? true,
   };
 }
 
@@ -277,9 +277,9 @@ function getSongRecognizeConfig() {
 function getLyricOptimizeConfig() {
   const config = appConfig.getAll();
   const data = config.ai;
-  let modelId = data?.songLyricOptimize?.modelId;
+  const modelId = data?.songLyricOptimize?.modelId || data?.songRecognizeLlm?.modelId;
 
-  const model = getModel(modelId);
+  const model = getModel(modelId, config);
   const vendor = data.vendors.find((v: any) => v.id === model.vendorId);
   if (!vendor) {
     throw new Error("找不到LLM模型关联的供应商");
@@ -309,6 +309,7 @@ async function recognizeSongNameWithLLM(
     enableSearch: boolean;
     maxInputLength: number;
     enableStructuredOutput: boolean;
+    mode: SongRecognizeMode;
   },
 ) {
   try {
@@ -320,15 +321,39 @@ async function recognizeSongNameWithLLM(
     });
 
     const truncatedText = asrText.slice(0, options.maxInputLength);
+    const prompt =
+      options.mode === "name"
+        ? `${options.prompt || ""}\n本次任务仅识别歌曲名称，只返回 JSON 对象 {"name":"歌曲名称"}，不要返回歌词。`
+        : options.prompt;
     logger.info("使用 LLM 进行歌曲名称识别...", {
-      prompt: options.prompt,
+      prompt,
       messages: truncatedText,
       llmModel: options.model,
     });
 
-    const response = await llm.sendMessage(truncatedText, options.prompt, {
+    const isQwenModel = options.model.toLowerCase().includes("qwen");
+    const response = await llm.sendMessage(truncatedText, prompt, {
       enableSearch: options.enableSearch,
-      responseFormat: options.enableStructuredOutput ? { type: "json_object" } : undefined,
+      responseFormat: options.enableStructuredOutput
+        ? isQwenModel
+          ? {
+              type: "json_schema",
+              json_schema: {
+                name: "song_recognition",
+                strict: true,
+                schema: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string" },
+                    ...(options.mode === "lyrics" && { lyrics: { type: "string" } }),
+                  },
+                  required: options.mode === "lyrics" ? ["name", "lyrics"] : ["name"],
+                  additionalProperties: false,
+                },
+              },
+            }
+          : { type: "json_object" }
+        : undefined,
       temperature: 0.6,
       enableThinking: false,
       searchOptions: {
@@ -343,10 +368,15 @@ async function recognizeSongNameWithLLM(
     }
 
     try {
-      const json = JSON.parse(response.content) as {
+      // DeepSeek 联网搜索不支持 JSON 模式，兼容按提示词返回的 JSON 代码块。
+      const content = response.content.trim().replace(/^```(?:json)?\s*([\s\S]*?)\s*```$/i, "$1");
+      const json = JSON.parse(content) as {
         name: string;
-        lyrics: string;
+        lyrics?: string;
       };
+      if (!json || typeof json.name !== "string" || !json.name.trim()) {
+        throw new Error("LLM 未返回有效的歌曲名称");
+      }
       return json;
     } catch (e) {
       throw new Error("LLM 返回内容非 JSON 格式，无法解析歌曲名称和歌词");
@@ -361,8 +391,26 @@ async function recognizeSongNameWithLLM(
  * 输入音频，识别歌曲名称，输出歌词以及歌曲名称
  * @param file - 音频文件路径
  * @param audioStartTime - 音频开始时间（秒）
+ * @param mode - name 仅识别歌名，lyrics 识别歌名并优化歌词
  */
-export async function songRecognize(file: string, audioStartTime: number = 0) {
+export async function songRecognize(
+  file: string,
+  audioStartTime: number = 0,
+  mode: SongRecognizeMode = "name",
+) {
+  if (mode === "name") {
+    try {
+      const info = await shazamRecognize(file, false);
+      logger.info("Shazam 识别结果:", info);
+      if (info?.name) {
+        return { name: info.name };
+      }
+      logger.warn("Shazam 未识别到歌曲名称，尝试使用 ASR 和 LLM");
+    } catch (error) {
+      logger.warn("Shazam 识别失败，尝试使用 ASR 和 LLM:", error);
+    }
+  }
+
   const {
     asrModelId,
     llmVendorId,
@@ -371,27 +419,8 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
     enableSearch,
     maxInputLength,
     enableStructuredOutput,
-    lyricOptimize,
   } = getSongRecognizeConfig();
 
-  let info: {
-    name: string;
-    lyrics: string | null;
-  } | null = await shazamRecognize(file, lyricOptimize);
-  if (!info) {
-    logger.warn("Shazam 未识别到任何歌曲信息");
-  }
-  logger.info("Shazam 识别结果:", info);
-
-  // 如果不需要进行歌词优化，且已经有歌曲名称，直接返回
-  if (!lyricOptimize && info?.name) {
-    logger.info("不需要进行歌词优化，直接返回 Shazam 歌曲名称");
-    return {
-      name: info.name,
-    };
-  }
-
-  // 如果开启了歌词优化，首先要asr识别
   const data = await recognize(file, asrModelId);
   const messages = data.text || "";
   if (!messages) {
@@ -399,25 +428,26 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
     return;
   }
 
-  // 如果 Shazam 未识别到歌曲名称或歌词，则使用 LLM 再识别一次
-  if (!info?.lyrics || !info?.name) {
-    info = await recognizeSongNameWithLLM(messages, llmVendorId, {
-      prompt: llmPrompt,
-      model: llmModel,
-      enableSearch: enableSearch,
-      maxInputLength: maxInputLength,
-      enableStructuredOutput: enableStructuredOutput,
-    });
-  }
+  const info = await recognizeSongNameWithLLM(messages, llmVendorId, {
+    prompt: llmPrompt,
+    model: llmModel,
+    enableSearch,
+    maxInputLength,
+    enableStructuredOutput,
+    mode,
+  });
   if (!info) {
     logger.warn("未识别到任何歌曲信息");
     return;
+  }
+  if (mode === "name") {
+    return { name: info.name };
   }
 
   const rawLyrics = info?.lyrics;
   let words: ASRWord[] = [];
 
-  if (rawLyrics && lyricOptimize) {
+  if (rawLyrics) {
     try {
       words = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
     } catch (error: any) {
