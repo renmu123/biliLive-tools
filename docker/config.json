@@ -8,5 +8,6 @@
   "bililiveRecorderPath": "/app/bin/BililiveRecorder.Cli",
   "audiowaveformPath": "audiowaveform",
   "danmakuFactoryPath": "/app/bin/DanmakuFactory",
+  "yamnetModelPath": "/app/models/yamnet.onnx",
   "logPath": "/app/data/main.log"
 }

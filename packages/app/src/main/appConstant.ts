@@ -7,6 +7,10 @@ export const __dirname2 = dirname(fileURLToPath(import.meta.url));
 
 export const getConfigPath = async () => {
   const binPath = join(process.resourcesPath || "", "app.asar.unpacked", "resources", "bin");
+  const modelsPath = app.isPackaged
+    ? join(process.resourcesPath, "app.asar.unpacked", "resources", "models")
+    : join(app.getAppPath(), "resources", "models");
+  const YAMNET_MODEL_PATH = join(modelsPath, "yamnet.onnx");
 
   let userDataPath = app.getPath("userData");
   let APP_CONFIG_PATH = join(userDataPath, "appConfig.json");
@@ -59,5 +63,6 @@ export const getConfigPath = async () => {
     MESIO_PATH,
     BILILIVERECORDER_PATH,
     AUDIOWAVEFORM_PATH,
+    YAMNET_MODEL_PATH,
   };
 };

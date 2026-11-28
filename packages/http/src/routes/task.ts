@@ -36,7 +36,7 @@ import { musicDetect } from "@biliLive-tools/shared/musicDetector/index.js";
 import { fileCache, appConfig } from "../index.js";
 
 import type { DanmuPreset, DanmaOptions } from "@biliLive-tools/types";
-import type { DetectionConfig } from "music-segment-detector";
+import type { MusicDetectionConfig as DetectionConfig } from "@biliLive-tools/types/musicDetection.js";
 
 const router = new Router({
   prefix: "/task",

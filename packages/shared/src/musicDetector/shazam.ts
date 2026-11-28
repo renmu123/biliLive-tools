@@ -146,7 +146,7 @@ async function shazamRecognize(file: string) {
 /**
  * 使用 Shazam 查询信息
  */
-async function shazamQueryInfo(trackId: string) {
+export async function shazamQueryInfo(trackId: string) {
   const shazam = new Shazam();
   const info = (await shazam.track_info("zh-cn", "CN", trackId)) as TrackInfo;
   if (info.type !== "MUSIC") return null;

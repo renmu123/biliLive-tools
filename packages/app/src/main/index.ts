@@ -819,6 +819,7 @@ const appInit = async () => {
     MESIO_PATH,
     BILILIVERECORDER_PATH,
     AUDIOWAVEFORM_PATH,
+    YAMNET_MODEL_PATH,
     userDataPath,
   } = await getConfigPath();
 
@@ -834,6 +835,7 @@ const appInit = async () => {
     defaultBililiveRecorderPath: BILILIVERECORDER_PATH,
     defaultAudioWaveformPath: AUDIOWAVEFORM_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
+    defaultYamnetModelPath: YAMNET_MODEL_PATH,
     userDataPath,
     version: app.getVersion(),
   };

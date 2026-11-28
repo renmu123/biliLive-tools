@@ -1,4 +1,13 @@
 # ============================================
+# 模型下载阶段（仅后端和全栈镜像使用）
+# ============================================
+FROM node:24.18 AS models
+WORKDIR /models
+RUN curl --fail --location --retry 3 --connect-timeout 30 --max-time 600 \
+    --output yamnet.onnx https://huggingface.co/mydubber-org/yamnet-onnx/resolve/fc1697c/yamnet.onnx && \
+    echo "844ee869ca5426d12c6aa1876280c40099487bda74827da1ccbeeaffbe7143dd  yamnet.onnx" | sha256sum --check -
+
+# ============================================
 # 基础构建环境
 # ============================================
 FROM node:24.18 AS base
@@ -92,12 +101,14 @@ RUN mkdir data && mkdir bin && mkdir video
 COPY --from=backend-build /app/packages/CLI/lib /app
 COPY --from=backend-build /app/packages/CLI/package.json /app/package.json
 COPY --from=backend-build /app/packages/app/resources/bin /app/bin
+COPY --from=models /models/yamnet.onnx /app/models/yamnet.onnx
+COPY --from=base /app/packages/shared/src/musicDetector/yamnet/MODEL-LICENSE /app/models/LICENSE
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends libfontconfig1-dev gosu && \
     apt-get install -y /app/bin/audiowaveform.deb && \
     rm -rf /var/lib/apt/lists/*
-RUN npm install --force
+RUN ONNXRUNTIME_NODE_INSTALL_CUDA=skip npm install --force
 COPY --from=backend-build /app/docker/config.json ./
 COPY --from=backend-build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
 COPY --from=backend-build /usr/local/share/fonts/NotoEmoji-Regular.ttf /usr/share/fonts/NotoEmoji-Regular.ttf
@@ -132,6 +143,8 @@ RUN mkdir -p /app/data /app/video /app/bin /app/backend /app/public
 COPY --from=backend-build /app/packages/CLI/lib /app/backend
 COPY --from=backend-build /app/packages/CLI/package.json /app/backend/package.json
 COPY --from=backend-build /app/packages/app/resources/bin /app/bin
+COPY --from=models /models/yamnet.onnx /app/models/yamnet.onnx
+COPY --from=base /app/packages/shared/src/musicDetector/yamnet/MODEL-LICENSE /app/models/LICENSE
 
 # 安装必要的依赖和 Caddy
 RUN apt-get update && \
@@ -148,7 +161,7 @@ RUN apt-get update && \
     apt-get update && \
     apt-get install -y caddy && \
     rm -rf /var/lib/apt/lists/*
-RUN cd /app/backend && npm install --force
+RUN cd /app/backend && ONNXRUNTIME_NODE_INSTALL_CUDA=skip npm install --force
 COPY --from=backend-build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
 COPY --from=backend-build /usr/local/share/fonts/NotoEmoji-Regular.ttf /usr/share/fonts/NotoEmoji-Regular.ttf
 RUN fc-cache -f

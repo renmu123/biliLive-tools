@@ -1,139 +1,15 @@
-import path from "node:path";
-import fs from "fs-extra";
-import { analyzeAudio, detectMusicSegments, DetectionConfig } from "music-segment-detector";
 import { stringifySync } from "subtitle";
 
-import { addExtractAudioTask } from "../task/video.js";
 import { QwenLLM, recognize } from "../ai/index.js";
 import { recognize as shazamRecognize } from "./shazam.js";
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
 import { getModel } from "./utils.js";
-import { getTempPath, uuid, calculateFileQuickHash } from "../utils/index.js";
 
 import type { StandardASRResult } from "../ai/index.js";
 import type { SongRecognizeMode } from "@biliLive-tools/types";
-export interface ProgressCallback {
-  (data: { stage: string; percentage: number; message: string }): void;
-}
-
-/**
- * 检测唱歌边界点
- * @param videoPath 输入视频文件路径,wav
- * @param iConfig 检测配置
- * @param onProgress 进度回调函数
- */
-export async function musicDetect(
-  videoPath: string,
-  iConfig?: Partial<DetectionConfig & { disableCache: boolean }>,
-  onProgress?: ProgressCallback,
-) {
-  const cachePath = getTempPath();
-  const outputVideoName = `${uuid()}.wav`;
-  const fileHash = await calculateFileQuickHash(videoPath);
-  const featuresJsonPath = path.join(cachePath, `features_${fileHash}.json`);
-
-  let features: Awaited<ReturnType<typeof analyzeAudio>> = [];
-  if (await fs.pathExists(featuresJsonPath)) {
-    logger.info("检测到已有音频特征缓存，直接读取:", featuresJsonPath);
-    features = await fs.readJSON(featuresJsonPath);
-    onProgress?.({ stage: "cache", percentage: 30, message: "读取音频特征缓存" });
-  } else {
-    onProgress?.({ stage: "extract", percentage: 0, message: "开始提取音频" });
-    const task = await addExtractAudioTask(videoPath, outputVideoName, {
-      saveType: 2,
-      savePath: cachePath,
-      autoRun: true,
-      addQueue: false,
-      sampleRate: 16000,
-    });
-
-    // 监听音频提取进度
-    task.on("task-progress", () => {
-      const progress = task.progress || 0;
-      const percentage = Math.floor(progress * 0.3); // 0-30%
-      onProgress?.({
-        stage: "extract",
-        percentage,
-        message: `提取音频中: ${progress.toFixed(1)}%`,
-      });
-    });
-
-    const outputFile: string = await new Promise((resolve, reject) => {
-      task.on("task-end", () => {
-        onProgress?.({ stage: "extract", percentage: 30, message: "音频提取完成" });
-        resolve(task.output as string);
-      });
-      task.on("task-error", (err) => {
-        reject(err);
-      });
-    });
-
-    const startTime = Date.now();
-    onProgress?.({ stage: "analyze", percentage: 30, message: "开始分析音频特征" });
-
-    // 1. 分析 WAV 音频文件（带进度回调）
-    features = await analyzeAudio(
-      outputFile,
-      2048,
-      512,
-      (progress) => {
-        const percentage = 30 + Math.floor(progress * 60); // 30-90%
-        onProgress?.({
-          stage: "analyze",
-          percentage,
-          message: `分析音频特征: ${(progress * 100).toFixed(1)}%`,
-        });
-        // console.log(`分析进度: ${(progress * 100).toFixed(1)}%`);
-      },
-      {
-        useWorkers: true,
-        numWorkers: 2,
-      },
-    );
-    const endTime = Date.now();
-    logger.info(
-      `音频特征分析完成，耗时 ${(endTime - startTime) / 1000} 秒，共 ${features.length} 帧特征数据`,
-    );
-    onProgress?.({ stage: "analyze", percentage: 90, message: "音频特征分析完成" });
-    fs.remove(outputFile);
-
-    if (!iConfig?.disableCache) {
-      await fs.writeJSON(featuresJsonPath, features, { spaces: 2 });
-    }
-  }
-
-  const config: DetectionConfig = {
-    energyPercentile: 50, // 能量百分位阈值 (0-100)
-    minSegmentDuration: 20, // 最小片段时长（秒）
-    maxGapDuration: 20, // 最大间隔时长（秒）
-    smoothWindowSize: 4, // 平滑窗口大小（秒）
-    ...iConfig,
-  };
-
-  // 2. 检测音乐片段
-  onProgress?.({ stage: "detect", percentage: 90, message: "开始检测音乐片段" });
-  const segments = detectMusicSegments(features, config);
-  onProgress?.({
-    stage: "detect",
-    percentage: 95,
-    message: `检测到 ${segments.length} 个音乐片段`,
-  });
-
-  // 3. 如果配置了不保留缓存，删除缓存文件
-  // @ts-ignore
-  if (iConfig?.disableCache && (await fs.pathExists(featuresJsonPath))) {
-    logger.info("删除音频特征缓存文件:", featuresJsonPath);
-    await fs.remove(featuresJsonPath);
-  }
-
-  // 4. 使用检测到 的片段
-  segments.forEach((segment) => {
-    logger.info("检测到音乐片段:", segment);
-  });
-  onProgress?.({ stage: "complete", percentage: 100, message: "分析完成" });
-  return segments;
-}
+export { musicDetect } from "./yamnet/index.js";
+export type { ProgressCallback } from "./yamnet/types.js";
 
 interface ASRWord {
   st: number;

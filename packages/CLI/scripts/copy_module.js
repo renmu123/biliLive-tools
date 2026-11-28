@@ -115,10 +115,9 @@ function main() {
   safeCpSync("font-ls");
   // 复制better-sqlite3相关文件，
   safeCpSync("better-sqlite3");
-  // 复制music-segment-detector相关文件，
-  safeCpSync("music-segment-detector");
-  // 复制meyda相关文件，
-  safeCpSync("meyda");
+  // ONNX Runtime 原生库及其运行时依赖
+  safeCpSync("onnxruntime-node", { dereference: true });
+  safeCpSync("onnxruntime-common", { dereference: true });
   // 复制shazamio-core相关文件，
   safeCpSync("shazamio-core");
   safeCpSync("file-uri-to-path");

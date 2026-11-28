@@ -27,10 +27,7 @@ vi.mock("../../src/utils/index.js", () => ({
 vi.mock("../../src/utils/log.js", () => ({
   default: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
-vi.mock("music-segment-detector", () => ({
-  analyzeAudio: vi.fn(),
-  detectMusicSegments: vi.fn(),
-}));
+vi.mock("../../src/musicDetector/yamnet/index.js", () => ({ musicDetect: vi.fn() }));
 
 import { songRecognize } from "../../src/musicDetector/index.js";
 

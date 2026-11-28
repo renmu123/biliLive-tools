@@ -13,6 +13,7 @@ files:
   - "!resources/bin/ffprobe.exe"
 asarUnpack:
   - resources/**
+  - node_modules/onnxruntime-node/**
 win:
   executableName: biliLive-tools
 nsis:

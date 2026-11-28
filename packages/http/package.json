@@ -52,7 +52,6 @@
     "@renmu/bili-api": "2.15.2",
     "check-disk-space": "^3.4.0",
     "semver": "^7.6.3",
-    "music-segment-detector": "^0.3.1",
     "awilix": "^11.0.4"
   },
   "devDependencies": {

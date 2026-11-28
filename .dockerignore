@@ -3,3 +3,4 @@ npm-debug.log
 Dockerfile
 .dockerignore
 .git
+packages/app/resources/models/*.onnx

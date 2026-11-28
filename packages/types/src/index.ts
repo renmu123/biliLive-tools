@@ -1275,6 +1275,8 @@ export interface GlobalConfig {
   defaultBililiveRecorderPath: string;
   defaultAudioWaveformPath: string;
   defaultDanmakuFactoryPath: string;
+  /** 随程序部署的 YAMNet 模型，不受自定义二进制路径开关影响 */
+  defaultYamnetModelPath?: string;
   version: string;
   userDataPath: string;
 }

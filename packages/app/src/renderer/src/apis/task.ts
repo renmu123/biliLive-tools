@@ -10,7 +10,7 @@ import type {
   DanmaOptions,
 } from "@biliLive-tools/types";
 import type { VideoAPI } from "@biliLive-tools/http/types/video.js";
-import type { DetectionConfig } from "music-segment-detector";
+import type { MusicDetectionConfig as DetectionConfig } from "@biliLive-tools/types/musicDetection.js";
 
 /**
  * 获取任务列表

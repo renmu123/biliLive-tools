@@ -136,9 +136,9 @@ importers:
       font-ls:
         specifier: 0.6.7
         version: 0.6.7
-      music-segment-detector:
-        specifier: ^0.3.1
-        version: 0.3.1(rollup@4.24.4)
+      onnxruntime-node:
+        specifier: 1.21.0
+        version: 1.21.0
       shazamio-core:
         specifier: ^1.3.1
         version: 1.3.1
@@ -371,12 +371,12 @@ importers:
       font-ls:
         specifier: 'catalog:'
         version: 0.6.8
-      music-segment-detector:
-        specifier: ^0.3.1
-        version: 0.3.1(rollup@4.24.4)
       ntsuspend:
         specifier: 'catalog:'
         version: 1.0.2
+      onnxruntime-node:
+        specifier: 1.21.0
+        version: 1.21.0
       semver:
         specifier: ^7.6.3
         version: 7.6.3
@@ -600,9 +600,6 @@ importers:
       multer:
         specifier: 1.4.5-lts.1
         version: 1.4.5-lts.1
-      music-segment-detector:
-        specifier: ^0.3.1
-        version: 0.3.1(rollup@4.24.4)
       semver:
         specifier: ^7.6.3
         version: 7.7.4
@@ -764,9 +761,6 @@ importers:
       form-data:
         specifier: ^4.0.5
         version: 4.0.5
-      music-segment-detector:
-        specifier: ^0.3.1
-        version: 0.3.1(rollup@4.24.4)
       node-downloader-helper:
         specifier: ^2.1.10
         version: 2.1.10
@@ -779,6 +773,9 @@ importers:
       ollama:
         specifier: ^0.5.9
         version: 0.5.9
+      onnxruntime-node:
+        specifier: 1.21.0
+        version: 1.21.0
       openai:
         specifier: ^4.73.0
         version: 4.104.0(encoding@0.1.13)(ws@8.21.2(bufferutil@4.0.8)(utf-8-validate@6.0.6))(zod@3.23.8)
@@ -2602,14 +2599,12 @@ packages:
 
   axios-retry@4.5.0:
     resolution: {integrity: sha512-aR99oXhpEDGo0UuAlYcn2iGRds30k366Zfa05XWScR9QaQD4JYiP3/1Qt1u7YlefUOK+cn0CcwoL1oefavQUlQ==}
+    deprecated: axios-retry is no longer maintained. See https://github.com/softonic/axios-retry for alternatives.
     peerDependencies:
       axios: 0.x || 1.x
 
   axios@1.15.0:
     resolution: {integrity: sha512-wWyJDlAatxk30ZJer+GeCWS209sA42X+N5jU2jy6oHTp7ufw8uzUTVFBX9+wTfAlhiJXGS0Bq7X6efruWjuK9Q==}
-
-  babel-plugin-add-module-exports@0.2.1:
-    resolution: {integrity: sha512-3AN/9V/rKuv90NG65m4tTHsI04XrCKsWbztIcW7a8H5iIN7WlvWucRtVV0V/rT4QvtA11n5Vmp20fLwfMWqp6g==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -3022,10 +3017,6 @@ packages:
 
   dayjs@1.11.18:
     resolution: {integrity: sha512-zFBQ7WFRvVRhKcWoUh+ZA1g2HVgUbsZm9sbddh8EC5iv93sui8DVVz1Npvz+r6meo9VKfa8NyLWBsQK1VvIKPA==}
-
-  dct@0.1.0:
-    resolution: {integrity: sha512-/uUtEniuMq1aUxvLAoDtAduyl12oM1zhA/le2f83UFN/9+4KDHXFB6znEfoj5SDDLiTpUTr26NpxC7t8IFOYhQ==}
-    engines: {node: '>=0.12.0'}
 
   debounce-fn@6.0.0:
     resolution: {integrity: sha512-rBMW+F2TXryBwB54Q0d8drNEI+TfoS9JpNTAoVpukbWEhjXQq4rySFYLaqXMFXwdv61Zb2OHtj5bviSoimqxRQ==}
@@ -3547,9 +3538,6 @@ packages:
       picomatch:
         optional: true
 
-  fftjs@0.0.4:
-    resolution: {integrity: sha512-nIWxQyth1LVD6NH8a+YZUv+McjzbOY6dMe4wv6Pq5cGfP+c8Rd1T8Dsd50DCWlNgzSqA3y9lOkpD6dZD3qHa1A==}
-
   file-entry-cache@6.0.1:
     resolution: {integrity: sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==}
     engines: {node: ^10.12.0 || >=12.0.0}
@@ -4067,9 +4055,6 @@ packages:
     resolution: {integrity: sha512-ZhMwEosbFJkA0YhFnNDgTM4ZxDRsS6HqTo7qsZM08fehyRYIYa0yHu5R6mgo1n/8MgaPBXiPimPD77baVFYg+A==}
     engines: {node: '>=12.13'}
 
-  isarray@0.0.1:
-    resolution: {integrity: sha512-D2S+3GLxWH+uhrNEcoh/fnmYeP8E8/zHl644d/jdA0g2uyXvy3sb0qxotE+ne0LtccHknQzWwZEzhak7oJ0COQ==}
-
   isarray@1.0.0:
     resolution: {integrity: sha512-VLghIWNM6ELQzo7zwmcg0NmTVyWKYjvIeM83yjp0wRDTmUnrM678fQbcKBo6n2CJEF0szoG//ytg+TKla89ALQ==}
 
@@ -4501,10 +4486,6 @@ packages:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
 
-  meyda@5.6.3:
-    resolution: {integrity: sha512-fAdwfzIi1WDoL0idUQvCD7dZ7EN74FYH83G+jZQO3Nr9yOEBtzFvcMg2KLdLlu6psSP8XFlO0kYynG5o/E681Q==}
-    hasBin: true
-
   micromatch@4.0.8:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
     engines: {node: '>=8.6'}
@@ -4677,10 +4658,6 @@ packages:
   multistream@4.1.0:
     resolution: {integrity: sha512-J1XDiAmmNpRCBfIWJv+n0ymC4ABcf/Pl+5YvC5B/D2f/2+8PtHvCNxMPKiQcZyi922Hq69J2YOpb1pTywfifyw==}
 
-  music-segment-detector@0.3.1:
-    resolution: {integrity: sha512-6ybsAMe45WNHmLdo8QeLRQQXSHgCIBGmnxhZbE4O6MviWF3mvx2GMZsGHJVkvxc6GEssDiSfxV2gfUkWW4DL6Q==}
-    engines: {node: '>=16.0.0'}
-
   naive-ui@2.44.1:
     resolution: {integrity: sha512-reo8Esw0p58liZwbUutC7meW24Xbn3EwNv91zReWKm2W4JPu+zfgJRn/F7aO0BFmvN+h2brA2M5lRvYqLq4kuA==}
     engines: {node: '>=20'}
@@ -4753,10 +4730,6 @@ packages:
     peerDependenciesMeta:
       encoding:
         optional: true
-
-  node-getopt@0.3.2:
-    resolution: {integrity: sha512-yqkmYrMbK1wPrfz7mgeYvA4tBperLg9FQ4S3Sau3nSAkpOA0x0zC8nQ1siBwozy1f4SE8vq2n1WKv99r+PCa1Q==}
-    engines: {node: '>= 0.6.0'}
 
   node-gyp-build@4.8.2:
     resolution: {integrity: sha512-IRUxE4BVsHWXkV/SFOut4qTlagw2aM8T5/vnTsmrHJvVoKueJHRc/JaFND7QDDc61kLYUJ6qlZM3sqTSyx2dTw==}
@@ -4854,6 +4827,13 @@ packages:
 
   only@0.0.2:
     resolution: {integrity: sha512-Fvw+Jemq5fjjyWz6CpKx6w9s7xxqo3+JCyM0WXWeCSOboZ8ABkyvP8ID4CZuChA/wxSx+XSJmdOm8rGVyJ1hdQ==}
+
+  onnxruntime-common@1.21.0:
+    resolution: {integrity: sha512-Q632iLLrtCAVOTO65dh2+mNbQir/QNTVBG3h/QdZBpns7mZ0RYbLRBgGABPbpU9351AgYy7SJf1WaeVwMrBFPQ==}
+
+  onnxruntime-node@1.21.0:
+    resolution: {integrity: sha512-NeaCX6WW2L8cRCSqy3bInlo5ojjQqu2fD3D+9W5qb5irwxhEyWKXeH2vZ8W9r6VxaMPUan+4/7NDwZMtouZxEw==}
+    os: [win32, darwin, linux]
 
   openai@4.104.0:
     resolution: {integrity: sha512-p99EFNsA/yX6UhVO93f5kJsDRLAg+CTA2RBqdHK4RtK8u5IJw32Hyb2dTGKbnnFmnuoBv5r7Z2CURI9sGZpSuA==}
@@ -5253,9 +5233,6 @@ packages:
     resolution: {integrity: sha512-BNg9EN3DD3GsDXX7Aa8O4p92sryjkmzYYgmgTAc6CA4uGLEDzFfxOxugu21akOxpcXHiEgsYkC6nPsQvLLLmEg==}
     hasBin: true
 
-  readable-stream@1.1.14:
-    resolution: {integrity: sha512-+MeVjFf4L44XUkhM1eYbD8fyEsxcV81pqMSR5gblfcLCHfZvbrqy4/qYHE+/R5HoBUT11WV5O08Cr1n3YXkWVQ==}
-
   readable-stream@2.3.8:
     resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
 
@@ -5609,9 +5586,6 @@ packages:
   string-width@8.3.0:
     resolution: {integrity: sha512-ZbmZM0JCihQN91dWnxoipT2KOEyHqEyfRXUyjuRhW8b/xnqPDoq4gWEVApTVa9db2wN8mmoikgFBbjh71+cGeQ==}
     engines: {node: '>=20'}
-
-  string_decoder@0.10.31:
-    resolution: {integrity: sha512-ev2QzSzWPYmy9GuqfIVildA4OdcGLeFZQrq5ys6RtiuF+RQQiZWr8TZNyAcuVXyQRYfEO+MsoB/1BuQVhOJuoQ==}
 
   string_decoder@1.1.1:
     resolution: {integrity: sha512-n/ShnvDi6FHbbVfviro+WojiFzv+s8MPMHBczVePfUpDJLwoLT0ht1l4YwBCbi8pJAveEEdnkHyPyTP/mzRfwg==}
@@ -6213,9 +6187,6 @@ packages:
     resolution: {integrity: sha512-lXuMl+8gsBmruudfxnMF9HW4be8rFziylXFu1VHVNbLVhRTXXV4njvpRuJapD/8q+oFEMSfQMH16E/85VoWRyQ==}
     peerDependencies:
       vue: ^3.0.11
-
-  wav@1.0.2:
-    resolution: {integrity: sha512-viHtz3cDd/Tcr/HbNqzQCofKdF6kWUymH9LGDdskfWFoIy/HJ+RTihgjEcHfnsy1PO4e9B+y4HwgTwMrByquhg==}
 
   wavesurfer.js@7.11.1:
     resolution: {integrity: sha512-8Q+wwItpjJAlhQ7crQLtKwgfbqqczm5/wx+76K4PptP+MBAjB0OA78+A9OuLnULz/8GpAQ+fKM6s81DonEO0Sg==}
@@ -8277,8 +8248,6 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  babel-plugin-add-module-exports@0.2.1: {}
-
   balanced-match@1.0.2: {}
 
   balanced-match@4.0.4: {}
@@ -8332,8 +8301,7 @@ snapshots:
 
   boolbase@1.0.0: {}
 
-  boolean@3.2.0:
-    optional: true
+  boolean@3.2.0: {}
 
   brace-expansion@1.1.11:
     dependencies:
@@ -8444,7 +8412,7 @@ snapshots:
       minipass-pipeline: 1.2.4
       p-map: 7.0.2
       ssri: 12.0.0
-      tar: 7.4.3
+      tar: 7.5.15
       unique-filename: 4.0.0
 
   cache-content-type@1.0.1:
@@ -8733,8 +8701,6 @@ snapshots:
 
   dayjs@1.11.18: {}
 
-  dct@0.1.0: {}
-
   debounce-fn@6.0.0:
     dependencies:
       mimic-function: 5.0.1
@@ -8828,7 +8794,6 @@ snapshots:
       define-data-property: 1.1.4
       has-property-descriptors: 1.0.2
       object-keys: 1.1.1
-    optional: true
 
   delayed-stream@1.0.0: {}
 
@@ -8842,8 +8807,7 @@ snapshots:
 
   detect-libc@2.0.3: {}
 
-  detect-node@2.1.0:
-    optional: true
+  detect-node@2.1.0: {}
 
   dir-compare@4.2.0:
     dependencies:
@@ -9089,8 +9053,7 @@ snapshots:
       has-tostringtag: 1.0.2
       hasown: 2.0.2
 
-  es6-error@4.1.1:
-    optional: true
+  es6-error@4.1.1: {}
 
   es6-promise@4.2.8: {}
 
@@ -9344,10 +9307,6 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.5
 
-  fftjs@0.0.4:
-    dependencies:
-      babel-plugin-add-module-exports: 0.2.1
-
   file-entry-cache@6.0.1:
     dependencies:
       flat-cache: 3.2.0
@@ -9598,7 +9557,6 @@ snapshots:
       roarr: 2.15.4
       semver: 7.8.5
       serialize-error: 7.0.1
-    optional: true
 
   global@4.4.0:
     dependencies:
@@ -9613,7 +9571,6 @@ snapshots:
     dependencies:
       define-properties: 1.2.1
       gopd: 1.2.0
-    optional: true
 
   globby@11.1.0:
     dependencies:
@@ -9907,8 +9864,6 @@ snapshots:
 
   is-what@4.1.16: {}
 
-  isarray@0.0.1: {}
-
   isarray@1.0.0: {}
 
   isbinaryfile@4.0.10: {}
@@ -10006,8 +9961,7 @@ snapshots:
 
   json-stable-stringify-without-jsonify@1.0.1: {}
 
-  json-stringify-safe@5.0.1:
-    optional: true
+  json-stringify-safe@5.0.1: {}
 
   json5@2.2.3: {}
 
@@ -10327,7 +10281,6 @@ snapshots:
   matcher@3.0.0:
     dependencies:
       escape-string-regexp: 4.0.0
-    optional: true
 
   math-intrinsics@1.1.0: {}
 
@@ -10338,17 +10291,6 @@ snapshots:
   merge-stream@2.0.0: {}
 
   merge2@1.4.1: {}
-
-  meyda@5.6.3(rollup@4.24.4):
-    dependencies:
-      '@rollup/plugin-node-resolve': 15.3.0(rollup@4.24.4)
-      dct: 0.1.0
-      fftjs: 0.0.4
-      node-getopt: 0.3.2
-      wav: 1.0.2
-    transitivePeerDependencies:
-      - rollup
-      - supports-color
 
   micromatch@4.0.8:
     dependencies:
@@ -10412,7 +10354,7 @@ snapshots:
     dependencies:
       minipass: 7.1.2
       minipass-sized: 1.0.3
-      minizlib: 3.0.1
+      minizlib: 3.1.0
     optionalDependencies:
       encoding: 0.1.13
 
@@ -10517,13 +10459,6 @@ snapshots:
       once: 1.4.0
       readable-stream: 3.6.2
 
-  music-segment-detector@0.3.1(rollup@4.24.4):
-    dependencies:
-      meyda: 5.6.3(rollup@4.24.4)
-    transitivePeerDependencies:
-      - rollup
-      - supports-color
-
   naive-ui@2.44.1(vue@3.5.13(typescript-native-bridge@6.0.3-bridge.15.tsgo.7.0.2)):
     dependencies:
       '@css-render/plugin-bem': 0.15.14(css-render@0.15.14)
@@ -10591,8 +10526,6 @@ snapshots:
     optionalDependencies:
       encoding: 0.1.13
 
-  node-getopt@0.3.2: {}
-
   node-gyp-build@4.8.2: {}
 
   node-gyp@11.5.0:
@@ -10604,7 +10537,7 @@ snapshots:
       nopt: 8.1.0
       proc-log: 5.0.0
       semver: 7.7.4
-      tar: 7.4.3
+      tar: 7.5.15
       tinyglobby: 0.2.15
       which: 5.0.0
     transitivePeerDependencies:
@@ -10663,8 +10596,7 @@ snapshots:
 
   object-inspect@1.13.2: {}
 
-  object-keys@1.1.1:
-    optional: true
+  object-keys@1.1.1: {}
 
   obug@2.1.3: {}
 
@@ -10685,6 +10617,14 @@ snapshots:
       mimic-fn: 2.1.0
 
   only@0.0.2: {}
+
+  onnxruntime-common@1.21.0: {}
+
+  onnxruntime-node@1.21.0:
+    dependencies:
+      global-agent: 3.0.0
+      onnxruntime-common: 1.21.0
+      tar: 7.5.15
 
   openai@4.104.0(encoding@0.1.13)(ws@8.21.2(bufferutil@4.0.8)(utf-8-validate@6.0.6))(zod@3.23.8):
     dependencies:
@@ -11078,13 +11018,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  readable-stream@1.1.14:
-    dependencies:
-      core-util-is: 1.0.3
-      inherits: 2.0.4
-      isarray: 0.0.1
-      string_decoder: 0.10.31
-
   readable-stream@2.3.8:
     dependencies:
       core-util-is: 1.0.3
@@ -11187,7 +11120,6 @@ snapshots:
       json-stringify-safe: 5.0.1
       semver-compare: 1.0.0
       sprintf-js: 1.1.3
-    optional: true
 
   rolldown@1.2.13:
     dependencies:
@@ -11286,8 +11218,7 @@ snapshots:
 
   seemly@0.3.10: {}
 
-  semver-compare@1.0.0:
-    optional: true
+  semver-compare@1.0.0: {}
 
   semver@5.7.2: {}
 
@@ -11302,7 +11233,6 @@ snapshots:
   serialize-error@7.0.1:
     dependencies:
       type-fest: 0.13.1
-    optional: true
 
   serverchan-sdk@1.0.6(encoding@0.1.13):
     dependencies:
@@ -11469,8 +11399,6 @@ snapshots:
     dependencies:
       get-east-asian-width: 1.7.0
       strip-ansi: 7.2.0
-
-  string_decoder@0.10.31: {}
 
   string_decoder@1.1.1:
     dependencies:
@@ -11749,8 +11677,7 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
 
-  type-fest@0.13.1:
-    optional: true
+  type-fest@0.13.1: {}
 
   type-fest@0.20.2: {}
 
@@ -12083,16 +12010,6 @@ snapshots:
       vdirs: 0.1.8(vue@3.5.13(typescript-native-bridge@6.0.3-bridge.15.tsgo.7.0.2))
       vooks: 0.2.12(vue@3.5.13(typescript-native-bridge@6.0.3-bridge.15.tsgo.7.0.2))
       vue: 3.5.13(typescript-native-bridge@6.0.3-bridge.15.tsgo.7.0.2)
-
-  wav@1.0.2:
-    dependencies:
-      buffer-alloc: 1.2.0
-      buffer-from: 1.1.2
-      debug: 2.6.9
-      readable-stream: 1.1.14
-      stream-parser: 0.3.1
-    transitivePeerDependencies:
-      - supports-color
 
   wavesurfer.js@7.11.1: {}
 

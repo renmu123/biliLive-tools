@@ -3,11 +3,11 @@
     v-model:show="visible"
     preset="dialog"
     :show-icon="false"
-    style="width: 520px"
+    style="width: 640px"
     :on-after-leave="handleClose"
   >
     <p style="padding-top: 16px; color: skyblue">
-      此项功能用来快速对长视频中的翻唱音乐片段进行识别，分段后你也可以在片段中右键识别歌曲名称，调整参数可以更加精准地切割，第一次使用建议先尝试默认值，尝试后再进行调整，确认后会清空当前片段。
+      自动识别演唱片段，保留伴奏间奏并补齐前后奏。建议先使用默认参数；识别完成后会替换当前片段，也可右键识别歌名。演唱检测使用内置模型，可离线分析。
     </p>
     <n-form
       ref="formRef"
@@ -16,69 +16,40 @@
       label-width="auto"
       require-mark-placement="right-hanging"
     >
-      <n-form-item label="能量百分位阈值" path="energyPercentile">
+      <n-form-item
+        v-for="field in numberFields"
+        :key="field.key"
+        :label="field.label"
+        :path="field.key"
+      >
         <n-input-number
-          v-model:value="formValue.energyPercentile"
-          :min="0"
-          :max="100"
-          :step="1"
-          placeholder="能量百分位阈值"
-        >
-          <template #suffix>%</template>
-        </n-input-number>
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px"> 值越高要求越严格 </n-text>
+          v-model:value="formValue[field.key]"
+          :min="field.min"
+          :max="field.max"
+          :step="field.step"
+          :precision="field.precision"
+          :disabled="loading"
+          :update-value-on-input="false"
+        />
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px">{{ field.hint }}</n-text>
       </n-form-item>
-
-      <n-form-item label="最小片段时长" path="minSegmentDuration">
-        <n-input-number
-          v-model:value="formValue.minSegmentDuration"
-          :min="1"
-          :max="3000"
-          :step="1"
-          placeholder="最小片段时长"
+      <n-form-item label="保留伴奏间奏">
+        <n-checkbox v-model:checked="formValue.bridgeMusicGaps" :disabled="loading" />
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px"
+          >在合格唱段之间检查持续音乐和讲话分数</n-text
         >
-          <template #suffix>秒</template>
-        </n-input-number>
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
-          过滤掉短于此时长的片段
-        </n-text>
       </n-form-item>
-
-      <n-form-item label="最大间隔时长" path="maxGapDuration">
-        <n-input-number
-          v-model:value="formValue.maxGapDuration"
-          :min="0"
-          :max="1200"
-          :step="1"
-          placeholder="最大间隔时长"
+      <n-form-item label="补齐前后奏">
+        <n-checkbox v-model:checked="formValue.extendMusicEdges" :disabled="loading" />
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px"
+          >遇持续讲话或音乐中断时停止扩展</n-text
         >
-          <template #suffix>秒</template>
-        </n-input-number>
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
-          短于此时长的间隔会被合并
-        </n-text>
       </n-form-item>
-
-      <n-form-item label="平滑窗口大小" path="smoothWindowSize">
-        <n-input-number
-          v-model:value="formValue.smoothWindowSize"
-          :min="1"
-          :max="20"
-          :step="1"
-          placeholder="平滑窗口大小"
+      <n-form-item label="不保留缓存">
+        <n-checkbox v-model:checked="formValue.disableCache" :disabled="loading" />
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px"
+          >重新分析并清除本视频分数缓存，保留模型</n-text
         >
-          <template #suffix>秒</template>
-        </n-input-number>
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
-          用于平滑能量曲线，减少噪声影响
-        </n-text>
-      </n-form-item>
-
-      <n-form-item label="不保留缓存" path="disableCache">
-        <n-checkbox v-model:checked="formValue.disableCache" />
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
-          分析完成后删除缓存文件，下次需要重新提取音频
-        </n-text>
       </n-form-item>
 
       <!-- 进度条 -->
@@ -99,7 +70,7 @@
 
     <template #action>
       <n-space justify="end">
-        <n-button @click="handleReset">重置默认值</n-button>
+        <n-button :disabled="loading" @click="handleReset">重置默认值</n-button>
         <n-button @click="handleCancel">取消</n-button>
         <n-button type="primary" @click="handleConfirm" :loading="loading">确定</n-button>
       </n-space>
@@ -110,13 +81,130 @@
 <script setup lang="ts">
 import { taskApi } from "@renderer/apis";
 
-interface WaveformAnalyzerConfig {
-  energyPercentile: number; // 能量百分位阈值 (0-100)
-  minSegmentDuration: number; // 最小片段时长（秒）
-  maxGapDuration: number; // 最大间隔时长（秒）
-  smoothWindowSize: number; // 平滑窗口大小（秒）
-  disableCache?: boolean; // 不保留缓存
-}
+import { DEFAULT_MUSIC_DETECTION_CONFIG } from "@biliLive-tools/types/musicDetection.js";
+import type { MusicDetectionConfig as WaveformAnalyzerConfig } from "@biliLive-tools/types/musicDetection.js";
+
+type NumericKey = {
+  [K in keyof WaveformAnalyzerConfig]: WaveformAnalyzerConfig[K] extends number ? K : never;
+}[keyof WaveformAnalyzerConfig];
+const numberFields: {
+  key: NumericKey;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  precision: number;
+  hint: string;
+}[] = [
+  {
+    key: "startThreshold",
+    label: "演唱开始阈值",
+    min: 0.001,
+    max: 1,
+    step: 0.001,
+    precision: 3,
+    hint: "值越高要求越严格",
+  },
+  {
+    key: "sustainThreshold",
+    label: "演唱维持阈值",
+    min: 0.001,
+    max: 1,
+    step: 0.001,
+    precision: 3,
+    hint: "不能高于开始阈值",
+  },
+  {
+    key: "maximumSeedSpeech",
+    label: "讲话分数上限",
+    min: 0,
+    max: 1,
+    step: 0.01,
+    precision: 2,
+    hint: "仅用于确认持续演唱",
+  },
+  {
+    key: "contextFrames",
+    label: "演唱判断窗口",
+    min: 1,
+    max: 101,
+    step: 2,
+    precision: 0,
+    hint: "奇数帧，21 帧约 10 秒",
+  },
+  {
+    key: "boundarySmoothingFrames",
+    label: "边界平滑窗口",
+    min: 1,
+    max: 101,
+    step: 2,
+    precision: 0,
+    hint: "奇数帧，5 帧约 2.9 秒",
+  },
+  {
+    key: "decisionHopSeconds",
+    label: "判断步长",
+    min: 0.48,
+    max: 9.6,
+    step: 0.48,
+    precision: 2,
+    hint: "秒，须为 0.48 的整数倍",
+  },
+  {
+    key: "minimumSeedSeconds",
+    label: "连续演唱证据",
+    min: 0.48,
+    max: 60,
+    step: 0.48,
+    precision: 2,
+    hint: "秒，排除零散演唱分数",
+  },
+  {
+    key: "minSegmentDuration",
+    label: "最小片段时长",
+    min: 1,
+    max: 3000,
+    step: 1,
+    precision: 0,
+    hint: "秒",
+  },
+  {
+    key: "maxGapDuration",
+    label: "演唱证据合并间隔",
+    min: 0,
+    max: 1200,
+    step: 1,
+    precision: 0,
+    hint: "秒",
+  },
+  {
+    key: "bridgeMaxGapSeconds",
+    label: "最大伴奏间隔",
+    min: 0,
+    max: 1200,
+    step: 1,
+    precision: 0,
+    hint: "秒，仅连接音乐持续且讲话较少的间隔",
+  },
+  {
+    key: "maximumLeadSeconds",
+    label: "最多补齐前奏",
+    min: 0,
+    max: 1200,
+    step: 1,
+    precision: 0,
+    hint: "秒",
+  },
+  {
+    key: "maximumTailSeconds",
+    label: "最多补齐尾奏",
+    min: 0,
+    max: 1200,
+    step: 1,
+    precision: 0,
+    hint: "秒",
+  },
+];
 
 interface Props {
   modelValue: WaveformAnalyzerConfig;
@@ -136,13 +224,7 @@ const notice = useNotice();
 
 const visible = defineModel<boolean>("visible", { default: false });
 
-const defaultConfig: WaveformAnalyzerConfig = {
-  energyPercentile: 50,
-  minSegmentDuration: 20,
-  maxGapDuration: 20,
-  smoothWindowSize: 4,
-  disableCache: false,
-};
+const defaultConfig = DEFAULT_MUSIC_DETECTION_CONFIG;
 
 const formValue = ref<WaveformAnalyzerConfig>({ ...props.modelValue });
 
@@ -173,6 +255,29 @@ const handleConfirm = async () => {
     return;
   }
 
+  if (loading.value) return;
+  const c = formValue.value;
+  const invalid = numberFields.some(
+    (field) =>
+      !Number.isFinite(c[field.key]) || c[field.key] < field.min || c[field.key] > field.max,
+  );
+  const invalidWindow = [c.contextFrames, c.boundarySmoothingFrames].some(
+    (n) => !Number.isInteger(n) || n % 2 !== 1,
+  );
+  const hop = c.decisionHopSeconds / 0.48;
+  if (
+    invalid ||
+    invalidWindow ||
+    c.sustainThreshold > c.startThreshold ||
+    Math.abs(hop - Math.round(hop)) > 1e-8
+  ) {
+    notice.error({
+      title: "检测参数无效",
+      content: "请检查参数范围、奇数窗口、0.48 秒整数倍步长，以及维持阈值不高于开始阈值。",
+      duration: 5000,
+    });
+    return;
+  }
   loading.value = true;
   progress.value = {
     percentage: 0,

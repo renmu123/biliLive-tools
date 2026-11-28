@@ -44,7 +44,7 @@
     "font-ls": "0.6.7",
     "better-sqlite3": "13.0.3",
     "shazamio-core": "^1.3.1",
-    "music-segment-detector": "^0.3.1"
+    "onnxruntime-node": "1.21.0"
   },
   "optionalDependencies": {
     "ntsuspend": "^1.0.2"

@@ -11,7 +11,7 @@ export default [
       "font-ls",
       "better-sqlite3",
       "shazamio-core",
-      "music-segment-detector",
+      "onnxruntime-node",
       "fsevents",
     ],
     input: "src/index.ts",

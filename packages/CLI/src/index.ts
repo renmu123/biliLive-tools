@@ -17,6 +17,7 @@ interface Config {
   bililiveRecorderPath: string;
   audiowaveformPath: string;
   danmakuFactoryPath: string;
+  yamnetModelPath?: string;
   logPath: string;
   passKey?: string;
 }
@@ -64,6 +65,7 @@ program
       defaultMesioPath: c.mesioPath,
       defaultAudioWaveformPath: c.audiowaveformPath,
       defaultBililiveRecorderPath: c.bililiveRecorderPath,
+      defaultYamnetModelPath: path.resolve(c.yamnetModelPath || "models/yamnet.onnx"),
       version: version,
       userDataPath: c.configFolder,
     };
@@ -131,6 +133,7 @@ function generateConfig(configPath: string) {
     bililiveRecorderPath: "BililiveRecorder.Cli.exe",
     audiowaveformPath: "audiowaveform.exe",
     danmakuFactoryPath: "DanmakuFactory.exe",
+    yamnetModelPath: "models/yamnet.onnx",
     logPath: "main.log",
   };
   if (process.platform === "win32") {

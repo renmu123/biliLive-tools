@@ -127,6 +127,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_MUSIC_DETECTION_CONFIG } from "@biliLive-tools/types/musicDetection.js";
 defineOptions({
   name: "videoCut",
 });
@@ -171,11 +172,8 @@ const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 const showVideoTime = useStorage("cut-show-video-time", true);
 const activeSegmentView = ref<"cuts" | "config" | "subtitle">("cuts");
 
-const waveformAnalyzerConfig = useStorage("cut-waveform-analyzer-config-new", {
-  energyPercentile: 50, // 能量百分位阈值 (0-100)
-  minSegmentDuration: 25, // 最小片段时长（秒）
-  maxGapDuration: 15, // 最大间隔时长（秒）
-  smoothWindowSize: 4, // 平滑窗口大小（秒）
+const waveformAnalyzerConfig = useStorage("cut-yamnet-analyzer-config-v1", {
+  ...DEFAULT_MUSIC_DETECTION_CONFIG,
 });
 const waveformAnalyzerDialogVisible = ref(false);
 

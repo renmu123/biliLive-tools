@@ -13,6 +13,7 @@ files:
   - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
 asarUnpack:
   - resources/**
+  - node_modules/onnxruntime-node/**
 win:
   executableName: biliLive-tools
   target:

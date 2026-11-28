@@ -29,6 +29,8 @@ overrides:
 blockExoticSubdeps: false
 
 allowBuilds:
+  # CPU 原生库已随包提供，跳过安装脚本的额外 CUDA 下载。
+  onnxruntime-node: false
   better-sqlite3: true
   bufferutil: true
   electron: true
